@@ -138,7 +138,7 @@ def spectrum_thread_function():
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
 	sleep_sec=0.87/cfg.fft_fps
-	print "[openwebrx-spectrum] Spectrum thread initialized successfully. Thread id:", ctypes.CDLL('/lib/i386-linux-gnu/libc.so.6').syscall(224)
+	print "[openwebrx-spectrum] Spectrum thread initialized successfully."
 	dsp.start()
 	print "[openwebrx-spectrum] Spectrum thread started." 
 	while True:
