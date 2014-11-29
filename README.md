@@ -8,9 +8,9 @@ OpenWebRX is a multi-user SDR receiver software with a web interface.
 It has the following features:
 
 - <a href="https://github.com/simonyiszk/csdr">libcsdr</a> based demodulators (AM/FM/SSB),
-- filter bandwith, BFO, PBS can be set from GUI,
+- filter passband can be set from GUI,
 - waterfall display can be shifted back in time,
-- it extensively uses HTML5 features like WebSocket, Web Audio API, and &gt;canvas&lt;.
+- it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
 - currently only supports RTL-SDR, but other SDR hardware may be easily added.
 
