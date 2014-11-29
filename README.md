@@ -19,6 +19,7 @@ It has the following features:
 OpenWebRX currently requires a Linux machine to run. 
 
 First you will need to install the dependencies:
+
 - <a href="https://github.com/simonyiszk/csdr">libcsdr</a>
 - <a href="http://sdr.osmocom.org/trac/wiki/rtl-sdr">rtl-sdr</a>
 
@@ -29,6 +30,7 @@ After cloning this repository and connecting an RTL-SDR dongle to your computer,
 You can now open the GUI at <a href="http://localhost:8073">http://localhost:8073</a>.
 
 Please note that it is also listening on the following ports (on localhost only):
+
 - port 8888 for the I/Q source,
 - port 4951 for the multi-user I/Q server.
 
@@ -39,6 +41,10 @@ I would like to maintain a list of online amateur radio receivers on <a href="ht
 
 ## Usage tips
 
-The filter envelope can be dragged at its ends and moved.
+The filter envelope can be dragged at its ends and moved around to set the passband.
 
 However, if you hold the shift key, you can drag the center line (BFO) or the passband (PBS).
+
+## Todo
+
+Currently, clients use up a lot of bandwidth. This will be improved later.
