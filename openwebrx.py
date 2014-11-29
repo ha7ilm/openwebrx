@@ -1,4 +1,5 @@
 #!/usr/bin/python
+print "" # python2.7 is required to run OpenWebRX instead of python3. Please run me by: python2 openwebrx.py
 """
 OpenWebRX: open-source web based SDR for everyone!
 
