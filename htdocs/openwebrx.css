@@ -1,0 +1,433 @@
+/*
+OpenWebRX (c) Copyright 2013-2014 Andras Retzler <randras@sdr.hu>
+
+This file is part of OpenWebRX.
+
+    OpenWebRX is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenWebRX is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenWebRX. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+html, body
+{
+	margin: 0;
+	padding: 0;
+   height: 100%;
+	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
+	overflow: hidden;
+}
+
+#webrx-top-container
+{
+	position: relative;
+	z-index:1000;
+}
+
+.webrx-top-bar-parts
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width:100%;
+	height:67px;
+}
+
+#webrx-top-bar-background
+{
+	background-color: #808080;
+	opacity: 0.15;
+	filter:alpha(opacity=15);
+}
+
+#webrx-top-bar
+{
+	margin:0;
+	padding:0;
+}
+
+
+#webrx-top-logo
+{
+	position: absolute;
+	top: 12px;
+	left: 15px;
+}
+
+#webrx-ha5kfu-top-logo
+{
+	position: absolute;
+	top: 19px;
+	right: 15px;
+}
+
+#webrx-top-photo
+{
+	width: 100%;
+	display: block;
+}
+
+#webrx-rx-avatar-background
+{
+	cursor:pointer;
+	position: absolute;
+	left: 285px;
+	top: 6px;
+}
+
+#webrx-rx-avatar
+{
+	cursor:pointer;
+	position: absolute;
+	left: 289px;
+	top: 10px;
+	width: 46px;
+	height: 46px;
+}
+
+#webrx-top-photo-clip
+{
+	max-height: 350px;
+	overflow: hidden;
+	position: relative;
+}
+
+/*#webrx-bottom-bar
+{
+	position: absolute;
+	bottom: 0px;
+	width: 100%;
+	height: 117px;
+	background-image:url(gfx/webrx-bottom-bar.png);
+}*/
+
+#webrx-page-container
+{
+   min-height:100%;
+   position:relative;
+}
+
+/*#webrx-photo-gradient-left
+{
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	background-image:url(gfx/webrx-photo-gradient-corner.png);	
+	width: 59px;
+	height: 92px;
+
+}
+
+#webrx-photo-gradient-middle
+{
+	position: absolute;
+	bottom: 0px;
+	left: 59px;
+	right: 59px;
+	height: 92px;
+	background-image:url(gfx/webrx-photo-gradient-middle.png);	
+}
+
+#webrx-photo-gradient-right
+{
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	background-image:url(gfx/webrx-photo-gradient-corner.png);	
+	width: 59px;
+	height: 92px;
+   -webkit-transform:scaleX(-1);
+   -moz-transform:scaleX(-1);
+   -ms-transform:scaleX(-1);
+   -o-transform:scaleX(-1);
+   transform:scaleX(-1);
+}*/
+
+#webrx-rx-photo-title
+{
+	position: absolute;
+	left: 15px;
+	top: 78px;
+	color: White;
+	font-size: 16pt;
+	text-shadow: 1px 1px 4px #444;
+	opacity: 1;
+}
+
+#webrx-rx-photo-desc
+{
+	position: absolute;
+	left: 15px;
+	top: 109px;
+	color: White;
+	font-size: 10pt;
+	font-weight: bold;
+	text-shadow: 0px 0px 6px #444;
+	opacity: 1;
+	line-height: 1.5em;
+}
+
+#webrx-rx-photo-desc a
+{
+	color: #5ca8ff;
+	text-shadow: none;
+}
+
+#webrx-rx-title
+{
+	white-space:nowrap;
+	overflow: hidden;
+	cursor:pointer;
+	position: absolute;
+	left: 350px;
+	top: 13px;
+	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
+	color: #909090;
+	font-size: 11pt;
+	font-weight: bold;
+}
+
+#webrx-rx-desc
+{
+	white-space:nowrap;
+	overflow: hidden;
+	cursor:pointer;
+	font-size: 10pt;
+	color: #909090;
+	position: absolute;
+	left: 350px;
+	top: 34px;
+}
+
+#webrx-rx-desc a
+{
+	color: #909090;
+	/*text-decoration: none;*/
+}
+
+#openwebrx-rx-details-arrow
+{
+	cursor:pointer;
+	position: absolute;
+	left: 470px;
+	top: 51px;
+}
+
+#openwebrx-rx-details-arrow a
+{
+	margin: 0;
+	padding: 0;
+}
+
+#openwebrx-rx-details-arrow-down
+{
+	display:none;
+}
+
+/*canvas#waterfall-canvas
+{
+	border-style: none;
+	border-width: 1px;
+	height: 150px;
+	width: 100%;
+}*/
+
+#openwebrx-scale-container
+{
+	height: 47px;
+	background-image: url("gfx/openwebrx-scale-background.png");
+	background-repeat: repeat-x;
+	overflow: hidden;
+	z-index:1000;
+	position: relative;
+}
+
+#webrx-canvas-container
+{
+	/*background-image:url('gfx/openwebrx-blank-background-1.jpg');*/
+	position: relative;
+	height: 2000px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	/*background-color: #646464;*/
+	/*background-image: -webkit-linear-gradient(top, rgba(247,247,247,1) 0%, rgba(0,0,0,1) 100%);*/
+	background-image: url('gfx/openwebrx-background-cool-blue.png');
+	background-repeat: no-repeat;
+	background-color: #1e5f7f;
+	cursor: crosshair;
+}
+
+#webrx-canvas-container canvas
+{
+	position: absolute;
+	border-style: none;
+}
+
+#openwebrx-phantom-canvas
+{
+	position: absolute;
+	width: 0px;
+	height: 0px;
+}
+
+/*#openwebrx-canvas-gradient-background
+{
+	overflow: hidden;
+	width: 100%;
+	height: 396px;
+}*/
+
+/*#webrx-debugdiv
+{
+	font-size: 10pt;
+	/*overflow-y:scroll;*/
+/*}*/
+
+#webrx-main-container
+{
+	position: relative;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+.webrx-error
+{
+	font-weight: bold;
+	color: #ff6262;
+}
+
+#openwebrx-problems span
+{
+	background: #ff6262;
+	padding: 3px;
+	font-size: 8pt;
+	color: white;
+	font-weight: bold;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	margin: 0px 2px 0px 2px;
+}
+
+/*#webrx-freq-show
+{
+	visibility: hidden;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding: 5px;
+	font-weight: bold;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	background-color: #999999;
+	color: White;
+	z-index:9999; /*should be higher?
+	
+}*/
+
+/* removed non-free fonts like that: */
+/*@font-face {
+    font-family: 'unibody_8_pro_regregular';
+    src: url('gfx/unibody8pro-regular-webfont.eot');
+    src: url('gfx/unibody8pro-regular-webfont.ttf');
+    font-weight: normal;
+    font-style: normal;
+}*/
+
+@font-face {
+    font-family: 'expletus-sans-medium';
+    src: url('gfx/font-expletus-sans/ExpletusSans-Medium.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+#webrx-actual-freq
+{
+	width: 100%;
+	text-align: left;
+	font-size: 16pt;
+	font-family: 'expletus-sans-medium';
+	padding: 0;
+	margin: 0;
+	line-height:22px;
+	
+}
+
+#webrx-mouse-freq
+{
+	width: 100%;
+	text-align: left;
+	font-size: 10pt;
+	color: #AAA;
+	font-family: 'expletus-sans-medium';
+	margin-bottom: 5px;
+}
+
+.openwebrx-panel
+{
+	visibility: hidden;
+	background-color: #575757;
+	padding: 10px;
+	color: white;
+	position: fixed;
+	font-size: 10pt;
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+}
+
+.openwebrx-panel a
+{
+	color: #5ca8ff;
+	text-shadow: none;
+}
+
+.openwebrx-panel-inner
+{
+	overflow-y: auto;
+	overflow-x: hidden;
+	height: 100%;
+}
+
+.openwebrx-button
+{
+	background-color: #373737;
+	padding: 5px;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	color: White;
+	font-weight: bold;
+	width: auto;
+	float: left;
+	margin-right: 5px;
+	cursor: pointer;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #373737), color-stop(1, #4F4F4F) );
+	background:-moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
+}
+
+.openwebrx-button:hover
+{
+	/*background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #3F3F3F), color-stop(1, #777777) );
+	background:-moz-linear-gradient( center top, #373737 5%, #4F4F4F 100% );*/
+	background: #474747;
+	color: #FFFF50;
+}
+
+.openwebrx-button:active 
+{
+	background: #777777;
+	color: #FFFF50;	
+}
+
+#openwebrx-client-log-title 
+{
+	margin-bottom: 5px;
+	font-weight: bold;
+}

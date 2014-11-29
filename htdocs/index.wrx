@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<!--
+OpenWebRX (c) Copyright 2013-2014 Andras Retzler <randras@sdr.hu>
+
+This file is part of OpenWebRX.
+
+    OpenWebRX is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenWebRX is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenWebRX. If not, see <http://www.gnu.org/licenses/>.
+-->
+<html>
+	<head>
+		<title>OpenWebRX | Open Source Web-based SDR for everyone!</title>
+		<script type="text/javascript">
+			//Local variables
+			client_id="%[CLIENT_ID]";
+			ws_url="%[WS_URL]";
+			rx_photo_height=%[RX_PHOTO_HEIGHT];
+		</script>
+		<script src="openwebrx.js"></script>
+		<link rel="stylesheet" type="text/css" href="openwebrx.css" />
+		<meta charset="utf-8">
+	</head>
+	<body onload="openwebrx_init();">
+<div id="webrx-page-container">
+	<div id="webrx-top-container">
+		<div id="webrx-top-photo-clip"> 
+			<img src="gfx/openwebrx-top-photo.jpg" id="webrx-top-photo"/> 
+			<div id="webrx-rx-photo-title">%[RX_PHOTO_TITLE]</div>
+			<div id="webrx-rx-photo-desc">%[RX_PHOTO_DESC]</div>
+		</div>
+		<div id="webrx-top-bar-background" class="webrx-top-bar-parts"></div>
+		<div id="webrx-top-bar" class="webrx-top-bar-parts">
+			<a href="http://openwebrx.org/" target="_blank"><img src="gfx/openwebrx-top-logo.png" id="webrx-top-logo" /></a>
+			<a href="http://ha5kfu.sch.bme.hu/" target="_blank"><img src="gfx/openwebrx-ha5kfu-top-logo.png" id="webrx-ha5kfu-top-logo" /></a>
+			<img id="webrx-rx-avatar-background" src="gfx/openwebrx-avatar-background.png" onclick="toggle_rx_photo();"/>
+			<img id="webrx-rx-avatar" src="gfx/openwebrx-avatar.png" onclick="toggle_rx_photo();"/>
+			<div id="webrx-rx-title" onclick="toggle_rx_photo();">%[RX_TITLE]</div>
+			<div id="webrx-rx-desc" onclick="toggle_rx_photo();">%[RX_LOC] | Loc: %[RX_QRA], ASL: %[RX_ASL] m, <a href="https://www.google.hu/maps/place/%[RX_GPS]" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a></div>
+			<div id="openwebrx-rx-details-arrow">
+				<a id="openwebrx-rx-details-arrow-up" onclick="toggle_rx_photo();"><img src="gfx/openwebrx-rx-details-arrow-up.png" /></a>
+				<a id="openwebrx-rx-details-arrow-down" onclick="toggle_rx_photo();"><img src="gfx/openwebrx-rx-details-arrow.png" /></a>
+			</div>
+		</div>
+	</div>
+	<div id="webrx-main-container">
+			<div id="openwebrx-scale-container">
+				<canvas id="openwebrx-scale-canvas" width="0" height="0"></canvas>
+			</div>
+			<div id="webrx-canvas-container">
+				<div id="openwebrx-phantom-canvas"></div>
+				<!-- add canvas here by javascript -->
+			</div>
+			<div id="openwebrx-panels-container">
+				<div class="openwebrx-panel" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="215,70">
+					<div id="webrx-actual-freq">---.--- MHz</div>
+					<div id="webrx-mouse-freq">---.--- MHz</div>
+					<!--<div class="openwebrx-button" onclick="ws.send('SET mod=wfm');" >WFM</div>-->
+					<div class="openwebrx-button" onclick="demodulator_analog_replace('nfm');">FM</div>
+					<div class="openwebrx-button" onclick="demodulator_analog_replace('am');">AM</div>					
+					<div class="openwebrx-button" onclick="demodulator_analog_replace('lsb');">LSB</div>
+					<div class="openwebrx-button" onclick="demodulator_analog_replace('usb');">USB</div>
+					<div class="openwebrx-button" onclick="demodulator_analog_replace('cw');">CW</div>
+				</div>
+				<div class="openwebrx-panel" id="webrx-config" data-panel-name="debug" data-panel-pos="left" data-panel-order="0" data-panel-size="585,130">
+					<div class="openwebrx-panel-inner">
+						<div id="openwebrx-client-log-title">openwebrx.js (beta) client log </strong><span id="openwebrx-problems"></span></div>
+						Author: <a href="javascript:sendmail2('pi7qtu=alz$pc');">HA7ILM</a>. Please send me bug reports and suggestions.<br/>
+						Client status: <span id="openwebrx-client-status">
+							<span id="openwebrx-audio-sps"></span><br/>
+						<!--Server status: <span id="openwebrx-server-status">no information</span><br/>-->
+						Your client ID is: <em>%[CLIENT_ID]</em><br />
+						<div id="openwebrx-debugdiv"></div>
+					</div>
+				</div>
+				<div class="openwebrx-panel" data-panel-name="client-under-devel" data-panel-pos="none" data-panel-order="0" data-panel-size="245,55" style="background-color: Red;">
+					<span style="font-size: 15pt; font-weight: bold;">Under construction</span>
+					<br />We're working on the code right now, so the application might fail.
+				</div>
+			</div>
+	</div>
+</div>
+	</body>
+</html>
