@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 """
 OpenWebRX: open-source web based SDR for everyone!
 

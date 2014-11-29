@@ -16,7 +16,7 @@ It has the following features:
 
 ## Setup
 
-OpenWebRX currently requires a Linux machine to run. 
+OpenWebRX currently requires Linux and python 2.7 to run. 
 
 First you will need to install the dependencies:
 
