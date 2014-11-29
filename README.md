@@ -37,7 +37,7 @@ Please note that the server is also listening on the following ports (on localho
 Now the next step is to customize the parameters of your server in `config_webrx.py`.
 
 Actually, if you do something cool with OpenWebRX (or just have a problem), please drop me a mail:  
-Andras Retzler, HA7ILM &lt;randras@sdr.hu&gt;
+*Andras Retzler, HA7ILM &lt;randras@sdr.hu&gt;*
 
 I would like to maintain a list of online amateur radio receivers on <a href="http://sdr.hu/">sdr.hu</a>.
 
