@@ -14,8 +14,9 @@ class dsp_plugin:
 		self.low_cut = -4000
 		self.high_cut = 4000
 		self.bpf_transition_bw = 300 #Hz, and this is a constant
+		self.ddc_transition_bw_rate = 0.15 # of the IF sample rate
 		self.running = False
-		chain_begin="nc localhost 4951 | csdr convert_u8_f | csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} 0.005 HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
+		chain_begin="nc localhost 4951 | csdr convert_u8_f | csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
 		self.chains = {
 			"nfm" :  chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 48000 | csdr fastagc_ff | csdr convert_f_i16",
 			"am" :  chain_begin + "csdr amdemod_cf | csdr fastdcblock_ff | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_i16",
@@ -85,6 +86,9 @@ class dsp_plugin:
 			pass
 		os.mkfifo(path)	
 
+	def ddc_transition_bw(self):
+		return self.ddc_transition_bw_rate*(self.if_samp_rate()/float(self.samp_rate))
+
 	def start(self):
 		command_base=self.chains[self.demodulator]
 		
@@ -99,7 +103,7 @@ class dsp_plugin:
 			self.mkfifo(self.shift_pipe)
 
 		#run the command
-		command=command_base.format(bpf_pipe=self.bpf_pipe,shift_pipe=self.shift_pipe,decimation=self.decimation,last_decimation=self.last_decimation,fft_size=self.fft_size,fft_block_size=self.fft_block_size(),bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate())
+		command=command_base.format(bpf_pipe=self.bpf_pipe,shift_pipe=self.shift_pipe,decimation=self.decimation,last_decimation=self.last_decimation,fft_size=self.fft_size,fft_block_size=self.fft_block_size(),bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(),ddc_transition_bw=self.ddc_transition_bw())
 		print "[openwebrx-dsp-plugin:csdr] Command =",command
 		#code.interact(local=locals())
 		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)

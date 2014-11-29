@@ -47,6 +47,12 @@ The filter envelope can be dragged at its ends and moved around to set the passb
 
 However, if you hold the shift key, you can drag the center line (BFO) or the whole passband (PBS).
 
+## Configuration tips
+
+If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`, or you may get a WebSocket error.
+
+DSP CPU usage can be fine-tuned in `plugins/dsp/csdr/plugin.py`: you can set transition bandwidths higher (thus degrade filter performance by decreasing the length of the kernel, but also decrease CPU usage).
+
 ## Todo
 
 Currently, clients use up a lot of bandwidth. This will be improved later.
