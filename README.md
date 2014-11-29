@@ -29,7 +29,7 @@ After cloning this repository and connecting an RTL-SDR dongle to your computer,
 
 You can now open the GUI at <a href="http://localhost:8073">http://localhost:8073</a>.
 
-Please note that it is also listening on the following ports (on localhost only):
+Please note that the server is also listening on the following ports (on localhost only):
 
 - port 8888 for the I/Q source,
 - port 4951 for the multi-user I/Q server.
