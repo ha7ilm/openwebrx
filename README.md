@@ -43,6 +43,8 @@ I would like to maintain a list of online amateur radio receivers on <a href="ht
 
 ## Usage tips
 
+You can zoom the waterfall display by the mouse wheel.
+
 The filter envelope can be dragged at its ends and moved around to set the passband.
 
 However, if you hold the shift key, you can drag the center line (BFO) or the whole passband (PBS).
