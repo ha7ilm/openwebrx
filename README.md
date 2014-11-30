@@ -53,10 +53,11 @@ However, if you hold down the shift key, you can drag the center line (BFO) or t
 
 If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`, or you may get a WebSocket error.
 
-DSP CPU usage can be fine-tuned in `plugins/dsp/csdr/plugin.py`: you can set transition bandwidths higher (thus degrade filter performance by decreasing the length of the kernel, but also decrease CPU usage), and also lower `fft_size`.
+DSP CPU usage can be fine-tuned in `plugins/dsp/csdr/plugin.py`: you can set transition bandwidths higher (thus degrade filter performance by decreasing the length of the kernel, but also decrease CPU usage), and also set `fft_size` lower.
+
+If you constantly get *audio overrun* errors, you may change `audio_buffer_maximal_length_sec` in `openwebrx.js` from the default 1.7 to 3.
 
 If you want a chat-box to the top of the page, <a href="https://gist.github.com/ha7ilm/15c4c5e4c80cef9b3144">here is a snippet</a> for you to include in `config_webrx.py`.
-
 
 ## Todo
 
