@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 print "" # python2.7 is required to run OpenWebRX instead of python3. Please run me by: python2 openwebrx.py
 """
 OpenWebRX: open-source web based SDR for everyone!
@@ -54,6 +54,7 @@ import ctypes
 import rxws
 import uuid
 import config_webrx as cfg
+import signal
 
 def import_all_plugins(directory):
 	for subdir in os.listdir(directory):
@@ -67,16 +68,22 @@ def import_all_plugins(directory):
 class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass 
 
+def handle_signal(signal, frame):
+	print "[openwebrx] Ctrl+C: aborting."
+	os._exit(1) #not too graceful exit
+
 def main():
 	global clients
 	global clients_mutex
-
 	print
 	print "OpenWebRX - Open Source Web Based SDR for Everyone  | for license see LICENSE file in the package"
 	print "_________________________________________________________________________________________________"
 	print 
 	print "Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>"
 	print 
+
+	#Set signal handler
+	signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
 
 	#Load plugins
 	import_all_plugins("plugins/dsp/")
@@ -98,9 +105,9 @@ def main():
 		print "[openwebrx-main] Started rtl thread: "+cfg.start_rtl_command
 
 	#Run rtl_mus.py in a different OS thread
-	rtl_mus_thread=threading.Thread(target = lambda:subprocess.Popen("python rtl_mus.py config_rtl", shell=True), args=())
+	rtl_mus_thread=threading.Thread(target = lambda:subprocess.Popen("python2 rtl_mus.py config_rtl", shell=True), args=())
 	rtl_mus_thread.start() # The new feature in GNU Radio 3.7: top_block() locks up ALL python threads until it gets the TCP connection.
-	print "[openwebrx-main] Started rtl_mus"
+	print "[openwebrx-main] Started rtl_mus."
 	time.sleep(1) #wait until it really starts	
 
 	#Initialize clients

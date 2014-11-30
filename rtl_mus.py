@@ -37,9 +37,14 @@ import pdb
 import asyncore
 import multiprocessing
 import dl
+import signal
 
 import code
 import traceback
+
+def handle_signal(signal, frame):
+	log.info("Ctrl+C: aborting.")
+	os._exit(1) #not too graceful exit
 
 def ip_match(this,ip_ranges,for_allow):
 	if not len(ip_ranges):
@@ -444,6 +449,9 @@ def main():
 	global max_client_id
 	global rtl_tcp_core
 	global sample_rate
+
+	#Set signal handler
+	signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
 
 	# set up logging
 	log = logging.getLogger("rtl_mus")

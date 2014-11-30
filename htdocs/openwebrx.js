@@ -897,7 +897,7 @@ function canvas_mousewheel(evt)
 	//console.log(evt);
 	var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
 	var dir=(evt.deltaY/Math.abs(evt.deltaY))>0;
-	console.log(dir);
+	//console.log(dir);
 	//i/=120;
 	/*while (i--)*/ zoom_step(dir, relativeX, zoom_center_where_calc(evt.pageX));
 	evt.preventDefault();	
@@ -1261,6 +1261,7 @@ function on_ws_error(event)
 
 function open_websocket()
 {
+	//ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/" //guess automatically
 	if (!("WebSocket" in window)) 
 		divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
 	ws = new WebSocket(ws_url+client_id);
