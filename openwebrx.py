@@ -224,6 +224,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
 	def do_GET(self):
 		global dsp_plugin
+		global clients_mutex
 		rootdir = 'htdocs' 
 		self.path=self.path.replace("..","")
 		path_temp_parts=self.path.split("?")
@@ -236,16 +237,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			if self.path[:4]=="/ws/":
 				try:
 					# ========= WebSocket handshake  =========
+					ws_success=True
 					try:				
 						rxws.handshake(self)
 						clients_mutex.acquire()				
 						client_i=get_client_by_id(self.path[4:], False)
 						myclient=clients[client_i]
-						clients_mutex.release()
-					except rxws.WebSocketException:
-						self.send_error(400, 'Bad request.')
-						return
-					except ClientNotFoundException:
+					except rxws.WebSocketException: ws_success=False
+					except ClientNotFoundException: ws_success=False
+					finally:
+						if clients_mutex.locked(): clients_mutex.release()
+					if not ws_success:
 						self.send_error(400, 'Bad request.')
 						return
 
@@ -310,25 +312,33 @@ class WebRXHandler(BaseHTTPRequestHandler):
 									dsp.set_bpf(*new_bpf)
 								#code.interact(local=locals())
 				except:
-					print "[openwebrx-httpd] exception happened at all"
 					exc_type, exc_value, exc_traceback = sys.exc_info()
 					if exc_value[0]==32: #"broken pipe", client disconnected
 						pass
-					elif exc_value[0]==11: #"resource unavailable" on recv, client disconnected					
+					elif exc_value[0]==11: #"resource unavailable" on recv, client disconnected	
 						pass
 					else:	
-						print "[openwebrx-httpd] error: ",exc_type,exc_value
+						print "[openwebrx-httpd] error in /ws/ handler: ",exc_type,exc_value
 						traceback.print_tb(exc_traceback)
-				#delete disconnected client
+
+				#stop dsp for the disconnected client				
 				try:
 					dsp.stop()
 					del dsp
 				except:
-					pass
-				clients_mutex.acquire()
-				id_to_close=get_client_by_id(myclient.id,False)
-				close_client(id_to_close,False)
-				clients_mutex.release()
+					print "[openwebrx-httpd] error in dsp.stop()"
+
+				#delete disconnected client
+				try:
+					clients_mutex.acquire()
+					id_to_close=get_client_by_id(myclient.id,False)
+					close_client(id_to_close,False)
+				except:
+					exc_type, exc_value, exc_traceback = sys.exc_info()
+					print "[openwebrx-httpd] client cannot be closed: ",exc_type,exc_value
+					traceback.print_tb(exc_traceback)
+				finally:
+					clients_mutex.release()
 				return
 			else:
 				f=open(rootdir+self.path)
@@ -375,8 +385,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			self.send_error(404, 'Invalid path.')
 		except:
 			exc_type, exc_value, exc_traceback = sys.exc_info()
-			print "[openwebrx-httpd] exception happened (outside):", exc_type, exc_value
+			print "[openwebrx-httpd] error (@outside):", exc_type, exc_value
 			traceback.print_tb(exc_traceback)
+			
 
 class ClientNotFoundException(Exception):
 	pass

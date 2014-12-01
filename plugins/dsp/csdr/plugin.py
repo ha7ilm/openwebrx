@@ -13,7 +13,7 @@ class dsp_plugin:
 		self.offset_freq = 0
 		self.low_cut = -4000
 		self.high_cut = 4000
-		self.bpf_transition_bw = 300 #Hz, and this is a constant
+		self.bpf_transition_bw = 320 #Hz, and this is a constant
 		self.ddc_transition_bw_rate = 0.15 # of the IF sample rate
 		self.running = False
 		chain_begin="nc localhost 4951 | csdr convert_u8_f | csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
