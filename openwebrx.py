@@ -300,12 +300,12 @@ class WebRXHandler(BaseHTTPRequestHandler):
 									param_name, param_value = pair.split("=")
 									if param_name == "low_cut" and -filter_limit <= float(param_value) <= filter_limit:
 										bpf_set=True
-										new_bpf[0]=param_value
+										new_bpf[0]=int(param_value)
 									elif param_name == "high_cut" and -filter_limit <= float(param_value) <= filter_limit:
 										bpf_set=True
-										new_bpf[1]=param_value
+										new_bpf[1]=int(param_value)
 									elif param_name == "offset_freq" and -cfg.samp_rate/2 <= float(param_value) <= cfg.samp_rate/2:
-										dsp.set_offset_freq(param_value)
+										dsp.set_offset_freq(int(param_value))
 									elif param_name=="mod":
 										dsp.stop()
 										dsp.set_demodulator(param_value)
