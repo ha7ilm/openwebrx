@@ -252,6 +252,10 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						return
 
 					# ========= Client handshake =========
+					if myclient.ws_started:
+						print "[openwebrx-httpd] error: second client ws connection, throwing it."
+						self.send_error(400, 'Bad request.') #client already started
+						return
 					rxws.send(self, "CLIENT DE SERVER openwebrx.py")
 					client_ans=rxws.recv(self, True)
 					if client_ans[:16]!="SERVER DE CLIENT":
