@@ -153,10 +153,13 @@ def spectrum_thread_function():
 		data=dsp.read(cfg.fft_size*4)
 		#print "gotcha",len(data),"bytes of spectrum data via spectrum_thread_function()"
 		clients_mutex.acquire()
+		correction=0
 		for i in range(0,len(clients)):
+			i-=correction
 			if (clients[i].ws_started):
 				if clients[i].spectrum_queue.full():
 					close_client(i, False)
+					correction+=1
 				else:
 					clients[i].spectrum_queue.put([data]) # add new string by "reference" to all clients
 		clients_mutex.release()

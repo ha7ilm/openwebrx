@@ -1251,7 +1251,7 @@ function on_ws_closed()
 		audio_node.disconnect();
 	}
 	catch (dont_care) {}
-	divlog("WebSocket has closed unexpectedly. Please reload the page.", 1);
+	divlog("WebSocket has closed unexpectedly. Please reload the page.", 1); 
 }
 
 function on_ws_error(event)
@@ -1259,9 +1259,15 @@ function on_ws_error(event)
 	divlog("WebSocket error.",1);
 }
 
+String.prototype.startswith=function(str){ return this.indexOf(str) == 0; }; //http://stackoverflow.com/questions/646628/how-to-check-if-a-string-startswith-another-string
+
 function open_websocket()
 {
-	//ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/" //guess automatically
+	if(ws_url.startswith("ws://localhost:")&&window.location.hostname!="127.0.0.1"&&window.location.hostname!="localhost")
+	{ 
+		divlog("Server administrator should set <em>server_hostname</em> correctly, because it is left as <em>\"localhost\"</em>. Now guessing hostname from page URL.",1); 
+		ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/"; //guess automatically
+	}
 	if (!("WebSocket" in window)) 
 		divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
 	ws = new WebSocket(ws_url+client_id);
