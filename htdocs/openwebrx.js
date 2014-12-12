@@ -1040,8 +1040,9 @@ function waterfall_add_queue(what)
 function waterfall_dequeue()
 {
 	if(waterfall_queue.length) waterfall_add(waterfall_queue.shift());
-	if(waterfall_queue.length>fft_fps/2) //in case of emergency 
+	if(waterfall_queue.length>Math.max(fft_fps/2,8)) //in case of emergency 
 	{
+		console.log(waterfall_queue.length);
 		add_problem("fft overflow");
 		while(waterfall_queue.length) waterfall_add(waterfall_queue.shift());
 	}
@@ -1213,6 +1214,9 @@ function webrx_set_param(what, value)
 
 function audio_init()
 {
+	audio_debug_time_start=(new Date()).getTime();
+	audio_debug_time_last_start=audio_debug_time_start;
+
 	//https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
 	audio_initialized=1; // only tell on_ws_recv() not to call it again
 	try 
@@ -1563,13 +1567,18 @@ var rt = function (s,n) {return s.replace(/[a-zA-Z]/g,function(c){return String.
 var irt = function (s,n) {return s.replace(/[a-zA-Z]/g,function(c){return String.fromCharCode((c>="a"?97:65)<=(c=c.charCodeAt(0)-n)?c:c+26);});}
 var sendmail2 = function (s) { window.location.href="mailto:"+irt(s.replace("=",String.fromCharCode(0100)).replace("$","."),8); }
 
-var audio_debug_time_taken=0;
+var audio_debug_time_start=0;
+var audio_debug_time_last_start=0;
 
 function debug_audio()
 {
-	audio_debug_time_taken+=1;
+	if(audio_debug_time_start==0) return; //audio_init has not been called
+	time_now=(new Date()).getTime();
+	audio_debug_time_since_last_call=(time_now-audio_debug_time_last_start)/1000;
+	audio_debug_time_last_start=time_now; //now
+	audio_debug_time_taken=(time_now-audio_debug_time_start)/1000;
 	e("openwebrx-audio-sps").innerHTML=
-		"audio recv. at "+audio_buffer_current_size_debug.toString()+" sps ("+
+		"audio recv. at "+(audio_buffer_current_size_debug/audio_debug_time_since_last_call).toFixed(0)+" sps ("+
 		(audio_buffer_all_size_debug/audio_debug_time_taken).toFixed(1)+" sps avg.), feed at "+
 		((audio_buffer_current_count_debug*audio_buffer_size)/audio_debug_time_taken).toFixed(1)+" sps output";
 	audio_buffer_current_size_debug=0;

@@ -158,6 +158,7 @@ def spectrum_thread_function():
 			i-=correction
 			if (clients[i].ws_started):
 				if clients[i].spectrum_queue.full():
+					print "[openwebrx-spectrum] client spectrum queue full, closing it."
 					close_client(i, False)
 					correction+=1
 				else:
@@ -192,6 +193,7 @@ def cleanup_clients():
 		i-=correction
 		#print "cleanup_clients:: len(clients)=", len(clients), "i=", i
 		if (not clients[i].ws_started) and (time.time()-clients[i].gen_time)>180:
+			print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
 			close_client(i, False)
 			correction+=1
 	clients_mutex.release()
@@ -200,12 +202,13 @@ def generate_client_id(ip):
 	#add a client
 	global clients
 	global clients_mutex
-	new_client=namedtuple("ClientStruct", "id gen_time ws_started sprectum_queue ip")	
+	new_client=namedtuple("ClientStruct", "id gen_time ws_started sprectum_queue ip closed")	
 	new_client.id=md5.md5(str(random.random())).hexdigest()
 	new_client.gen_time=time.time()
 	new_client.ws_started=False # to check whether client has ever tried to open the websocket
 	new_client.spectrum_queue=Queue.Queue(1000)
 	new_client.ip=ip
+	new_client.closed=[False] #byref, not exactly sure if required
 	clients_mutex.acquire()
 	clients.append(new_client)
 	log_client(new_client,"client added. Clients now: {0}".format(len(clients)))
@@ -218,6 +221,7 @@ def close_client(i, use_mutex=True):
 	global clients
 	log_client(clients[i],"client being closed.")
 	if use_mutex: clients_mutex.acquire()
+	clients[i].closed[0]=True
 	del clients[i]
 	if use_mutex: clients_mutex.release()
 	
@@ -256,7 +260,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
 					# ========= Client handshake =========
 					if myclient.ws_started:
-						print "[openwebrx-httpd] error: second client ws connection, throwing it."
+						print "[openwebrx-httpd] error: second WS connection with the same client id, throwing it."
 						self.send_error(400, 'Bad request.') #client already started
 						return
 					rxws.send(self, "CLIENT DE SERVER openwebrx.py")
@@ -277,6 +281,10 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					dsp.start()
 					
 					while True:
+						if myclient.closed[0]: 
+							print "[openwebrx-httpd:ws] client closed by other thread"
+							break
+
 						# ========= send audio =========
 						temp_audio_data=dsp.read(1024*8)
 						rxws.send(self, temp_audio_data, "AUD ")

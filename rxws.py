@@ -24,6 +24,7 @@ Authors:
 import base64
 import sha
 import select
+import code
 
 class WebSocketException(Exception):
 	pass
@@ -43,7 +44,7 @@ def handshake(myself):
 	ws_key=h_value("sec-websocket-key")
 	ws_key_toreturn=base64.b64encode(sha.new(ws_key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").digest())
 	#A sample list of keys we get: [('origin', 'http://localhost:8073'), ('upgrade', 'websocket'), ('sec-websocket-extensions', 'x-webkit-deflate-frame'), ('sec-websocket-version', '13'), ('host', 'localhost:8073'), ('sec-websocket-key', 't9J1rgy4fc9fg2Hshhnkmg=='), ('connection', 'Upgrade'), ('pragma', 'no-cache'), ('cache-control', 'no-cache')]
-	myself.connection.send("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: "+ws_key_toreturn+"\r\nCQ-CQ-de: HA5KFU\r\n\r\n")
+	myself.wfile.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: "+ws_key_toreturn+"\r\nCQ-CQ-de: HA5KFU\r\n\r\n")
 
 def get_header(size):
 	#this does something similar: https://github.com/lemmingzshadow/php-websocket/blob/master/server/lib/WebSocket/Connection.php
@@ -84,12 +85,31 @@ def xxd(data):
 		output+=hex(ord(d))[2:].zfill(2)+" " 
 	return output
 
+#for R/W the WebSocket, use recv/send
+#for reading the TCP socket, use readsock 
+#for writing the TCP socket, use myself.wfile.write and flush
+
+def readsock(myself,size,blocking):
+	#http://thenestofheliopolis.blogspot.hu/2011/01/how-to-implement-non-blocking-two-way.html
+	if blocking:
+		return myself.rfile.read(size)
+	else:
+		poll = select.poll()
+		poll.register(myself.rfile.fileno(), select.POLLIN or select.POLLPRI)
+		fd = poll.poll(0) #timeout is 0
+		if len(fd):
+			f = fd[0]
+			if f[1] > 0:
+				return myself.rfile.read(size)
+	return ""
+
+
 def recv(myself, blocking=False, debug=False):
 	bufsize=70000
-	myself.connection.setblocking(blocking)
+	#myself.connection.setblocking(blocking) #umm... we cannot do that with rfile
 	if debug: print "ws_recv begin"
 	try:
-		data=myself.connection.recv(6)
+		data=readsock(myself,6,blocking)
 		#print "rxws.recv bytes:",xxd(data)	
 	except:
 		if debug: print "ws_recv error"	
@@ -99,7 +119,7 @@ def recv(myself, blocking=False, debug=False):
 	fin=ord(data[0])&128!=0
 	is_text_frame=ord(data[0])&15==1
 	length=ord(data[1])&0x7f
-	data+=myself.connection.recv(length)
+	data+=readsock(myself,length,blocking)
 	#print "rxws.recv length is ",length," (multiple packets together?) len(data) =",len(data)
 	has_one_byte_length=length<125
 	masked=ord(data[1])&0x80!=0
@@ -118,8 +138,10 @@ def recv(myself, blocking=False, debug=False):
 #  http://tools.ietf.org/html/rfc6455#section-5.2	
 
 
-def flush(myself):
-	lR,lW,lX = select.select([],[myself.connection,],[],60)
+def flush(myself): 
+	myself.wfile.flush()
+	#or the socket, not the rfile:
+	#lR,lW,lX = select.select([],[myself.connection,],[],60)
 	
 
 def send(myself, data, begin_id="", debug=0):
@@ -133,13 +155,15 @@ def send(myself, data, begin_id="", debug=0):
 			data_to_send=begin_id+data[counter:counter+base_frame_size-len(begin_id)]
 			header=get_header(len(data_to_send))
 			flush(myself)
-			myself.connection.send(header+data_to_send)
+			myself.wfile.write(header+data_to_send)
+			flush(myself)
 			if debug: print "rxws.send ==================== #1 if branch :: from={0} to={1} dlen={2} hlen={3}".format(counter,counter+base_frame_size-len(begin_id),len(data_to_send),len(header))
 		else:
 			data_to_send=begin_id+data[counter:]
 			header=get_header(len(data_to_send))
 			flush(myself)
-			myself.connection.send(header+data_to_send)
+			myself.wfile.write(header+data_to_send)
+			flush(myself)
 			if debug: print "rxws.send :: #2 else branch :: dlen={0} hlen={1}".format(len(data_to_send),len(header))
 			#if debug: print "header:\n"+xxdg(header)+"\n\nws data:\n"+xxdg(data_to_send)
 			break
