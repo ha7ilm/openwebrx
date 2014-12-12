@@ -18,7 +18,7 @@ class dsp_plugin:
 		self.running = False
 		chain_begin="nc localhost 4951 | csdr convert_u8_f | csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
 		self.chains = {
-			"nfm" :  chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 48000 | csdr fastagc_ff | csdr convert_f_i16",
+			"nfm" :  chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 44100 | csdr fastagc_ff | csdr convert_f_i16",
 			"am" :  chain_begin + "csdr amdemod_cf | csdr fastdcblock_ff | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_i16",
 			"ssb" :  chain_begin + "csdr realpart_cf | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_i16",
 			"fft" : "nc -vv localhost 4951 | csdr convert_u8_f | csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70"
