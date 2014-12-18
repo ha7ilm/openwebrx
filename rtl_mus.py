@@ -36,8 +36,10 @@ import thread
 import pdb
 import asyncore
 import multiprocessing
-import dl
 import signal
+#pypy compatiblity
+try: import dl
+except: pass
 
 import code
 import traceback
@@ -504,11 +506,14 @@ if __name__=="__main__":
 	print "    distributed under GNU GPL v3"
 	print 
 
-	for libcpath in ["/lib/i386-linux-gnu/libc.so.6","/lib/libc.so.6"]:
-		if os.path.exists(libcpath):
-			libc = dl.open(libcpath)
-			libc.call("prctl", 15, "rtl_mus", 0, 0, 0)
-			break
+	try:
+		for libcpath in ["/lib/i386-linux-gnu/libc.so.6","/lib/libc.so.6"]:
+			if os.path.exists(libcpath):
+				libc = dl.open(libcpath)
+				libc.call("prctl", 15, "rtl_mus", 0, 0, 0)
+				break
+	except:
+		pass
 
 	# === Load configuration script ===
 	if len(sys.argv)==1:
