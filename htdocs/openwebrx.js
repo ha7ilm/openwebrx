@@ -867,8 +867,8 @@ function canvas_mouseup(evt)
 	if(!canvas_drag) 
 	{
 		//ws.send("SET offset_freq="+canvas_get_freq_offset(relativeX).toString());
-		//e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
-		 demodulator_set_offset_frequency(0, canvas_get_freq_offset(relativeX));		
+		demodulator_set_offset_frequency(0, canvas_get_freq_offset(relativeX));		
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
 	}
 	else
 	{
