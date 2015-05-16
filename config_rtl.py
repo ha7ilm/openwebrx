@@ -70,7 +70,7 @@ Example DSP commands:
   * Decompress FLAC-coded I/Q data:
     flac --force-raw-format --decode --endian=little --sign=unsigned - -
 '''
-watchdog_interval=1.5
+watchdog_interval=0
 reconnect_interval=10 
 '''
 If there's no input I/Q data after N seconds, input will be filled with zero samples, 

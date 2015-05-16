@@ -53,7 +53,7 @@ center_freq = 145525000
 rf_gain = 5
 
 start_rtl_thread=True #rtl_sdr is more stable than rtl_tcp...
-start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq}  - | nc -vvl 127.0.0.1 -p 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate) 
+start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} - | nc -vvl 127.0.0.1 -p 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate) 
 #start_rtl_tcp_command="rtl_tcp -s 250000 -f 145525000 -g 0 -p 8888"
 #You can use other SDR hardware as well, but if the command above outputs samples in a format other than [unsigned char], then the dsp plugin has to be slightly modified (at the csdr convert_u8_f part).
 

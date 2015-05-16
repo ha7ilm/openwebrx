@@ -87,7 +87,7 @@ def add_data_to_clients(new_data):
 			elif cfg.cache_full_behaviour == 1:
 				#rather closing client:
 				log.error("client cache full, dropping client: "+str(client[0].ident)+"@"+client[0].socket[1][0])
-				client[0].close()
+				client[0].close(False)
 			elif cfg.cache_full_behaviour == 2:
 				pass #client cache full, just not taking care
 			else: log.error("invalid value for cfg.cache_full_behaviour")
@@ -131,6 +131,7 @@ class client_handler(asyncore.dispatcher):
 		self.sent_dongle_id=False
 		self.last_waiting_buffer=""
 		asyncore.dispatcher.__init__(self, self.client[0].socket[0])
+		self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
 	def handle_read(self):
 		global commands
@@ -174,6 +175,7 @@ class server_asyncore(asyncore.dispatcher):
 		self.set_reuse_addr()
 		self.bind((cfg.my_ip, cfg.my_listening_port))
 		self.listen(5)
+		self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		log.info("Server listening on port: "+str(cfg.my_listening_port))
 
 	def handle_accept(self):
@@ -188,7 +190,7 @@ class server_asyncore(asyncore.dispatcher):
 			my_client[0].ident=max_client_id
 			max_client_id+=1
 			my_client[0].start_time=time.time()
-			my_client[0].waiting_data=multiprocessing.Queue(250)
+			my_client[0].waiting_data=multiprocessing.Queue(500)
 			clients_mutex.acquire()
 			clients.append(my_client)
 			clients_mutex.release()
@@ -278,9 +280,9 @@ class rtl_tcp_asyncore(asyncore.dispatcher):
 		if(len(rtl_dongle_identifier)==0):
 			rtl_dongle_identifier=self.recv(12)
 			return
-		new_data_buffer=self.recv(16348)
+		new_data_buffer=self.recv(1024*16)
 		if cfg.watchdog_interval:
-			watchdog_data_count+=16348
+			watchdog_data_count+=1024*16
 		if cfg.use_dsp_command:
 			dsp_input_queue.put(new_data_buffer)
 			#print "did put anyway"
@@ -418,11 +420,13 @@ class client:
 	socket=None
 	asyncore=None
 
-	def close(self):
+	def close(self, use_mutex=True):
 		global clients_mutex
 		global clients
-		clients_mutex.acquire()
+		if use_mutex: clients_mutex.acquire()
+		correction=0
 		for i in range(0,len(clients)):
+			i-=correction
 			if clients[i][0].ident==self.ident:
 				try:
 					self.socket.close()
@@ -433,8 +437,9 @@ class client:
 					del self.asyncore
 				except:
 					pass
-				break
-		clients_mutex.release()
+				del clients[i]
+				correction+=1
+		if use_mutex: clients_mutex.release()
 
 
 def main():

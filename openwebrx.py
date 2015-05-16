@@ -219,6 +219,7 @@ def generate_client_id(ip):
 	new_client.spectrum_queue=Queue.Queue(1000)
 	new_client.ip=ip
 	new_client.closed=[False] #byref, not exactly sure if required
+	new_client.dsp=None
 	clients_mutex.acquire()
 	clients.append(new_client)
 	log_client(new_client,"client added. Clients now: {0}".format(len(clients)))
@@ -231,6 +232,12 @@ def close_client(i, use_mutex=True):
 	global clients
 	log_client(clients[i],"client being closed.")
 	if use_mutex: clients_mutex.acquire()
+	try:
+		clients[i].dsp.stop()
+	except:
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		print "[openwebrx] close_client dsp.stop() :: error -",exc_type,exc_value
+		traceback.print_tb(exc_traceback)
 	clients[i].closed[0]=True
 	del clients[i]
 	if use_mutex: clients_mutex.release()
@@ -289,6 +296,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					dsp.set_offset_freq(0)
 					dsp.set_bpf(-4000,4000)
 					dsp.start()
+					myclient.dsp=dsp
 					
 					while True:
 						if myclient.closed[0]: 

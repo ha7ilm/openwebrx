@@ -2,6 +2,7 @@ import subprocess
 import time
 import os
 import code
+import signal
 
 class dsp_plugin:
 
@@ -26,7 +27,7 @@ class dsp_plugin:
 		self.demodulator = "nfm"
 		self.name = "csdr"
 		try:	
-			subprocess.Popen("nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+			subprocess.Popen("nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE).kill()
 		except:
 			print "[openwebrx-plugin:csdr] error: netcat not found, please install netcat!"
 
@@ -106,7 +107,7 @@ class dsp_plugin:
 		command=command_base.format(bpf_pipe=self.bpf_pipe,shift_pipe=self.shift_pipe,decimation=self.decimation,last_decimation=self.last_decimation,fft_size=self.fft_size,fft_block_size=self.fft_block_size(),bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(),ddc_transition_bw=self.ddc_transition_bw())
 		print "[openwebrx-dsp-plugin:csdr] Command =",command
 		#code.interact(local=locals())
-		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp)
 		self.running = True
 
 		#open control pipes for csdr and send initialization data
@@ -121,10 +122,7 @@ class dsp_plugin:
 		return self.process.stdout.read(size)
 		
 	def stop(self):
-		if(self.process!=None):return # returns None while subprocess is running
-		while(self.process.poll()==None):
-			self.process.kill()
-			time.sleep(0.1)
+		os.killpg(os.getpgid(self.process.pid), signal.SIGTERM) 
 		os.unlink(self.bpf_pipe)
 		os.unlink(self.shift_pipe)
 		self.running = False

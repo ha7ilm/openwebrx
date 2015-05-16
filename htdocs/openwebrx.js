@@ -1297,8 +1297,8 @@ var color_scale=[0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0x
 
 function waterfall_mkcolor(db_value)
 {
-	min_value=-100; //in dB
-	max_value=10
+	min_value=-115; //in dB
+	max_value=0
 	if(db_value<min_value) db_value=min_value
 	if(db_value>max_value) db_value=max_value
 	full_scale=max_value-min_value;
