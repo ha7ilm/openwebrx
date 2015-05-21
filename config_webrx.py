@@ -24,6 +24,7 @@ This file is part of OpenWebRX.
 #Server settings
 web_port=8073
 server_hostname="localhost" # If this contains an incorrect value, the web UI may freeze on load (it can't open websocket)
+max_clients=20
 
 #Web GUI configuration
 receiver_name="[Callsign]"

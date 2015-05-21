@@ -202,7 +202,7 @@ def cleanup_clients():
 	for i in range(0,len(clients)):
 		i-=correction
 		#print "cleanup_clients:: len(clients)=", len(clients), "i=", i
-		if (not clients[i].ws_started) and (time.time()-clients[i].gen_time)>180:
+		if (not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45:
 			print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
 			close_client(i, False)
 			correction+=1
@@ -384,6 +384,14 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					self.send_header("Location", "http://{0}:{1}/upgrade.html".format(cfg.server_hostname,cfg.web_port))
 					self.end_headers()
 					self.wfile.write("<html><body><h1>Object moved</h1>Please <a href=\"/upgrade.html\">click here</a> to continue.</body></html>")
+					return
+				if extension == "wrx": cleanup_clients()
+				if extension == "wrx" and cfg.max_clients<=len(clients):
+					self.send_response(302) #backported max_clients fix
+					self.send_header('Content-type','text/html')
+					self.send_header("Location", "http://{0}:{1}/retry.html".format(cfg.server_hostname,cfg.web_port))
+					self.end_headers()
+					self.wfile.write("<html><body><h1>Object moved</h1>Please <a href=\"/retry.html\">click here</a> to continue.</body></html>")
 					return
 				self.send_response(200)
 				if(("wrx","html","htm").count(extension)):
