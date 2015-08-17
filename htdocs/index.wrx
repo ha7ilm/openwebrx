@@ -95,7 +95,7 @@
 					<div class="openwebrx-progressbar" id="openwebrx-bar-audio-buffer"> <span class="openwebrx-progressbar-text">Audio buffer [0 ms]</span><div class="openwebrx-progressbar-bar"></div></div>
 					<div class="openwebrx-progressbar" id="openwebrx-bar-audio-output"> <span class="openwebrx-progressbar-text">Audio output [0 sps]</span><div class="openwebrx-progressbar-bar"></div></div>
 					<div class="openwebrx-progressbar" id="openwebrx-bar-audio-speed"> <span class="openwebrx-progressbar-text">Audio stream [0 kbps]</span><div class="openwebrx-progressbar-bar"></div></div>
-					<div class="openwebrx-progressbar" id="openwebrx-bar-network-speed"> <span class="openwebrx-progressbar-text">Network speed [0 kbps]</span><div class="openwebrx-progressbar-bar"></div></div>
+					<div class="openwebrx-progressbar" id="openwebrx-bar-network-speed"> <span class="openwebrx-progressbar-text">Network usage [0 kbps]</span><div class="openwebrx-progressbar-bar"></div></div>
 					<div class="openwebrx-progressbar" id="openwebrx-bar-server-cpu"> <span class="openwebrx-progressbar-text">Server CPU [0%]</span><div class="openwebrx-progressbar-bar"></div></div>
 					<div class="openwebrx-progressbar" id="openwebrx-bar-clients"> <span class="openwebrx-progressbar-text">Clients [1]</span><div class="openwebrx-progressbar-bar"></div></div>
 				</div>
