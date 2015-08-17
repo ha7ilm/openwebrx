@@ -1,20 +1,30 @@
 '''
-This file is part of RTL Multi-User Server, 
+	This file is part of RTL Multi-User Server, 
 	that makes multi-user access to your DVB-T dongle used as an SDR.
-Copyright (c) 2013-2014 by Andras Retzler <randras@sdr.hu>
+	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
-RTL Multi-User Server is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
-RTL Multi-User Server is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with RTL Multi-User Server.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	In addition, as a special exception, the copyright holders
+	state that config_rtl.py and config_webrx.py are not part of the 
+	Corresponding Source defined in GNU AGPL version 3 section 1. 
+	
+	(It means that you do not have to redistribute config_rtl.py and 
+	config_webrx.py if you make any changes to these two configuration files,
+	and use them for running your own web service with OpenWebRX.)
 '''
 
 my_ip='127.0.0.1' # leave blank for listening on all interfaces
@@ -70,11 +80,11 @@ Example DSP commands:
   * Decompress FLAC-coded I/Q data:
     flac --force-raw-format --decode --endian=little --sign=unsigned - -
 '''
-watchdog_interval=1.5
+watchdog_interval=0
 reconnect_interval=10 
 '''
 If there's no input I/Q data after N seconds, input will be filled with zero samples, 
-so that GNU Radio won't fail in openwebrx. It may reconnect rtl_tcp_tread. 
+so that GNU Radio won't fail in OpenWebRX. It may reconnect rtl_tcp_thread. 
 If watchdog_interval is 0, then watchdog thread is not started. 
 
 '''
@@ -85,3 +95,9 @@ cache_full_behaviour=2
 	2 = openwebrx: don't care about that client until it wants samples again (gr-osmosdr bug workaround)
 '''
 
+rtl_tcp_password=None 
+'''
+This one applies to a special version of rtl_tcp that has authentication.
+# You can find more info here: https://github.com/ha7ilm/rtl-sdr
+# If it is set to a string (e.g. rtl_tcp_password="changeme"), rtl_mus will try to authenticate against the rtl_tcp server.
+'''

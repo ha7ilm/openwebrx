@@ -14,6 +14,14 @@ It has the following features:
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
 - currently only supports RTL-SDR, but other SDR hardware may be easily added.
 
+**News:**
+- My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
+- Several bugs were fixed to improve reliability and stability.
+- OpenWebRX now supports compression of audio and waterfall stream, so the required network uplink bandwidth has been decreased from 2 Mbit/s to about 200 kbit/s per client! (Measured with the default settings. It is also dependent on `fft_size`.)
+- OpenWebRX now uses <a href="https://github.com/simonyiszk/csdr#sdr.js">sdr.js</a> (*libcsdr* compiled to JavaScript) for some client-side DSP tasks. 
+- Auto-update capability for <a href="http://sdr.hu/">sdr.hu</a> added (currently only <a href="http://sdr.hu/">sdr.hu</a> beta testers can use it).
+- License for OpenWebRX is now Affero GPL v3. 
+
 ## Setup
 
 OpenWebRX currently requires Linux and python 2.7 to run. 

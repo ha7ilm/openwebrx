@@ -1,20 +1,20 @@
 '''
-This file is part of RTL Multi-User Server, 
+	This file is part of RTL Multi-User Server, 
 	that makes multi-user access to your DVB-T dongle used as an SDR.
-Copyright (c) 2013-2014 by Andras Retzler, HA7ILM <randras@sdr.hu>
+	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
-RTL Multi-User Server is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
-RTL Multi-User Server is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with RTL Multi-User Server.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -----
 
@@ -87,7 +87,7 @@ def add_data_to_clients(new_data):
 			elif cfg.cache_full_behaviour == 1:
 				#rather closing client:
 				log.error("client cache full, dropping client: "+str(client[0].ident)+"@"+client[0].socket[1][0])
-				client[0].close()
+				client[0].close(False)
 			elif cfg.cache_full_behaviour == 2:
 				pass #client cache full, just not taking care
 			else: log.error("invalid value for cfg.cache_full_behaviour")
@@ -131,6 +131,7 @@ class client_handler(asyncore.dispatcher):
 		self.sent_dongle_id=False
 		self.last_waiting_buffer=""
 		asyncore.dispatcher.__init__(self, self.client[0].socket[0])
+		self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
 	def handle_read(self):
 		global commands
@@ -174,6 +175,7 @@ class server_asyncore(asyncore.dispatcher):
 		self.set_reuse_addr()
 		self.bind((cfg.my_ip, cfg.my_listening_port))
 		self.listen(5)
+		self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		log.info("Server listening on port: "+str(cfg.my_listening_port))
 
 	def handle_accept(self):
@@ -188,7 +190,7 @@ class server_asyncore(asyncore.dispatcher):
 			my_client[0].ident=max_client_id
 			max_client_id+=1
 			my_client[0].start_time=time.time()
-			my_client[0].waiting_data=multiprocessing.Queue(250)
+			my_client[0].waiting_data=multiprocessing.Queue(500)
 			clients_mutex.acquire()
 			clients.append(my_client)
 			clients_mutex.release()
@@ -223,6 +225,7 @@ class rtl_tcp_asyncore(asyncore.dispatcher):
 	def __init__(self):
 		global server_missing_logged
 		asyncore.dispatcher.__init__(self)
+		self.password_sent = False
 		self.ok=True
 		self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:		
@@ -255,6 +258,7 @@ class rtl_tcp_asyncore(asyncore.dispatcher):
 		global server_missing_logged
 		global rtl_tcp_connected
 		self.socket.settimeout(0.1)
+		self.password_sent = False
 		rtl_tcp_connected=True
 		if self.ok:
 			log.info("rtl_tcp host connection estabilished")
@@ -278,9 +282,9 @@ class rtl_tcp_asyncore(asyncore.dispatcher):
 		if(len(rtl_dongle_identifier)==0):
 			rtl_dongle_identifier=self.recv(12)
 			return
-		new_data_buffer=self.recv(16348)
+		new_data_buffer=self.recv(1024*16)
 		if cfg.watchdog_interval:
-			watchdog_data_count+=16348
+			watchdog_data_count+=1024*16
 		if cfg.use_dsp_command:
 			dsp_input_queue.put(new_data_buffer)
 			#print "did put anyway"
@@ -288,11 +292,16 @@ class rtl_tcp_asyncore(asyncore.dispatcher):
 			add_data_to_clients(new_data_buffer)
 
 	def writable(self):
+		
 		#check if any new commands to write
 		global commands
-		return not commands.empty()
+		return (not self.password_sent and cfg.rtl_tcp_password != None) or not commands.empty()
 
 	def handle_write(self):
+		if(not self.password_sent and cfg.rtl_tcp_password != None):
+			log.info("Sending rtl_tcp_password...")
+			self.send(cfg.rtl_tcp_password)
+			self.password_sent = True
 		global commands
 		while not commands.empty():
 			mcmd=commands.get()
@@ -418,11 +427,13 @@ class client:
 	socket=None
 	asyncore=None
 
-	def close(self):
+	def close(self, use_mutex=True):
 		global clients_mutex
 		global clients
-		clients_mutex.acquire()
+		if use_mutex: clients_mutex.acquire()
+		correction=0
 		for i in range(0,len(clients)):
+			i-=correction
 			if clients[i][0].ident==self.ident:
 				try:
 					self.socket.close()
@@ -433,8 +444,9 @@ class client:
 					del self.asyncore
 				except:
 					pass
-				break
-		clients_mutex.release()
+				del clients[i]
+				correction+=1
+		if use_mutex: clients_mutex.release()
 
 
 def main():

@@ -1,20 +1,22 @@
 /*
-OpenWebRX (c) Copyright 2013-2014 Andras Retzler <randras@sdr.hu>
 
-This file is part of OpenWebRX.
+	This file is part of OpenWebRX, 
+	an open-source SDR receiver software with a web UI.
+	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
-    OpenWebRX is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
-    OpenWebRX is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with OpenWebRX. If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
 html, body
@@ -52,8 +54,13 @@ html, body
 {
 	margin:0;
 	padding:0;
+	user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
-
 
 #webrx-top-logo
 {
@@ -65,7 +72,7 @@ html, body
 #webrx-ha5kfu-top-logo
 {
 	position: absolute;
-	top: 19px;
+	top: 15px;
 	right: 15px;
 }
 
@@ -177,8 +184,10 @@ html, body
 
 #webrx-rx-photo-desc a
 {
+	/*color: #007df1;*/
 	color: #5ca8ff;
 	text-shadow: none;
+	/*text-shadow: 0px 0px 7px #fff;*/
 }
 
 #webrx-rx-title
@@ -269,6 +278,8 @@ html, body
 {
 	position: absolute;
 	border-style: none;
+	image-rendering: crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
 }
 
 #openwebrx-phantom-canvas
@@ -410,6 +421,12 @@ html, body
 	cursor: pointer;
 	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #373737), color-stop(1, #4F4F4F) );
 	background:-moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
+	user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .openwebrx-button:hover
@@ -431,3 +448,94 @@ html, body
 	margin-bottom: 5px;
 	font-weight: bold;
 }
+
+.openwebrx-progressbar
+{
+	position: relative;
+	border-radius: 5px;
+	background-color: #003850; /*#006235;*/
+	display: inline-block;
+	text-align: center;
+	font-size: 8pt;
+	font-weight: bold;
+	text-shadow: 0px 0px 4px #000000;
+	cursor: default;
+	user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.openwebrx-progressbar-bar
+{
+	border-radius: 5px;
+	height: 100%;
+	width: 100%;
+}
+
+.openwebrx-progressbar-text
+{
+	position: absolute;
+	left:0px;
+	top:4px;
+	width: inherit;
+}
+
+#openwebrx-panel-status
+{
+	margin: 0px;
+	padding: 0px;
+	background-color:rgba(0, 0, 0, 0);
+}
+
+#openwebrx-panel-status div.openwebrx-progressbar
+{
+	width: 200px;
+	height: 20px;
+}
+
+#openwebrx-main-buttons img
+{
+}
+
+#openwebrx-main-buttons ul
+{
+	display: table;
+	margin:0;
+}
+
+
+#openwebrx-main-buttons ul li
+{
+	display: table-cell;
+	padding-left: 5px;
+	padding-right: 5px;
+	cursor:pointer;	
+}
+
+#openwebrx-main-buttons li:hover
+{
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
+#openwebrx-main-buttons li:active
+{
+	background-color: rgba(255, 255, 255, 0.55);
+}
+
+
+#openwebrx-main-buttons
+{
+	position: absolute;
+	right: 133px;
+	top: 3px;
+	margin:0;
+	color: white;
+	text-shadow: 0px 0px 4px #000000;
+	text-align: center;
+	font-size: 9pt;
+	font-weight: bold;
+}
+

@@ -1,31 +1,35 @@
 <!DOCTYPE HTML>
 <!--
-OpenWebRX (c) Copyright 2013-2014 Andras Retzler <randras@sdr.hu>
 
-This file is part of OpenWebRX.
+	This file is part of OpenWebRX, 
+	an open-source SDR receiver software with a web UI.
+	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
-    OpenWebRX is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
-    OpenWebRX is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with OpenWebRX. If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 -->
 <html>
 	<head>
-		<title>OpenWebRX | Open Source Web-based SDR for everyone!</title>
+		<title>OpenWebRX | Open Source SDR Web App for Everyone!</title>
 		<script type="text/javascript">
 			//Local variables
 			client_id="%[CLIENT_ID]";
 			ws_url="%[WS_URL]";
 			rx_photo_height=%[RX_PHOTO_HEIGHT];
+			var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
 		</script>
+		<script src="sdr.js"></script>
 		<script src="openwebrx.js"></script>
 		<link rel="stylesheet" type="text/css" href="openwebrx.css" />
 		<meta charset="utf-8">
@@ -50,6 +54,13 @@ This file is part of OpenWebRX.
 				<a id="openwebrx-rx-details-arrow-up" onclick="toggle_rx_photo();"><img src="gfx/openwebrx-rx-details-arrow-up.png" /></a>
 				<a id="openwebrx-rx-details-arrow-down" onclick="toggle_rx_photo();"><img src="gfx/openwebrx-rx-details-arrow.png" /></a>
 			</div>
+			<section id="openwebrx-main-buttons">
+				<ul>
+					<li onmouseup="toggle_panel('openwebrx-panel-status');"><img src="gfx/openwebrx-panel-status.png" /><br/>Status</li>
+					<li onmouseup="toggle_panel('openwebrx-panel-log');"><img  src="gfx/openwebrx-panel-log.png" /><br/>Log</li>
+					<li onmouseup="toggle_panel('openwebrx-panel-receiver');"><img src="gfx/openwebrx-panel-receiver.png" /><br/>Receiver</li>
+				</ul>
+			</section>
 		</div>
 	</div>
 	<div id="webrx-main-container">
@@ -61,7 +72,7 @@ This file is part of OpenWebRX.
 				<!-- add canvas here by javascript -->
 			</div>
 			<div id="openwebrx-panels-container">
-				<div class="openwebrx-panel" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="215,70">
+				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="215,70">
 					<div id="webrx-actual-freq">---.--- MHz</div>
 					<div id="webrx-mouse-freq">---.--- MHz</div>
 					<!--<div class="openwebrx-button" onclick="ws.send('SET mod=wfm');" >WFM</div>-->
@@ -71,16 +82,22 @@ This file is part of OpenWebRX.
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('usb');">USB</div>
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('cw');">CW</div>
 				</div>
-				<div class="openwebrx-panel" id="webrx-config" data-panel-name="debug" data-panel-pos="left" data-panel-order="0" data-panel-size="585,130">
-					<div class="openwebrx-panel-inner">
-						<div id="openwebrx-client-log-title">openwebrx.js (beta) client log </strong><span id="openwebrx-problems"></span></div>
+				<div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="1" data-panel-size="619,142">
+					<div class="openwebrx-panel-inner" id="openwebrx-log-scroll">
+						<div id="openwebrx-client-log-title">OpenWebRX (beta) client log<span style="color: #ff5900;"></span> </strong><span id="openwebrx-problems"></span></div>
 						Author: <a href="javascript:sendmail2('pi7qtu=alz$pc');">HA7ILM</a>. Please send me bug reports and suggestions.<br/>
-						Client status: <span id="openwebrx-client-status">
-							<span id="openwebrx-audio-sps"></span><br/>
 						<!--Server status: <span id="openwebrx-server-status">no information</span><br/>-->
 						Your client ID is: <em>%[CLIENT_ID]</em><br />
 						<div id="openwebrx-debugdiv"></div>
 					</div>
+				</div>
+				<div class="openwebrx-panel" id="openwebrx-panel-status" data-panel-name="status" data-panel-pos="left" data-panel-order="0" data-panel-size="615,50" data-panel-transparent="true">
+					<div class="openwebrx-progressbar" id="openwebrx-bar-audio-buffer"> <span class="openwebrx-progressbar-text">Audio buffer [0 ms]</span><div class="openwebrx-progressbar-bar"></div></div>
+					<div class="openwebrx-progressbar" id="openwebrx-bar-audio-output"> <span class="openwebrx-progressbar-text">Audio output [0 sps]</span><div class="openwebrx-progressbar-bar"></div></div>
+					<div class="openwebrx-progressbar" id="openwebrx-bar-audio-speed"> <span class="openwebrx-progressbar-text">Audio stream [0 kbps]</span><div class="openwebrx-progressbar-bar"></div></div>
+					<div class="openwebrx-progressbar" id="openwebrx-bar-network-speed"> <span class="openwebrx-progressbar-text">Network speed [0 kbps]</span><div class="openwebrx-progressbar-bar"></div></div>
+					<div class="openwebrx-progressbar" id="openwebrx-bar-server-cpu"> <span class="openwebrx-progressbar-text">Server CPU [0%]</span><div class="openwebrx-progressbar-bar"></div></div>
+					<div class="openwebrx-progressbar" id="openwebrx-bar-clients"> <span class="openwebrx-progressbar-text">Clients [1]</span><div class="openwebrx-progressbar-bar"></div></div>
 				</div>
 				<div class="openwebrx-panel" data-panel-name="client-under-devel" data-panel-pos="none" data-panel-order="0" data-panel-size="245,55" style="background-color: Red;">
 					<span style="font-size: 15pt; font-weight: bold;">Under construction</span>
