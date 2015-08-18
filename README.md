@@ -47,8 +47,6 @@ Now the next step is to customize the parameters of your server in `config_webrx
 Actually, if you do something cool with OpenWebRX (or just have a problem), please drop me a mail:  
 *Andras Retzler, HA7ILM &lt;randras@sdr.hu&gt;*
 
-I would like to maintain a list of online amateur radio receivers on <a href="http://openwebrx.org/">openwebrx.org</a>.
-
 ## Usage tips
 
 You can zoom the waterfall display by the mouse wheel. You can also drag the waterfall to pan across it.
