@@ -55,7 +55,6 @@ Website: <a href="http://localhost" target="_blank">http://localhost</a>
 """
 
 # ==== sdr.hu listing ====
-# (This feature is only available to sdr.hu beta testers by now.)
 # If you want your ham receiver to be listed publicly on sdr.hu, then take the following steps:
 # 1. Register at: http://sdr.hu/register
 # 2. You will get an unique key by email. Copy it and paste here:
