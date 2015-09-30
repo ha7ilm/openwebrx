@@ -47,7 +47,6 @@ import ctypes
 #import rtl_mus
 import rxws
 import uuid
-import config_webrx as cfg
 import signal
 import socket
 
@@ -75,17 +74,27 @@ class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass 
 
 def handle_signal(signal, frame):
+	global spectrum_dsp
 	print "[openwebrx] Ctrl+C: aborting."
+	cleanup_clients(True)
+	spectrum_dsp.stop()
 	os._exit(1) #not too graceful exit
 
+rtl_thread=spectrum_dsp=server_fail=None
+
 def main():
-	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime
+	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg
+	global serverfail, rtl_thread
 	print
 	print "OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package"
 	print "_________________________________________________________________________________________________"
 	print 
 	print "Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>"
 	print 
+
+	no_arguments=len(sys.argv)==1
+	if no_arguments: print "[openwebrx] Configuration script not specified. I will use: \"config_webrx.py\""
+	cfg=__import__("config_webrx" if no_arguments else sys.argv[1])
 
 	#Set signal handler
 	signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
@@ -108,13 +117,18 @@ def main():
 
 	#Start rtl thread
 	if cfg.start_rtl_thread:
-		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True), args=())
+		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
 		rtl_thread.start()
-		print "[openwebrx-main] Started rtl thread: "+cfg.start_rtl_command
+		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
 
 	#Run rtl_mus.py in a different OS thread
 	python_command="pypy" if pypy else "python2"
-	rtl_mus_thread=threading.Thread(target = lambda:subprocess.Popen(python_command+" rtl_mus.py config_rtl", shell=True), args=())
+	rtl_mus_cmd = python_command+" rtl_mus.py config_rtl"
+	if os.system("ncat --version > /dev/null") != 32512:
+		print "[openwebrx-main] ncat detected, using it instead of rtl_mus:"
+		rtl_mus_cmd = "ncat localhost 8888 | ncat -4l %d -k --send-only --allow 127.0.0.1 " % cfg.iq_server_port
+		print rtl_mus_cmd
+	rtl_mus_thread=threading.Thread(target = lambda:subprocess.Popen(rtl_mus_cmd, shell=True), args=())
 	rtl_mus_thread.start() # The new feature in GNU Radio 3.7: top_block() locks up ALL python threads until it gets the TCP connection.
 	print "[openwebrx-main] Started rtl_mus."
 	time.sleep(1) #wait until it really starts	
@@ -207,10 +221,20 @@ def mutex_watchdog_thread_function():
 			print "[openwebrx-watchdog] Mutex unlock timeout. Locker: \""+str(clients_mutex_locker)+"\" Now unlocking..." 
 			clients_mutex.release()
 		time.sleep(0.5)	
-		
+
+def check_server():
+	global spectrum_dsp, server_fail, rtl_thread
+	if server_fail: return server_fail	
+	#print spectrum_dsp.process.poll()
+	if spectrum_dsp and spectrum_dsp.process.poll()!=None: server_fail = "spectrum_thread dsp subprocess failed"
+	#if rtl_thread and not rtl_thread.is_alive(): server_fail = "rtl_thread failed"
+	if server_fail: print "[openwebrx-check_server] >>>>>>> ERROR:", server_fail
+	return server_fail
+
 def spectrum_thread_function():
-	global clients
-	dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+	global clients, spectrum_dsp
+	spectrum_dsp=dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+	dsp.nc_port=cfg.iq_server_port
 	dsp.set_demodulator("fft")
 	dsp.set_samp_rate(cfg.samp_rate)
 	dsp.set_fft_size(cfg.fft_size)
@@ -220,6 +244,7 @@ def spectrum_thread_function():
 	sleep_sec=0.87/cfg.fft_fps
 	print "[openwebrx-spectrum] Spectrum thread initialized successfully."
 	dsp.start()
+	dsp.read(8) #dummy read to skip bufsize & preamble
 	print "[openwebrx-spectrum] Spectrum thread started." 
 	bytes_to_read=int(dsp.get_fft_bytes_to_read())
 	while True:
@@ -255,16 +280,17 @@ def get_client_by_id(client_id, use_mutex=True):
 def log_client(client, what):
 	print "[openwebrx-httpd] client {0}#{1} :: {2}".format(client.ip,client.id,what)
 
-def cleanup_clients():
-	# if client doesn't open websocket for too long time, we drop it
+def cleanup_clients(end_all=False):
+	# - if a client doesn't open websocket for too long time, we drop it
+	# - or if end_all is true, we drop all clients
 	global clients
 	cma("cleanup_clients")
 	correction=0
 	for i in range(0,len(clients)):
 		i-=correction
 		#print "cleanup_clients:: len(clients)=", len(clients), "i=", i
-		if (not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45:
-			print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
+		if end_all or ((not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45):
+			if not end_all: print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
 			close_client(i, False)
 			correction+=1
 	cmr()
@@ -363,13 +389,12 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
 					# ========= Initialize DSP =========
 					dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
-					dsp.set_samp_rate(cfg.samp_rate)
-					dsp.set_demodulator("nfm")
-					dsp.set_offset_freq(0)
-					dsp.set_bpf(-4000,4000)
+					dsp_initialized=False
 					dsp.set_audio_compression(cfg.audio_compression)
 					dsp.set_format_conversion(cfg.format_conversion)
-					dsp.start()
+					dsp.set_offset_freq(0)
+					dsp.set_bpf(-4000,4000)
+					dsp.nc_port=cfg.iq_server_port
 					myclient.dsp=dsp
 					
 					while True:
@@ -378,8 +403,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
 							break
 
 						# ========= send audio =========
-						temp_audio_data=dsp.read(256)
-						rxws.send(self, temp_audio_data, "AUD ")
+						if dsp_initialized:
+							temp_audio_data=dsp.read(256)
+							rxws.send(self, temp_audio_data, "AUD ")
 
 						# ========= send spectrum =========
 						while not myclient.spectrum_queue.empty():
@@ -417,9 +443,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
 										dsp.set_offset_freq(int(param_value))
 									elif param_name=="mod":
 										if (dsp.get_demodulator()!=param_value):
-											dsp.stop()
+											if dsp_initialized: dsp.stop()
 											dsp.set_demodulator(param_value)
+											if dsp_initialized: dsp.start()
+									elif param_name == "output_rate":
+										if not dsp_initialized: 
+											dsp.set_output_rate(int(param_value))
+											dsp.set_samp_rate(cfg.samp_rate)
+									elif param_name=="action" and param_value=="start":
+										if not dsp_initialized: 
 											dsp.start()
+											dsp_initialized=True
 									else:
 										print "[openwebrx-httpd:ws] invalid parameter"
 								if bpf_set:
@@ -464,6 +498,13 @@ class WebRXHandler(BaseHTTPRequestHandler):
 				data=f.read()
 				extension=self.path[(len(self.path)-4):len(self.path)]
 				extension=extension[2:] if extension[1]=='.' else extension[1:]
+				checkresult=check_server()
+				if extension == "wrx" and checkresult:
+					self.send_response(500)
+					self.send_header('Content-type','text/html')
+					self.end_headers()
+					self.wfile.write("<html><body><h1>OpenWebRX Internal Server Error</h1>Please check the server log for details.</body></html>")
+					return
 				if extension == "wrx" and ((self.headers['user-agent'].count("Chrome")==0 and self.headers['user-agent'].count("Firefox")==0 and (not "Googlebot" in self.headers['user-agent'])) if 'user-agent' in self.headers.keys() else True) and (not request_param.count("unsupported")):
 					self.send_302("upgrade.html")
 					return
@@ -492,7 +533,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[RX_ADMIN]",cfg.receiver_admin),
 						("%[RX_ANT]",cfg.receiver_ant),
 						("%[RX_DEVICE]",cfg.receiver_device),
-						("%[AUDIO_BUFSIZE]",str(cfg.client_audio_buffer_size))
+						("%[AUDIO_BUFSIZE]",str(cfg.client_audio_buffer_size)),
+						("%[START_OFFSET_FREQ]",str(cfg.start_freq-cfg.center_freq)),
+						("%[START_MOD]",cfg.start_mod)
 					)
 					for rule in replace_dictionary:
 						while data.find(rule[0])!=-1:

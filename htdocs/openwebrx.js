@@ -959,6 +959,32 @@ function resize_waterfall_container(check_init)
 	canvas_container.style.height=(window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
 }
 
+
+audio_server_output_rate=11025;
+audio_client_resampling_factor=4;
+
+
+function audio_calculate_resampling(targetRate)
+{ //both at the server and the client
+	output_range_max = 12000;
+	output_range_min = 8000;
+	i = 1;
+	while(true)
+	{
+		audio_server_output_rate = Math.floor(targetRate / i);
+		if(audio_server_output_rate < output_range_min) 
+		{ 
+			audio_client_resampling_factor = audio_server_output_rate = 0; 
+			divlog("Your audio card sampling rate ("+targetRate.toString()+") is not supported.<br />Please change your operating system default settings in order to fix this.",1);
+		}
+		if(audio_server_output_rate >= output_range_min	&& audio_server_output_rate <= output_range_max) break; //okay, we're done
+		i++;
+	}
+	audio_client_resampling_factor=i;
+	console.log("audio_calculate_resampling() :: "+audio_client_resampling_factor.toString()+", "+audio_server_output_rate.toString());
+}
+
+
 debug_ws_data_received=0;
 max_clients_num=0;
 
@@ -974,6 +1000,7 @@ function on_ws_recv(evt)
 	{
 		var stringData=arrayBufferToString(evt.data);
 		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Acknowledged WebSocket connection: "+stringData);
+		
 	}
 	if(firstChars=="AUD")
 	{
@@ -1010,6 +1037,7 @@ function on_ws_recv(evt)
 				{
 					case "setup":
 						waterfall_init();
+						audio_preinit();
 						break;					
 					case "bandwidth":
 						bandwidth=parseInt(param[1]);
@@ -1122,7 +1150,7 @@ var audio_initialized=0;
 
 var audio_received = Array();
 var audio_buffer_index = 0;
-var audio_resampler=new sdrjs.RationalResamplerFF(4,1);
+var audio_resampler;
 var audio_codec=new sdrjs.ImaAdpcm();
 var audio_compression="unknown";
 var audio_node;
@@ -1167,7 +1195,7 @@ function audio_prepare(data)
 		audio_prepared_buffers.push(audio_rebuffer.take());
 		audio_buffer_current_count_debug++;
 	}
-	if(audio_buffering && audio_prepared_buffers.length>audio_buffering_fill_to) audio_buffering=false;
+	if(audio_buffering && audio_prepared_buffers.length>audio_buffering_fill_to) { console.log("buffers now: "+audio_prepared_buffers.length.toString()); audio_buffering=false; }
 }
 
 
@@ -1246,6 +1274,8 @@ var audio_buffer_progressbar_update_disabled=false;
 
 var audio_buffer_total_average_level=0;
 var audio_buffer_total_average_level_length=0;
+var audio_overrun_cnt = 0;
+var audio_underrun_cnt = 0;
 
 function audio_buffer_progressbar_update()
 {
@@ -1255,8 +1285,8 @@ function audio_buffer_progressbar_update()
 	var overrun=audio_buffer_value>audio_buffer_maximal_length_sec;
 	var underrun=audio_prepared_buffers.length==0;
 	var text="buffer";
-	if(overrun) text="overrun";
-	if(underrun) text="underrun";
+	if(overrun) { text="overrun"; console.log("audio overrun, "+(++audio_overrun_cnt).toString()); }
+	if(underrun) { text="underrun"; console.log("audio underrun, "+(++audio_underrun_cnt).toString()); }
 	if(overrun||underrun) 
 	{ 
 		audio_buffer_progressbar_update_disabled=true;
@@ -1345,13 +1375,26 @@ function webrx_set_param(what, value)
 	ws.send("SET "+what+"="+value.toString());
 }
 
-function audio_init()
+function parsehash()
 {
-	audio_debug_time_start=(new Date()).getTime();
-	audio_debug_time_last_start=audio_debug_time_start;
+	if(h=window.location.hash) 
+	{
+		h.substring(1).split(",").forEach(function(x){
+			harr=x.split("=");
+			console.log(harr);
+			if(harr[0]=="mod") starting_mod = harr[1];
+			if(harr[0]=="freq") {
+			console.log(parseInt(harr[1]));
+			console.log(center_freq);  
+			starting_offset_frequency = parseInt(harr[1])-center_freq;
+			}
+		});
+		
+	}
+}
 
-	//https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
-	audio_initialized=1; // only tell on_ws_recv() not to call it again
+function audio_preinit()
+{
 	try 
 	{
 		window.AudioContext = window.AudioContext||window.webkitAudioContext;
@@ -1361,6 +1404,28 @@ function audio_init()
 	{
 		divlog('Your browser does not support Web Audio API, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.', 1);
 	}
+
+	//we send our setup packet
+	
+	parsehash();
+	 //needs audio_context.sampleRate to exist
+
+	audio_calculate_resampling(audio_context.sampleRate);
+	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
+	ws.send("SET output_rate="+audio_server_output_rate.toString()+" action=start"); //now we'll get AUD packets as well
+
+}
+
+function audio_init()
+{
+	if(audio_client_resampling_factor==0) return; //if failed to find a valid resampling factor...
+
+	audio_debug_time_start=(new Date()).getTime();
+	audio_debug_time_last_start=audio_debug_time_start;
+
+	//https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
+	audio_initialized=1; // only tell on_ws_recv() not to call it again
+
 
 	//on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
 	createjsnode_function = (audio_context.createJavaScriptNode == undefined)?audio_context.createScriptProcessor.bind(audio_context):audio_context.createJavaScriptNode.bind(audio_context);
@@ -1379,7 +1444,14 @@ function audio_init()
    audio_buffer = audio_context.createBuffer(xhr.response, false);
 	audio_source.buffer = buffer;
 	audio_source.noteOn(0);*/
-	demodulator_analog_replace('nfm'); //needs audio_context.sampleRate to exist
+	demodulator_analog_replace(starting_mod);
+	if(starting_offset_frequency)  
+	{ 
+		demodulators[0].offset_frequency = starting_offset_frequency;
+		demodulators[0].set();
+		mkscale();
+	}
+
 	//hide log panel in a second (if user has not hidden it yet)
 	window.setTimeout(function(){
 		if(typeof e("openwebrx-panel-log").openwebrxHidden == "undefined" && !was_error)

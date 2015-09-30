@@ -66,6 +66,7 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
+#samp_rate = 2048000
 samp_rate = 250000
 
 center_freq = 145525000
@@ -103,7 +104,13 @@ format_conversion="csdr convert_u8_f"
 
 shown_center_freq = center_freq #you can change this if you use an upconverter
 
-client_audio_buffer_size = 4 
+client_audio_buffer_size = 5
 #increasing client_audio_buffer_size will:
 # - also increase the latency 
 # - decrease the chance of audio underruns
+
+start_freq = center_freq
+start_mod = "nfm" #nfm, am, lsb, usb, cw
+
+iq_server_port = 4951
+# (if ncat is not available on your system, rtl_mus will be used, thus you will have to set the same port as "my_listening_port" in config_rtl.py as well)

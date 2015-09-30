@@ -14,13 +14,20 @@ It has the following features:
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
 - currently only supports RTL-SDR, but other SDR hardware may be easily added.
 
-**News:**
+**News (2015-08-18)**
 - My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
 - Several bugs were fixed to improve reliability and stability.
 - OpenWebRX now supports compression of audio and waterfall stream, so the required network uplink bandwidth has been decreased from 2 Mbit/s to about 200 kbit/s per client! (Measured with the default settings. It is also dependent on `fft_size`.)
 - OpenWebRX now uses <a href="https://github.com/simonyiszk/csdr#sdrjs">sdr.js</a> (*libcsdr* compiled to JavaScript) for some client-side DSP tasks. 
 - Receivers can now be listed on <a href="http://sdr.hu/">sdr.hu</a>.
 - License for OpenWebRX is now Affero GPL v3. 
+
+**News (2015-09-01)**
+- The DDC in *csdr* has been hand-optimized for ARM NEON, so it runs 3× faster on the Raspberry Pi than before. 
+- Also we use *ncat* instead of *rtl_mus*, and it is also 3× faster.
+- OpenWebRX now supports URLs like: http://localhost:8073/#freq=145555000,mod=usb
+
+- When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
 
 ## Setup
 
@@ -30,6 +37,7 @@ First you will need to install the dependencies:
 
 - <a href="https://github.com/simonyiszk/csdr">libcsdr</a>
 - <a href="http://sdr.osmocom.org/trac/wiki/rtl-sdr">rtl-sdr</a>
+- ncat (on Debian/Ubuntu, it is in the *nmap* package). *(It is optional, but highly advised.)*
 
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 
@@ -57,14 +65,10 @@ However, if you hold down the shift key, you can drag the center line (BFO) or t
 
 ## Configuration tips
 
-If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`, or you may get a WebSocket error.
+Now we have a %[Wiki](https://github.com/simonyiszk/openwebrx/wiki) with some how-tos. However, some quick tips:
+
+If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`.
 
 DSP CPU usage can be fine-tuned in `plugins/dsp/csdr/plugin.py`: you can set transition bandwidths higher (thus degrade filter performance by decreasing the length of the kernel, but also decrease CPU usage), and also set `fft_size` lower.
 
-If you constantly get *audio overrun* errors, you may change `audio_buffer_maximal_length_sec` in `openwebrx.js` from the default 1.7 to 3.
-
 If you want a chat-box to the top of the page, <a href="https://gist.github.com/ha7ilm/15c4c5e4c80cef9b3144">here is a snippet</a> for you to include in `config_webrx.py`.
-
-## Todo
-
-Currently, clients use up a lot of bandwidth. This will be improved later.
