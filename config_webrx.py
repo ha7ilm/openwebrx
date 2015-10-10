@@ -84,6 +84,13 @@ start_rtl_thread=True
 start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} - | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
 
+#start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l16 -a0 -r hackrf_pipe & cat hackrf_pipe | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+#format_conversion="csdr convert_i8_f"
+## To use a HackRF, first run "mkfifo hackrf_pipe" in the OpenWebRX directory.
+## You should also use the csdr git repo from here: 
+##   git clone https://github.com/sgentle/csdr
+##   git checkout origin/signed_char
+
 # >> Sound card SDR (needs ALSA)
 #I did not have the chance to properly test it.
 #samp_rate = 96000
