@@ -12,7 +12,7 @@ It has the following features:
 - waterfall display can be shifted back in time,
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
-- currently only supports RTL-SDR, but other SDR hardware may be easily added.
+- currently supports RTL-SDR and HackRF; other SDR hardware may be easily added.
 
 **News:**
 - My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
