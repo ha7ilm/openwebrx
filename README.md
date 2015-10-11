@@ -57,7 +57,7 @@ However, if you hold down the shift key, you can drag the center line (BFO) or t
 
 ## Setup tips
 
-If you have any problems installing OpenWebRX, you should check out the <a href="https://github.com/simonyiszk/openwebrx/wiki">Wiki</a> about it, where there is a page on the <a href="https://github.com/simonyiszk/openwebrx/wiki/Common-problems-and-their-solutions">common problems and their solutions</a>.
+If you have any problems installing OpenWebRX, you should check out the <a href="https://github.com/simonyiszk/openwebrx/wiki">Wiki</a> about it, which has a page on the <a href="https://github.com/simonyiszk/openwebrx/wiki/Common-problems-and-their-solutions">common problems and their solutions</a>.
 
 Sometimes the actual error message is not at the end of the terminal output, you may have to look at the whole output to find it.
 
