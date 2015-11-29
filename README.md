@@ -67,4 +67,4 @@ If you want to run OpenWebRX on a remote server instead of localhost, do not for
 
 OpenWebRX is available under Affero GPL v3 license (<a href="https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)">summary</a>).
 
-As OpenWebRX is a sufficient remote spectrum monitoring tool, it is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for other licensing options. 
+OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for other licensing options. 
