@@ -62,3 +62,9 @@ If you have any problems installing OpenWebRX, you should check out the <a href=
 Sometimes the actual error message is not at the end of the terminal output, you may have to look at the whole output to find it.
 
 If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`.
+
+## Licensing
+
+OpenWebRX is available under Affero GPL v3 license. 
+
+As OpenWebRX is a sufficient tool for various remote spectrum monitoring tasks, it is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for other licensing options.
