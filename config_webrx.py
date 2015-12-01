@@ -82,7 +82,9 @@ start_rtl_thread=True
 
 # >> RTL-SDR via rtl_sdr 
 
-start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} - | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+iq_server_port = 4951
+
+start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} - | ddcd -p{iq_server_port} -d1".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm, iq_server_port=iq_server_port)
 format_conversion="csdr convert_u8_f"
 
 # >> Sound card SDR (needs ALSA)
@@ -112,5 +114,4 @@ client_audio_buffer_size = 5
 start_freq = center_freq
 start_mod = "nfm" #nfm, am, lsb, usb, cw
 
-iq_server_port = 4951
-# (if ncat is not available on your system, rtl_mus will be used, thus you will have to set the same port as "my_listening_port" in config_rtl.py as well)
+
