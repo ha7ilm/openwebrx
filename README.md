@@ -12,7 +12,7 @@ It has the following features:
 - waterfall display can be shifted back in time,
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
-- currently only supports RTL-SDR, but other SDR hardware may be easily added.
+- currently supports RTL-SDR and HackRF; other SDR hardware may be easily added.
 
 **News (2015-08-18)**
 - My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
@@ -63,12 +63,16 @@ The filter envelope can be dragged at its ends and moved around to set the passb
 
 However, if you hold down the shift key, you can drag the center line (BFO) or the whole passband (PBS).
 
-## Configuration tips
+## Setup tips
 
-Now we have a %[Wiki](https://github.com/simonyiszk/openwebrx/wiki) with some how-tos. However, some quick tips:
+If you have any problems installing OpenWebRX, you should check out the <a href="https://github.com/simonyiszk/openwebrx/wiki">Wiki</a> about it, which has a page on the <a href="https://github.com/simonyiszk/openwebrx/wiki/Common-problems-and-their-solutions">common problems and their solutions</a>.
+
+Sometimes the actual error message is not at the end of the terminal output, you may have to look at the whole output to find it.
 
 If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`.
 
-DSP CPU usage can be fine-tuned in `plugins/dsp/csdr/plugin.py`: you can set transition bandwidths higher (thus degrade filter performance by decreasing the length of the kernel, but also decrease CPU usage), and also set `fft_size` lower.
+## Licensing
 
-If you want a chat-box to the top of the page, <a href="https://gist.github.com/ha7ilm/15c4c5e4c80cef9b3144">here is a snippet</a> for you to include in `config_webrx.py`.
+OpenWebRX is available under Affero GPL v3 license (<a href="https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)">summary</a>).
+
+OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for other licensing options. 
