@@ -74,17 +74,18 @@ class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass 
 
 def handle_signal(signal, frame):
-	global spectrum_dsp
+	global spectrum_dsp, rtl_command_proc
 	print "[openwebrx] Ctrl+C: aborting."
 	cleanup_clients(True)
 	spectrum_dsp.stop()
+	if rtl_command_proc: rtl_command_proc.kill()
 	os._exit(1) #not too graceful exit
 
-rtl_thread=spectrum_dsp=server_fail=None
+rtl_command_proc=rtl_thread=spectrum_dsp=server_fail=None
 
 def main():
 	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg
-	global serverfail, rtl_thread
+	global serverfail, rtl_thread, rtl_command_proc
 	print
 	print "OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package"
 	print "_________________________________________________________________________________________________"
@@ -117,8 +118,9 @@ def main():
 
 	#Start rtl thread
 	if cfg.start_rtl_thread:
-		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
-		rtl_thread.start()
+		rtl_command_proc=subprocess.Popen(cfg.start_rtl_command, shell=True)
+		#rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
+		#rtl_thread.start()
 		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
 
 	""" #Now we use ddcd instead of this.
