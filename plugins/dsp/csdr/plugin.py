@@ -43,7 +43,6 @@ class dsp_plugin:
 		self.fft_compression = "none"
 		self.demodulator = "nfm"
 		self.name = "csdr"
-		self.format_conversion = "csdr convert_u8_f"
 		self.base_bufsize = 512
 		self.nc_port = 4951
 		try:	
@@ -52,14 +51,14 @@ class dsp_plugin:
 			print "[openwebrx-plugin:csdr] error: netcat not found, please install netcat!"
 
 	def chain(self,which):
-		any_chain_base="nc -v localhost {nc_port} | csdr setbuf {start_bufsize} | csdr through | "+self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
+		any_chain_base="nc -v localhost {nc_port} | csdr setbuf {start_bufsize} | csdr through | "  ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft": 
-			fft_chain_base = "sleep 1.5; "+any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
+			fft_chain_base = "(echo bypass=1; cat) |"+ any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
 			if self.fft_compression=="adpcm":
 				return fft_chain_base+" | csdr compress_fft_adpcm_f_u8 {fft_size}"
 			else:
 				return fft_chain_base
-		chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
+		chain_begin=any_chain_base+"csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
 		chain_end = "" 
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -121,9 +120,13 @@ class dsp_plugin:
 
 	def set_offset_freq(self,offset_freq):
 		self.offset_freq=offset_freq
+		new_shift_rate=(-float(self.offset_freq)/self.samp_rate)
 		if self.running: 
-			self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate))
-			self.shift_pipe_file.flush()
+			if self.shift_pipe:
+				self.shift_pipe_file.write("%g\n"%new_shift_rate)
+				self.shift_pipe_file.flush()
+			else:
+				self.write("shift=%g\n"%new_shift_rate)
 	
 	def set_bpf(self,low_cut,high_cut):
 		self.low_cut=low_cut
@@ -168,7 +171,7 @@ class dsp_plugin:
 		#code.interact(local=locals())
 		my_env=os.environ.copy()
 		my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
-		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
+		self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
 		self.running = True
 
 		#open control pipes for csdr and send initialization data
@@ -181,8 +184,14 @@ class dsp_plugin:
 
 	def read(self,size):
 		return self.process.stdout.read(size)
+
+	def write(self, data):
+		self.process.stdin.write(data)
+		self.process.stdin.flush()
 		
 	def stop(self):
+		print "[openwebrx-dsp-plugin:csdr] killing pgid", os.getpgid(self.process.pid)
+		self.process.stdin.close()
 		os.killpg(os.getpgid(self.process.pid), signal.SIGTERM) 
 		#if(self.process.poll()!=None):return # returns None while subprocess is running
 		#while(self.process.poll()==None):

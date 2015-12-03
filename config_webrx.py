@@ -76,38 +76,28 @@ ppm = 0
 audio_compression="adpcm" #valid values: "adpcm", "none" 
 fft_compression="adpcm" #valid values: "adpcm", "none" 
 
-start_rtl_thread=True 
-
 # ==== I/Q sources (uncomment the appropriate) ====
 
 # >> RTL-SDR via rtl_sdr 
 
 iq_server_port = 4951
 
-start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} - | ddcd -p{iq_server_port} -d3".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm, iq_server_port=iq_server_port)
-format_conversion="csdr convert_u8_f"
+receiver_commandline="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} - | csdr convert_u8_f".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 
-#start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l16 -a0 -r hackrf_pipe & cat hackrf_pipe | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion="csdr convert_i8_f"
-## To use a HackRF, first run "mkfifo hackrf_pipe" in the OpenWebRX directory.
-## You should also use the csdr git repo from here: 
-##   git clone https://github.com/sgentle/csdr
-##   git checkout origin/signed_char
+# >> HackRF
+#receiver_commandline="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l16 -a0 -r hackrf_pipe & cat hackrf_pipe | csdr convert_s8_f".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 
 # >> Sound card SDR (needs ALSA)
 #I did not have the chance to properly test it.
 #samp_rate = 96000
-#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 - | nc -vvl 127.0.0.1 8888".format(samp_rate=samp_rate)
-#format_conversion="csdr convert_i16_f | csdr gain_ff 30"
+#receiver_commandline="arecord -f S16_LE -r {samp_rate} -c2 - | csdr convert_i16_f | csdr gain_ff 30".format(samp_rate=samp_rate)
 
-# >> RTL_SDR via rtl_tcp
-#start_rtl_command="rtl_tcp -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm} -p 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion="csdr convert_u8_f"
+# >> remote rtl_tcp server
+#receiver_commandline="nc remote_address 1234 | csdr convert_u8_f"
 
 # >> /dev/urandom test signal source
 #samp_rate = 2400000
-#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1) | nc -vvl 127.0.0.1  8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
-#format_conversion="csdr convert_u8_f"
+#receiver_commandline="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1) | nc -vvl 127.0.0.1  8888 | csdr convert_u8_f".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
 
 #You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
 
@@ -120,5 +110,7 @@ client_audio_buffer_size = 5
 
 start_freq = center_freq
 start_mod = "nfm" #nfm, am, lsb, usb, cw
+
+ddc_method = "td" 
 
 

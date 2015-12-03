@@ -44,7 +44,6 @@ from collections import namedtuple
 import Queue
 import ctypes
 
-#import rtl_mus
 import rxws
 import uuid
 import signal
@@ -73,19 +72,25 @@ def import_all_plugins(directory):
 class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass 
 
-def handle_signal(signal, frame):
-	global spectrum_dsp, rtl_command_proc
+def handle_signal(mysignal, frame):
+	global spectrum_dsp, receiver_proc
 	print "[openwebrx] Ctrl+C: aborting."
-	cleanup_clients(True)
-	spectrum_dsp.stop()
-	if rtl_command_proc: rtl_command_proc.kill()
+	try:
+		cleanup_clients(True)
+	except:
+		print "[openwebrx] cleanup_clients failed"
+	try:
+		spectrum_dsp.stop()
+	except:
+		print "[openwebrx] spectrum_dsp.stop() failed"
+	if receiver_proc: os.killpg(os.getpgid(receiver_proc.pid), signal.SIGTERM) 
 	os._exit(1) #not too graceful exit
 
-rtl_command_proc=rtl_thread=spectrum_dsp=server_fail=None
+receiver_proc=rtl_thread=spectrum_dsp=server_fail=None
 
 def main():
 	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg
-	global serverfail, rtl_thread, rtl_command_proc
+	global serverfail, rtl_thread, receiver_proc
 	print
 	print "OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package"
 	print "_________________________________________________________________________________________________"
@@ -117,13 +122,25 @@ def main():
 		pass
 
 	#Start rtl thread
-	if cfg.start_rtl_thread:
-		rtl_command_proc=subprocess.Popen(cfg.start_rtl_command, shell=True)
-		#rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
-		#rtl_thread.start()
-		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
+	test_dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+	test_dsp.set_samp_rate(cfg.samp_rate)
 
-	""" #Now we use ddcd instead of this.
+	#cfg.receiver_commandline += "| ddcd -d{decimation} -t{transition_bw} -a127.0.0.1 -p4951 -m{method} 2>&1 | tee /dev/fd/2 | (head -n 10; cat >/dev/null)".format(decimation=test_dsp.decimation, transition_bw=test_dsp.ddc_transition_bw(), method=cfg.ddc_method)
+	cfg.receiver_commandline += "| ddcd -d{decimation} -t{transition_bw} -a127.0.0.1 -p4951 -m{method}".format(decimation=test_dsp.decimation, transition_bw=test_dsp.ddc_transition_bw(), method=cfg.ddc_method)
+	print "[openwebrx-main] Running receiver_commandline: "+cfg.receiver_commandline
+	receiver_proc=subprocess.Popen(cfg.receiver_commandline, stdout=subprocess.PIPE, shell=True)
+	time.sleep(2)
+	"""
+	receiver_stdout_data=""
+	while True:
+		receiver_new_data=receiver_proc.stdout.read(1)
+		if len(receiver_new_data)==0: break
+		receiver_stdout_data+=receiver_new_data
+		if "ddcd: listening on" in receiver_stdout_data: break
+	print "[openwebrx-main] ddcd is ready."
+	"""
+	
+	""" #Now we use ddcd instead of rtl_mus, ncat, or others
 	#Run rtl_mus.py in a different OS thread
 	python_command="pypy" if pypy else "python2"
 	rtl_mus_cmd = python_command+" rtl_mus.py config_rtl"
@@ -244,11 +261,11 @@ def spectrum_thread_function():
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
 	dsp.set_fft_compression(cfg.fft_compression)
-	dsp.set_format_conversion(cfg.format_conversion)
 	sleep_sec=0.87/cfg.fft_fps
 	print "[openwebrx-spectrum] Spectrum thread initialized successfully."
 	dsp.start()
 	dsp.read(8) #dummy read to skip bufsize & preamble
+	#dsp.write("bypass=1\n") #set DDC to I/Q mode
 	print "[openwebrx-spectrum] Spectrum thread started." 
 	bytes_to_read=int(dsp.get_fft_bytes_to_read())
 	while True:
@@ -395,7 +412,6 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
 					dsp_initialized=False
 					dsp.set_audio_compression(cfg.audio_compression)
-					dsp.set_format_conversion(cfg.format_conversion)
 					dsp.set_offset_freq(0)
 					dsp.set_bpf(-4000,4000)
 					dsp.nc_port=cfg.iq_server_port
