@@ -30,6 +30,7 @@
 			var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
 			var starting_mod = "%[START_MOD]";
 			var starting_offset_frequency = %[START_OFFSET_FREQ];
+			var fft_max_seen = %[FFT_MAX_SEEN];
 		</script>
 		<script src="sdr.js"></script>
 		<script src="openwebrx.js"></script>

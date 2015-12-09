@@ -1564,6 +1564,7 @@ function add_canvas()
 	new_canvas.addEventListener("mousedown", canvas_mousedown, false);
 	new_canvas.addEventListener("wheel",canvas_mousewheel, false);
 	canvases.push(new_canvas);
+	if(fft_max_seen && canvases.length>fft_max_seen) canvas_container.removeChild(canvases.shift());
 }
 
 function init_canvas_container()

@@ -433,8 +433,6 @@ class WebRXHandler(BaseHTTPRequestHandler):
 							if comm_time_counter % 16 == 0:
 								myclient.last_comm_time=time.time()
 
-						print myclient.last_comm_time, comm_time_counter
-
 						# ========= process commands =========
 						while True:
 							rdata=rxws.recv(self, False)
@@ -550,6 +548,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[RX_DEVICE]",cfg.receiver_device),
 						("%[AUDIO_BUFSIZE]",str(cfg.client_audio_buffer_size)),
 						("%[START_OFFSET_FREQ]",str(cfg.start_freq-cfg.center_freq)),
+						("%[FFT_MAX_SEEN]",str(cfg.fft_max_seen)),
 						("%[START_MOD]",cfg.start_mod)
 					)
 					for rule in replace_dictionary:

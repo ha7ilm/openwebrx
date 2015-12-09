@@ -66,6 +66,7 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
+
 #samp_rate = 2048000
 samp_rate = 250000
 
@@ -111,6 +112,8 @@ client_audio_buffer_size = 5
 
 start_freq = center_freq
 start_mod = "nfm" #nfm, am, lsb, usb, cw
+
+fft_max_seen=0 # N*200 pixels vertically. Set 0 to never clear on-screen history.
 
 iq_server_port = 4951
 # (if ncat is not available on your system, rtl_mus will be used, thus you will have to set the same port as "my_listening_port" in config_rtl.py as well)
