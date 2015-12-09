@@ -289,7 +289,7 @@ def cleanup_clients(end_all=False):
 	for i in range(0,len(clients)):
 		i-=correction
 		#print "cleanup_clients:: len(clients)=", len(clients), "i=", i
-		if end_all or ((not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45):
+		if end_all or (clients[i].ws_started and (time.time()-clients[i].last_comm_time)>90) or ((not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45):
 			if not end_all: print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
 			close_client(i, False)
 			correction+=1
@@ -298,7 +298,7 @@ def cleanup_clients(end_all=False):
 def generate_client_id(ip):
 	#add a client
 	global clients
-	new_client=namedtuple("ClientStruct", "id gen_time ws_started sprectum_queue ip closed bcastmsg dsp")	
+	new_client=namedtuple("ClientStruct", "id gen_time ws_started sprectum_queue ip closed bcastmsg dsp last_comm_time")	
 	new_client.id=md5.md5(str(random.random())).hexdigest()
 	new_client.gen_time=time.time()
 	new_client.ws_started=False # to check whether client has ever tried to open the websocket
@@ -307,6 +307,7 @@ def generate_client_id(ip):
 	new_client.bcastmsg=""
 	new_client.closed=[False] #byref, not exactly sure if required
 	new_client.dsp=None
+	new_client.last_comm_time = time.time()
 	cma("generate_client_id")
 	clients.append(new_client)
 	log_client(new_client,"client added. Clients now: {0}".format(len(clients)))
@@ -384,6 +385,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						rxws.send("ERR Bad answer.")
 						return
 					myclient.ws_started=True
+					myclient.last_comm_time=time.time()
+					comm_time_counter=0;
 					#send default parameters
 					rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients))
 
@@ -402,10 +405,13 @@ class WebRXHandler(BaseHTTPRequestHandler):
 							print "[openwebrx-httpd:ws] client closed by other thread"
 							break
 
+						sent_something=False
+
 						# ========= send audio =========
 						if dsp_initialized:
 							temp_audio_data=dsp.read(256)
 							rxws.send(self, temp_audio_data, "AUD ")
+							sent_something = True
 
 						# ========= send spectrum =========
 						while not myclient.spectrum_queue.empty():
@@ -414,11 +420,20 @@ class WebRXHandler(BaseHTTPRequestHandler):
 							#rxws.send(self, spectrum_data[0][spectrum_data_mid:]+spectrum_data[0][:spectrum_data_mid], "FFT ") 
 							# (it seems GNU Radio exchanges the first and second part of the FFT output, we correct it)
 							rxws.send(self, spectrum_data[0],"FFT ")
+							sent_something = True
 
 						# ========= send bcastmsg =========
 						if myclient.bcastmsg!="":
 							rxws.send(self,myclient.bcastmsg)
+							sent_something = True
 							myclient.bcastmsg=""
+
+						if sent_something:
+							comm_time_counter+=1
+							if comm_time_counter % 16 == 0:
+								myclient.last_comm_time=time.time()
+
+						print myclient.last_comm_time, comm_time_counter
 
 						# ========= process commands =========
 						while True:
