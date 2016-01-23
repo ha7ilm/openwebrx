@@ -66,8 +66,8 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
-#samp_rate = 2048000
-samp_rate = 250000
+samp_rate = 2048000
+#samp_rate = 250000
 
 center_freq = 145525000
 rf_gain = 5
@@ -82,22 +82,18 @@ start_rtl_thread=True
 
 # >> RTL-SDR via rtl_sdr 
 
-start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} - | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
 
 # >> Sound card SDR (needs ALSA)
 #I did not have the chance to properly test it.
 #samp_rate = 96000
-#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 - | nc -vvl 127.0.0.1 8888".format(samp_rate=samp_rate)
+#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
 #format_conversion="csdr convert_i16_f | csdr gain_ff 30"
-
-# >> RTL_SDR via rtl_tcp
-#start_rtl_command="rtl_tcp -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm} -p 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion="csdr convert_u8_f"
 
 # >> /dev/urandom test signal source
 #samp_rate = 2400000
-#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1) | nc -vvl 127.0.0.1  8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
+#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
 #format_conversion="csdr convert_u8_f"
 
 #You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
@@ -112,5 +108,4 @@ client_audio_buffer_size = 5
 start_freq = center_freq
 start_mod = "nfm" #nfm, am, lsb, usb, cw
 
-iq_server_port = 4951
-# (if ncat is not available on your system, rtl_mus will be used, thus you will have to set the same port as "my_listening_port" in config_rtl.py as well)
+iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.

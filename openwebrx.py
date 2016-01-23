@@ -116,21 +116,14 @@ def main():
 		pass
 
 	#Start rtl thread
+	if os.system("ncat --version > /dev/null") == 32512: #check for ncat
+		print "[openwebrx-main] Error: ncat not detected, please install it! The ncat tool is a netcat alternative, used for distributing the I/Q data stream. It is usually available in the nmap package (sudo apt-get install nmap). For more explanation, look into the README.md"
+		return 
 	if cfg.start_rtl_thread:
+		cfg.start_rtl_command += "| ncat -4l %d -k --send-only --allow 127.0.0.1" % cfg.iq_server_port
 		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
 		rtl_thread.start()
 		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
-
-	#Run rtl_mus.py in a different OS thread
-	python_command="pypy" if pypy else "python2"
-	rtl_mus_cmd = python_command+" rtl_mus.py config_rtl"
-	if os.system("ncat --version > /dev/null") != 32512:
-		print "[openwebrx-main] ncat detected, using it instead of rtl_mus:"
-		rtl_mus_cmd = "ncat localhost 8888 | ncat -4l %d -k --send-only --allow 127.0.0.1 " % cfg.iq_server_port
-		print rtl_mus_cmd
-	rtl_mus_thread=threading.Thread(target = lambda:subprocess.Popen(rtl_mus_cmd, shell=True), args=())
-	rtl_mus_thread.start() # The new feature in GNU Radio 3.7: top_block() locks up ALL python threads until it gets the TCP connection.
-	print "[openwebrx-main] Started rtl_mus."
 	time.sleep(1) #wait until it really starts	
 
 	#Initialize clients

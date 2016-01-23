@@ -24,10 +24,13 @@ It has the following features:
 
 **News (2015-09-01)**
 - The DDC in *csdr* has been hand-optimized for ARM NEON, so it runs 3× faster on the Raspberry Pi than before. 
-- Also we use *ncat* instead of *rtl_mus*, and it is also 3× faster.
+- Also we use *ncat* instead of *rtl_mus*, and it is 3× faster.
 - OpenWebRX now supports URLs like: http://localhost:8073/#freq=145555000,mod=usb
 
-- When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
+**News (2016-01-23)**
+- *ncat* is now a requirement for OpenWebRX.
+
+When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
 
 ## Setup
 
@@ -37,7 +40,11 @@ First you will need to install the dependencies:
 
 - <a href="https://github.com/simonyiszk/csdr">libcsdr</a>
 - <a href="http://sdr.osmocom.org/trac/wiki/rtl-sdr">rtl-sdr</a>
-- ncat (on Debian/Ubuntu, it is in the *nmap* package). *(It is optional, but highly advised.)*
+- ncat (On Debian/Ubuntu, it is in the *nmap* package). 
+
+> By the way, *nmap* is tool commonly used for auditing network security, and it is not used by OpenWebRX in any way. We need it because the *ncat* command is packaged with it.
+>
+> *ncat* is a better *netcat* alternative, which is used by OpenWebRX for internally distributing the I/Q data stream. It also solves the problem of having different versions of *netcat* on different Linux distributions, which are not compatible by their command-line arguments.
 
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 

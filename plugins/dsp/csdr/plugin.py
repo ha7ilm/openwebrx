@@ -46,13 +46,9 @@ class dsp_plugin:
 		self.format_conversion = "csdr convert_u8_f"
 		self.base_bufsize = 512
 		self.nc_port = 4951
-		try:	
-			subprocess.Popen("nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE).kill()
-		except:
-			print "[openwebrx-plugin:csdr] error: netcat not found, please install netcat!"
 
 	def chain(self,which):
-		any_chain_base="nc -v 127.0.0.1 {nc_port} | csdr setbuf {start_bufsize} | csdr through | "+self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
+		any_chain_base="ncat -v 127.0.0.1 {nc_port} | csdr setbuf {start_bufsize} | csdr through | "+self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft": 
 			fft_chain_base = "sleep 1; "+any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
 			if self.fft_compression=="adpcm":
