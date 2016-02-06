@@ -72,16 +72,23 @@
 				<!-- add canvas here by javascript -->
 			</div>
 			<div id="openwebrx-panels-container">
-				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="215,70">
+				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="215,115">
 					<div id="webrx-actual-freq">---.--- MHz</div>
 					<div id="webrx-mouse-freq">---.--- MHz</div>
 					<!--<div class="openwebrx-button" onclick="ws.send('SET mod=wfm');" >WFM</div>-->
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('nfm');">FM</div>
-					<div class="openwebrx-button" onclick="demodulator_analog_replace('am');">AM</div>					
+					<div class="openwebrx-button" onclick="demodulator_analog_replace('am');">AM</div>
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('lsb');">LSB</div>
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('usb');">USB</div>
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('cw');">CW</div>
+
+					<span>Volume:</span>
+					<input id="openwebrx-panel-volume" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
+
+					<div id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute()">Mute</div>
+
 				</div>
+
 				<div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="1" data-panel-size="619,142">
 					<div class="openwebrx-panel-inner" id="openwebrx-log-scroll">
 						<div id="openwebrx-client-log-title">OpenWebRX (beta) client log<span style="color: #ff5900;"></span> </strong><span id="openwebrx-problems"></span></div>

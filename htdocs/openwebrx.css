@@ -23,9 +23,14 @@ html, body
 {
 	margin: 0;
 	padding: 0;
-   height: 100%;
+	height: 100%;
 	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
 	overflow: hidden;
+}
+
+input
+{
+	vertical-align:middle;
 }
 
 #webrx-top-container
@@ -539,3 +544,13 @@ html, body
 	font-weight: bold;
 }
 
+
+#openwebrx-mute-on
+{
+	color: lime;
+}
+
+#openwebrx-mute-off
+{
+	color: white;
+}
