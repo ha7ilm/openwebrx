@@ -82,9 +82,9 @@
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('usb');">USB</div>
 					<div class="openwebrx-button" onclick="demodulator_analog_replace('cw');">CW</div>
 
-					<span>Volume:</span>
+					<div>Volume:
 					<input id="openwebrx-panel-volume" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
-
+					</div>
 					<div id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute()">Mute</div>
 
 				</div>

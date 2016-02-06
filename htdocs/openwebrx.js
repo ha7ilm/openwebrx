@@ -1838,13 +1838,14 @@ function place_panels()
 			if (c.dataset.panelPos=="left") { left_col.push(c); }
 			else if(c.dataset.panelPos=="right") { right_col.push(c); }
 			c.style.width=newSize[0]+"px";
-			c.style.height=newSize[1]+"px";
+			//c.style.height=newSize[1]+"px";
 			if(!c.openwebrxPanelTransparent) c.style.margin=panel_margin.toString()+"px";
 			else c.style.marginLeft=panel_margin.toString()+"px";
 			c.openwebrxPanelWidth=parseInt(newSize[0]);			
 			c.openwebrxPanelHeight=parseInt(newSize[1]);
 		}
 	}
+
 	y=hoffset; //was y=0 before hoffset
 	while(left_col.length>0)
 	{
