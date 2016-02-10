@@ -66,8 +66,8 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
-samp_rate = 2048000
-#samp_rate = 250000
+samp_rate = 250000
+#samp_rate = 2048000
 
 center_freq = 145525000
 rf_gain = 5
@@ -111,3 +111,8 @@ start_mod = "nfm" #nfm, am, lsb, usb, cw
 iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
 
 #access_log = "~/openwebrx_access.log"
+
+#Warning! The settings below are very experimental.
+csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
+csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
+csdr_through = False # Setting this True will print out how much data is going into the DSP chains.

@@ -46,9 +46,15 @@ class dsp_plugin:
 		self.format_conversion = "csdr convert_u8_f"
 		self.base_bufsize = 512
 		self.nc_port = 4951
+		self.csdr_dynamic_bufsize = False
+		self.csdr_print_bufsizes = False
+		self.csdr_through = False
 
 	def chain(self,which):
-		any_chain_base="ncat -v 127.0.0.1 {nc_port} | csdr setbuf {start_bufsize} | csdr through | "+self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
+		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
+		if self.csdr_dynamic_bufsize: any_chain_base+="csdr setbuf {start_bufsize} | "
+		if self.csdr_through: any_chain_base+="csdr through | "
+		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft": 
 			fft_chain_base = "sleep 1; "+any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
 			if self.fft_compression=="adpcm":
@@ -163,7 +169,8 @@ class dsp_plugin:
 		print "[openwebrx-dsp-plugin:csdr] Command =",command
 		#code.interact(local=locals())
 		my_env=os.environ.copy()
-		my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
+		if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
+		if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
 		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
 		self.running = True
 

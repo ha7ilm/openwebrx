@@ -1019,6 +1019,7 @@ function on_ws_recv(evt)
 		else if(fft_compression="adpcm")
 		{
 			fft_codec.reset();
+			
 			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
 			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
 			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;

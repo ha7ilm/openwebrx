@@ -101,7 +101,7 @@ def main():
 	no_arguments=len(sys.argv)==1
 	if no_arguments: print "[openwebrx-main] Configuration script not specified. I will use: \"config_webrx.py\""
 	cfg=__import__("config_webrx" if no_arguments else sys.argv[1])
-	for option in ("access_log",): 
+	for option in ("access_log","csdr_dynamic_bufsize","csdr_print_bufsizes","csdr_through"): 
 		if not option in dir(cfg): setattr(cfg, option, False) #initialize optional config parameters
 
 	#Open log files
@@ -236,6 +236,11 @@ def check_server():
 	if server_fail: print "[openwebrx-check_server] >>>>>>> ERROR:", server_fail
 	return server_fail
 
+def apply_csdr_cfg_to_dsp(dsp):
+	dsp.csdr_dynamic_bufsize = cfg.csdr_dynamic_bufsize
+	dsp.csdr_print_bufsizes = cfg.csdr_print_bufsizes
+	dsp.csdr_through = cfg.csdr_through	
+
 def spectrum_thread_function():
 	global clients, spectrum_dsp
 	spectrum_dsp=dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
@@ -246,10 +251,13 @@ def spectrum_thread_function():
 	dsp.set_fft_fps(cfg.fft_fps)
 	dsp.set_fft_compression(cfg.fft_compression)
 	dsp.set_format_conversion(cfg.format_conversion)
+	apply_csdr_cfg_to_dsp(dsp)
 	sleep_sec=0.87/cfg.fft_fps
 	print "[openwebrx-spectrum] Spectrum thread initialized successfully."
 	dsp.start()
-	dsp.read(8) #dummy read to skip bufsize & preamble
+	if cfg.csdr_dynamic_bufsize: 
+		dsp.read(8) #dummy read to skip bufsize & preamble
+		print "[openwebrx-spectrum] Note: CSDR_DYNAMIC_BUFSIZE_ON = 1"
 	print "[openwebrx-spectrum] Spectrum thread started." 
 	bytes_to_read=int(dsp.get_fft_bytes_to_read())
 	while True:
@@ -402,6 +410,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					dsp.set_offset_freq(0)
 					dsp.set_bpf(-4000,4000)
 					dsp.nc_port=cfg.iq_server_port
+					apply_csdr_cfg_to_dsp(dsp)
 					myclient.dsp=dsp
 					
 					access_log("Started streaming to client: "+self.client_address[0]+"#"+myclient.id+" (users now: "+str(len(clients))+")")
