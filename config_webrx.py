@@ -109,3 +109,5 @@ start_freq = center_freq
 start_mod = "nfm" #nfm, am, lsb, usb, cw
 
 iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
+
+#access_log = "~/openwebrx_access.log"

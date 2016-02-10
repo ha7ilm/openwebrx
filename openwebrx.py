@@ -29,6 +29,7 @@ import plugins
 import plugins.dsp
 import thread
 import time
+import datetime
 import subprocess
 import os 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -80,10 +81,15 @@ def handle_signal(signal, frame):
 	spectrum_dsp.stop()
 	os._exit(1) #not too graceful exit
 
+def access_log(data):
+	global logs
+	logs.access_log.write("["+datetime.datetime.now().isoformat()+"] "+data+"\n")
+	logs.access_log.flush()
+
 rtl_thread=spectrum_dsp=server_fail=None
 
 def main():
-	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg
+	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg, logs
 	global serverfail, rtl_thread
 	print
 	print "OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package"
@@ -93,9 +99,14 @@ def main():
 	print 
 
 	no_arguments=len(sys.argv)==1
-	if no_arguments: print "[openwebrx] Configuration script not specified. I will use: \"config_webrx.py\""
+	if no_arguments: print "[openwebrx-main] Configuration script not specified. I will use: \"config_webrx.py\""
 	cfg=__import__("config_webrx" if no_arguments else sys.argv[1])
+	for option in ("access_log",): 
+		if not option in dir(cfg): setattr(cfg, option, False) #initialize optional config parameters
 
+	#Open log files
+	logs = type("logs_class", (object,), {"access_log":open(cfg.access_log if cfg.access_log else "/dev/null","a"), "error_log":""})()
+	
 	#Set signal handler
 	signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
 
@@ -160,6 +171,7 @@ def main():
 	#Start HTTP thread
 	httpd = MultiThreadHTTPServer(('', cfg.web_port), WebRXHandler)
 	print('[openwebrx-main] Starting HTTP server.')
+	access_log("Starting OpenWebRX...")
 	httpd.serve_forever()
 
 
@@ -318,6 +330,7 @@ def close_client(i, use_mutex=True):
 		print "[openwebrx] close_client dsp.stop() :: error -",exc_type,exc_value
 		traceback.print_tb(exc_traceback)
 	clients[i].closed[0]=True
+	access_log("Stopped streaming to client: "+clients[i].ip+"#"+str(clients[i].id)+" (users now: "+str(len(clients)-1)+")")
 	del clients[i]
 	if use_mutex: cmr()
 
@@ -344,6 +357,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 		path_temp_parts=self.path.split("?")
 		self.path=path_temp_parts[0]
 		request_param=path_temp_parts[1] if(len(path_temp_parts)>1) else "" 
+		access_log("GET "+self.path+" from "+self.client_address[0])
 		try:
 			if self.path=="/":
 				self.path="/index.wrx"
@@ -390,6 +404,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					dsp.nc_port=cfg.iq_server_port
 					myclient.dsp=dsp
 					
+					access_log("Started streaming to client: "+self.client_address[0]+"#"+myclient.id+" (users now: "+str(len(clients))+")")
+
 					while True:
 						if myclient.closed[0]: 
 							print "[openwebrx-httpd:ws] client closed by other thread"
