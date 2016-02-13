@@ -46,13 +46,12 @@ input[type=range]:focus
 
 input[type=range]::-webkit-slider-runnable-track
 {
-	width: 100%;
-	height: 7px;
+	height: 5px;
 	cursor: pointer;
 	animate: 0.2s;
 	box-shadow: 0px 0px 0px #000000;
 	background: #B6B6B6;
-	border-radius: 11px;
+	/*border-radius: 11px;*/
 	border: 1px solid #8A8A8A;
 }
 
@@ -60,13 +59,13 @@ input[type=range]::-webkit-slider-thumb
 {
 	box-shadow: 1px 1px 1px #828282;
 	border: 1px solid #8A8A8A;
-	height: 24px;
-	width: 7px;
-	border-radius: 0px;
+	height: 15px;
+	width: 15px;
+	border-radius: 10px;
 	background: #FFFFFF;
 	cursor: pointer;
 	-webkit-appearance: none;
-	margin-top: -9.5px;
+	margin-top: -7px;
 }
 
 input[type=range]:focus::-webkit-slider-runnable-track
@@ -76,8 +75,7 @@ input[type=range]:focus::-webkit-slider-runnable-track
 
 input[type=range]::-moz-range-track
 {
-	width: 100%;
-	height: 7px;
+	height: 3px;
 	cursor: pointer;
 	animate: 0.2s;
 	box-shadow: 0px 0px 0px #000000;
@@ -90,9 +88,9 @@ input[type=range]::-moz-range-thumb
 {
 	box-shadow: 1px 1px 1px #828282;
 	border: 1px solid #8A8A8A;
-	height: 24px;
-	width: 7px;
-	border-radius: 0px;
+	height: 12px;
+	width: 12px;
+	border-radius: 10px;
 	background: #FFFFFF;
 	cursor: pointer;
 }
@@ -532,9 +530,7 @@ input[type=range]:focus::-ms-fill-upper
 	-moz-border-radius: 5px;
 	color: White;
 	font-weight: bold;
-	width: auto;
-	float: left;
-	margin-right: 5px;
+	margin-right: 1px;
 	cursor: pointer;
 	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #373737), color-stop(1, #4F4F4F) );
 	background:-moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
@@ -544,6 +540,7 @@ input[type=range]:focus::-ms-fill-upper
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+	display: inline-block;
 }
 
 .openwebrx-button:hover
@@ -673,5 +670,19 @@ input[type=range]:focus::-ms-fill-upper
 
 #openwebrx-panel-volume
 {
-	width:70%;
+	position: relative;
+	top: -2px;
+	width:170px;
+}
+
+#openwebrx-mute-img
+{
+	width: 14px;
+	position:relative;
+	top: 1px;
+}
+
+.openwebrx-panel-line
+{
+	padding-top: 5px;
 }

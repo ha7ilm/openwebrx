@@ -118,14 +118,9 @@ function style_value(of_what,which)
 	else if (window.getComputedStyle) return document.defaultView.getComputedStyle(of_what,null).getPropertyValue(which); 	
 }
 
-function setVolume(str)
-{
-   volume = mute ? 0 : parseFloat(str)/100;
-}
-
 function updateVolume()
 {
-	setVolume(e("openwebrx-panel-volume").value);
+	volume = parseFloat(e("openwebrx-panel-volume").value) / 100; 
 }
 
 function toggleMute()
@@ -133,9 +128,18 @@ function toggleMute()
 	if (mute) {
 		mute = false;
 		e("openwebrx-mute-on").id="openwebrx-mute-off";
+		e("openwebrx-mute-img").src="gfx/openwebrx-speaker.png";
+		e("openwebrx-panel-volume").disabled=false;
+		e("openwebrx-panel-volume").style.opacity=1.0;
+		e("openwebrx-panel-volume").value = volumeBeforeMute;
 	} else {
 		mute = true;
-		e("openwebrx-mute-off").id="openwebrx-mute-on"
+		e("openwebrx-mute-off").id="openwebrx-mute-on";
+		e("openwebrx-mute-img").src="gfx/openwebrx-speaker-muted.png";
+		e("openwebrx-panel-volume").disabled=true;
+		e("openwebrx-panel-volume").style.opacity=0.5;		
+		volumeBeforeMute = e("openwebrx-panel-volume").value;	
+		e("openwebrx-panel-volume").value=0;
 	}
 
 	updateVolume();
@@ -1144,7 +1148,8 @@ function divlog(what, is_error)
 
 var audio_context;
 var audio_initialized=0;
-var volume;
+var volume = 1.0;
+var volumeBeforeMute = 100.0;
 var mute = false;
 
 var audio_received = Array();
