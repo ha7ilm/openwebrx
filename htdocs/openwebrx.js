@@ -118,6 +118,31 @@ function style_value(of_what,which)
 	else if (window.getComputedStyle) return document.defaultView.getComputedStyle(of_what,null).getPropertyValue(which); 	
 }
 
+function setVolume(str)
+{
+   volume = mute ? 0 : parseFloat(str)/100;
+}
+
+function updateVolume()
+{
+	setVolume(e("openwebrx-panel-volume").value);
+}
+
+function toggleMute()
+{
+	if (mute) {
+		mute = false;
+		e("openwebrx-mute-on").id="openwebrx-mute-off";
+	} else {
+		mute = true;
+		e("openwebrx-mute-off").id="openwebrx-mute-on"
+	}
+
+	updateVolume();
+}
+
+
+
 // ========================================================
 // =================  ANIMATION ROUTINES  =================
 // ========================================================
@@ -1119,6 +1144,8 @@ function divlog(what, is_error)
 
 var audio_context;
 var audio_initialized=0;
+var volume;
+var mute = false;
 
 var audio_received = Array();
 var audio_buffer_index = 0;
@@ -1156,9 +1183,9 @@ function audio_prepare(data)
 	//audio_rebuffer.push(sdrjs.ConvertI16_F(data));//no resampling
 	//audio_rebuffer.push(audio_resampler.process(sdrjs.ConvertI16_F(data)));//resampling without ADPCM
 	if(audio_compression=="none")
-		audio_rebuffer.push(audio_resampler.process(gain_ff(0.9,sdrjs.ConvertI16_F(data))));//resampling without ADPCM
+		audio_rebuffer.push(audio_resampler.process(gain_ff(volume,sdrjs.ConvertI16_F(data))));//resampling without ADPCM
 	else if(audio_compression=="adpcm")
-		audio_rebuffer.push(audio_resampler.process(gain_ff(0.9,sdrjs.ConvertI16_F(audio_codec.decode(data))))); //resampling & ADPCM
+		audio_rebuffer.push(audio_resampler.process(gain_ff(volume,sdrjs.ConvertI16_F(audio_codec.decode(data))))); //resampling & ADPCM
 	else return;
 
 	//console.log("prepare",data.length,audio_rebuffer.remaining());
@@ -1699,6 +1726,9 @@ function openwebrx_init()
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
 	check_top_bar_congestion();
+
+	//Synchronise volume with slider
+	updateVolume();
 }
 
 /*
@@ -1808,13 +1838,14 @@ function place_panels()
 			if (c.dataset.panelPos=="left") { left_col.push(c); }
 			else if(c.dataset.panelPos=="right") { right_col.push(c); }
 			c.style.width=newSize[0]+"px";
-			c.style.height=newSize[1]+"px";
+			//c.style.height=newSize[1]+"px";
 			if(!c.openwebrxPanelTransparent) c.style.margin=panel_margin.toString()+"px";
 			else c.style.marginLeft=panel_margin.toString()+"px";
 			c.openwebrxPanelWidth=parseInt(newSize[0]);			
 			c.openwebrxPanelHeight=parseInt(newSize[1]);
 		}
 	}
+
 	y=hoffset; //was y=0 before hoffset
 	while(left_col.length>0)
 	{

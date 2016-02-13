@@ -23,9 +23,126 @@ html, body
 {
 	margin: 0;
 	padding: 0;
-   height: 100%;
+	height: 100%;
 	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
 	overflow: hidden;
+}
+
+input
+{
+	vertical-align:middle;
+}
+
+input[type=range]
+{
+	-webkit-appearance: none;
+	margin: 10px 0;
+	width: 100%;
+}
+input[type=range]:focus
+{
+	outline: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track
+{
+	width: 100%;
+	height: 7px;
+	cursor: pointer;
+	animate: 0.2s;
+	box-shadow: 0px 0px 0px #000000;
+	background: #B6B6B6;
+	border-radius: 11px;
+	border: 1px solid #8A8A8A;
+}
+
+input[type=range]::-webkit-slider-thumb
+{
+	box-shadow: 1px 1px 1px #828282;
+	border: 1px solid #8A8A8A;
+	height: 24px;
+	width: 7px;
+	border-radius: 0px;
+	background: #FFFFFF;
+	cursor: pointer;
+	-webkit-appearance: none;
+	margin-top: -9.5px;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track
+{
+	background: #B6B6B6;
+}
+
+input[type=range]::-moz-range-track
+{
+	width: 100%;
+	height: 7px;
+	cursor: pointer;
+	animate: 0.2s;
+	box-shadow: 0px 0px 0px #000000;
+	background: #B6B6B6;
+	border-radius: 11px;
+	border: 1px solid #8A8A8A;
+}
+
+input[type=range]::-moz-range-thumb
+{
+	box-shadow: 1px 1px 1px #828282;
+	border: 1px solid #8A8A8A;
+	height: 24px;
+	width: 7px;
+	border-radius: 0px;
+	background: #FFFFFF;
+	cursor: pointer;
+}
+
+input[type=range]::-ms-track
+{
+	width: 100%;
+	height: 7px;
+	cursor: pointer;
+	animate: 0.2s;
+	background: transparent;
+	border-color: transparent;
+	color: transparent;
+}
+
+input[type=range]::-ms-fill-lower
+ {
+	background: #B6B6B6;
+	border: 1px solid #8A8A8A;
+	border-radius: 22px;
+	box-shadow: 0px 0px 0px #000000;
+}
+
+input[type=range]::-ms-fill-upper
+{
+	background: #B6B6B6;
+	border: 1px solid #8A8A8A;
+	border-radius: 22px;
+	box-shadow: 0px 0px 0px #000000;
+}
+
+input[type=range]::-ms-thumb
+{
+	box-shadow: 1px 1px 1px #828282;
+	border: 1px solid #8A8A8A;
+	height: 24px;
+	width: 7px;
+	border-radius: 0px;
+	background: #FFFFFF;
+	cursor: pointer;
+}
+
+input[type=range]:focus::-ms-fill-lower
+{
+	background: #B6B6B6;
+}
+
+input[type=range]:focus::-ms-fill-upper
+{
+	background: #B6B6B6;
 }
 
 #webrx-top-container
@@ -539,3 +656,22 @@ html, body
 	font-weight: bold;
 }
 
+#openwebrx-panel-receiver
+{
+	width:110px;
+}
+
+#openwebrx-mute-on
+{
+	color: lime;
+}
+
+#openwebrx-mute-off
+{
+	color: white;
+}
+
+#openwebrx-panel-volume
+{
+	width:70%;
+}
