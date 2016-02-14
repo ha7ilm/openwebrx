@@ -102,6 +102,10 @@ format_conversion="csdr convert_u8_f"
 #start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
 #format_conversion="csdr convert_u8_f"
 
+# >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-gr-osmosdr-as-signal-source)
+start_rtl_command="cat /tmp/osmocom_fifo"
+format_conversion=""
+
 #You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
 
 shown_center_freq = center_freq #you can change this if you use an upconverter
