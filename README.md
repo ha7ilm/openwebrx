@@ -46,7 +46,7 @@ First you will need to install the dependencies:
 - <a href="http://sdr.osmocom.org/trac/wiki/rtl-sdr">rtl-sdr</a>
 - ncat (On Debian/Ubuntu, it is in the *nmap* package). 
 
-> By the way, *nmap* is tool commonly used for auditing network security, and it is not used by OpenWebRX in any way. We need it because the *ncat* command is packaged with it.
+> By the way, *nmap* is a tool commonly used for auditing network security, and it is not used by OpenWebRX in any way. We need to install it, because the *ncat* command is packaged with it.
 >
 > *ncat* is a better *netcat* alternative, which is used by OpenWebRX for internally distributing the I/Q data stream. It also solves the problem of having different versions of *netcat* on different Linux distributions, which are not compatible by their command-line arguments.
 
