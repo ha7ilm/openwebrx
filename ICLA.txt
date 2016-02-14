@@ -1,7 +1,7 @@
      Individual Contributor License Agreement ("Agreement")
 
 In order to clarify the intellectual property license granted 
-with Contributions from any person or entity, András Retzler
+with Contributions from any person or entity, Retzler András
 (hereinafter referred to as "Project Owner") must have a 
 Contributor License Agreement ("CLA") on file that has
 been signed by each Contributor, indicating agreement to the license
