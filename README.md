@@ -23,10 +23,10 @@ It has the following features:
 - License for OpenWebRX is now Affero GPL v3. 
 
 **News (2015-02-14)**
-- The DDC in *csdr* has been hand-optimized for ARM NEON, so it runs 3× faster on the Raspberry Pi than before. 
-- Also we use *ncat* instead of *rtl_mus*, and it is 3× faster.
+- The DDC in *csdr* has been [manually optimized](https://github.com/simonyiszk/csdr/blob/2b54054a9f5de9a908ee075b488a5ee74f41ba18/libcsdr.c#L300) for ARM NEON, so it runs around 3 times faster on the Raspberry Pi 2 than before. 
+- Also we use *ncat* instead of *rtl_mus*, and it is 3 times faster.
 - OpenWebRX now supports URLs like: http://localhost:8073/#freq=145555000,mod=usb
-- UI improvements, thanks to John Seamons and Gnoxter.
+- UI improvements were made, thanks to John Seamons and Gnoxter.
 
 > When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
 
