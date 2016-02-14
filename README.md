@@ -28,7 +28,7 @@ It has the following features:
 - OpenWebRX now supports URLs like: `http://localhost:8073/#freq=145555000,mod=usb`
 - UI improvements were made, thanks to John Seamons and Gnoxter.
 
-> When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new dependency, *ncat*!
+> When upgrading OpenWebRX, please make sure that you also upgrade *csdr*, and install the new dependency, *ncat*!
 
 ## OpenWebRX servers on SDR.hu
 
