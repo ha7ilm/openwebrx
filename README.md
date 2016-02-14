@@ -24,7 +24,7 @@ It has the following features:
 
 **News (2016-02-14)**
 - The DDC in *csdr* has been manually optimized for ARM NEON, so it runs around 3 times faster on the Raspberry Pi 2 than before. 
-- Also we use *ncat* instead of *rtl_mus*, and it is 3 times faster.
+- Also we use *ncat* instead of *rtl_mus*, and it is 3 times faster in some cases.
 - OpenWebRX now supports URLs like: `http://localhost:8073/#freq=145555000,mod=usb`
 - UI improvements were made, thanks to John Seamons and Gnoxter.
 
