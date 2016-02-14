@@ -19,7 +19,7 @@ It has the following features:
 - Several bugs were fixed to improve reliability and stability.
 - OpenWebRX now supports compression of audio and waterfall stream, so the required network uplink bandwidth has been decreased from 2 Mbit/s to about 200 kbit/s per client! (Measured with the default settings. It is also dependent on `fft_size`.)
 - OpenWebRX now uses <a href="https://github.com/simonyiszk/csdr#sdrjs">sdr.js</a> (*libcsdr* compiled to JavaScript) for some client-side DSP tasks. 
-- Receivers can now be listed on <a href="http://sdr.hu/">sdr.hu</a>.
+- Receivers can now be listed on <a href="http://sdr.hu/">SDR.hu</a>.
 - License for OpenWebRX is now Affero GPL v3. 
 
 **News (2015-02-14)**
