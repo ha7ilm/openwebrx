@@ -67,7 +67,6 @@ dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
 samp_rate = 250000
-#samp_rate = 2048000
 
 center_freq = 145525000
 rf_gain = 5
@@ -89,7 +88,7 @@ format_conversion="csdr convert_u8_f"
 #I did not have the chance to properly test it.
 #samp_rate = 96000
 #start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
-#format_conversion="csdr convert_i16_f | csdr gain_ff 30"
+#format_conversion="csdr convert_s16_f | csdr gain_ff 30"
 
 # >> /dev/urandom test signal source
 #samp_rate = 2400000

@@ -22,15 +22,17 @@ It has the following features:
 - Receivers can now be listed on <a href="http://sdr.hu/">sdr.hu</a>.
 - License for OpenWebRX is now Affero GPL v3. 
 
-**News (2015-09-01)**
+**News (2015-02-14)**
 - The DDC in *csdr* has been hand-optimized for ARM NEON, so it runs 3× faster on the Raspberry Pi than before. 
 - Also we use *ncat* instead of *rtl_mus*, and it is 3× faster.
 - OpenWebRX now supports URLs like: http://localhost:8073/#freq=145555000,mod=usb
+- UI improvements, thanks to John Seamons and Gnoxter.
 
-**News (2016-01-23)**
-- *ncat* is now a requirement for OpenWebRX.
+> When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
 
-When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
+[sdr.hu](http://sdr.hu) is a site which lists the active, public receivers. Your receiver [sdr.hu/openwebrx](can also be part of it), if you want.
+
+![sdr.hu](/screenshot-sdrhu.png?raw=true)
 
 ## Setup
 
@@ -54,7 +56,6 @@ You can now open the GUI at <a href="http://localhost:8073">http://localhost:807
 
 Please note that the server is also listening on the following ports (on localhost only):
 
-- port 8888 for the I/Q source,
 - port 4951 for the multi-user I/Q server.
 
 Now the next step is to customize the parameters of your server in `config_webrx.py`.

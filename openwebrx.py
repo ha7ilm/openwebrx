@@ -234,7 +234,7 @@ def spectrum_watchdog_thread_function():
 	while True:
 		time.sleep(60)
 		if spectrum_thread_watchdog_last_tick and time.time()-spectrum_thread_watchdog_last_tick > 60.0: 
-			print "[openwebrx-spectrum-watchdog] Spectrum timeout. Seems like no I/Q data is coming from the receiver.\nFor RTL-SDR, it is a common problem to randomly fail after a time, due to:\n1) overheat,\n2) insufficient current."
+			print "[openwebrx-spectrum-watchdog] Spectrum timeout. Seems like no I/Q data is coming from the receiver.\nIf you're using RTL-SDR, the receiver hardware may randomly fail under some circumstances:\n1) high temperature,\n2) insufficient current available from the USB port."
 			print "[openwebrx-spectrum-watchdog] Deactivating receiver."
 			receiver_failed="spectrum"
 			return
