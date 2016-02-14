@@ -23,11 +23,13 @@
 	<head>
 		<title>OpenWebRX | Open Source SDR Web App for Everyone!</title>
 		<script type="text/javascript">
-			//Local variables
-			client_id="%[CLIENT_ID]";
-			ws_url="%[WS_URL]";
-			rx_photo_height=%[RX_PHOTO_HEIGHT];
+			//Global variables
+			var client_id="%[CLIENT_ID]";
+			var ws_url="%[WS_URL]";
+			var rx_photo_height=%[RX_PHOTO_HEIGHT];
 			var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
+			var starting_mod = "%[START_MOD]";
+			var starting_offset_frequency = %[START_OFFSET_FREQ];
 		</script>
 		<script src="sdr.js"></script>
 		<script src="openwebrx.js"></script>

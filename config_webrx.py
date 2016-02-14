@@ -81,7 +81,7 @@ start_rtl_thread=True
 
 # >> RTL-SDR via rtl_sdr 
 
-start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} - | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
 
 #start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l16 -a0 -r hackrf_pipe & cat hackrf_pipe | nc -vvl 127.0.0.1 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
@@ -94,23 +94,31 @@ format_conversion="csdr convert_u8_f"
 # >> Sound card SDR (needs ALSA)
 #I did not have the chance to properly test it.
 #samp_rate = 96000
-#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 - | nc -vvl 127.0.0.1 8888".format(samp_rate=samp_rate)
-#format_conversion="csdr convert_i16_f | csdr gain_ff 30"
-
-# >> RTL_SDR via rtl_tcp
-#start_rtl_command="rtl_tcp -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm} -p 8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion="csdr convert_u8_f"
+#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
+#format_conversion="csdr convert_s16_f | csdr gain_ff 30"
 
 # >> /dev/urandom test signal source
 #samp_rate = 2400000
-#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1) | nc -vvl 127.0.0.1  8888".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
+#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
 #format_conversion="csdr convert_u8_f"
 
 #You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
 
 shown_center_freq = center_freq #you can change this if you use an upconverter
 
-client_audio_buffer_size = 4 
+client_audio_buffer_size = 5
 #increasing client_audio_buffer_size will:
 # - also increase the latency 
 # - decrease the chance of audio underruns
+
+start_freq = center_freq
+start_mod = "nfm" #nfm, am, lsb, usb, cw
+
+iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
+
+#access_log = "~/openwebrx_access.log"
+
+#Warning! The settings below are very experimental.
+csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
+csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
+csdr_through = False # Setting this True will print out how much data is going into the DSP chains.

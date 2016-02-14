@@ -29,6 +29,7 @@ import plugins
 import plugins.dsp
 import thread
 import time
+import datetime
 import subprocess
 import os 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -47,7 +48,6 @@ import ctypes
 #import rtl_mus
 import rxws
 import uuid
-import config_webrx as cfg
 import signal
 import socket
 
@@ -75,11 +75,22 @@ class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass 
 
 def handle_signal(signal, frame):
+	global spectrum_dsp
 	print "[openwebrx] Ctrl+C: aborting."
+	cleanup_clients(True)
+	spectrum_dsp.stop()
 	os._exit(1) #not too graceful exit
 
+def access_log(data):
+	global logs
+	logs.access_log.write("["+datetime.datetime.now().isoformat()+"] "+data+"\n")
+	logs.access_log.flush()
+
+receiver_failed=spectrum_thread_watchdog_last_tick=rtl_thread=spectrum_dsp=server_fail=None
+
 def main():
-	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime
+	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg, logs
+	global serverfail, rtl_thread
 	print
 	print "OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package"
 	print "_________________________________________________________________________________________________"
@@ -87,6 +98,15 @@ def main():
 	print "Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>"
 	print 
 
+	no_arguments=len(sys.argv)==1
+	if no_arguments: print "[openwebrx-main] Configuration script not specified. I will use: \"config_webrx.py\""
+	cfg=__import__("config_webrx" if no_arguments else sys.argv[1])
+	for option in ("access_log","csdr_dynamic_bufsize","csdr_print_bufsizes","csdr_through"): 
+		if not option in dir(cfg): setattr(cfg, option, False) #initialize optional config parameters
+
+	#Open log files
+	logs = type("logs_class", (object,), {"access_log":open(cfg.access_log if cfg.access_log else "/dev/null","a"), "error_log":""})()
+	
 	#Set signal handler
 	signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
 
@@ -107,16 +127,14 @@ def main():
 		pass
 
 	#Start rtl thread
+	if os.system("ncat --version > /dev/null") == 32512: #check for ncat
+		print "[openwebrx-main] Error: ncat not detected, please install it! The ncat tool is a netcat alternative, used for distributing the I/Q data stream. It is usually available in the nmap package (sudo apt-get install nmap). For more explanation, look into the README.md"
+		return 
 	if cfg.start_rtl_thread:
-		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True), args=())
+		cfg.start_rtl_command += "| ncat -4l %d -k --send-only --allow 127.0.0.1" % cfg.iq_server_port
+		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
 		rtl_thread.start()
-		print "[openwebrx-main] Started rtl thread: "+cfg.start_rtl_command
-
-	#Run rtl_mus.py in a different OS thread
-	python_command="pypy" if pypy else "python2"
-	rtl_mus_thread=threading.Thread(target = lambda:subprocess.Popen(python_command+" rtl_mus.py config_rtl", shell=True), args=())
-	rtl_mus_thread.start() # The new feature in GNU Radio 3.7: top_block() locks up ALL python threads until it gets the TCP connection.
-	print "[openwebrx-main] Started rtl_mus."
+		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
 	time.sleep(1) #wait until it really starts	
 
 	#Initialize clients
@@ -136,6 +154,8 @@ def main():
 	print "[openwebrx-main] Starting spectrum thread."
 	spectrum_thread=threading.Thread(target = spectrum_thread_function, args = ())
 	spectrum_thread.start()
+	spectrum_watchdog_thread=threading.Thread(target = spectrum_watchdog_thread_function, args = ())
+	spectrum_watchdog_thread.start()
 
 	get_cpu_usage()
 	bcastmsg_thread=threading.Thread(target = bcastmsg_thread_function, args = ())
@@ -146,13 +166,14 @@ def main():
 	#Start sdr.hu update thread
 	if sdrhu and cfg.sdrhu_key and cfg.sdrhu_public_listing: 
 		print "[openwebrx-main] Starting sdr.hu update thread..."
+		avatar_ctime=str(os.path.getctime("htdocs/gfx/openwebrx-avatar.png"))
 		sdrhu_thread=threading.Thread(target = sdrhu.run, args = ())
 		sdrhu_thread.start()
-		avatar_ctime=str(os.path.getctime("htdocs/gfx/openwebrx-avatar.png"))
 	
 	#Start HTTP thread
 	httpd = MultiThreadHTTPServer(('', cfg.web_port), WebRXHandler)
 	print('[openwebrx-main] Starting HTTP server.')
+	access_log("Starting OpenWebRX...")
 	httpd.serve_forever()
 
 
@@ -204,27 +225,61 @@ def mutex_watchdog_thread_function():
 	while True:
 		if lock_try_time != 0 and time.time()-lock_try_time > 3.0: 
 			#if 3 seconds pass without unlock
-			print "[openwebrx-watchdog] Mutex unlock timeout. Locker: \""+str(clients_mutex_locker)+"\" Now unlocking..." 
+			print "[openwebrx-mutex-watchdog] Mutex unlock timeout. Locker: \""+str(clients_mutex_locker)+"\" Now unlocking..." 
 			clients_mutex.release()
 		time.sleep(0.5)	
-		
+
+def spectrum_watchdog_thread_function():
+	global spectrum_thread_watchdog_last_tick, receiver_failed
+	while True:
+		time.sleep(60)
+		if spectrum_thread_watchdog_last_tick and time.time()-spectrum_thread_watchdog_last_tick > 60.0: 
+			print "[openwebrx-spectrum-watchdog] Spectrum timeout. Seems like no I/Q data is coming from the receiver.\nIf you're using RTL-SDR, the receiver hardware may randomly fail under some circumstances:\n1) high temperature,\n2) insufficient current available from the USB port."
+			print "[openwebrx-spectrum-watchdog] Deactivating receiver."
+			receiver_failed="spectrum"
+			return
+
+def check_server():
+	global spectrum_dsp, server_fail, rtl_thread
+	if server_fail: return server_fail	
+	#print spectrum_dsp.process.poll()
+	if spectrum_dsp and spectrum_dsp.process.poll()!=None: server_fail = "spectrum_thread dsp subprocess failed"
+	#if rtl_thread and not rtl_thread.is_alive(): server_fail = "rtl_thread failed"
+	if server_fail: print "[openwebrx-check_server] >>>>>>> ERROR:", server_fail
+	return server_fail
+
+def apply_csdr_cfg_to_dsp(dsp):
+	dsp.csdr_dynamic_bufsize = cfg.csdr_dynamic_bufsize
+	dsp.csdr_print_bufsizes = cfg.csdr_print_bufsizes
+	dsp.csdr_through = cfg.csdr_through	
+
 def spectrum_thread_function():
-	global clients
-	dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+	global clients, spectrum_dsp, spectrum_thread_watchdog_last_tick
+	spectrum_dsp=dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+	dsp.nc_port=cfg.iq_server_port
 	dsp.set_demodulator("fft")
 	dsp.set_samp_rate(cfg.samp_rate)
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
 	dsp.set_fft_compression(cfg.fft_compression)
 	dsp.set_format_conversion(cfg.format_conversion)
+	apply_csdr_cfg_to_dsp(dsp)
 	sleep_sec=0.87/cfg.fft_fps
 	print "[openwebrx-spectrum] Spectrum thread initialized successfully."
 	dsp.start()
+	if cfg.csdr_dynamic_bufsize: 
+		dsp.read(8) #dummy read to skip bufsize & preamble
+		print "[openwebrx-spectrum] Note: CSDR_DYNAMIC_BUFSIZE_ON = 1"
 	print "[openwebrx-spectrum] Spectrum thread started." 
 	bytes_to_read=int(dsp.get_fft_bytes_to_read())
+	spectrum_thread_counter=0
 	while True:
 		data=dsp.read(bytes_to_read)
 		#print "gotcha",len(data),"bytes of spectrum data via spectrum_thread_function()"
+		if spectrum_thread_counter >= cfg.fft_fps: 
+			spectrum_thread_counter=0
+			spectrum_thread_watchdog_last_tick = time.time() #once every second
+		else: spectrum_thread_counter+=1
 		cma("spectrum_thread")
 		correction=0
 		for i in range(0,len(clients)):
@@ -255,16 +310,17 @@ def get_client_by_id(client_id, use_mutex=True):
 def log_client(client, what):
 	print "[openwebrx-httpd] client {0}#{1} :: {2}".format(client.ip,client.id,what)
 
-def cleanup_clients():
-	# if client doesn't open websocket for too long time, we drop it
+def cleanup_clients(end_all=False):
+	# - if a client doesn't open websocket for too long time, we drop it
+	# - or if end_all is true, we drop all clients
 	global clients
 	cma("cleanup_clients")
 	correction=0
 	for i in range(0,len(clients)):
 		i-=correction
 		#print "cleanup_clients:: len(clients)=", len(clients), "i=", i
-		if (not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45:
-			print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
+		if end_all or ((not clients[i].ws_started) and (time.time()-clients[i].gen_time)>45):
+			if not end_all: print "[openwebrx] cleanup_clients :: client timeout to open WebSocket"
 			close_client(i, False)
 			correction+=1
 	cmr()
@@ -299,6 +355,7 @@ def close_client(i, use_mutex=True):
 		print "[openwebrx] close_client dsp.stop() :: error -",exc_type,exc_value
 		traceback.print_tb(exc_traceback)
 	clients[i].closed[0]=True
+	access_log("Stopped streaming to client: "+clients[i].ip+"#"+str(clients[i].id)+" (users now: "+str(len(clients)-1)+")")
 	del clients[i]
 	if use_mutex: cmr()
 
@@ -319,18 +376,20 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
 	def do_GET(self):
 		self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-		global dsp_plugin, clients_mutex, clients, avatar_ctime, sw_version
+		global dsp_plugin, clients_mutex, clients, avatar_ctime, sw_version, receiver_failed
 		rootdir = 'htdocs' 
 		self.path=self.path.replace("..","")
 		path_temp_parts=self.path.split("?")
 		self.path=path_temp_parts[0]
 		request_param=path_temp_parts[1] if(len(path_temp_parts)>1) else "" 
+		access_log("GET "+self.path+" from "+self.client_address[0])
 		try:
 			if self.path=="/":
 				self.path="/index.wrx"
 			# there's even another cool tip at http://stackoverflow.com/questions/4419650/how-to-implement-timeout-in-basehttpserver-basehttprequesthandler-python
 			#if self.path[:5]=="/lock": cma("do_GET /lock/") # to test mutex_watchdog_thread. Do not uncomment in production environment!
 			if self.path[:4]=="/ws/":
+				if receiver_failed: self.send_error(500,"Internal server error")
 				try:
 					# ========= WebSocket handshake  =========
 					ws_success=True
@@ -363,23 +422,26 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
 					# ========= Initialize DSP =========
 					dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
-					dsp.set_samp_rate(cfg.samp_rate)
-					dsp.set_demodulator("nfm")
-					dsp.set_offset_freq(0)
-					dsp.set_bpf(-4000,4000)
+					dsp_initialized=False
 					dsp.set_audio_compression(cfg.audio_compression)
 					dsp.set_format_conversion(cfg.format_conversion)
-					dsp.start()
+					dsp.set_offset_freq(0)
+					dsp.set_bpf(-4000,4000)
+					dsp.nc_port=cfg.iq_server_port
+					apply_csdr_cfg_to_dsp(dsp)
 					myclient.dsp=dsp
 					
+					access_log("Started streaming to client: "+self.client_address[0]+"#"+myclient.id+" (users now: "+str(len(clients))+")")
+
 					while True:
 						if myclient.closed[0]: 
 							print "[openwebrx-httpd:ws] client closed by other thread"
 							break
 
 						# ========= send audio =========
-						temp_audio_data=dsp.read(256)
-						rxws.send(self, temp_audio_data, "AUD ")
+						if dsp_initialized:
+							temp_audio_data=dsp.read(256)
+							rxws.send(self, temp_audio_data, "AUD ")
 
 						# ========= send spectrum =========
 						while not myclient.spectrum_queue.empty():
@@ -417,9 +479,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
 										dsp.set_offset_freq(int(param_value))
 									elif param_name=="mod":
 										if (dsp.get_demodulator()!=param_value):
-											dsp.stop()
+											if dsp_initialized: dsp.stop()
 											dsp.set_demodulator(param_value)
+											if dsp_initialized: dsp.start()
+									elif param_name == "output_rate":
+										if not dsp_initialized: 
+											dsp.set_output_rate(int(param_value))
+											dsp.set_samp_rate(cfg.samp_rate)
+									elif param_name=="action" and param_value=="start":
+										if not dsp_initialized: 
 											dsp.start()
+											dsp_initialized=True
 									else:
 										print "[openwebrx-httpd:ws] invalid parameter"
 								if bpf_set:
@@ -457,13 +527,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			elif self.path in ("/status", "/status/"):
 				#self.send_header('Content-type','text/plain')
 				getbands=lambda: str(int(cfg.shown_center_freq-cfg.samp_rate/2))+"-"+str(int(cfg.shown_center_freq+cfg.samp_rate/2))
-				self.wfile.write("status=active\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
+				self.wfile.write("status="+("inactive" if receiver_failed else "active")+"\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\nusers_max="+str(cfg.max_clients)+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
 				print "[openwebrx-httpd] GET /status/ from",self.client_address[0]			
 			else:
 				f=open(rootdir+self.path)
 				data=f.read()
 				extension=self.path[(len(self.path)-4):len(self.path)]
 				extension=extension[2:] if extension[1]=='.' else extension[1:]
+				checkresult=check_server()
+				if extension == "wrx" and (checkresult or receiver_failed):
+					self.send_302("inactive.html")
+					return
 				if extension == "wrx" and ((self.headers['user-agent'].count("Chrome")==0 and self.headers['user-agent'].count("Firefox")==0 and (not "Googlebot" in self.headers['user-agent'])) if 'user-agent' in self.headers.keys() else True) and (not request_param.count("unsupported")):
 					self.send_302("upgrade.html")
 					return
@@ -492,7 +566,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[RX_ADMIN]",cfg.receiver_admin),
 						("%[RX_ANT]",cfg.receiver_ant),
 						("%[RX_DEVICE]",cfg.receiver_device),
-						("%[AUDIO_BUFSIZE]",str(cfg.client_audio_buffer_size))
+						("%[AUDIO_BUFSIZE]",str(cfg.client_audio_buffer_size)),
+						("%[START_OFFSET_FREQ]",str(cfg.start_freq-cfg.center_freq)),
+						("%[START_MOD]",cfg.start_mod)
 					)
 					for rule in replace_dictionary:
 						while data.find(rule[0])!=-1:

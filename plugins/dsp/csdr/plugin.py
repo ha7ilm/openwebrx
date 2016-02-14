@@ -44,13 +44,17 @@ class dsp_plugin:
 		self.demodulator = "nfm"
 		self.name = "csdr"
 		self.format_conversion = "csdr convert_u8_f"
-		try:	
-			subprocess.Popen("nc",stdout=subprocess.PIPE,stderr=subprocess.PIPE).kill()
-		except:
-			print "[openwebrx-plugin:csdr] error: netcat not found, please install netcat!"
+		self.base_bufsize = 512
+		self.nc_port = 4951
+		self.csdr_dynamic_bufsize = False
+		self.csdr_print_bufsizes = False
+		self.csdr_through = False
 
 	def chain(self,which):
-		any_chain_base="nc -v localhost 4951 | "+self.format_conversion+(" | " if  self.format_conversion!="" else "")+"csdr flowcontrol {flowcontrol} 10 | "
+		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
+		if self.csdr_dynamic_bufsize: any_chain_base+="csdr setbuf {start_bufsize} | "
+		if self.csdr_through: any_chain_base+="csdr through | "
+		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft": 
 			fft_chain_base = "sleep 1; "+any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
 			if self.fft_compression=="adpcm":
@@ -61,9 +65,9 @@ class dsp_plugin:
 		chain_end = "" 
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
-		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr fastagc_ff | csdr convert_f_i16"+chain_end
+		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr fastagc_ff 1024 | csdr convert_f_i16"+chain_end
 		elif which == "am":	return chain_begin + "csdr amdemod_cf | csdr fastdcblock_ff | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_i16"+chain_end
-		elif which == "ssb": return chain_begin + "csdr realpart_cf | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_i16"+chain_end
+		elif which == "ssb": return chain_begin + "csdr realpart_cf | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr clipdetect_ff | csdr limit_ff | csdr convert_f_i16"+chain_end
 
 	def set_audio_compression(self,what):
 		self.audio_compression = what
@@ -91,6 +95,10 @@ class dsp_plugin:
 	
 	def get_output_rate(self):
 		return self.output_rate
+
+	def set_output_rate(self,output_rate):
+		self.output_rate=output_rate
+		self.set_samp_rate(self.samp_rate) #as it depends on output_rate
 
 	def set_demodulator(self,demodulator):
 		#to change this, restart is required
@@ -153,10 +161,17 @@ class dsp_plugin:
 			self.mkfifo(self.shift_pipe)
 
 		#run the command
-		command=command_base.format(bpf_pipe=self.bpf_pipe,shift_pipe=self.shift_pipe,decimation=self.decimation,last_decimation=self.last_decimation,fft_size=self.fft_size,fft_block_size=self.fft_block_size(),bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(),ddc_transition_bw=self.ddc_transition_bw(),flowcontrol=int(self.samp_rate*4*2*1.5))
+		command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation, \
+			last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), \
+			bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
+			flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port)
+
 		print "[openwebrx-dsp-plugin:csdr] Command =",command
 		#code.interact(local=locals())
-		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp)
+		my_env=os.environ.copy()
+		if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
+		if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
+		self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
 		self.running = True
 
 		#open control pipes for csdr and send initialization data
@@ -179,14 +194,16 @@ class dsp_plugin:
 		#	os.killpg(self.process.pid, signal.SIGTERM) 
 		#	
 		#	time.sleep(0.1)
-		try:
-			os.unlink(self.bpf_pipe)
-		except:
-			print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
-		try:
-			os.unlink(self.shift_pipe)
-		except:
-			print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
+		if self.bpf_pipe:
+			try:
+				os.unlink(self.bpf_pipe)
+			except:
+				print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
+		if self.shift_pipe:
+			try:
+				os.unlink(self.shift_pipe)
+			except:
+				print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
 		self.running = False
 
 	def restart(self):
