@@ -7,7 +7,7 @@ I will also apply dual licensing to csdr, but only those parts that are original
 
 However, even if there is commercial interest in the projects, I promise to keep them as open as possible, keeping my original intention to provide an open-source web-based SDR receiver software to the amateur radio operators and SDR enthusiasts.
 
-This contributor agreement is based on the one of Apache Software Foundation, with some modifications.
+This contributor agreement is based on the one of Apache Software Foundation, with some modifications. (You can review differences <a href="https://gist.github.com/ha7ilm/9e981006d24659e336c7/revisions">here</a>).
 When you contribute for the first time, I will send you the ICLA. Replying with only the information requested and the text "I Agree" is sufficient.
 
 Thanks,
