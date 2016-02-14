@@ -32,7 +32,7 @@ It has the following features:
 
 ## OpenWebRX servers on sdr.hu
 
-[sdr.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX receivers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
+[sdr.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
 
 ![sdr.hu](/screenshot-sdrhu.png?raw=true)
 
