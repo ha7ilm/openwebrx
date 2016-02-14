@@ -86,7 +86,7 @@ def access_log(data):
 	logs.access_log.write("["+datetime.datetime.now().isoformat()+"] "+data+"\n")
 	logs.access_log.flush()
 
-rtl_thread=spectrum_dsp=server_fail=None
+receiver_failed=spectrum_thread_watchdog_last_tick=rtl_thread=spectrum_dsp=server_fail=None
 
 def main():
 	global clients, clients_mutex, pypy, lock_try_time, avatar_ctime, cfg, logs
@@ -154,6 +154,8 @@ def main():
 	print "[openwebrx-main] Starting spectrum thread."
 	spectrum_thread=threading.Thread(target = spectrum_thread_function, args = ())
 	spectrum_thread.start()
+	spectrum_watchdog_thread=threading.Thread(target = spectrum_watchdog_thread_function, args = ())
+	spectrum_watchdog_thread.start()
 
 	get_cpu_usage()
 	bcastmsg_thread=threading.Thread(target = bcastmsg_thread_function, args = ())
@@ -223,9 +225,19 @@ def mutex_watchdog_thread_function():
 	while True:
 		if lock_try_time != 0 and time.time()-lock_try_time > 3.0: 
 			#if 3 seconds pass without unlock
-			print "[openwebrx-watchdog] Mutex unlock timeout. Locker: \""+str(clients_mutex_locker)+"\" Now unlocking..." 
+			print "[openwebrx-mutex-watchdog] Mutex unlock timeout. Locker: \""+str(clients_mutex_locker)+"\" Now unlocking..." 
 			clients_mutex.release()
 		time.sleep(0.5)	
+
+def spectrum_watchdog_thread_function():
+	global spectrum_thread_watchdog_last_tick, receiver_failed
+	while True:
+		time.sleep(60)
+		if spectrum_thread_watchdog_last_tick and time.time()-spectrum_thread_watchdog_last_tick > 60.0: 
+			print "[openwebrx-spectrum-watchdog] Spectrum timeout. Seems like no I/Q data is coming from the receiver.\nFor RTL-SDR, it is a common problem to randomly fail after a time, due to:\n1) overheat,\n2) insufficient current."
+			print "[openwebrx-spectrum-watchdog] Deactivating receiver."
+			receiver_failed="spectrum"
+			return
 
 def check_server():
 	global spectrum_dsp, server_fail, rtl_thread
@@ -242,7 +254,7 @@ def apply_csdr_cfg_to_dsp(dsp):
 	dsp.csdr_through = cfg.csdr_through	
 
 def spectrum_thread_function():
-	global clients, spectrum_dsp
+	global clients, spectrum_dsp, spectrum_thread_watchdog_last_tick
 	spectrum_dsp=dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
 	dsp.nc_port=cfg.iq_server_port
 	dsp.set_demodulator("fft")
@@ -260,9 +272,14 @@ def spectrum_thread_function():
 		print "[openwebrx-spectrum] Note: CSDR_DYNAMIC_BUFSIZE_ON = 1"
 	print "[openwebrx-spectrum] Spectrum thread started." 
 	bytes_to_read=int(dsp.get_fft_bytes_to_read())
+	spectrum_thread_counter=0
 	while True:
 		data=dsp.read(bytes_to_read)
 		#print "gotcha",len(data),"bytes of spectrum data via spectrum_thread_function()"
+		if spectrum_thread_counter >= cfg.fft_fps: 
+			spectrum_thread_counter=0
+			spectrum_thread_watchdog_last_tick = time.time() #once every second
+		else: spectrum_thread_counter+=1
 		cma("spectrum_thread")
 		correction=0
 		for i in range(0,len(clients)):
@@ -359,7 +376,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
 	def do_GET(self):
 		self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-		global dsp_plugin, clients_mutex, clients, avatar_ctime, sw_version
+		global dsp_plugin, clients_mutex, clients, avatar_ctime, sw_version, receiver_failed
 		rootdir = 'htdocs' 
 		self.path=self.path.replace("..","")
 		path_temp_parts=self.path.split("?")
@@ -372,6 +389,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			# there's even another cool tip at http://stackoverflow.com/questions/4419650/how-to-implement-timeout-in-basehttpserver-basehttprequesthandler-python
 			#if self.path[:5]=="/lock": cma("do_GET /lock/") # to test mutex_watchdog_thread. Do not uncomment in production environment!
 			if self.path[:4]=="/ws/":
+				if receiver_failed: self.send_error(500,"Internal server error")
 				try:
 					# ========= WebSocket handshake  =========
 					ws_success=True
@@ -509,7 +527,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			elif self.path in ("/status", "/status/"):
 				#self.send_header('Content-type','text/plain')
 				getbands=lambda: str(int(cfg.shown_center_freq-cfg.samp_rate/2))+"-"+str(int(cfg.shown_center_freq+cfg.samp_rate/2))
-				self.wfile.write("status=active\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\nusers_max="+str(cfg.max_clients)+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
+				self.wfile.write("status="+("inactive" if receiver_failed else "active")+"\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\nusers_max="+str(cfg.max_clients)+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
 				print "[openwebrx-httpd] GET /status/ from",self.client_address[0]			
 			else:
 				f=open(rootdir+self.path)
@@ -517,11 +535,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
 				extension=self.path[(len(self.path)-4):len(self.path)]
 				extension=extension[2:] if extension[1]=='.' else extension[1:]
 				checkresult=check_server()
-				if extension == "wrx" and checkresult:
-					self.send_response(500)
-					self.send_header('Content-type','text/html')
-					self.end_headers()
-					self.wfile.write("<html><body><h1>OpenWebRX Internal Server Error</h1>Please check the server log for details.</body></html>")
+				if extension == "wrx" and (checkresult or receiver_failed):
+					self.send_302("inactive.html")
 					return
 				if extension == "wrx" and ((self.headers['user-agent'].count("Chrome")==0 and self.headers['user-agent'].count("Firefox")==0 and (not "Googlebot" in self.headers['user-agent'])) if 'user-agent' in self.headers.keys() else True) and (not request_param.count("unsupported")):
 					self.send_302("upgrade.html")
