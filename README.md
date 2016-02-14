@@ -30,9 +30,9 @@ It has the following features:
 
 > When upgrading OpenWebRX, please make sure that you upgrade *csdr*, and install the new (optional) dependency *ncat*!
 
-## OpenWebRX servers on sdr.hu
+## OpenWebRX servers on SDR.hu
 
-[sdr.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
+[SDR.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
 
 ![sdr.hu](/screenshot-sdrhu.png?raw=true)
 
