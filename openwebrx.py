@@ -164,9 +164,9 @@ def main():
 	#Start sdr.hu update thread
 	if sdrhu and cfg.sdrhu_key and cfg.sdrhu_public_listing: 
 		print "[openwebrx-main] Starting sdr.hu update thread..."
+		avatar_ctime=str(os.path.getctime("htdocs/gfx/openwebrx-avatar.png"))
 		sdrhu_thread=threading.Thread(target = sdrhu.run, args = ())
 		sdrhu_thread.start()
-		avatar_ctime=str(os.path.getctime("htdocs/gfx/openwebrx-avatar.png"))
 	
 	#Start HTTP thread
 	httpd = MultiThreadHTTPServer(('', cfg.web_port), WebRXHandler)
@@ -509,7 +509,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			elif self.path in ("/status", "/status/"):
 				#self.send_header('Content-type','text/plain')
 				getbands=lambda: str(int(cfg.shown_center_freq-cfg.samp_rate/2))+"-"+str(int(cfg.shown_center_freq+cfg.samp_rate/2))
-				self.wfile.write("status=active\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
+				self.wfile.write("status=active\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\nusers_max="+str(cfg.max_clients)+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
 				print "[openwebrx-httpd] GET /status/ from",self.client_address[0]			
 			else:
 				f=open(rootdir+self.path)
