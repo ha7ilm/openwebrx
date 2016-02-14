@@ -75,7 +75,7 @@ However, if you hold down the shift key, you can drag the center line (BFO) or t
 
 ## Configuration tips
 
-Now we have a %[Wiki](https://github.com/simonyiszk/openwebrx/wiki) with some how-tos. However, some quick tips:
+Now we have a [Wiki](https://github.com/simonyiszk/openwebrx/wiki) with some how-tos. However, some quick tips:
 
 If you want to run OpenWebRX on a remote server instead of localhost, do not forget to set *server_hostname* in `config_webrx.py`.
 
