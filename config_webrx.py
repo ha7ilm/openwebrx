@@ -103,8 +103,8 @@ format_conversion="csdr convert_u8_f"
 #format_conversion="csdr convert_u8_f"
 
 # >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-GrOsmoSDR-as-signal-source)
-start_rtl_command="cat /tmp/osmocom_fifo"
-format_conversion=""
+#start_rtl_command="cat /tmp/osmocom_fifo"
+#format_conversion=""
 
 #You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
 
