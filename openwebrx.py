@@ -154,8 +154,8 @@ def main():
 	print "[openwebrx-main] Starting spectrum thread."
 	spectrum_thread=threading.Thread(target = spectrum_thread_function, args = ())
 	spectrum_thread.start()
-	spectrum_watchdog_thread=threading.Thread(target = spectrum_watchdog_thread_function, args = ())
-	spectrum_watchdog_thread.start()
+	#spectrum_watchdog_thread=threading.Thread(target = spectrum_watchdog_thread_function, args = ())
+	#spectrum_watchdog_thread.start()
 
 	get_cpu_usage()
 	bcastmsg_thread=threading.Thread(target = bcastmsg_thread_function, args = ())
