@@ -1481,6 +1481,7 @@ function audio_init()
 	if(starting_offset_frequency)  
 	{ 
 		demodulators[0].offset_frequency = starting_offset_frequency;
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+starting_offset_frequency,1e6,4);
 		demodulators[0].set();
 		mkscale();
 	}
