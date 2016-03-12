@@ -135,7 +135,16 @@ def main():
 		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
 		rtl_thread.start()
 		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
-	time.sleep(1) #wait until it really starts	
+	print "[openwebrx-main] Waiting for I/Q server to start..."
+	while True:
+		testsock=socket.socket()
+		try: testsock.connect(("127.0.0.1", cfg.iq_server_port))
+		except:
+			time.sleep(0.1)
+			continue
+		testsock.close()
+		break
+	print "[openwebrx-main] I/Q server started."	 
 
 	#Initialize clients
 	clients=[]

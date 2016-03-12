@@ -56,7 +56,7 @@ class dsp_plugin:
 		if self.csdr_through: any_chain_base+="csdr through | "
 		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft": 
-			fft_chain_base = "sleep 1; "+any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
+			fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
 			if self.fft_compression=="adpcm":
 				return fft_chain_base+" | csdr compress_fft_adpcm_f_u8 {fft_size}"
 			else:
