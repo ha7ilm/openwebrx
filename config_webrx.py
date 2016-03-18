@@ -131,7 +131,12 @@ iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data ove
 
 #access_log = "~/openwebrx_access.log"
 
+waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
+waterfall_min_level = -115 #in dB
+waterfall_max_level = 0
+
 #Warning! The settings below are very experimental.
 csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
+

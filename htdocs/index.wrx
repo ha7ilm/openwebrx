@@ -30,6 +30,9 @@
 			var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
 			var starting_mod = "%[START_MOD]";
 			var starting_offset_frequency = %[START_OFFSET_FREQ];
+			var waterfall_colors=%[WATERFALL_COLORS];
+			var waterfall_min_level=%[WATERFALL_MIN_LEVEL];
+			var waterfall_max_level=%[WATERFALL_MAX_LEVEL];
 		</script>
 		<script src="sdr.js"></script>
 		<script src="openwebrx.js"></script>

@@ -1534,30 +1534,17 @@ function open_websocket()
 	ws.onerror = on_ws_error;
 }
 
-//var color_scale=[0xFFFFFFFF, 0x000000FF];
-//var color_scale=[0x000000FF, 0x000000FF, 0x3a0090ff, 0x10c400ff, 0xffef00ff, 0xff5656ff];
-//var color_scale=[0x000000FF, 0x000000FF, 0x534b37ff, 0xcedffaff, 0x8899a9ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff];
-
-//var color_scale=[ 0x000000FF, 0xff5656ff, 0xffffffff];
-
-//2014-04-22
-var color_scale=[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]
-//2015-04-10
-//var color_scale=[0x112634ff,0x4991c6ff,0x18364cff,0x9dc4e0ff,0xfff775ff,0xff9f60,0xff4d4dff,0x8d0000ff];
-
 function waterfall_mkcolor(db_value)
 {
-	min_value=-115; //in dB
-	max_value=0;
-	if(db_value<min_value) db_value=min_value;
-	if(db_value>max_value) db_value=max_value;
-	full_scale=max_value-min_value;
-	relative_value=db_value-min_value;
+	if(db_value<waterfall_min_level) db_value=waterfall_min_level;
+	if(db_value>waterfall_max_level) db_value=waterfall_max_level;
+	full_scale=waterfall_max_level-waterfall_min_level;
+	relative_value=db_value-waterfall_min_level;
 	value_percent=relative_value/full_scale;
-	percent_for_one_color=1/(color_scale.length-1);
+	percent_for_one_color=1/(waterfall_colors.length-1);
 	index=Math.floor(value_percent/percent_for_one_color);
 	remain=(value_percent-percent_for_one_color*index)/percent_for_one_color;
-	return color_between(color_scale[index+1],color_scale[index],remain);
+	return color_between(waterfall_colors[index+1],waterfall_colors[index],remain);
 }
 
 function color_between(first, second, percent)

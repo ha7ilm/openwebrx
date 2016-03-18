@@ -577,7 +577,10 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[RX_DEVICE]",cfg.receiver_device),
 						("%[AUDIO_BUFSIZE]",str(cfg.client_audio_buffer_size)),
 						("%[START_OFFSET_FREQ]",str(cfg.start_freq-cfg.center_freq)),
-						("%[START_MOD]",cfg.start_mod)
+						("%[START_MOD]",cfg.start_mod),
+						("%[WATERFALL_COLORS]",cfg.waterfall_colors),
+						("%[WATERFALL_MIN_LEVEL]",str(cfg.waterfall_min_level)),
+						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level))
 					)
 					for rule in replace_dictionary:
 						while data.find(rule[0])!=-1:
