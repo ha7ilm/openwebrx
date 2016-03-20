@@ -1,7 +1,7 @@
 """
 OpenWebRX csdr plugin: do the signal processing with csdr
 
-	This file is part of OpenWebRX, 
+	This file is part of OpenWebRX,
 	an open-source SDR receiver software with a web UI.
 	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
@@ -25,6 +25,7 @@ import time
 import os
 import code
 import signal
+import fcntl
 
 class dsp_plugin:
 
@@ -49,20 +50,21 @@ class dsp_plugin:
 		self.csdr_dynamic_bufsize = False
 		self.csdr_print_bufsizes = False
 		self.csdr_through = False
+		self.squelch_level = 0
 
 	def chain(self,which):
 		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
 		if self.csdr_dynamic_bufsize: any_chain_base+="csdr setbuf {start_bufsize} | "
 		if self.csdr_through: any_chain_base+="csdr through | "
 		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
-		if which == "fft": 
+		if which == "fft":
 			fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
 			if self.fft_compression=="adpcm":
 				return fft_chain_base+" | csdr compress_fft_adpcm_f_u8 {fft_size}"
 			else:
 				return fft_chain_base
-		chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | "
-		chain_end = "" 
+		chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
+		chain_end = ""
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
 		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr fastagc_ff 1024 | csdr convert_f_i16"+chain_end
@@ -92,7 +94,7 @@ class dsp_plugin:
 
 	def get_name(self):
 		return self.name
-	
+
 	def get_output_rate(self):
 		return self.output_rate
 
@@ -114,7 +116,7 @@ class dsp_plugin:
 	def set_fft_fps(self,fft_fps):
 		#to change this, restart is required
 		self.fft_fps=fft_fps
-	
+
 	def fft_block_size(self):
 		return self.samp_rate/self.fft_fps
 
@@ -123,48 +125,66 @@ class dsp_plugin:
 
 	def set_offset_freq(self,offset_freq):
 		self.offset_freq=offset_freq
-		if self.running: 
+		if self.running:
 			self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate))
 			self.shift_pipe_file.flush()
-	
+
 	def set_bpf(self,low_cut,high_cut):
 		self.low_cut=low_cut
 		self.high_cut=high_cut
-		if self.running: 
+		if self.running:
 			self.bpf_pipe_file.write( "%g %g\n"%(float(self.low_cut)/self.if_samp_rate(), float(self.high_cut)/self.if_samp_rate()) )
 			self.bpf_pipe_file.flush()
-		
+
 	def get_bpf(self):
 		return [self.low_cut, self.high_cut]
+
+	def set_squelch_level(self, squelch_level):
+		self.squelch_level=squelch_level
+		if self.running:
+			self.squelch_pipe_file.write( "%g\n"%(float(self.squelch_level)) )
+			self.squelch_pipe_file.flush()
+
+	def get_smeter_level(self):
+		if self.running:
+			line=self.smeter_pipe_file.readline()
+			return float(line[:-1])
 
 	def mkfifo(self,path):
 		try:
 			os.unlink(path)
 		except:
 			pass
-		os.mkfifo(path)	
+		os.mkfifo(path)
 
 	def ddc_transition_bw(self):
 		return self.ddc_transition_bw_rate*(self.if_samp_rate()/float(self.samp_rate))
 
 	def start(self):
 		command_base=self.chain(self.demodulator)
-		
+
 		#create control pipes for csdr
 		pipe_base_path="/tmp/openwebrx_pipe_{myid}_".format(myid=id(self))
-		self.bpf_pipe = self.shift_pipe = None
+		self.bpf_pipe = self.shift_pipe = self.squelch_pipe = self.smeter_pipe = None
 		if "{bpf_pipe}" in command_base:
 			self.bpf_pipe=pipe_base_path+"bpf"
 			self.mkfifo(self.bpf_pipe)
 		if "{shift_pipe}" in command_base:
 			self.shift_pipe=pipe_base_path+"shift"
 			self.mkfifo(self.shift_pipe)
+		if "{squelch_pipe}" in command_base:
+			self.squelch_pipe=pipe_base_path+"squelch"
+			self.mkfifo(self.squelch_pipe)
+		if "{smeter_pipe}" in command_base:
+			self.smeter_pipe=pipe_base_path+"smeter"
+			self.mkfifo(self.smeter_pipe)
 
 		#run the command
 		command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation, \
 			last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), \
 			bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
-			flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port)
+			flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port, \
+			squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe )
 
 		print "[openwebrx-dsp-plugin:csdr] Command =",command
 		#code.interact(local=locals())
@@ -175,35 +195,43 @@ class dsp_plugin:
 		self.running = True
 
 		#open control pipes for csdr and send initialization data
-		if self.bpf_pipe != None: 
+		if self.bpf_pipe != None:
 			self.bpf_pipe_file=open(self.bpf_pipe,"w")
 			self.set_bpf(self.low_cut,self.high_cut)
-		if self.shift_pipe != None: 
+		if self.shift_pipe != None:
 			self.shift_pipe_file=open(self.shift_pipe,"w")
 			self.set_offset_freq(self.offset_freq)
+		if self.squelch_pipe != None:
+			self.squelch_pipe_file=open(self.squelch_pipe,"w")
+			self.set_squelch_level(self.squelch_level)
+		if self.smeter_pipe != None:
+			self.smeter_pipe_file=open(self.smeter_pipe,"r")
+			fcntl.fcntl(self.smeter_pipe_file, fcntl.F_SETFL, os.O_NONBLOCK)
 
 	def read(self,size):
 		return self.process.stdout.read(size)
-		
+
 	def stop(self):
-		os.killpg(os.getpgid(self.process.pid), signal.SIGTERM) 
+		os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
 		#if(self.process.poll()!=None):return # returns None while subprocess is running
 		#while(self.process.poll()==None):
 		#	#self.process.kill()
 		#	print "killproc",os.getpgid(self.process.pid),self.process.pid
-		#	os.killpg(self.process.pid, signal.SIGTERM) 
-		#	
+		#	os.killpg(self.process.pid, signal.SIGTERM)
+		#
 		#	time.sleep(0.1)
 		if self.bpf_pipe:
-			try:
-				os.unlink(self.bpf_pipe)
-			except:
-				print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
+			try: os.unlink(self.bpf_pipe)
+			except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
 		if self.shift_pipe:
-			try:
-				os.unlink(self.shift_pipe)
-			except:
-				print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.bpf_pipe
+			try: os.unlink(self.shift_pipe)
+			except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.shift_pipe
+		if self.squelch_pipe:
+			try: os.unlink(self.squelch_pipe)
+			except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.squelch_pipe
+		if self.smeter_pipe:
+			try: os.unlink(self.smeter_pipe)
+			except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.smeter_pipe
 		self.running = False
 
 	def restart(self):
@@ -213,4 +241,3 @@ class dsp_plugin:
 	def __del__(self):
 		self.stop()
 		del(self.process)
-	

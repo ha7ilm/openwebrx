@@ -36,7 +36,7 @@ input
 input[type=range]
 {
 	-webkit-appearance: none;
-	margin: 10px 0;
+	margin: 0 0;
 }
 input[type=range]:focus
 {
@@ -744,4 +744,37 @@ img.openwebrx-mirror-img
 .openwebrx-panel-line
 {
 	padding-top: 5px;
+}
+
+#openwebrx-smeter-outer
+{
+	border-color: #888;
+	border-style: solid;
+	border-width: 0px;
+	width: 255px;
+	height: 7px;
+	background-color: #373737;
+	border-radius: 3px;
+	position: relative;
+}
+#openwebrx-smeter-bar
+{
+	transition: all 0.2s linear;
+	width: 0px;
+	height: 7px;
+	background: linear-gradient(to top, #ff5939 , #961700);
+	position: absolute;
+	margin: 0; padding: 0; left: 0;
+	border-radius: 3px;
+}
+
+#openwebrx-smeter-db
+{
+	color: #aaa;
+	display: inline-block;
+	font-size: 10pt;
+	float: right;
+	margin-right: 5px;
+	margin-top: 29px;
+	font-family: 'expletus-sans-medium';
 }

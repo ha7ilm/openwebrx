@@ -108,8 +108,13 @@
 						<div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"> <img src="gfx/openwebrx-zoom-out.png" /></div>
 						<div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><img src="gfx/openwebrx-zoom-in-total.png" /></div>
 						<div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><img src="gfx/openwebrx-zoom-out-total.png" /></div>
+						<div id="openwebrx-smeter-db">0 dB</div>
 					</div>
-
+					<div class="openwebrx-panel-line">
+						<div id="openwebrx-smeter-outer">
+							<div id="openwebrx-smeter-bar"></div>
+						</div>
+					</div>
 				</div>
 
 				<div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="1" data-panel-size="619,142">

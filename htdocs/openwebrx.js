@@ -178,6 +178,36 @@ function waterfallColorsAuto()
 	updateWaterfallColors(0);
 }
 
+function setSmeterRelativeValue(value)
+{
+	if(value<0) value=0;
+	if(value>1.0) value=1.0;
+	var bar=e("openwebrx-smeter-bar");
+	var outer=e("openwebrx-smeter-outer");
+	bar.style.width=(outer.offsetWidth*value).toString()+"px";
+	bgRed="linear-gradient(to top, #ff5939 , #961700)";
+	bgGreen="linear-gradient(to top, #22ff2f , #008908)";
+	bgYellow="linear-gradient(to top, #fff720 , #a49f00)";
+	bar.style.background=(value>0.9)?bgRed:((value>0.7)?bgYellow:bgGreen);
+	//bar.style.backgroundColor=(value>0.9)?"#ff5939":((value>0.7)?"#fff720":"#22ff2f");
+}
+
+function getLogSmeterValue(value)
+{
+	return 10*Math.log10(value);
+}
+
+function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch_and_smeter_cc`
+{
+	var logValue=getLogSmeterValue(value);
+	var lowLevel=waterfall_min_level-20;
+	var highLevel=waterfall_max_level+20;
+	var percent=(logValue-lowLevel)/(highLevel-lowLevel);
+	setSmeterRelativeValue(percent);
+	e("openwebrx-smeter-db").innerHTML=logValue.toFixed(1)+" dB";
+}
+
+
 // ========================================================
 // =================  ANIMATION ROUTINES  =================
 // ========================================================
@@ -1144,6 +1174,10 @@ function on_ws_recv(evt)
 						break;
 					case "max_clients":
 						max_clients_num=parseInt(param[1]);
+						break;
+					case "s":
+						smeter_level=parseFloat(param[1]);
+						setSmeterAbsoluteValue(smeter_level);
 						break;
 				}
 			}
