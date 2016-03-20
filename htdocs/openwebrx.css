@@ -1,6 +1,6 @@
 /*
 
-	This file is part of OpenWebRX, 
+	This file is part of OpenWebRX,
 	an open-source SDR receiver software with a web UI.
 	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
@@ -37,7 +37,6 @@ input[type=range]
 {
 	-webkit-appearance: none;
 	margin: 10px 0;
-	width: 100%;
 }
 input[type=range]:focus
 {
@@ -242,7 +241,7 @@ input[type=range]:focus::-ms-fill-upper
 	position: absolute;
 	bottom: 0px;
 	left: 0px;
-	background-image:url(gfx/webrx-photo-gradient-corner.png);	
+	background-image:url(gfx/webrx-photo-gradient-corner.png);
 	width: 59px;
 	height: 92px;
 
@@ -255,7 +254,7 @@ input[type=range]:focus::-ms-fill-upper
 	left: 59px;
 	right: 59px;
 	height: 92px;
-	background-image:url(gfx/webrx-photo-gradient-middle.png);	
+	background-image:url(gfx/webrx-photo-gradient-middle.png);
 }
 
 #webrx-photo-gradient-right
@@ -263,7 +262,7 @@ input[type=range]:focus::-ms-fill-upper
 	position: absolute;
 	bottom: 0px;
 	right: 0px;
-	background-image:url(gfx/webrx-photo-gradient-corner.png);	
+	background-image:url(gfx/webrx-photo-gradient-corner.png);
 	width: 59px;
 	height: 92px;
    -webkit-transform:scaleX(-1);
@@ -456,7 +455,7 @@ input[type=range]:focus::-ms-fill-upper
 	background-color: #999999;
 	color: White;
 	z-index:9999; /*should be higher?
-	
+
 }*/
 
 /* removed non-free fonts like that: */
@@ -484,7 +483,7 @@ input[type=range]:focus::-ms-fill-upper
 	padding: 0;
 	margin: 0;
 	line-height:22px;
-	
+
 }
 
 #webrx-mouse-freq
@@ -496,6 +495,7 @@ input[type=range]:focus::-ms-fill-upper
 	font-family: 'expletus-sans-medium';
 	margin-bottom: 5px;
 }
+
 
 .openwebrx-panel
 {
@@ -551,13 +551,72 @@ input[type=range]:focus::-ms-fill-upper
 	color: #FFFF50;
 }
 
-.openwebrx-button:active 
+.openwebrx-button:active
 {
 	background: #777777;
-	color: #FFFF50;	
+	color: #FFFF50;
 }
 
-#openwebrx-client-log-title 
+.openwebrx-demodulator-button
+{
+	width: 35px;
+	height: 19px;
+	font-size: 12pt;
+	text-align: center;
+}
+
+.openwebrx-square-button img
+{
+	height: 30px;
+}
+
+.openwebrx-round-button
+{
+	margin-right: -2px;
+	width: 35px;
+	height: 35px;
+	border-radius: 25px;
+}
+
+.openwebrx-round-button img
+{
+	height: 30px;
+}
+
+.openwebrx-round-button-small
+{
+	margin-right: -3px;
+	width:  20px;
+	height: 20px;
+	border-radius: 25px;
+}
+
+.openwebrx-round-button-small img
+{
+	height: 20px;
+}
+
+img.openwebrx-mirror-img
+{
+	transform: scale(-1, 1);
+}
+
+
+.openwebrx-round-rightarrow img
+{
+	position: relative;
+	left: 12px;
+	top: 3px;
+}
+
+.openwebrx-round-leftarrow img
+{
+	position: relative;
+	left: 7px;
+	top: 3px;
+}
+
+#openwebrx-client-log-title
 {
 	margin-bottom: 5px;
 	font-weight: bold;
@@ -626,7 +685,7 @@ input[type=range]:focus::-ms-fill-upper
 	display: table-cell;
 	padding-left: 5px;
 	padding-right: 5px;
-	cursor:pointer;	
+	cursor:pointer;
 }
 
 #openwebrx-main-buttons li:hover
@@ -668,14 +727,14 @@ input[type=range]:focus::-ms-fill-upper
 	color: white;
 }
 
-#openwebrx-panel-volume
+.openwebrx-panel-slider
 {
 	position: relative;
 	top: -2px;
-	width:170px;
+	width:91px;
 }
 
-#openwebrx-mute-img
+.openwebrx-sliderbtn-img
 {
 	width: 14px;
 	position:relative;

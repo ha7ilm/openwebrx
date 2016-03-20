@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <!--
 
-	This file is part of OpenWebRX, 
+	This file is part of OpenWebRX,
 	an open-source SDR receiver software with a web UI.
 	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
@@ -31,8 +31,8 @@
 			var starting_mod = "%[START_MOD]";
 			var starting_offset_frequency = %[START_OFFSET_FREQ];
 			var waterfall_colors=%[WATERFALL_COLORS];
-			var waterfall_min_level=%[WATERFALL_MIN_LEVEL];
-			var waterfall_max_level=%[WATERFALL_MAX_LEVEL];
+			var waterfall_min_level_default=%[WATERFALL_MIN_LEVEL];
+			var waterfall_max_level_default=%[WATERFALL_MAX_LEVEL];
 		</script>
 		<script src="sdr.js"></script>
 		<script src="openwebrx.js"></script>
@@ -42,8 +42,8 @@
 	<body onload="openwebrx_init();">
 <div id="webrx-page-container">
 	<div id="webrx-top-container">
-		<div id="webrx-top-photo-clip"> 
-			<img src="gfx/openwebrx-top-photo.jpg" id="webrx-top-photo"/> 
+		<div id="webrx-top-photo-clip">
+			<img src="gfx/openwebrx-top-photo.jpg" id="webrx-top-photo"/>
 			<div id="webrx-rx-photo-title">%[RX_PHOTO_TITLE]</div>
 			<div id="webrx-rx-photo-desc">%[RX_PHOTO_DESC]</div>
 		</div>
@@ -72,27 +72,43 @@
 			<div id="openwebrx-scale-container">
 				<canvas id="openwebrx-scale-canvas" width="0" height="0"></canvas>
 			</div>
+
 			<div id="webrx-canvas-container">
+
 				<div id="openwebrx-phantom-canvas"></div>
 				<!-- add canvas here by javascript -->
 			</div>
 			<div id="openwebrx-panels-container">
-				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="215,115">
+				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="259,115">
 					<div id="webrx-actual-freq">---.--- MHz</div>
 					<div id="webrx-mouse-freq">---.--- MHz</div>
 					<!--<div class="openwebrx-button" onclick="ws.send('SET mod=wfm');" >WFM</div>-->
+
 					<div class="openwebrx-panel-line">
-						<div class="openwebrx-button" onclick="demodulator_analog_replace('nfm');">FM</div>
-						<div class="openwebrx-button" onclick="demodulator_analog_replace('am');">AM</div>
-						<div class="openwebrx-button" onclick="demodulator_analog_replace('lsb');">LSB</div>
-						<div class="openwebrx-button" onclick="demodulator_analog_replace('usb');">USB</div>
-						<div class="openwebrx-button" onclick="demodulator_analog_replace('cw');">CW</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('nfm');">FM</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('am');">AM</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('lsb');">LSB</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('usb');">USB</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('cw');">CW</div>
 					</div>
 					<div class="openwebrx-panel-line">
-						<div id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute()"><img src="gfx/openwebrx-speaker.png" id="openwebrx-mute-img"></div>
-						<input id="openwebrx-panel-volume" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
+						<div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><img src="gfx/openwebrx-speaker.png" class="openwebrx-sliderbtn-img"></div>
+						<input title="Volume" id="openwebrx-panel-volume" class="openwebrx-panel-slider" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
+						<div title="Auto-adjust waterfall colors" id="openwebrx-waterfall-colors-auto" class="openwebrx-button" onclick="waterfall_measure_minmax_now=true;"><img src="gfx/openwebrx-waterfall-auto.png" class="openwebrx-sliderbtn-img"></div>
+						<input title="Waterfall minimum level" id="openwebrx-waterfall-color-min" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(0);" oninput="updateVolume()">
 					</div>
-					
+					<div class="openwebrx-panel-line">
+						<div title="Disable squelch" id="openwebrx-squelch-default" class="openwebrx-button" onclick="setSquelchDefault()"><img src="gfx/openwebrx-squelch-button.png" class="openwebrx-sliderbtn-img"></div>
+						<input title="Squelch" id="openwebrx-panel-squelch" class="openwebrx-panel-slider" type="range" min="0" max="100" value="0" step="1" onchange="updateVolume()" oninput="updateVolume()">
+						<div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button" onclick="waterfallColorsDefault()"><img src="gfx/openwebrx-waterfall-default.png" class="openwebrx-sliderbtn-img"></div>
+						<input title="Waterfall maximum level" id="openwebrx-waterfall-color-max" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(1);" oninput="updateVolume()">
+					</div>
+					<div class="openwebrx-panel-line">
+						<div class="openwebrx-button openwebrx-square-button" onclick="zoomInOneStep();"  title="Zoom in one step">  <img src="gfx/openwebrx-zoom-in.png" /></div>
+						<div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"> <img src="gfx/openwebrx-zoom-out.png" /></div>
+						<div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><img src="gfx/openwebrx-zoom-in-total.png" /></div>
+						<div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><img src="gfx/openwebrx-zoom-out-total.png" /></div>
+					</div>
 
 				</div>
 
