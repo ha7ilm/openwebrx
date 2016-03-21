@@ -219,6 +219,15 @@ function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch
 	e("openwebrx-smeter-db").innerHTML=logValue.toFixed(1)+" dB";
 }
 
+function typeInAnimation(element,timeout,what,onFinish)
+{
+	if(!what) { onFinish(); return; }
+	element.innerHTML+=what[0];
+	window.setTimeout(	function(){typeInAnimation(element,timeout,what.substring(1),onFinish);}, timeout );
+}
+
+
+
 
 // ========================================================
 // =================  ANIMATION ROUTINES  =================
@@ -1588,7 +1597,7 @@ function audio_init()
 			animate(e("openwebrx-panel-log"),"opacity","",1,0,0.9,1000,60);
 			window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
 		}
-	},1000);
+	},2000);
 }
 
 function on_ws_closed()
