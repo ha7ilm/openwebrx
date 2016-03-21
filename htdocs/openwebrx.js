@@ -150,6 +150,13 @@ function zoomOutOneStep () { zoom_set(zoom_level-1); }
 function zoomInTotal ()    { zoom_set(zoom_levels.length-1); }
 function zoomOutTotal ()   { zoom_set(0); }
 function setSquelchDefault() { e("openwebrx-panel-squelch").value=0; }
+function setSquelchToAuto() { e("openwebrx-panel-squelch").value=(getLogSmeterValue(smeter_level)+10).toString(); updateSquelch(); }
+function updateSquelch()
+{
+	var sliderValue=parseInt(e("openwebrx-panel-squelch").value);
+	var outputValue=(sliderValue==parseInt(e("openwebrx-panel-squelch").min))?0:getLinearSmeterValue(sliderValue);
+	ws.send("SET squelch_level="+outputValue.toString());
+}
 
 function updateWaterfallColors(which)
 {
@@ -195,6 +202,11 @@ function setSmeterRelativeValue(value)
 function getLogSmeterValue(value)
 {
 	return 10*Math.log10(value);
+}
+
+function getLinearSmeterValue(db_value)
+{
+	return Math.pow(10,db_value/10);
 }
 
 function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch_and_smeter_cc`
@@ -1009,6 +1021,8 @@ zoom_freq=0;
 zoom_offset_px=0;
 zoom_center_rel=0;
 zoom_center_where=0;
+
+smeter_level=0;
 
 function mkzoomlevels()
 {

@@ -92,14 +92,14 @@
 						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('cw');">CW</div>
 					</div>
 					<div class="openwebrx-panel-line">
-						<div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><img src="gfx/openwebrx-speaker.png" class="openwebrx-sliderbtn-img"></div>
+						<div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><img src="gfx/openwebrx-speaker.png" class="openwebrx-sliderbtn-img" id="openwebrx-mute-img"></div>
 						<input title="Volume" id="openwebrx-panel-volume" class="openwebrx-panel-slider" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
 						<div title="Auto-adjust waterfall colors" id="openwebrx-waterfall-colors-auto" class="openwebrx-button" onclick="waterfall_measure_minmax_now=true;"><img src="gfx/openwebrx-waterfall-auto.png" class="openwebrx-sliderbtn-img"></div>
 						<input title="Waterfall minimum level" id="openwebrx-waterfall-color-min" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(0);" oninput="updateVolume()">
 					</div>
 					<div class="openwebrx-panel-line">
-						<div title="Disable squelch" id="openwebrx-squelch-default" class="openwebrx-button" onclick="setSquelchDefault()"><img src="gfx/openwebrx-squelch-button.png" class="openwebrx-sliderbtn-img"></div>
-						<input title="Squelch" id="openwebrx-panel-squelch" class="openwebrx-panel-slider" type="range" min="0" max="100" value="0" step="1" onchange="updateVolume()" oninput="updateVolume()">
+						<div title="Auto-set squelch level" id="openwebrx-squelch-default" class="openwebrx-button" onclick="setSquelchToAuto()"><img src="gfx/openwebrx-squelch-button.png" class="openwebrx-sliderbtn-img"></div>
+						<input title="Squelch" id="openwebrx-panel-squelch" class="openwebrx-panel-slider" type="range" min="-150" max="0" value="-150" step="1" onchange="updateSquelch()" oninput="updateSquelch()">
 						<div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button" onclick="waterfallColorsDefault()"><img src="gfx/openwebrx-waterfall-default.png" class="openwebrx-sliderbtn-img"></div>
 						<input title="Waterfall maximum level" id="openwebrx-waterfall-color-max" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(1);" oninput="updateVolume()">
 					</div>
