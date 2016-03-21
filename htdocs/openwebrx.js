@@ -397,8 +397,8 @@ function demodulator_default_analog(offset_frequency,subtype)
 	this.subtype=subtype;
 	this.filter={
 		min_passband: 100,
-		high_cut_limit: audio_context.sampleRate/2,
-		low_cut_limit: -audio_context.sampleRate/2
+		high_cut_limit: (audio_server_output_rate/2)-1, //audio_context.sampleRate/2,
+		low_cut_limit: (-audio_server_output_rate/2)+1 //-audio_context.sampleRate/2
 	};
 	//Subtypes only define some filter parameters and the mod string sent to server,
 	//so you may set these parameters in your custom child class.
