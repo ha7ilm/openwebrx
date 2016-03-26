@@ -139,5 +139,11 @@
 			</div>
 	</div>
 </div>
+	<div id="openwebrx-big-grey" onclick="iosPlayButtonClick();">
+		<div id="openwebrx-play-button-text">
+		<img id="openwebrx-play-button" src="gfx/openwebrx-play-button.png" />
+		<br /><br />Start OpenWebRX
+		</div>
+	</div>
 	</body>
 </html>

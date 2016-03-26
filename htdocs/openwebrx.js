@@ -72,6 +72,9 @@ var rx_photo_state=1;
 
 function e(what) { return document.getElementById(what); }
 
+ios = /iPad|iPod|iPhone/.test(navigator.userAgent);
+//alert("ios="+ios.toString()+"  "+navigator.userAgent);
+
 function init_rx_photo()
 {
 	e("webrx-top-photo-clip").style.maxHeight=rx_photo_height.toString()+"px";
@@ -1137,7 +1140,7 @@ function on_ws_recv(evt)
 		audio_prepare(audio_data);
 		audio_buffer_current_size_debug+=audio_data.length;
 		audio_buffer_all_size_debug+=audio_data.length;
-		if(audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to) audio_init()
+		if(!ios && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
 	}
 	else if(firstChars=="FFT")
 	{
@@ -1890,6 +1893,8 @@ function openwebrx_resize()
 
 function openwebrx_init()
 {
+	if(ios) e("openwebrx-big-grey").style.display="table-cell";
+	(opb=e("openwebrx-play-button-text")).style.marginTop=(window.innerHeight/2-opb.clientHeight/2).toString()+"px";
 	init_rx_photo();
 	open_websocket();
 	place_panels();
@@ -1900,6 +1905,14 @@ function openwebrx_init()
 	//Synchronise volume with slider
 	updateVolume();
 	waterfallColorsDefault();
+}
+
+function iosPlayButtonClick()
+{
+	//On iOS, we can only start audio from a click or touch event.
+	audio_init();
+	e("openwebrx-big-grey").style.opacity=0;
+	window.setTimeout(function(){ e("openwebrx-big-grey").style.display="none"; },1100);
 }
 
 /*

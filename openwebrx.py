@@ -559,7 +559,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
 				if extension == "wrx" and (checkresult or receiver_failed):
 					self.send_302("inactive.html")
 					return
-				if extension == "wrx" and ((self.headers['user-agent'].count("Chrome")==0 and self.headers['user-agent'].count("Firefox")==0 and (not "Googlebot" in self.headers['user-agent'])) if 'user-agent' in self.headers.keys() else True) and (not request_param.count("unsupported")):
+				anyStringsPresentInUserAgent=lambda a: reduce(lambda x,y:x or y, map(lambda b:self.headers['user-agent'].count(b), a), False)
+				if extension == "wrx" and ( (not anyStringsPresentInUserAgent(("Chrome","Firefox","Googlebot","iPhone","iPad","iPod"))) if 'user-agent' in self.headers.keys() else True ) and (not request_param.count("unsupported")):
 					self.send_302("upgrade.html")
 					return
 				if extension == "wrx" and cfg.max_clients<=len(clients):
