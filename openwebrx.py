@@ -617,7 +617,10 @@ last_idletime=0
 
 def get_cpu_usage():
 	global last_worktime, last_idletime
-	f=open("/proc/stat","r")
+	try:
+		f=open("/proc/stat","r")
+	except:
+		return 0 #Workaround, possibly we're on a Mac
 	line=""
 	while not "cpu " in line: line=f.readline()
 	f.close()
