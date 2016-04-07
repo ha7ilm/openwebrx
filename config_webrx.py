@@ -69,7 +69,7 @@ fft_size=4096
 samp_rate = 250000
 
 center_freq = 145525000
-rf_gain = 5
+rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
 ppm = 0 
 
 audio_compression="adpcm" #valid values: "adpcm", "none" 
