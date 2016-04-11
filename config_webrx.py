@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 """
 config_webrx: configuration options for OpenWebRX
 
-	This file is part of OpenWebRX, 
+	This file is part of OpenWebRX,
 	an open-source SDR receiver software with a web UI.
 	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
@@ -23,10 +23,10 @@ config_webrx: configuration options for OpenWebRX
 	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	In addition, as a special exception, the copyright holders
-	state that config_rtl.py and config_webrx.py are not part of the 
-	Corresponding Source defined in GNU AGPL version 3 section 1. 
-	
-	(It means that you do not have to redistribute config_rtl.py and 
+	state that config_rtl.py and config_webrx.py are not part of the
+	Corresponding Source defined in GNU AGPL version 3 section 1.
+
+	(It means that you do not have to redistribute config_rtl.py and
 	config_webrx.py if you make any changes to these two configuration files,
 	and use them for running your web service with OpenWebRX.)
 """
@@ -70,16 +70,16 @@ samp_rate = 250000
 
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
-ppm = 0 
+ppm = 0
 
-audio_compression="adpcm" #valid values: "adpcm", "none" 
-fft_compression="adpcm" #valid values: "adpcm", "none" 
+audio_compression="adpcm" #valid values: "adpcm", "none"
+fft_compression="adpcm" #valid values: "adpcm", "none"
 
-start_rtl_thread=True 
+start_rtl_thread=True
 
 # ==== I/Q sources (uncomment the appropriate) ====
 
-# >> RTL-SDR via rtl_sdr 
+# >> RTL-SDR via rtl_sdr
 
 start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
@@ -88,8 +88,8 @@ format_conversion="csdr convert_u8_f"
 #format_conversion="csdr convert_s8_f"
 """
 To use a HackRF, compile the HackRF host tools from its "stdout" branch:
- git clone https://github.com/mossmann/hackrf/ 
- cd hackrf 
+ git clone https://github.com/mossmann/hackrf/
+ cd hackrf
  git fetch
  git checkout origin/stdout
  cd host
@@ -98,7 +98,7 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
  cmake .. -DINSTALL_UDEV_RULES=ON
  make
  sudo make install
-"""   
+"""
 
 # >> Sound card SDR (needs ALSA)
 #I did not have the chance to properly test it.
@@ -117,11 +117,13 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 
 #You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
 
+# ==== Misc options ====
+
 shown_center_freq = center_freq #you can change this if you use an upconverter
 
 client_audio_buffer_size = 5
 #increasing client_audio_buffer_size will:
-# - also increase the latency 
+# - also increase the latency
 # - decrease the chance of audio underruns
 
 start_freq = center_freq
@@ -141,3 +143,10 @@ csdr_dynamic_bufsize = False # This allows you to change the buffering mode of c
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
 
+#Look up external IP address automatically from icanhazip.com, and use it as [server_hostname]
+"""
+print "[openwebrx-config] Detecting external IP address..."
+import urllib2
+server_hostname=urllib2.urlopen("http://icanhazip.com").read()[:-1]
+print "[openwebrx-config] External IP address detected:", server_hostname
+"""
