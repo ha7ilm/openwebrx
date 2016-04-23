@@ -30,6 +30,10 @@ config_webrx: configuration options for OpenWebRX
 	config_webrx.py if you make any changes to these two configuration files,
 	and use them for running your web service with OpenWebRX.)
 """
+
+# NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
+#       https://github.com/simonyiszk/openwebrx/wiki
+
 # ==== Server settings ====
 web_port=8073
 server_hostname="localhost" # If this contains an incorrect value, the web UI may freeze on load (it can't open websocket)
@@ -115,7 +119,9 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #start_rtl_command="cat /tmp/osmocom_fifo"
 #format_conversion=""
 
-#You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
+# You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
+# There are guides for setting up AirSpy, AFEDRI-SDR, RTL-SDR in direct sampling mode, etc. in the Wiki:
+#       https://github.com/simonyiszk/openwebrx/wiki
 
 # ==== Misc options ====
 
