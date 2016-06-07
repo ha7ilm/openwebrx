@@ -1019,7 +1019,7 @@ function canvas_mousewheel(evt)
 
 
 zoom_max_level_hps=33; //Hz/pixel
-zoom_levels_count=5;
+zoom_levels_count=14;
 
 function get_zoom_coeff_from_hps(hps)
 {
@@ -1041,8 +1041,10 @@ function mkzoomlevels()
 	zoom_levels=[1];
 	maxc=get_zoom_coeff_from_hps(zoom_max_level_hps);
 	if(maxc<1) return;
+	// logarithmic interpolation
+	zoom_ratio = Math.pow(maxc, 1/zoom_levels_count);
 	for(i=1;i<zoom_levels_count;i++)
-		zoom_levels.push(1+(maxc-1)*(i/(zoom_levels_count-1)));
+		zoom_levels.push(Math.pow(zoom_ratio, i));
 }
 
 function zoom_step(out, where, onscreen)
