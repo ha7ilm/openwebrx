@@ -270,6 +270,7 @@ def spectrum_thread_function():
 	dsp.set_samp_rate(cfg.samp_rate)
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
+	dsp.set_fft_averages(cfg.fft_averages)
 	dsp.set_fft_compression(cfg.fft_compression)
 	dsp.set_format_conversion(cfg.format_conversion)
 	apply_csdr_cfg_to_dsp(dsp)

@@ -69,7 +69,8 @@ sdrhu_public_listing = False
 # ==== DSP/RX settings ====
 dsp_plugin="csdr"
 fft_fps=9
-fft_size=4096
+fft_size=16384  # averaging only works on fft_size=16384 for some reason
+fft_averages=50
 samp_rate = 250000
 
 center_freq = 145525000
