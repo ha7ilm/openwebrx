@@ -231,7 +231,6 @@ function typeInAnimation(element,timeout,what,onFinish)
 
 
 
-
 // ========================================================
 // =================  ANIMATION ROUTINES  =================
 // ========================================================
@@ -1597,8 +1596,9 @@ function audio_init()
 	window.setTimeout(function(){
 		if(typeof e("openwebrx-panel-log").openwebrxHidden == "undefined" && !was_error)
 		{
-			animate(e("openwebrx-panel-log"),"opacity","",1,0,0.9,1000,60);
-			window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
+			toggle_panel("openwebrx-panel-log");
+			//animate(e("openwebrx-panel-log"),"opacity","",1,0,0.9,1000,60);
+			//window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
 		}
 	},2000);
 }
@@ -1897,7 +1897,7 @@ function openwebrx_init()
 	(opb=e("openwebrx-play-button-text")).style.marginTop=(window.innerHeight/2-opb.clientHeight/2).toString()+"px";
 	init_rx_photo();
 	open_websocket();
-	place_panels();
+	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
 	check_top_bar_congestion();
@@ -1994,14 +1994,56 @@ function toggle_panel(what)
 {
 	var item=e(what);
 	if(item.openwebrxDisableClick) return;
-	item.openwebrxHidden=!item.openwebrxHidden;
-	place_panels();
+	item.style.transitionDuration="599ms";
+	item.style.transitionDelay="0ms";
+	if(!item.openwebrxHidden)
+	{
+		window.setTimeout(function(){item.openwebrxHidden=!item.openwebrxHidden; place_panels(); item.openwebrxDisableClick=false;},700);
+		item.style.transform="perspective( 599px ) rotateX( 90deg )";
+	}
+	else
+	{
+		item.openwebrxHidden=!item.openwebrxHidden; place_panels();
+	    window.setTimeout(function(){ item.openwebrxDisableClick=false;},700);
+		item.style.transform="perspective( 599px ) rotateX( 0deg )";
+	}
+	item.style.transitionDuration="0";
+
 	item.openwebrxDisableClick=true;
-	window.setTimeout(function(){item.openwebrxDisableClick=false;},100);
+
 }
 
-function place_panels()
+function first_show_panel(panel)
 {
+	panel.style.transitionDuration=0;
+	panel.style.transitionDelay=0;
+	rotx=(Math.random()>0.5)?-90:90;
+	roty=0;
+	if(Math.random()>0.5)
+	{
+		rottemp=rotx;
+		rotx=roty;
+		roty=rottemp;
+	}
+	if(rotx!=0 && Math.random()>0.5) rotx=270;
+	console.log(rotx,roty);
+	transformString = "perspective( 599px ) rotateX( %1deg ) rotateY( %2deg )"
+		.replace("%1",rotx.toString()).replace("%2",roty.toString());
+	console.log(transformString);
+	console.log(panel);
+	panel.style.transform=transformString;
+	window.setTimeout(function() {
+		panel.style.transitionDuration="599ms";
+		panel.style.transitionDelay=(Math.floor(Math.random()*500)).toString()+"ms";
+		panel.style.transform="perspective( 599px ) rotateX( 0deg ) rotateY( 0deg )";
+		//panel.style.transitionDuration="0ms";
+		//panel.style.transitionDelay="0";
+	}, 1);
+}
+
+function place_panels(function_apply)
+{
+	if(function_apply == undefined) function_apply = function(x){};
 	var hoffset=0; //added this because the first panel should not have such great gap below
 	var left_col=[];
 	var right_col=[];
@@ -2038,6 +2080,7 @@ function place_panels()
 		p.style.bottom=y.toString()+"px";
 		p.style.visibility="visible";
 		y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
+		if(function_apply) function_apply(p);
 	}
 	y=hoffset;
 	while(right_col.length>0)
@@ -2047,6 +2090,7 @@ function place_panels()
 		p.style.bottom=y.toString()+"px";
 		p.style.visibility="visible";
 		y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
+		if(function_apply) function_apply(p);
 	}
 }
 

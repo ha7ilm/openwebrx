@@ -499,6 +499,7 @@ input[type=range]:focus::-ms-fill-upper
 
 .openwebrx-panel
 {
+	transform: perspective( 600px );
 	visibility: hidden;
 	background-color: #575757;
 	padding: 10px;
@@ -790,7 +791,7 @@ img.openwebrx-mirror-img
 	background-color: #777;
 	left: 0;
 	top: 0;
-	z-index: 1001;	
+	z-index: 1001;
 	display: none;
 	vertical-align: middle;
 	text-align: center;
@@ -805,4 +806,3 @@ img.openwebrx-mirror-img
 {
 	width: 150px;
 }
-
