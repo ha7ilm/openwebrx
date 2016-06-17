@@ -81,7 +81,13 @@ fft_compression="adpcm" #valid values: "adpcm", "none"
 
 start_rtl_thread=True
 
-# ==== I/Q sources (uncomment the appropriate) ====
+# ==== I/Q sources ====
+# (Uncomment the appropriate by removing # characters at the beginning of the corresponding lines.)
+
+# There are guides for setting may different SDR hardware including AirSpy, AFEDRI-SDR, RTL-SDR in direct sampling mode, etc. in the Wiki:
+#       https://github.com/simonyiszk/openwebrx/wiki
+
+# You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples... Some examples of configuration are available here (default is RTL-SDR):
 
 # >> RTL-SDR via rtl_sdr
 
@@ -105,7 +111,7 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 """
 
 # >> Sound card SDR (needs ALSA)
-#I did not have the chance to properly test it.
+# I did not have the chance to properly test it.
 #samp_rate = 96000
 #start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
 #format_conversion="csdr convert_s16_f | csdr gain_ff 30"
@@ -115,13 +121,14 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
 #format_conversion="csdr convert_u8_f"
 
+# >> Pre-recorded raw I/Q file as signal source
+# You will have to correctly specify: samp_rate, center_freq, format_conversion in order to correctly play an I/Q file.
+#start_rtl_command="(while true; do cat my_iq_file.raw; done) | csdr flowcontrol {sr} 20 ".format(sr=samp_rate*2*1.05)
+#format_conversion="csdr convert_u8_f"
+
 # >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-GrOsmoSDR-as-signal-source)
 #start_rtl_command="cat /tmp/osmocom_fifo"
 #format_conversion=""
-
-# You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples...
-# There are guides for setting up AirSpy, AFEDRI-SDR, RTL-SDR in direct sampling mode, etc. in the Wiki:
-#       https://github.com/simonyiszk/openwebrx/wiki
 
 # ==== Misc options ====
 
