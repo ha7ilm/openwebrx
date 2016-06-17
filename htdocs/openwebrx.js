@@ -2026,11 +2026,11 @@ function first_show_panel(panel)
 		roty=rottemp;
 	}
 	if(rotx!=0 && Math.random()>0.5) rotx=270;
-	console.log(rotx,roty);
+	//console.log(rotx,roty);
 	transformString = "perspective( 599px ) rotateX( %1deg ) rotateY( %2deg )"
 		.replace("%1",rotx.toString()).replace("%2",roty.toString());
-	console.log(transformString);
-	console.log(panel);
+	//console.log(transformString);
+	//console.log(panel);
 	panel.style.transform=transformString;
 	window.setTimeout(function() {
 		panel.style.transitionDuration="599ms";
