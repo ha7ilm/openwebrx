@@ -74,12 +74,28 @@ def import_all_plugins(directory):
 class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
-def handle_signal(signal, frame):
+def handle_signal(sig, frame):
 	global spectrum_dsp
-	print "[openwebrx] Ctrl+C: aborting."
-	cleanup_clients(True)
-	spectrum_dsp.stop()
-	os._exit(1) #not too graceful exit
+	if sig == signal.SIGUSR1:
+		print "[openwebrx] Verbose status information on USR1 signal"
+		print
+		print "time.time() =", time.time()
+		print "clients_mutex.locked() =", clients_mutex.locked()
+		print "clients_mutex_locker =", clients_mutex_locker
+		if server_fail: print "server_fail = ", server_fail
+		print "spectrum_thread_watchdog_last_tick =", spectrum_thread_watchdog_last_tick
+		print
+		print "clients:",len(clients)
+		for client in clients:
+			print
+			for key in client._fields:
+				print "\t%s = %s"%(key,str(getattr(client,key)))
+
+	else:
+		print "[openwebrx] Ctrl+C: aborting."
+		cleanup_clients(True)
+		spectrum_dsp.stop()
+		os._exit(1) #not too graceful exit
 
 def access_log(data):
 	global logs
@@ -109,6 +125,7 @@ def main():
 
 	#Set signal handler
 	signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
+	signal.signal(signal.SIGUSR1, handle_signal)
 
 	#Load plugins
 	import_all_plugins("plugins/dsp/")
