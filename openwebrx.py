@@ -563,9 +563,11 @@ class WebRXHandler(BaseHTTPRequestHandler):
 				if extension == "wrx" and ( (not anyStringsPresentInUserAgent(("Chrome","Firefox","Googlebot","iPhone","iPad","iPod"))) if 'user-agent' in self.headers.keys() else True ) and (not request_param.count("unsupported")):
 					self.send_302("upgrade.html")
 					return
-				if extension == "wrx" and cfg.max_clients<=len(clients):
-					self.send_302("retry.html")
-					return
+				if extension == "wrx":
+					cleanup_clients(False)
+					if cfg.max_clients<=len(clients):
+						self.send_302("retry.html")
+						return
 				self.send_response(200)
 				if(("wrx","html","htm").count(extension)):
 					self.send_header('Content-type','text/html')
