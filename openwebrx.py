@@ -492,7 +492,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 								if smeter_level == None: break
 							except:
 								break
-						if smeter_level!=None: 
+						if smeter_level!=None:
 							myclient.loopstat=31
 							rxws.send(self, "MSG s={0}".format(smeter_level))
 
@@ -657,22 +657,21 @@ def get_cpu_usage():
 	global last_worktime, last_idletime
 	try:
 		f=open("/proc/stat","r")
+		line=""
+		while not "cpu " in line: line=f.readline()
+		f.close()
+		spl=line.split(" ")
+		worktime=int(spl[2])+int(spl[3])+int(spl[4])
+		idletime=int(spl[5])
+		dworktime=(worktime-last_worktime)
+		didletime=(idletime-last_idletime)
+		rate=float(dworktime)/(didletime+dworktime)
+		last_worktime=worktime
+		last_idletime=idletime
+		if(last_worktime==0): return 0
+		return rate
 	except:
-		return 0 #Workaround, possibly we're on a Mac
-	line=""
-	while not "cpu " in line: line=f.readline()
-	f.close()
-	spl=line.split(" ")
-	worktime=int(spl[2])+int(spl[3])+int(spl[4])
-	idletime=int(spl[5])
-	dworktime=(worktime-last_worktime)
-	didletime=(idletime-last_idletime)
-	rate=float(dworktime)/(didletime+dworktime)
-	last_worktime=worktime
-	last_idletime=idletime
-	if(last_worktime==0): return 0
-	return rate
-
+		return 0 #Workaround, possibly we're on a Mac or Cygwin
 
 if __name__=="__main__":
 	main()
