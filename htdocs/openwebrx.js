@@ -1297,14 +1297,14 @@ var audio_node;
 var audio_input_buffer_size;
 
 // Optimalise these if audio lags or is choppy:
-var audio_buffer_size = 4096;//2048 was choppy
+var audio_buffer_size;
 var audio_buffer_maximal_length_sec=3; //actual number of samples are calculated from sample rate
 var audio_buffer_decrease_to_on_overrun_sec=2.2;
 var audio_flush_interval_ms=500; //the interval in which audio_flush() is called
 
 var audio_prepared_buffers = Array();
-var audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
-var audio_last_output_buffer = new Float32Array(audio_buffer_size);
+var audio_rebuffer;
+var audio_last_output_buffer;
 var audio_last_output_offset = 0;
 var audio_buffering = false;
 //var audio_buffering_fill_to=4; //on audio underrun we wait until this n*audio_buffer_size samples are present
@@ -1542,12 +1542,21 @@ function audio_preinit()
 	catch(e)
 	{
 		divlog('Your browser does not support Web Audio API, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.', 1);
+		return;
 	}
 
-	//we send our setup packet
+	if(audio_context.sampleRate<44100*2)
+		audio_buffer_size = 4096;
+	else if(audio_context.sampleRate>=44100*2 && audio_context.sampleRate<44100*4)
+		audio_buffer_size = 4096 * 2;
+	else if(audio_context.sampleRate>44100*4)
+		audio_buffer_size = 4096 * 4;
 
+	audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
+	audio_last_output_buffer = new Float32Array(audio_buffer_size);
+
+	//we send our setup packet
 	parsehash();
-	 //needs audio_context.sampleRate to exist
 
 	audio_calculate_resampling(audio_context.sampleRate);
 	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
