@@ -1419,7 +1419,7 @@ var audio_underrun_cnt = 0;
 function audio_buffer_progressbar_update()
 {
 	if(audio_buffer_progressbar_update_disabled) return;
-	var audio_buffer_value=(audio_prepared_buffers.length*audio_buffer_size)/44100;
+	var audio_buffer_value=(audio_prepared_buffers.length*audio_buffer_size)/audio_context.sampleRate;
 	audio_buffer_total_average_level_length++; audio_buffer_total_average_level=(audio_buffer_total_average_level*((audio_buffer_total_average_level_length-1)/audio_buffer_total_average_level_length))+(audio_buffer_value/audio_buffer_total_average_level_length);
 	var overrun=audio_buffer_value>audio_buffer_maximal_length_sec;
 	var underrun=audio_prepared_buffers.length==0;
