@@ -1940,28 +1940,16 @@ function mathbox_init()
     view.axis({
       axis: 1,
       width: 3,
-    });
+  });
     view.axis({
       axis: 2,
       width: 3,
-    });
+  });
     view.axis({
       axis: 3,
       width: 3,
-    });
+  });
 
-    view.grid({
-      width: 2,
-      opacity: 0.5,
-      axes: [1, 2],
-      zOrder: 1,
-    });
-    view.grid({
-      width: 2,
-      opacity: 0.5,
-      axes: [2, 3],
-      zOrder: 1,
-    });
     view.grid({
       width: 2,
       opacity: 0.5,
@@ -2009,8 +1997,8 @@ function mathbox_init()
 
     view.surface({
       fill: false,
-      lineX: true,
-      lineY: true,
+      lineX: false,
+      lineY: false,
       points: '<<',
       colors: '<',
       color: 0xFFFFFF,
