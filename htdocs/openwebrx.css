@@ -396,6 +396,12 @@ input[type=range]:focus::-ms-fill-upper
 	image-rendering: -webkit-optimize-contrast;
 }
 
+#openwebrx-three-container
+{
+	overflow: scroll;
+	display: none;
+}
+
 #openwebrx-phantom-canvas
 {
 	position: absolute;

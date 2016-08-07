@@ -117,9 +117,9 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #format_conversion="csdr convert_s16_f | csdr gain_ff 30"
 
 # >> /dev/urandom test signal source
-#samp_rate = 2400000
-#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
-#format_conversion="csdr convert_u8_f"
+samp_rate = 2400000
+start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
+format_conversion="csdr convert_u8_f"
 
 # >> Pre-recorded raw I/Q file as signal source
 # You will have to correctly specify: samp_rate, center_freq, format_conversion in order to correctly play an I/Q file.

@@ -1085,7 +1085,29 @@ function zoom_calc()
 function resize_waterfall_container(check_init)
 {
 	if(check_init&&!waterfall_setup_done) return;
-	canvas_container.style.height=(window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
+	three_container.style.height=canvas_container.style.height=(window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
+}
+
+function three_start()
+{
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera( 75, three_container.clientWidth/three_container.clientHeight, 0.1, 1000 );
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( three_container.clientWidth, three_container.clientHeight );
+	three_container.appendChild(renderer.domElement);
+	var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+	var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+	var cube = new THREE.Mesh( geometry, material );
+	scene.add( cube );
+	camera.position.z = 5;
+	var render = function () {
+		console.log(render);
+		window.requestAnimationFrame( render );
+		cube.rotation.x += 0.1;
+		cube.rotation.y += 0.1;
+		renderer.render(scene, camera);
+	};
+	render();
 }
 
 
@@ -1706,6 +1728,7 @@ function add_canvas()
 function init_canvas_container()
 {
 	canvas_container=e("webrx-canvas-container");
+	three_container=e("openwebrx-three-container");
 	canvas_container.addEventListener("mouseout",canvas_container_mouseout, false);
 	//window.addEventListener("mouseout",window_mouseout,false);
 	//document.body.addEventListener("mouseup",body_mouseup,false);
@@ -1897,6 +1920,7 @@ function openwebrx_resize()
 	resize_canvases();
 	resize_waterfall_container(true);
 	resize_scale();
+	resize_three();
 	check_top_bar_congestion();
 }
 
