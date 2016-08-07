@@ -1085,31 +1085,17 @@ function zoom_calc()
 function resize_waterfall_container(check_init)
 {
 	if(check_init&&!waterfall_setup_done) return;
-	three_container.style.height=canvas_container.style.height=(window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
-}
+	var numHeight;
+	mathbox_container.style.height=canvas_container.style.height=(numHeight=window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
+	if(mathbox)
+	{
+		//mathbox.three.camera.aspect = document.body.offsetWidth / numHeight;
+  		//mathbox.three.camera.updateProjectionMatrix();
+		mathbox.three.renderer.setSize(document.body.offsetWidth, numHeight);
+		console.log(document.body.offsetWidth, numHeight);
+	}
 
-function three_start()
-{
-	var scene = new THREE.Scene();
-	var camera = new THREE.PerspectiveCamera( 75, three_container.clientWidth/three_container.clientHeight, 0.1, 1000 );
-	var renderer = new THREE.WebGLRenderer();
-	renderer.setSize( three_container.clientWidth, three_container.clientHeight );
-	three_container.appendChild(renderer.domElement);
-	var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-	var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-	var cube = new THREE.Mesh( geometry, material );
-	scene.add( cube );
-	camera.position.z = 5;
-	var render = function () {
-		console.log(render);
-		window.requestAnimationFrame( render );
-		cube.rotation.x += 0.1;
-		cube.rotation.y += 0.1;
-		renderer.render(scene, camera);
-	};
-	render();
 }
-
 
 audio_server_output_rate=11025;
 audio_client_resampling_factor=4;
@@ -1725,10 +1711,11 @@ function add_canvas()
 	canvases.push(new_canvas);
 }
 
+
 function init_canvas_container()
 {
 	canvas_container=e("webrx-canvas-container");
-	three_container=e("openwebrx-three-container");
+	mathbox_container=e("openwebrx-mathbox-container");
 	canvas_container.addEventListener("mouseout",canvas_container_mouseout, false);
 	//window.addEventListener("mouseout",window_mouseout,false);
 	//document.body.addEventListener("mouseup",body_mouseup,false);
@@ -1915,12 +1902,142 @@ function check_top_bar_congestion()
 
 }
 
+var MATHBOX_MODES =
+{
+	UNINITIALIZED: 0,
+	NONE: 1,
+	WATERFALL: 2,
+	CONSTELLATION: 3
+};
+var mathbox_mode = MATHBOX_MODES.UNINITIALIZED;
+var mathbox;
+var mathbox_element;
+
+function mathbox_init()
+{
+	mathbox = mathBox({
+      plugins: ['core', 'controls', 'cursor', 'stats'],
+      controls: { klass: THREE.OrbitControls },
+    });
+    three = mathbox.three;
+
+    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
+	mathbox_container.appendChild((mathbox_element=three.renderer.domElement));
+    view = mathbox
+    .set({
+      scale: 720,
+      focus: 3,
+    })
+    .camera({
+      proxy: true,
+      position: [2, 1, 3],
+    })
+    .cartesian({
+      range: [[0, 1], [0, 1], [0, 1]],
+      scale: [1, 2/3, 1],
+    });
+
+    view.axis({
+      axis: 1,
+      width: 3,
+    });
+    view.axis({
+      axis: 2,
+      width: 3,
+    });
+    view.axis({
+      axis: 3,
+      width: 3,
+    });
+
+    view.grid({
+      width: 2,
+      opacity: 0.5,
+      axes: [1, 2],
+      zOrder: 1,
+    });
+    view.grid({
+      width: 2,
+      opacity: 0.5,
+      axes: [2, 3],
+      zOrder: 1,
+    });
+    view.grid({
+      width: 2,
+      opacity: 0.5,
+      axes: [1, 3],
+      zOrder: 1,
+    });
+
+    var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
+
+    var points = view.area({
+      expr: function (emit, x, z, i, j, t) {
+        var y = remap(Math.sin(x * 5 + t + Math.sin(z * 3.41 + x * 1.48)))
+              * remap(Math.sin(z * 5 + t + Math.cos(x * 3.22 + z)));
+        emit(x, y, z);
+      },
+      width:  32,
+      height: 32,
+      channels: 3,
+      axes: [1, 3],
+    });
+
+    var colors = view.area({
+      expr: function (emit, x, z, i, j, t) {
+        var y = remap(Math.sin(x * 5 + t + Math.sin(z * 3.41 + x * 1.48)))
+              * remap(Math.sin(z * 5 + t + Math.cos(x * 3.22 + z)));
+
+        var r = Math.sin(y * 4) + y * y * y;
+        var g = (.5 - .5 * Math.cos(y * 3) + y * y) * .85;
+        var b = y;
+
+        emit(r, g, b, 1.0);
+      },
+      width:  32,
+      height: 32,
+      channels: 4,
+      axes: [1, 3],
+    });
+
+    view.surface({
+      shaded: true,
+      points: '<<',
+      colors: '<',
+      color: 0xFFFFFF,
+    });
+
+    view.surface({
+      fill: false,
+      lineX: true,
+      lineY: true,
+      points: '<<',
+      colors: '<',
+      color: 0xFFFFFF,
+      width: 2,
+      blending: 'add',
+      opacity: .25,
+      zBias: 5,
+    });
+	mathbox_mode = MATHBOX_MODES.NONE;
+
+	//mathbox_element.style.width="100%";
+	//mathbox_element.style.height="100%";
+
+}
+
+function mathbox_toggle()
+{
+	mathbox_container.style.display="block";
+	if(mathbox_mode == MATHBOX_MODES.UNINITIALIZED) mathbox_init();
+	mathbox_mode = (mathbox_mode == MATHBOX_MODES.NONE) ? MATHBOX_MODES.WATERFALL : MATHBOX_MODES.NONE;
+}
+
 function openwebrx_resize()
 {
 	resize_canvases();
 	resize_waterfall_container(true);
 	resize_scale();
-	resize_three();
 	check_top_bar_congestion();
 }
 

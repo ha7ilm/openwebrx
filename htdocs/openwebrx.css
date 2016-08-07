@@ -396,9 +396,9 @@ input[type=range]:focus::-ms-fill-upper
 	image-rendering: -webkit-optimize-contrast;
 }
 
-#openwebrx-three-container
+#openwebrx-mathbox-container
 {
-	overflow: scroll;
+	overflow: none;
 	display: none;
 }
 
