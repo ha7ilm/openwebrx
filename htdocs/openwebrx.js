@@ -1921,7 +1921,7 @@ function mathbox_init()
     });
     three = mathbox.three;
 
-    three.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1.0);
+    three.renderer.setClearColor(new THREE.Color(0x808080), 1.0);
 	mathbox_container.appendChild((mathbox_element=three.renderer.domElement));
     view = mathbox
     .set({
@@ -1940,14 +1940,17 @@ function mathbox_init()
     view.axis({
       axis: 1,
       width: 3,
+	  color: "#fff",
   });
     view.axis({
       axis: 2,
       width: 3,
+	  color: "#fff",
   });
     view.axis({
       axis: 3,
       width: 3,
+	  color: "#fff",
   });
 
     view.grid({
@@ -1955,6 +1958,7 @@ function mathbox_init()
       opacity: 0.5,
       axes: [1, 3],
       zOrder: 1,
+	  color: "#fff",
     });
 
     var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
