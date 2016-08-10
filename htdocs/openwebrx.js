@@ -2009,12 +2009,12 @@ function mathbox_init()
 
     //var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
 
-	var getY = function(x,z)
+	var remap = function(x,z)
 	{
 		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
 		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
 		var realZIndex = mathbox_get_data_line(zIndex);
-		if(!mathbox_data_index_valid(zIndex)) return undefined;
+		if(!mathbox_data_index_valid(zIndex)) return {y: undefined, dBValue: undefined };
 		//if(realZIndex>=(mathbox_data_max_depth-1)) console.log("realZIndexundef", realZIndex, zIndex);
 		var index = Math.trunc(xIndex + realZIndex * fft_size);
 		/*if(mathbox_data[index]==undefined) console.log("Undef", index, mathbox_data.length, zIndex,
@@ -2027,13 +2027,13 @@ function mathbox_init()
 		else y = (dBValue-waterfall_min_level)/(waterfall_max_level-waterfall_min_level);
 		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
 		if(!y) y=0;
-		return y;
+		return {y: y, dBValue: dBValue};
 	}
 
     var points = view.area({
       expr: function (emit, x, z, i, j, t) {
 		var y;
-		if((y=getY(x,z))==undefined) return;
+		if((y=remap(x,z).y)==undefined) return;
         emit(x, y, z);
       },
       width:  32,
@@ -2044,12 +2044,12 @@ function mathbox_init()
 
     var colors = view.area({
       expr: function (emit, x, z, i, j, t) {
-        var y = Math.random();
-
-        var r = 1; //Math.sin(y * 4) + y * y * y;
-        var g = 1; //(.5 - .5 * Math.cos(y * 3) + y * y) * .85;
-        var b = 1; //y;
-
+		var dBValue;
+		if((dBValue=remap(x,z).dBValue)==undefined) return;
+		var color=waterfall_mkcolor(dBValue);
+        var b = (color&0xff)/255.0;
+        var g = ((color&0xff00)>>8)/255.0;
+        var r = ((color&0xff0000)>>16)/255.0;
         emit(r, g, b, 1.0);
       },
       width:  32,
