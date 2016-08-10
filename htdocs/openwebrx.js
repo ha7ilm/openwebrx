@@ -1787,6 +1787,7 @@ var mathbox_shift = function()
 	if(mathbox_data_current_depth < mathbox_data_max_depth) mathbox_data_current_depth++;
 	if(mathbox_data_index+1>=mathbox_data_max_depth) mathbox_data_index = 0;
 	else mathbox_data_index++;
+	mathbox_data_global_index++;
 }
 
 var mathbox_clear_data = function()
@@ -1959,6 +1960,7 @@ function mathbox_init()
 	mathbox_data_current_depth = 0; //how many lines are in the buffer currently
 	mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
 	mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
+	mathbox_data_global_index = 0;
 
 	mathbox = mathBox({
       plugins: ['core', 'controls', 'cursor', 'stats'],
@@ -2009,12 +2011,14 @@ function mathbox_init()
 
     //var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
 
-	var remap = function(x,z)
+	var remap = function(x,z,t)
 	{
+		var currentTimePos = mathbox_data_global_index/(fft_fps*1.0);
+		zAdd = -(t-currentTimePos);
 		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
 		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
 		var realZIndex = mathbox_get_data_line(zIndex);
-		if(!mathbox_data_index_valid(zIndex)) return {y: undefined, dBValue: undefined };
+		if(!mathbox_data_index_valid(zIndex)) return {y: undefined, dBValue: undefined, zAdd: 0 };
 		//if(realZIndex>=(mathbox_data_max_depth-1)) console.log("realZIndexundef", realZIndex, zIndex);
 		var index = Math.trunc(xIndex + realZIndex * fft_size);
 		/*if(mathbox_data[index]==undefined) console.log("Undef", index, mathbox_data.length, zIndex,
@@ -2027,14 +2031,15 @@ function mathbox_init()
 		else y = (dBValue-waterfall_min_level)/(waterfall_max_level-waterfall_min_level);
 		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
 		if(!y) y=0;
-		return {y: y, dBValue: dBValue};
+		return {y: y, dBValue: dBValue, zAdd: 0};
 	}
 
     var points = view.area({
       expr: function (emit, x, z, i, j, t) {
 		var y;
-		if((y=remap(x,z).y)==undefined) return;
-        emit(x, y, z);
+		remapResult=remap(x,z,t);
+		if((y=remapResult.y)==undefined) return;
+        emit(x, y, z+remapResult.zAdd);
       },
       width:  32,
       height: 32,
@@ -2045,7 +2050,7 @@ function mathbox_init()
     var colors = view.area({
       expr: function (emit, x, z, i, j, t) {
 		var dBValue;
-		if((dBValue=remap(x,z).dBValue)==undefined) return;
+		if((dBValue=remap(x,z,t).dBValue)==undefined) return;
 		var color=waterfall_mkcolor(dBValue);
         var b = (color&0xff)/255.0;
         var g = ((color&0xff00)>>8)/255.0;
