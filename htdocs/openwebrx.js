@@ -1522,19 +1522,17 @@ function webrx_set_param(what, value)
 	ws.send("SET "+what+"="+value.toString());
 }
 
+var starting_mute = false;
+
 function parsehash()
 {
 	if(h=window.location.hash)
 	{
 		h.substring(1).split(",").forEach(function(x){
 			harr=x.split("=");
-			console.log(harr);
+			if(harr[0]=="mute") starting_mute = true;
 			if(harr[0]=="mod") starting_mod = harr[1];
-			if(harr[0]=="freq") {
-			console.log(parseInt(harr[1]));
-			console.log(center_freq);
-			starting_offset_frequency = parseInt(harr[1])-center_freq;
-			}
+			if(harr[0]=="freq") starting_offset_frequency = parseInt(harr[1])-center_freq;
 		});
 
 	}
@@ -1574,6 +1572,8 @@ function audio_preinit()
 
 function audio_init()
 {
+	if(starting_mute) toggleMute();
+
 	if(audio_client_resampling_factor==0) return; //if failed to find a valid resampling factor...
 
 	audio_debug_time_start=(new Date()).getTime();
@@ -1618,6 +1618,7 @@ function audio_init()
 			//window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
 		}
 	},2000);
+
 }
 
 function on_ws_closed()
