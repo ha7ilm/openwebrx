@@ -1925,16 +1925,16 @@ function mathbox_init()
 	mathbox_container.appendChild((mathbox_element=three.renderer.domElement));
     view = mathbox
     .set({
-      scale: 720,
+      scale: 1080,
       focus: 3,
     })
     .camera({
       proxy: true,
-      position: [2, 1, 3],
+      position: [-2, 1, 3],
     })
     .cartesian({
-      range: [[0, 1], [0, 1], [0, 1]],
-      scale: [1, 2/3, 1],
+      range: [[-1, 1], [0, 1], [0, 1]],
+      scale: [2, 2/3, 1],
     });
 
     view.axis({
@@ -1946,6 +1946,7 @@ function mathbox_init()
       axis: 2,
       width: 3,
 	  color: "#fff",
+	  //offset: [0, 0, 0],
   });
     view.axis({
       axis: 3,
