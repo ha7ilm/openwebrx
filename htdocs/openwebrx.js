@@ -1782,6 +1782,30 @@ function waterfall_init()
 
 var waterfall_dont_scale=0;
 
+var mathbox_shift = function()
+{
+	if(mathbox_data_current_depth < mathbox_data_max_depth) mathbox_data_current_depth++;
+	if(mathbox_data_index+1>=mathbox_data_max_depth) mathbox_data_index = 0;
+	else mathbox_data_index++;
+}
+
+var mathbox_clear_data = function()
+{
+	mathbox_data_index = 50;
+	mathbox_data_current_depth = 0;
+}
+
+var mathbox_get_data_line = function(x) //x counts from 0 to mathbox_data_current_depth
+{
+	return (mathbox_data_max_depth + mathbox_data_index - mathbox_data_current_depth + x - 1) % mathbox_data_max_depth;
+}
+
+var mathbox_data_index_valid = function(x) //x counts from 0 to mathbox_data_current_depth
+{
+	return x<mathbox_data_current_depth;
+}
+
+
 function waterfall_add(data)
 {
 	if(!waterfall_setup_done) return;
@@ -1867,13 +1891,17 @@ function waterfall_add(data)
 			oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}
 
-
 	//Draw image
 	canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
 	shift_canvases();
 	if(canvas_actual_line<0) add_canvas();
 
-	//divlog("Drawn FFT");
+	//Handle mathbox
+	if(mathbox_mode==MATHBOX_MODES.WATERFALL)
+	{
+		for(var i=0;i<fft_size;i++) mathbox_data[i+mathbox_data_index*fft_size]=data[i];
+		mathbox_shift();
+	}
 }
 
 /*
@@ -1916,6 +1944,11 @@ var mathbox_element;
 
 function mathbox_init()
 {
+	mathbox_data_max_depth = fft_fps*10; //how many lines can the buffer store
+	mathbox_data_current_depth = 0; //how many lines are in the buffer currently
+	mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
+	mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
+
 	mathbox = mathBox({
       plugins: ['core', 'controls', 'cursor', 'stats'],
       controls: { klass: THREE.OrbitControls },
@@ -1963,12 +1996,25 @@ function mathbox_init()
 	  color: "#fff",
     });
 
-    var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
+    //var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
 
     var points = view.area({
       expr: function (emit, x, z, i, j, t) {
-        var y = remap(Math.sin(x * 5 + t + Math.sin(z * 3.41 + x * 1.48)))
-              * remap(Math.sin(z * 5 + t + Math.cos(x * 3.22 + z)));
+		var xIndex = ((x+1)/2.0)*fft_size; //x: frequency
+		var zIndex = z*(mathbox_data_max_depth-1); //z: time
+		var realZIndex = mathbox_get_data_line(zIndex);
+		if(!mathbox_data_index_valid(zIndex)) return;
+		if(realZIndex>=(mathbox_data_max_depth-1)) console.log("realZIndexundef", realZIndex, zIndex);
+		var index = Math.trunc(xIndex + realZIndex * fft_size);
+		if(mathbox_data[index]==undefined) console.log("Undef", index, mathbox_data.length, zIndex,
+				realZIndex, mathbox_data_max_depth,
+				mathbox_data_current_depth, mathbox_data_index);
+        var dBValue = mathbox_data[index];
+		if(dBValue>waterfall_max_level) y = 1;
+		else if(dBValue<waterfall_min_level) y = 0;
+		else y = (dBValue-waterfall_min_level)/(waterfall_max_level-waterfall_min_level);
+		if(!y) y=0;
+		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
         emit(x, y, z);
       },
       width:  32,
@@ -1979,12 +2025,11 @@ function mathbox_init()
 
     var colors = view.area({
       expr: function (emit, x, z, i, j, t) {
-        var y = remap(Math.sin(x * 5 + t + Math.sin(z * 3.41 + x * 1.48)))
-              * remap(Math.sin(z * 5 + t + Math.cos(x * 3.22 + z)));
+        var y = Math.random();
 
-        var r = Math.sin(y * 4) + y * y * y;
-        var g = (.5 - .5 * Math.cos(y * 3) + y * y) * .85;
-        var b = y;
+        var r = 1; //Math.sin(y * 4) + y * y * y;
+        var g = 1; //(.5 - .5 * Math.cos(y * 3) + y * y) * .85;
+        var b = 1; //y;
 
         emit(r, g, b, 1.0);
       },
@@ -2025,6 +2070,7 @@ function mathbox_toggle()
 	mathbox_container.style.display="block";
 	if(mathbox_mode == MATHBOX_MODES.UNINITIALIZED) mathbox_init();
 	mathbox_mode = (mathbox_mode == MATHBOX_MODES.NONE) ? MATHBOX_MODES.WATERFALL : MATHBOX_MODES.NONE;
+	mathbox_clear_data();
 }
 
 function openwebrx_resize()
