@@ -2009,31 +2009,26 @@ function mathbox_init()
 
     //var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
 
-	var getY = function(x,z)
-	{
+	
+
+    var points = view.area({
+      expr: function (emit, x, z, i, j, t) {
 		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
 		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
 		var realZIndex = mathbox_get_data_line(zIndex);
-		if(!mathbox_data_index_valid(zIndex)) return undefined;
+		if(!mathbox_data_index_valid(zIndex)) return;
 		//if(realZIndex>=(mathbox_data_max_depth-1)) console.log("realZIndexundef", realZIndex, zIndex);
 		var index = Math.trunc(xIndex + realZIndex * fft_size);
 		/*if(mathbox_data[index]==undefined) console.log("Undef", index, mathbox_data.length, zIndex,
 				realZIndex, mathbox_data_max_depth,
 				mathbox_data_current_depth, mathbox_data_index);*/
-		var dBValue = mathbox_data[index];
+        var dBValue = mathbox_data[index];
 		//y=1;
 		if(dBValue>waterfall_max_level) y = 1;
 		else if(dBValue<waterfall_min_level) y = 0;
 		else y = (dBValue-waterfall_min_level)/(waterfall_max_level-waterfall_min_level);
-		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
 		if(!y) y=0;
-		return y;
-	}
-
-    var points = view.area({
-      expr: function (emit, x, z, i, j, t) {
-		var y;
-		if(!(y=getY(x,z))) return;
+		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
         emit(x, y, z);
       },
       width:  32,
