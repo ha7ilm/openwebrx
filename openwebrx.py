@@ -415,6 +415,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 			# there's even another cool tip at http://stackoverflow.com/questions/4419650/how-to-implement-timeout-in-basehttpserver-basehttprequesthandler-python
 			#if self.path[:5]=="/lock": cma("do_GET /lock/") # to test mutex_watchdog_thread. Do not uncomment in production environment!
 			if self.path[:4]=="/ws/":
+                                print "[openwebrx-ws] Client requested WebSocket connection"
 				if receiver_failed: self.send_error(500,"Internal server error")
 				try:
 					# ========= WebSocket handshake  =========
