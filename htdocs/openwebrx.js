@@ -1894,26 +1894,30 @@ function waterfall_add(data)
 			waterfall_image.data[base+x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}*/
 
-	//Add line to waterfall image
-	oneline_image = canvas_context.createImageData(w,1);
-	for(x=0;x<w;x++)
-	{
-		color=waterfall_mkcolor(data[x]);
-		for(i=0;i<4;i++)
-			oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
-	}
-
-	//Draw image
-	canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
-	shift_canvases();
-	if(canvas_actual_line<0) add_canvas();
-
-	//Handle mathbox
 	if(mathbox_mode==MATHBOX_MODES.WATERFALL)
 	{
+		//Handle mathbox
 		for(var i=0;i<fft_size;i++) mathbox_data[i+mathbox_data_index*fft_size]=data[i];
 		mathbox_shift();
 	}
+	else
+	{
+		//Add line to waterfall image
+		oneline_image = canvas_context.createImageData(w,1);
+		for(x=0;x<w;x++)
+		{
+			color=waterfall_mkcolor(data[x]);
+			for(i=0;i<4;i++)
+				oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
+		}
+
+		//Draw image
+		canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
+		shift_canvases();
+		if(canvas_actual_line<0) add_canvas();
+	}
+
+
 }
 
 /*
@@ -2101,6 +2105,18 @@ function mathbox_toggle()
 	if(mathbox_mode == MATHBOX_MODES.UNINITIALIZED) mathbox_init();
 	mathbox_mode = (mathbox_mode == MATHBOX_MODES.NONE) ? MATHBOX_MODES.WATERFALL : MATHBOX_MODES.NONE;
 	mathbox_clear_data();
+	waterfall_clear();
+}
+
+function waterfall_clear()
+{
+	while(canvases.length) //delete all canvases
+	{
+		var x=canvases.shift();
+		x.parentNode.removeChild(x);
+		delete x;
+	}
+	add_canvas();
 }
 
 function openwebrx_resize()
