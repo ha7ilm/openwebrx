@@ -2042,7 +2042,7 @@ function mathbox_init()
         emit(x, y, z+remapResult.zAdd);
       },
       width:  128,
-      height: mathbox_data_max_depth,
+      height: mathbox_data_max_depth - 1,
       channels: 3,
       axes: [1, 3],
     });
@@ -2058,7 +2058,7 @@ function mathbox_init()
         emit(r, g, b, 1.0);
       },
       width:  128,
-      height: mathbox_data_max_depth,
+      height: mathbox_data_max_depth - 1,
       channels: 4,
       axes: [1, 3],
     });
