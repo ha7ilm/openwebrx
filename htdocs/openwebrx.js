@@ -2041,8 +2041,8 @@ function mathbox_init()
 		if((y=remapResult.y)==undefined) return;
         emit(x, y, z+remapResult.zAdd);
       },
-      width:  32,
-      height: 32,
+      width:  128,
+      height: mathbox_data_max_depth,
       channels: 3,
       axes: [1, 3],
     });
@@ -2057,8 +2057,8 @@ function mathbox_init()
         var r = ((color&0xff0000)>>16)/255.0;
         emit(r, g, b, 1.0);
       },
-      width:  32,
-      height: 32,
+      width:  128,
+      height: mathbox_data_max_depth,
       channels: 4,
       axes: [1, 3],
     });
