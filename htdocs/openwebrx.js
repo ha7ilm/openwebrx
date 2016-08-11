@@ -1961,6 +1961,7 @@ function mathbox_init()
 	mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
 	mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
 	mathbox_data_global_index = 0;
+	mathbox_correction_for_z = 0;
 
 	mathbox = mathBox({
       plugins: ['core', 'controls', 'cursor', 'stats'],
@@ -2011,10 +2012,15 @@ function mathbox_init()
 
     //var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
 
+
 	var remap = function(x,z,t)
 	{
+		var zAdd;
 		var currentTimePos = mathbox_data_global_index/(fft_fps*1.0);
-		zAdd = -(t-currentTimePos)/10;
+		zAdd = (-(t-currentTimePos)/10) - mathbox_correction_for_z;
+		if(zAdd<-0.2) { mathbox_correction_for_z += -zAdd; zAdd=0; }
+		if(zAdd>0.2) { mathbox_correction_for_z += zAdd; zAdd=0; }
+
 		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
 		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
 		var realZIndex = mathbox_get_data_line(zIndex);
