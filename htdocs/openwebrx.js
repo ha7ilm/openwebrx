@@ -2014,7 +2014,7 @@ function mathbox_init()
 	var remap = function(x,z,t)
 	{
 		var currentTimePos = mathbox_data_global_index/(fft_fps*1.0);
-		zAdd = -(t-currentTimePos);
+		zAdd = -(t-currentTimePos)/10;
 		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
 		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
 		var realZIndex = mathbox_get_data_line(zIndex);
@@ -2031,7 +2031,7 @@ function mathbox_init()
 		else y = (dBValue-waterfall_min_level)/(waterfall_max_level-waterfall_min_level);
 		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
 		if(!y) y=0;
-		return {y: y, dBValue: dBValue, zAdd: 0};
+		return {y: y, dBValue: dBValue, zAdd: zAdd};
 	}
 
     var points = view.area({
