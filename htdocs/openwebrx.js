@@ -1960,7 +1960,8 @@ var mathbox_element;
 
 function mathbox_init()
 {
-	mathbox_data_max_depth = fft_fps*10; //how many lines can the buffer store
+	mathbox_data_max_depth_time = 10; //sec
+	mathbox_data_max_depth = fft_fps * mathbox_data_max_depth_time; //how many lines can the buffer store
 	mathbox_data_current_depth = 0; //how many lines are in the buffer currently
 	mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
 	mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
@@ -2019,11 +2020,10 @@ function mathbox_init()
 
 	var remap = function(x,z,t)
 	{
-		var zAdd;
 		var currentTimePos = mathbox_data_global_index/(fft_fps*1.0);
-		zAdd = (-(t-currentTimePos)/10) - mathbox_correction_for_z;
-		if(zAdd<-0.2) { mathbox_correction_for_z += -zAdd; zAdd=0; }
-		if(zAdd>0.2) { mathbox_correction_for_z += zAdd; zAdd=0; }
+		var realZAdd = (-(t-currentTimePos)/mathbox_data_max_depth_time);
+		var zAdd = realZAdd - mathbox_correction_for_z;
+		if(zAdd<-0.2 || zAdd>0.2) { mathbox_correction_for_z = realZAdd; }
 
 		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
 		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
