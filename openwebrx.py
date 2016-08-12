@@ -493,7 +493,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 								if smeter_level == None: break
 							except:
 								break
-						if smeter_level!=None: 
+						if smeter_level!=None:
 							myclient.loopstat=31
 							rxws.send(self, "MSG s={0}".format(smeter_level))
 
@@ -632,7 +632,10 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[START_MOD]",cfg.start_mod),
 						("%[WATERFALL_COLORS]",cfg.waterfall_colors),
 						("%[WATERFALL_MIN_LEVEL]",str(cfg.waterfall_min_level)),
-						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level))
+						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level)),
+						("%[MATHBOX_WATERFALL_FRES]",str(cfg.mathbox_waterfall_frequency_resolution)),
+						("%[MATHBOX_WATERFALL_THIST]",str(cfg.mathbox_waterfall_history_length)),
+						("%[MATHBOX_WATERFALL_COLORS]",cfg.mathbox_waterfall_colors),
 					)
 					for rule in replace_dictionary:
 						while data.find(rule[0])!=-1:

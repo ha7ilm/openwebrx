@@ -1659,17 +1659,18 @@ function open_websocket()
 	ws.onerror = on_ws_error;
 }
 
-function waterfall_mkcolor(db_value)
+function waterfall_mkcolor(db_value, waterfall_colors_arg)
 {
+	if(typeof waterfall_colors_arg === 'undefined') waterfall_colors_arg = waterfall_colors;
 	if(db_value<waterfall_min_level) db_value=waterfall_min_level;
 	if(db_value>waterfall_max_level) db_value=waterfall_max_level;
 	full_scale=waterfall_max_level-waterfall_min_level;
 	relative_value=db_value-waterfall_min_level;
 	value_percent=relative_value/full_scale;
-	percent_for_one_color=1/(waterfall_colors.length-1);
+	percent_for_one_color=1/(waterfall_colors_arg.length-1);
 	index=Math.floor(value_percent/percent_for_one_color);
 	remain=(value_percent-percent_for_one_color*index)/percent_for_one_color;
-	return color_between(waterfall_colors[index+1],waterfall_colors[index],remain);
+	return color_between(waterfall_colors_arg[index+1],waterfall_colors_arg[index],remain);
 }
 
 function color_between(first, second, percent)
@@ -1960,8 +1961,8 @@ var mathbox_element;
 
 function mathbox_init()
 {
-	mathbox_data_max_depth_time = 10; //sec
-	mathbox_data_max_depth = fft_fps * mathbox_data_max_depth_time; //how many lines can the buffer store
+	//mathbox_waterfall_history_length is defined in the config
+	mathbox_data_max_depth = fft_fps * mathbox_waterfall_history_length; //how many lines can the buffer store
 	mathbox_data_current_depth = 0; //how many lines are in the buffer currently
 	mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
 	mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
@@ -2021,7 +2022,7 @@ function mathbox_init()
 	var remap = function(x,z,t)
 	{
 		var currentTimePos = mathbox_data_global_index/(fft_fps*1.0);
-		var realZAdd = (-(t-currentTimePos)/mathbox_data_max_depth_time);
+		var realZAdd = (-(t-currentTimePos)/mathbox_waterfall_history_length);
 		var zAdd = realZAdd - mathbox_correction_for_z;
 		if(zAdd<-0.2 || zAdd>0.2) { mathbox_correction_for_z = realZAdd; }
 
@@ -2051,7 +2052,7 @@ function mathbox_init()
 		if((y=remapResult.y)==undefined) return;
         emit(x, y, z+remapResult.zAdd);
       },
-      width:  128,
+      width:  mathbox_waterfall_frequency_resolution,
       height: mathbox_data_max_depth - 1,
       channels: 3,
       axes: [1, 3],
@@ -2061,13 +2062,13 @@ function mathbox_init()
       expr: function (emit, x, z, i, j, t) {
 		var dBValue;
 		if((dBValue=remap(x,z,t).dBValue)==undefined) return;
-		var color=waterfall_mkcolor(dBValue);
+		var color=waterfall_mkcolor(dBValue, mathbox_waterfall_colors);
         var b = (color&0xff)/255.0;
         var g = ((color&0xff00)>>8)/255.0;
         var r = ((color&0xff0000)>>16)/255.0;
         emit(r, g, b, 1.0);
       },
-      width:  128,
+      width:  mathbox_waterfall_frequency_resolution,
       height: mathbox_data_max_depth - 1,
       channels: 4,
       axes: [1, 3],

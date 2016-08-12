@@ -28,11 +28,14 @@
 			var ws_url="%[WS_URL]";
 			var rx_photo_height=%[RX_PHOTO_HEIGHT];
 			var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
-			var starting_mod = "%[START_MOD]";
+			var starting_mod="%[START_MOD]";
 			var starting_offset_frequency = %[START_OFFSET_FREQ];
 			var waterfall_colors=%[WATERFALL_COLORS];
 			var waterfall_min_level_default=%[WATERFALL_MIN_LEVEL];
 			var waterfall_max_level_default=%[WATERFALL_MAX_LEVEL];
+			var mathbox_waterfall_frequency_resolution=%[MATHBOX_WATERFALL_FRES];
+			var mathbox_waterfall_history_length=%[MATHBOX_WATERFALL_THIST];
+			var mathbox_waterfall_colors=%[MATHBOX_WATERFALL_COLORS];
 		</script>
 		<script src="sdr.js"></script>
 		<script src="mathbox-bundle.min.js"></script>
