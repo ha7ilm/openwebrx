@@ -1522,6 +1522,7 @@ function parsehash()
 			harr=x.split("=");
 			console.log(harr);
 			if(harr[0]=="mod") starting_mod = harr[1];
+			if(harr[0]=="sql") { e("openwebrx-panel-squelch").value=harr[1]; updateSquelch(); }
 			if(harr[0]=="freq") {
 			console.log(parseInt(harr[1]));
 			console.log(center_freq);
