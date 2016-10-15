@@ -469,9 +469,13 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						# ========= send audio =========
 						if dsp_initialized:
 							myclient.loopstat=10
-							temp_audio_data=dsp.read(256)
-							myclient.loopstat=11
-							rxws.send(self, temp_audio_data, "AUD ")
+							temp_audio_data=dsp.read_async(256)
+							if (temp_audio_data is not None):
+								myclient.loopstat=11
+								rxws.send(self, temp_audio_data, "AUD ")
+							else:
+								#time.sleep((256.0 * 32) / 11025)
+								time.sleep(.01)
 
 						# ========= send spectrum =========
 						while not myclient.spectrum_queue.empty():

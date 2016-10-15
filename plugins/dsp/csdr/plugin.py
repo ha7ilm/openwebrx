@@ -26,6 +26,7 @@ import os
 import code
 import signal
 import fcntl
+import select
 
 class dsp_plugin:
 
@@ -53,6 +54,10 @@ class dsp_plugin:
 		self.squelch_level = 0
 
 	def chain(self,which):
+		if which in [ "dmr", "dstar", "nxdn" ]:
+			self.set_output_rate(48000)
+		else:
+			self.set_output_rate(11025)
 		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
 		if self.csdr_dynamic_bufsize: any_chain_base+="csdr setbuf {start_bufsize} | "
 		if self.csdr_through: any_chain_base+="csdr through | "
@@ -67,7 +72,19 @@ class dsp_plugin:
 		chain_end = ""
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
-		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr fastagc_ff 1024 | csdr convert_f_s16"+chain_end
+		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr convert_f_s16"+chain_end
+		if which in [ "dmr", "dstar", "nxdn" ]:
+			c = chain_begin
+			c += "csdr fmdemod_quadri_cf | csdr convert_f_s16"
+			if which == "dmr":
+				c += " | dsd -i - -o - -mg -fr -u 1"
+			elif which == "dstar":
+				c += " | dsd -i - -o - -fd"
+			elif which == "nxdn":
+				c += " | dsd -i - -o -"
+			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 256 - -t raw -r 11025 -e signed-integer -b 16 -c 1 -"
+			c += chain_end
+			return c
 		elif which == "am":	return chain_begin + "csdr amdemod_cf | csdr fastdcblock_ff | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
 		elif which == "ssb": return chain_begin + "csdr realpart_cf | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
 
@@ -85,7 +102,7 @@ class dsp_plugin:
 		#to change this, restart is required
 		self.samp_rate=samp_rate
 		self.decimation=1
-		while self.samp_rate/(self.decimation+1)>self.output_rate:
+		while self.samp_rate/(self.decimation+1)>=self.output_rate:
 			self.decimation+=1
 		self.last_decimation=float(self.if_samp_rate())/self.output_rate
 
@@ -210,6 +227,12 @@ class dsp_plugin:
 
 	def read(self,size):
 		return self.process.stdout.read(size)
+
+	def read_async(self, size):
+		if (select.select([self.process.stdout], [], [], 0)[0] != []):
+			return self.process.stdout.read(size)
+		else:
+			return None
 
 	def stop(self):
 		os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
