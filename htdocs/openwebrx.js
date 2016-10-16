@@ -1409,9 +1409,21 @@ if (!AudioBuffer.prototype.copyToChannel)
 function audio_onprocess(e)
 {
 	//console.log("audio onprocess");
-	if(audio_buffering) return;
-	if(audio_prepared_buffers.length==0) { audio_buffer_progressbar_update(); /*add_problem("audio underrun");*/ audio_buffering=true; }
-	else { e.outputBuffer.copyToChannel(audio_prepared_buffers.shift(),0); }
+	if(audio_buffering) {
+        var silence = new Float32Array(4096);
+        e.outputBuffer.copyToChannel(silence, 0);
+        return;
+    }
+	if(audio_prepared_buffers.length==0) {
+        audio_buffer_progressbar_update();
+        /*add_problem("audio underrun");*/
+        audio_buffering=true;
+        var silence = new Float32Array(4096);
+        e.outputBuffer.copyToChannel(silence, 0);
+    } else {
+        var buf = audio_prepared_buffers.shift();
+        e.outputBuffer.copyToChannel(buf,0);
+    }
 }
 
 var audio_buffer_progressbar_update_disabled=false;
