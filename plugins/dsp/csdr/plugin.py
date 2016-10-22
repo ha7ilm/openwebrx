@@ -77,12 +77,13 @@ class dsp_plugin:
 			c = chain_begin
 			c += "csdr fmdemod_quadri_cf | csdr convert_f_s16"
 			if which == "dmr":
-				c += " | dsd -i - -o - -mg -fr -u 1"
+				c += " | dsd -mg -fr"
 			elif which == "dstar":
-				c += " | dsd -i - -o - -fd"
+				c += " | dsd -fd"
 			elif which == "nxdn":
-				c += " | dsd -i - -o -"
-			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 256 - -t raw -r 11025 -e signed-integer -b 16 -c 1 -"
+				c += " | dsd -fi"
+			c += " -i - -o - -u 2 -g 10"
+			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r 11025 -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
 			c += chain_end
 			return c
 		elif which == "am":	return chain_begin + "csdr amdemod_cf | csdr fastdcblock_ff | csdr fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
