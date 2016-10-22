@@ -429,11 +429,16 @@ function demodulator_default_analog(offset_frequency,subtype)
 		this.low_cut=-4000;
 		this.high_cut=4000;
 	}
-	else if(subtype=="dmr" || subtype=="dstar" || subtype=="nxdn")
+	else if(subtype=="dmr")
 	{
 		this.low_cut=-6500;
 		this.high_cut=6500;
 	}
+    else if(subtype=="dstar" || subtype=="nxdn")
+    {
+   		this.low_cut=-3250;
+		this.high_cut=3250;
+    }
 	else if(subtype=="am")
 	{
 		this.low_cut=-4000;
