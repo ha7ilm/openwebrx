@@ -77,7 +77,12 @@ class dsp_plugin:
 				return fft_chain_base+" | csdr compress_fft_adpcm_f_u8 {fft_size}"
 			else:
 				return fft_chain_base
-		chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
+
+		if self.real_input:
+			chain_begin=any_chain_base+"csdr shift_addition_fc --fifo {shift_pipe}"
+		else:
+			chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe}"
+		chain_begin += "| csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
 		chain_end = ""
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -147,7 +152,11 @@ class dsp_plugin:
 	def set_offset_freq(self,offset_freq):
 		self.offset_freq=offset_freq
 		if self.running:
-			self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate))
+			if self.real_input:
+				# for real signal, the "center frequency" is actually offset by samp_rate/4
+				self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate - 0.25))
+			else:
+				self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate))
 			self.shift_pipe_file.flush()
 
 	def set_bpf(self,low_cut,high_cut):

@@ -453,6 +453,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 					dsp_initialized=False
 					dsp.set_audio_compression(cfg.audio_compression)
 					dsp.set_format_conversion(cfg.format_conversion)
+					dsp.set_real_input(cfg.real_input)
 					dsp.set_offset_freq(0)
 					dsp.set_bpf(-4000,4000)
 					dsp.nc_port=cfg.iq_server_port
