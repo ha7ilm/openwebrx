@@ -287,7 +287,7 @@ def spectrum_thread_function():
 	dsp.set_samp_rate(cfg.samp_rate)
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
-	dsp.set_fft_averages(cfg.fft_averages)
+	dsp.set_fft_averages(int(round(1.0 * cfg.samp_rate / cfg.fft_size / cfg.fft_fps / (1.0 - cfg.fft_voverlap_factor))) if cfg.fft_voverlap_factor>0 else 0)
 	dsp.set_fft_compression(cfg.fft_compression)
 	dsp.set_format_conversion(cfg.format_conversion)
 	dsp.set_real_input(cfg.real_input)
@@ -495,7 +495,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 								if smeter_level == None: break
 							except:
 								break
-						if smeter_level!=None: 
+						if smeter_level!=None:
 							myclient.loopstat=31
 							rxws.send(self, "MSG s={0}".format(smeter_level))
 

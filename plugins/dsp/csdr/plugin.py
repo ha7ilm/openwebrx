@@ -60,15 +60,10 @@ class dsp_plugin:
 		if self.csdr_through: any_chain_base+="csdr through | "
 		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft":
-			if self.real_input:
-				fft_chain_base = any_chain_base+"csdr fft_fc {fft_size} {fft_block_size}"
-			else:
-				fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size}"
-
-			if self.fft_averages > 1:
-				fft_chain_base += " | csdr logaveragepower_cf -70 {fft_size} {fft_averages}"
-			else:
-				fft_chain_base += " | csdr logpower_cf -70"
+			fft_chain_base = any_chain_base + "csdr " + \
+			("fft_fc" if self.real_input else "fft_cc") + \
+			" {fft_size} {fft_block_size} | " + \
+			("csdr logpower_cf -70 | " if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages}")
 
 			if not self.real_input:
 				fft_chain_base += " | csdr fft_exchange_sides_ff {fft_size}"
@@ -141,7 +136,8 @@ class dsp_plugin:
 		self.fft_averages=fft_averages
 
 	def fft_block_size(self):
-		return self.samp_rate/self.fft_fps/self.fft_averages
+		if self.fft_averages == 0: return self.samp_rate/self.fft_fps
+		else: return self.samp_rate/self.fft_fps/self.fft_averages
 
 	def set_format_conversion(self,format_conversion):
 		self.format_conversion=format_conversion
