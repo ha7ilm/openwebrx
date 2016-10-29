@@ -70,7 +70,10 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
+fft_overlap=0.3
 samp_rate = 250000
+
+fft_averages=int(round(1.0 * samp_rate / fft_size / fft_fps / (1.0 - fft_overlap)))
 
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
@@ -146,9 +149,9 @@ iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data ove
 
 #access_log = "~/openwebrx_access.log"
 
-waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
-waterfall_min_level = -115 #in dB
-waterfall_max_level = 0
+waterfall_colors = "[0x000000ff,0x0000ffff,0x00ffffff,0x00ff00ff,0xffff00ff,0xff0000ff,0xff00ffff,0xffffffff]"
+waterfall_min_level = -88 #in dB
+waterfall_max_level = -20
 #A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
 
 #Warning! The settings below are very experimental.

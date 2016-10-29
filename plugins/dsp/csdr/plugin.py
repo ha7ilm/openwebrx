@@ -51,6 +51,7 @@ class dsp_plugin:
 		self.csdr_print_bufsizes = False
 		self.csdr_through = False
 		self.squelch_level = 0
+		self.fft_averages = 50
 
 	def chain(self,which):
 		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
@@ -58,7 +59,11 @@ class dsp_plugin:
 		if self.csdr_through: any_chain_base+="csdr through | "
 		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft":
-			fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
+			if self.fft_averages > 1:
+				fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logaveragepower_cf -70 {fft_size} {fft_averages} | csdr fft_exchange_sides_ff {fft_size}"
+			else:
+				fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | csdr logpower_cf -70 | csdr fft_exchange_sides_ff {fft_size}"
+
 			if self.fft_compression=="adpcm":
 				return fft_chain_base+" | csdr compress_fft_adpcm_f_u8 {fft_size}"
 			else:
@@ -117,8 +122,12 @@ class dsp_plugin:
 		#to change this, restart is required
 		self.fft_fps=fft_fps
 
+	def set_fft_averages(self,fft_averages):
+		#to change this, restart is required
+		self.fft_averages=fft_averages
+
 	def fft_block_size(self):
-		return self.samp_rate/self.fft_fps
+		return self.samp_rate/self.fft_fps/self.fft_averages
 
 	def set_format_conversion(self,format_conversion):
 		self.format_conversion=format_conversion
@@ -181,7 +190,7 @@ class dsp_plugin:
 
 		#run the command
 		command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation, \
-			last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), \
+			last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), fft_averages=self.fft_averages, \
 			bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
 			flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port, \
 			squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe )
