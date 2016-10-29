@@ -70,11 +70,8 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
-fft_overlap=0.3
+fft_voverlap_factor=0.3
 samp_rate = 250000
-
-fft_averages=int(round(1.0 * samp_rate / fft_size / fft_fps / (1.0 - fft_overlap)))
-
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
 ppm = 0
