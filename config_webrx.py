@@ -133,7 +133,7 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #start_rtl_command="cat /tmp/osmocom_fifo"
 #format_conversion=""
 
-# ==== Misc options ====
+# ==== Misc settings ====
 
 shown_center_freq = center_freq #you can change this if you use an upconverter
 
@@ -149,12 +149,21 @@ iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data ove
 
 #access_log = "~/openwebrx_access.log"
 
+# ==== Color themes ====
+
+#A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
+### default theme by teejez:
 waterfall_colors = "[0x000000ff,0x0000ffff,0x00ffffff,0x00ff00ff,0xffff00ff,0xff0000ff,0xff00ffff,0xffffffff]"
 waterfall_min_level = -88 #in dB
 waterfall_max_level = -20
-#A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
+### old theme by HA7ILM:
+#waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
+#waterfall_min_level = -115 #in dB
+#waterfall_max_level = 0
 
-#Warning! The settings below are very experimental.
+# ==== Experimental settings ===
+
+#Warning! These are very experimental.
 csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
