@@ -1724,6 +1724,11 @@ function add_canvas()
 	new_canvas.addEventListener("mousedown", canvas_mousedown, false);
 	new_canvas.addEventListener("wheel",canvas_mousewheel, false);
 	canvases.push(new_canvas);
+    while (canvas_container && canvas_container.clientHeight + canvas_default_height * 2 < canvases.length * canvas_default_height) {
+        var c = canvases.shift();
+        if (!c) break;
+        canvas_container.removeChild(c);
+    }
 }
 
 function init_canvas_container()
