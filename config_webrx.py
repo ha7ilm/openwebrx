@@ -70,7 +70,7 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
-fft_voverlap_factor=0.3
+fft_voverlap_factor=0.3 #If it is above 0, multiple FFTs will be used for creating a line on the diagram.
 samp_rate = 250000
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
@@ -160,6 +160,7 @@ waterfall_auto_level_margin = (5, 40)
 #waterfall_min_level = -115 #in dB
 #waterfall_max_level = 0
 #waterfall_auto_level_margin = (20, 30)
+##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
 #Note: When the auto waterfall level button is clicked, the following happens:
 #	[waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
