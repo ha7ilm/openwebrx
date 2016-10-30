@@ -158,16 +158,17 @@ iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data ove
 # ==== Color themes ====
 
 #A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
+
 ### default theme by teejez:
 waterfall_colors = "[0x000000ff,0x0000ffff,0x00ffffff,0x00ff00ff,0xffff00ff,0xff0000ff,0xff00ffff,0xffffffff]"
 waterfall_min_level = -88 #in dB
 waterfall_max_level = -20
+waterfall_auto_level_margin = (5, 40)
 ### old theme by HA7ILM:
 #waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
 #waterfall_min_level = -115 #in dB
 #waterfall_max_level = 0
 #waterfall_auto_level_margin = (20, 30)
-##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
 #Note: When the auto waterfall level button is clicked, the following happens:
 #	[waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
