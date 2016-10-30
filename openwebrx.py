@@ -632,7 +632,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[START_MOD]",cfg.start_mod),
 						("%[WATERFALL_COLORS]",cfg.waterfall_colors),
 						("%[WATERFALL_MIN_LEVEL]",str(cfg.waterfall_min_level)),
-						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level))
+						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level)),
+						("%[WATERFALL_AUTO_LEVEL_MARGIN]","[%d,%d]"%cfg.waterfall_auto_level_margin)
 					)
 					for rule in replace_dictionary:
 						while data.find(rule[0])!=-1:
