@@ -70,7 +70,8 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
-fft_voverlap_factor=0.3 # How much successive FFT windows overlap in time domain (zero or negative for no overlap)
+fft_enable_average = True  # Set to False if you want to save CPU time
+fft_voverlap_factor=0.3 # How much successive averaged FFT windows overlap in time domain (zero for no overlap, negative to skip samples between FFTs)
 samp_rate = 250000
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.

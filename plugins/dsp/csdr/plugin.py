@@ -63,7 +63,7 @@ class dsp_plugin:
 			fft_chain_base = any_chain_base + "csdr " + \
 			("fft_fc" if self.real_input else "fft_cc") + \
 			" {fft_size} {fft_block_size} | " + \
-			("csdr logpower_cf -70 | " if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages}")
+			("csdr logpower_cf -70" if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages}")
 
 			if not self.real_input:
 				fft_chain_base += " | csdr fft_exchange_sides_ff {fft_size}"
