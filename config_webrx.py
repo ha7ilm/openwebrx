@@ -70,7 +70,7 @@ sdrhu_public_listing = False
 dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096
-fft_voverlap_factor=0.3 #If it is above 0, multiple FFTs will be used for creating a line on the diagram.
+fft_voverlap_factor=0.3 # How much successive FFT windows overlap in time domain (zero or negative for no overlap)
 samp_rate = 250000
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
@@ -93,6 +93,7 @@ start_rtl_thread=True
 
 start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
+real_input = False
 
 #start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l16 -a0 -q -r-".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 #format_conversion="csdr convert_s8_f"
@@ -113,8 +114,16 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 # >> Sound card SDR (needs ALSA)
 # I did not have the chance to properly test it.
 #samp_rate = 96000
-#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
+#start_rtl_command="arecord -t raw -D default -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
 #format_conversion="csdr convert_s16_f | csdr gain_ff 30"
+#real_input = False
+
+# >> Sound card SDR with real (mono) input, for example, VLF receiver with antenna going directly to sound card
+#samp_rate = 96000
+#start_rtl_command="arecord -t raw -D default -f S16_LE -r {samp_rate} -c1 -".format(samp_rate=samp_rate)
+#format_conversion="csdr convert_s16_f | csdr gain_ff 30"
+#real_input = True
+#center_freq = samp_rate/4  # for direct sampling
 
 # >> /dev/urandom test signal source
 #samp_rate = 2400000
@@ -150,8 +159,8 @@ iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data ove
 
 #A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
 
-### default theme by teejez:
-waterfall_colors = "[0x000000ff,0x0000ffff,0x00ffffff,0x00ff00ff,0xffff00ff,0xff0000ff,0xff00ffff,0xffffffff]"
+### default theme by tejeez:
+waterfall_colors = "[0x000000ff,0x0000ffff,0x00c0ffff,0x80ff00ff,0xff8000ff,0xff0080ff,0xff00ffff,0xffffffff]"
 waterfall_min_level = -88 #in dB
 waterfall_max_level = -20
 waterfall_auto_level_margin = (5, 40)
@@ -160,7 +169,6 @@ waterfall_auto_level_margin = (5, 40)
 #waterfall_min_level = -115 #in dB
 #waterfall_max_level = 0
 #waterfall_auto_level_margin = (20, 30)
-##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
 #Note: When the auto waterfall level button is clicked, the following happens:
 #	[waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]

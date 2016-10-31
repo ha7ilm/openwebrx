@@ -52,6 +52,7 @@ class dsp_plugin:
 		self.csdr_through = False
 		self.squelch_level = 0
 		self.fft_averages = 50
+		self.real_input = False
 
 	def chain(self,which):
 		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
@@ -59,14 +60,24 @@ class dsp_plugin:
 		if self.csdr_through: any_chain_base+="csdr through | "
 		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
 		if which == "fft":
-			fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | " + \
-				("csdr logpower_cf -70 | " if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages} | ") + \
-				"csdr fft_exchange_sides_ff {fft_size}"
+			fft_chain_base = any_chain_base + "csdr " + \
+			("fft_fc" if self.real_input else "fft_cc") + \
+			" {fft_size} {fft_block_size} | " + \
+			("csdr logpower_cf -70 | " if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages}")
+
+			if not self.real_input:
+				fft_chain_base += " | csdr fft_exchange_sides_ff {fft_size}"
+
 			if self.fft_compression=="adpcm":
 				return fft_chain_base+" | csdr compress_fft_adpcm_f_u8 {fft_size}"
 			else:
 				return fft_chain_base
-		chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
+
+		if self.real_input:
+			chain_begin=any_chain_base+"csdr shift_addition_fc --fifo {shift_pipe}"
+		else:
+			chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe}"
+		chain_begin += "| csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
 		chain_end = ""
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -131,10 +142,17 @@ class dsp_plugin:
 	def set_format_conversion(self,format_conversion):
 		self.format_conversion=format_conversion
 
+	def set_real_input(self,real_input):
+		self.real_input=real_input
+
 	def set_offset_freq(self,offset_freq):
 		self.offset_freq=offset_freq
 		if self.running:
-			self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate))
+			if self.real_input:
+				# for real signal, the "center frequency" is actually offset by samp_rate/4
+				self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate - 0.25))
+			else:
+				self.shift_pipe_file.write("%g\n"%(-float(self.offset_freq)/self.samp_rate))
 			self.shift_pipe_file.flush()
 
 	def set_bpf(self,low_cut,high_cut):
