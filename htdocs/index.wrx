@@ -78,7 +78,7 @@
 				<!-- add canvas here by javascript -->
 			</div>
 			<div id="openwebrx-panels-container">
-				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="259,115">
+				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="259,260">
 					<div id="webrx-actual-freq">---.--- MHz</div>
 					<div id="webrx-mouse-freq">---.--- MHz</div>
 					<!--<div class="openwebrx-button" onclick="ws.send('SET mod=wfm');" >WFM</div>-->
@@ -117,7 +117,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="1" data-panel-size="619,142">
+				<div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="2" data-panel-size="619,142">
 					<div class="openwebrx-panel-inner" id="openwebrx-log-scroll">
 						<div id="openwebrx-client-log-title">OpenWebRX client log</strong><span id="openwebrx-problems"></span></div>
 						<span id="openwebrx-client-1">Author: </span><a href="http://blog.sdr.hu/about" target="_blank">András Retzler, HA7ILM</a><br />You can support OpenWebRX development via <a href="http://blog.sdr.hu/support" target="_blank">PayPal!</a><br/>
@@ -132,6 +132,8 @@
 					<div class="openwebrx-progressbar" id="openwebrx-bar-server-cpu"> <span class="openwebrx-progressbar-text">Server CPU [0%]</span><div class="openwebrx-progressbar-bar"></div></div>
 					<div class="openwebrx-progressbar" id="openwebrx-bar-clients"> <span class="openwebrx-progressbar-text">Clients [1]</span><div class="openwebrx-progressbar-bar"></div></div>
 				</div>
+                <div class="openwebrx-panel" data-panel-name="metadata" data-panel-pos="left" data-panel-order="1" data-panel-size="615,36">
+                </div>
 				<div class="openwebrx-panel" data-panel-name="client-under-devel" data-panel-pos="none" data-panel-order="0" data-panel-size="245,55" style="background-color: Red;">
 					<span style="font-size: 15pt; font-weight: bold;">Under construction</span>
 					<br />We're working on the code right now, so the application might fail.

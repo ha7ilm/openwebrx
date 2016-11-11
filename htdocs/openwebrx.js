@@ -1221,7 +1221,16 @@ function on_ws_recv(evt)
 		{
 			divlog("Received invalid message over WebSocket.");
 		}*/
-	}
+	} else if (firstChars=='MET')
+    {
+        var stringData=arrayBufferToString(evt.data);
+        var metaPanels = Array.prototype.filter.call(document.getElementsByClassName('openwebrx-panel'), function(el) {
+            return el.dataset.panelName == 'metadata';
+        });
+        metaPanels.forEach(function(el) {
+            el.innerHTML = stringData;
+        });
+    }
 
 }
 

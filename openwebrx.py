@@ -499,6 +499,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						if smeter_level!=None: 
 							myclient.loopstat=31
 							rxws.send(self, "MSG s={0}".format(smeter_level))
+						
+						# ========= send metadata =========
+						metadata = None
+						while True:
+							try:
+								myclient.loopstat=35
+								metadata = dsp.get_metadata();
+								if metadata == None: break
+								rxws.send(self, "MET {0}".format(metadata))
+							except:
+								break
 
 						# ========= send bcastmsg =========
 						if myclient.bcastmsg!="":

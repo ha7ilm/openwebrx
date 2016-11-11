@@ -168,6 +168,10 @@ class dsp_plugin:
 			line=self.smeter_pipe_file.readline()
 			return float(line[:-1])
 
+	def get_metadata(self):
+		if self.running and self.meta_pipe:
+			return self.meta_pipe_file.readline()
+
 	def mkfifo(self,path):
 		try:
 			os.unlink(path)
@@ -183,7 +187,7 @@ class dsp_plugin:
 
 		#create control pipes for csdr
 		pipe_base_path="/tmp/openwebrx_pipe_{myid}_".format(myid=id(self))
-		self.bpf_pipe = self.shift_pipe = self.squelch_pipe = self.smeter_pipe = None
+		self.bpf_pipe = self.shift_pipe = self.squelch_pipe = self.smeter_pipe = self.meta_pipe = None
 		if "{bpf_pipe}" in command_base:
 			self.bpf_pipe=pipe_base_path+"bpf"
 			self.mkfifo(self.bpf_pipe)
@@ -196,13 +200,18 @@ class dsp_plugin:
 		if "{smeter_pipe}" in command_base:
 			self.smeter_pipe=pipe_base_path+"smeter"
 			self.mkfifo(self.smeter_pipe)
+		if "{meta_pipe}" in command_base:
+			self.meta_pipe=pipe_base_path+"meta"
+			self.mkfifo(self.meta_pipe)
+		else:
+			self.meta_pipe=None
 
 		#run the command
 		command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation, \
 			last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), \
 			bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
 			flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port, \
-			squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe )
+			squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe )
 
 		print "[openwebrx-dsp-plugin:csdr] Command =",command
 		#code.interact(local=locals())
@@ -225,6 +234,9 @@ class dsp_plugin:
 		if self.smeter_pipe != None:
 			self.smeter_pipe_file=open(self.smeter_pipe,"r")
 			fcntl.fcntl(self.smeter_pipe_file, fcntl.F_SETFL, os.O_NONBLOCK)
+		if self.meta_pipe != None:
+			self.meta_pipe_file=open(self.meta_pipe,"r")
+			fcntl.fcntl(self.meta_pipe_file, fcntl.F_SETFL, os.O_NONBLOCK)
 
 	def read(self,size):
 		return self.process.stdout.read(size)
@@ -256,6 +268,9 @@ class dsp_plugin:
 		if self.smeter_pipe:
 			try: os.unlink(self.smeter_pipe)
 			except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.smeter_pipe
+		if self.meta_pipe:
+			try: os.unlink(self.meta_pipe)
+			except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.meta_pipe
 		self.running = False
 
 	def restart(self):
