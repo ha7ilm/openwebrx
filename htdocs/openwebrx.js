@@ -1227,9 +1227,37 @@ function on_ws_recv(evt)
         var metaPanels = Array.prototype.filter.call(document.getElementsByClassName('openwebrx-panel'), function(el) {
             return el.dataset.panelName == 'metadata';
         });
-        metaPanels.forEach(function(el) {
-            el.innerHTML = stringData;
+
+        var meta = {};
+        stringData.substr(4).split(";").forEach(function(s) {
+            var item = s.split(":");
+            meta[item[0]] = item[1];
         });
+
+        var update = function(el) {
+            el.innerHTML = "";
+        }
+        if (meta.protocol) switch (meta.protocol) {
+            case 'DMR':
+                if (meta.slot) {
+                    var html = 'Timeslot: ' + meta.slot;
+                    if (meta.type) html += ' Typ: ' + meta.type;
+                    if (meta.source && meta.target) html += ' Source: ' + meta.source + ' Target: ' + meta.target;
+                    update = function(el) {
+                        var slotEl = el.getElementsByClassName('slot-' + meta.slot);
+                        if (!slotEl.length) {
+                            slotEl = document.createElement('div');
+                            slotEl.class = 'slot-' + meta.slot;
+                            el.appendChild(slotEl);
+                        } else {
+                            slotEl = SlotEl[0];
+                        }
+                        slotEl.innerHTML = html;
+                    };
+                }
+        }
+
+        metaPanels.forEach(update);
     }
 
 }
