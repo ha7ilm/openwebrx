@@ -1247,10 +1247,10 @@ function on_ws_recv(evt)
                         var slotEl = el.getElementsByClassName('slot-' + meta.slot);
                         if (!slotEl.length) {
                             slotEl = document.createElement('div');
-                            slotEl.class = 'slot-' + meta.slot;
+                            slotEl.className = 'slot-' + meta.slot;
                             el.appendChild(slotEl);
                         } else {
-                            slotEl = SlotEl[0];
+                            slotEl = slotEl[0];
                         }
                         slotEl.innerHTML = html;
                     };
