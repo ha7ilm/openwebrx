@@ -507,7 +507,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 								myclient.loopstat=35
 								metadata = dsp.get_metadata();
 								if metadata == None: break
-								rxws.send(self, "MET {0}".format(metadata))
+								rxws.send(self, "MET {0}".format(metadata.rstrip("\n")))
 							except:
 								break
 

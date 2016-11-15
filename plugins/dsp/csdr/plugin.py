@@ -73,16 +73,21 @@ class dsp_plugin:
 		if self.audio_compression=="adpcm":
 			chain_end = " | csdr encode_ima_adpcm_i16_u8"
 		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr convert_f_s16"+chain_end
-		if which in [ "dmr", "dstar", "nxdn" ]:
+		if which in [ "dstar", "nxdn" ]:
 			c = chain_begin
 			c += "csdr fmdemod_quadri_cf | csdr convert_f_s16"
-			if which == "dmr":
-				c += " | dsd -mg -fr"
-			elif which == "dstar":
+			if which == "dstar":
 				c += " | dsd -fd"
 			elif which == "nxdn":
 				c += " | dsd -fi"
 			c += " -i - -o - -u 2 -g 10"
+			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --input-buffer 160 - -t raw -r 11025 -e signed-integer -b 16 -c 1 - | csdr setbuf 220"
+			c += chain_end
+			return c
+		elif which == "dmr":
+			c = chain_begin
+			c += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr convert_f_s16"
+			c += " | rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer"
 			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r 11025 -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
 			c += chain_end
 			return c
