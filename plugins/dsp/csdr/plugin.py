@@ -54,7 +54,7 @@ class dsp_plugin:
 		self.squelch_level = 0
 
 	def chain(self,which):
-		if which in [ "dmr", "dstar", "nxdn" ]:
+		if which in [ "dmr", "dstar", "nxdn", "ysf" ]:
 			self.set_output_rate(48000)
 		else:
 			self.set_output_rate(11025)
@@ -88,6 +88,13 @@ class dsp_plugin:
 			c = chain_begin
 			c += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr convert_f_s16"
 			c += " | rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer"
+			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r 11025 -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
+			c += chain_end
+			return c
+		elif which == "ysf":
+			c = chain_begin
+			c += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr convert_f_s16"
+			c += " | rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer"
 			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r 11025 -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
 			c += chain_end
 			return c
