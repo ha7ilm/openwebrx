@@ -38,7 +38,7 @@ def handshake(myself):
 	#print h_key_exists("upgrade")
 	#print h_value("upgrade")
 	#print h_key_exists("sec-websocket-key")
-	if (not h_key_exists("upgrade")) or not (h_value("upgrade")=="websocket") or (not h_key_exists("sec-websocket-key")):
+	if (not h_key_exists("upgrade")) or not (h_value("upgrade").lower()=="websocket") or (not h_key_exists("sec-websocket-key")):
 		raise WebSocketException
 	ws_key=h_value("sec-websocket-key")
 	ws_key_toreturn=base64.b64encode(sha.new(ws_key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").digest())
