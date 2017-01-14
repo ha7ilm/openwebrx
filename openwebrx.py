@@ -287,9 +287,19 @@ def spectrum_thread_function():
 	dsp.set_samp_rate(cfg.samp_rate)
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
-	dsp.set_fft_averages(int(round(1.0 * cfg.samp_rate / cfg.fft_size / cfg.fft_fps / (1.0 - cfg.fft_voverlap_factor))) if cfg.fft_voverlap_factor>0 else 0)
+	if cfg.fft_enable_average:
+		# number of input samples for fft_fc is fft_size*2, make overlap fraction and fft_fps work correctly in that case:
+		fft_in_size = (cfg.fft_size*2) if cfg.real_input else cfg.fft_size
+		fft_averages = int(round(1.0 * cfg.samp_rate / fft_in_size / cfg.fft_fps / (1.0 - cfg.fft_voverlap_factor)))
+		if fft_averages <= 1:
+			# averaging not needed, disable it
+			fft_averages = 0
+	else:
+		fft_averages = 0
+	dsp.set_fft_averages(fft_averages)
 	dsp.set_fft_compression(cfg.fft_compression)
 	dsp.set_format_conversion(cfg.format_conversion)
+	dsp.set_real_input(cfg.real_input)
 	apply_csdr_cfg_to_dsp(dsp)
 	sleep_sec=0.87/cfg.fft_fps
 	print "[openwebrx-spectrum] Spectrum thread initialized successfully."
@@ -445,13 +455,14 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						return
 					myclient.ws_started=True
 					#send default parameters
-					rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients))
+					rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} setup".format(str(cfg.shown_center_freq),str((cfg.samp_rate/2) if cfg.real_input else cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients))
 
 					# ========= Initialize DSP =========
 					dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
 					dsp_initialized=False
 					dsp.set_audio_compression(cfg.audio_compression)
 					dsp.set_format_conversion(cfg.format_conversion)
+					dsp.set_real_input(cfg.real_input)
 					dsp.set_offset_freq(0)
 					dsp.set_bpf(-4000,4000)
 					dsp.nc_port=cfg.iq_server_port

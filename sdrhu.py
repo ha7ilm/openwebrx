@@ -20,9 +20,13 @@
 
 """
 
-import config_webrx as cfg, time, subprocess
+import sys, time, subprocess
 
 def run(continuously=True):
+	no_arguments=len(sys.argv)==1
+	if no_arguments: print "[openwebrx-sdrhu] Configuration script not specified. I will use: \"config_webrx.py\""
+	cfg=__import__("config_webrx" if no_arguments else sys.argv[1])
+
 	if not cfg.sdrhu_key: return 
 	firsttime="(Your receiver is soon getting listed on sdr.hu!)"
 	while True:
