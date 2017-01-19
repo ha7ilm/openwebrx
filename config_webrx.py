@@ -176,6 +176,8 @@ csdr_dynamic_bufsize = False # This allows you to change the buffering mode of c
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
 
+nmux_memory = 70 #in megabytes. This sets the approximate size of the circular buffer used by nmux.
+
 #Look up external IP address automatically from icanhazip.com, and use it as [server_hostname]
 """
 print "[openwebrx-config] Detecting external IP address..."
