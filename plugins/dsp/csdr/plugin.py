@@ -54,7 +54,7 @@ class dsp_plugin:
 		self.fft_averages = 50
 
 	def chain(self,which):
-		any_chain_base="ncat -v 127.0.0.1 {nc_port} | "
+		any_chain_base="nc -v 127.0.0.1 {nc_port} | "
 		if self.csdr_dynamic_bufsize: any_chain_base+="csdr setbuf {start_bufsize} | "
 		if self.csdr_through: any_chain_base+="csdr through | "
 		any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "

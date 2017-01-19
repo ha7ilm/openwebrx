@@ -132,7 +132,7 @@ def main():
 	import_all_plugins("plugins/dsp/")
 
 	#Pypy
-	if pypy: print "pypy detected (and now something completely different: a c code is expected to run at a speed of 3*10^8 m/s?)"
+	if pypy: print "pypy detected (and now something completely different: c code is expected to run at a speed of 3*10^8 m/s?)"
 
 	#Change process name to "openwebrx" (to be seen in ps)
 	try:
