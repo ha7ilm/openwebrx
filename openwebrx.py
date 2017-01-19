@@ -144,11 +144,14 @@ def main():
 		pass
 
 	#Start rtl thread
-	if os.system("ncat --version > /dev/null") == 32512: #check for ncat
-		print "[openwebrx-main] Error: ncat not detected, please install it! The ncat tool is a netcat alternative, used for distributing the I/Q data stream. It is usually available in the nmap package (sudo apt-get install nmap). For more explanation, look into the README.md"
+	if os.system("csdr 2> /dev/null") == 32512: #check for csdr
+		print "[openwebrx-main] You need to install \"csdr\" to run OpenWebRX!\n"
+		return
+	if os.system("nmux --help 2> /dev/null") == 32512: #check for nmux
+		print "[openwebrx-main] You need to install an up-to-date version of \"csdr\" that contains the \"nmux\" tool to run OpenWebRX! Please upgrade \"csdr\"!\n"
 		return
 	if cfg.start_rtl_thread:
-		cfg.start_rtl_command += "| ncat -4l %d -k --send-only --allow 127.0.0.1" % cfg.iq_server_port
+		cfg.start_rtl_command += "| nmux -p %d -a 127.0.0.1" % cfg.iq_server_port
 		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
 		rtl_thread.start()
 		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
