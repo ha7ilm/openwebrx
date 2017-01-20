@@ -75,7 +75,7 @@ class dsp_plugin:
 		if which == "nfm": return chain_begin + "csdr fmdemod_quadri_cf | csdr limit_ff | csdr fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff 11025 | csdr convert_f_s16"+chain_end
 		if which in [ "dstar", "nxdn" ]:
 			c = chain_begin
-			c += "csdr fmdemod_quadri_cf | csdr convert_f_s16"
+			c += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr convert_f_s16"
 			if which == "dstar":
 				c += " | dsd -fd"
 			elif which == "nxdn":
@@ -94,7 +94,7 @@ class dsp_plugin:
 		elif which == "ysf":
 			c = chain_begin
 			c += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr convert_f_s16"
-			c += " | rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer"
+			c += " | rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y"
 			c += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r 11025 -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
 			c += chain_end
 			return c

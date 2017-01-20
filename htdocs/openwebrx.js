@@ -1255,6 +1255,18 @@ function on_ws_recv(evt)
                         slotEl.innerHTML = html;
                     };
                 }
+                break;
+            case 'YSF':
+                var strings = [];
+                if (meta.source) strings.push("Source: " + meta.source);
+                if (meta.target) strings.push("Destination: " + meta.target);
+                if (meta.up) strings.push("Up: " + meta.up);
+                if (meta.down) strings.push("Down: " + meta.down);
+                var html = strings.join(' ');
+                update = function(el) {
+                    el.innerHTML = html;
+                }
+                break;
         }
 
         metaPanels.forEach(update);
