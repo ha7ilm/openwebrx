@@ -69,8 +69,9 @@ sdrhu_public_listing = False
 # ==== DSP/RX settings ====
 dsp_plugin="csdr"
 fft_fps=9
-fft_size=4096
-fft_voverlap_factor=0.3 #If it is above 0, multiple FFTs will be used for creating a line on the diagram.
+fft_size=4096 #Should be power of 2
+fft_voverlap_factor=0.3 #If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
+
 samp_rate = 250000
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
@@ -80,6 +81,14 @@ audio_compression="adpcm" #valid values: "adpcm", "none"
 fft_compression="adpcm" #valid values: "adpcm", "none"
 
 start_rtl_thread=True
+
+"""
+Note: if you experience audio underruns while CPU usage is 100%, you can: 
+- decrease `samp_rate`,
+- set `fft_voverlap_factor` to 0,
+- decrease `fft_fps` and `fft_size`,
+- limit the number of users by decreasing `max_clients`.
+"""
 
 # ==== I/Q sources ====
 # (Uncomment the appropriate by removing # characters at the beginning of the corresponding lines.)
