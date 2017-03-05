@@ -135,6 +135,15 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #start_rtl_command="(while true; do cat my_iq_file.raw; done) | csdr flowcontrol {sr} 20 ".format(sr=samp_rate*2*1.05)
 #format_conversion="csdr convert_u8_f"
 
+#>> The rx_sdr command works with a variety of SDR harware: RTL-SDR, HackRF, SDRplay, UHD, Airspy, Red Pitaya, audio devices, etc. 
+# It will auto-detect your SDR hardware if the following tools are installed:
+# * the vendor provided driver and library, 
+# * the vendor-specific SoapySDR wrapper library, 
+# * and SoapySDR itself.
+# Check out this article on the OpenWebRX Wiki: https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX/
+#start_rtl_command="rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+#format_conversion=""
+
 # >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-GrOsmoSDR-as-signal-source)
 #start_rtl_command="cat /tmp/osmocom_fifo"
 #format_conversion=""
