@@ -29,7 +29,7 @@ It has the following features:
 - UI improvements were made, thanks to John Seamons and Gnoxter.
 
 **News (2017-04-04)**
-- *ncat* has been replaced with a custom implementation called *nmux* due to a bug that caused regular crashes on some machines. The *nmux* tool is distributed with *csdr*.
+- *ncat* has been replaced with a custom implementation called *nmux* due to a bug that caused regular crashes on some machines. The *nmux* tool is part of the *csdr* package.
 - Most consumer SDR devices are supported via <a href="https://github.com/rxseger/rx_tools">rx_tools</a>, see the <a href="https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX">OpenWebRX Wiki</a> on that.
 
 > When upgrading OpenWebRX, please make sure that you also upgrade *csdr*, and install the new dependency, *ncat*!
