@@ -69,9 +69,10 @@ sdrhu_public_listing = False
 # ==== DSP/RX settings ====
 dsp_plugin="csdr"
 fft_fps=9
-fft_size=4096
-samp_rate = 250000
+fft_size=4096 #Should be power of 2
+fft_voverlap_factor=0.3 #If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
 
+samp_rate = 250000
 center_freq = 145525000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
 ppm = 0
@@ -81,16 +82,25 @@ fft_compression="adpcm" #valid values: "adpcm", "none"
 
 start_rtl_thread=True
 
+"""
+Note: if you experience audio underruns while CPU usage is 100%, you can: 
+- decrease `samp_rate`,
+- set `fft_voverlap_factor` to 0,
+- decrease `fft_fps` and `fft_size`,
+- limit the number of users by decreasing `max_clients`.
+"""
+
 # ==== I/Q sources ====
 # (Uncomment the appropriate by removing # characters at the beginning of the corresponding lines.)
 
-# There are guides for setting may different SDR hardware including AirSpy, AFEDRI-SDR, RTL-SDR in direct sampling mode, etc. in the Wiki:
-#       https://github.com/simonyiszk/openwebrx/wiki
+#################################################################################################
+# Is my SDR hardware supported?                                                                 #
+# Check here: https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support #
+#################################################################################################
 
 # You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples... Some examples of configuration are available here (default is RTL-SDR):
 
 # >> RTL-SDR via rtl_sdr
-
 start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
 
@@ -126,11 +136,20 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #start_rtl_command="(while true; do cat my_iq_file.raw; done) | csdr flowcontrol {sr} 20 ".format(sr=samp_rate*2*1.05)
 #format_conversion="csdr convert_u8_f"
 
+#>> The rx_sdr command works with a variety of SDR harware: RTL-SDR, HackRF, SDRplay, UHD, Airspy, Red Pitaya, audio devices, etc. 
+# It will auto-detect your SDR hardware if the following tools are installed:
+# * the vendor provided driver and library, 
+# * the vendor-specific SoapySDR wrapper library, 
+# * and SoapySDR itself.
+# Check out this article on the OpenWebRX Wiki: https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX/
+#start_rtl_command="rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+#format_conversion=""
+
 # >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-GrOsmoSDR-as-signal-source)
 #start_rtl_command="cat /tmp/osmocom_fifo"
 #format_conversion=""
 
-# ==== Misc options ====
+# ==== Misc settings ====
 
 shown_center_freq = center_freq #you can change this if you use an upconverter
 
@@ -146,15 +165,37 @@ iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data ove
 
 #access_log = "~/openwebrx_access.log"
 
-waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
-waterfall_min_level = -115 #in dB
-waterfall_max_level = 0
+# ==== Color themes ====
+
 #A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
 
-#Warning! The settings below are very experimental.
+### default theme by teejez:
+waterfall_colors = "[0x000000ff,0x0000ffff,0x00ffffff,0x00ff00ff,0xffff00ff,0xff0000ff,0xff00ffff,0xffffffff]"
+waterfall_min_level = -88 #in dB
+waterfall_max_level = -20
+waterfall_auto_level_margin = (5, 40)
+### old theme by HA7ILM:
+#waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
+#waterfall_min_level = -115 #in dB
+#waterfall_max_level = 0
+#waterfall_auto_level_margin = (20, 30)
+##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
+
+#Note: When the auto waterfall level button is clicked, the following happens:
+#	[waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
+#	[waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin[1]]
+#
+#   ___|____________________________________|____________________________________|____________________________________|___> signal power
+#        \_waterfall_auto_level_margin[0]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin[1]_/
+#                                                      current_max_power_level __|
+# ==== Experimental settings ===
+
+#Warning! These are very experimental.
 csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
+
+nmux_memory = 50 #in megabytes. This sets the approximate size of the circular buffer used by nmux.
 
 #Look up external IP address automatically from icanhazip.com, and use it as [server_hostname]
 """

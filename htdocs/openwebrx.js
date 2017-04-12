@@ -183,8 +183,8 @@ function waterfallColorsDefault()
 
 function waterfallColorsAuto()
 {
-	e("openwebrx-waterfall-color-min").value=(waterfall_measure_minmax_min-20).toString();
-	e("openwebrx-waterfall-color-max").value=(waterfall_measure_minmax_max+30).toString();
+	e("openwebrx-waterfall-color-min").value=(waterfall_measure_minmax_min-waterfall_auto_level_margin[0]).toString();
+	e("openwebrx-waterfall-color-max").value=(waterfall_measure_minmax_max+waterfall_auto_level_margin[1]).toString();
 	updateWaterfallColors(0);
 }
 
@@ -1018,7 +1018,7 @@ function canvas_mousewheel(evt)
 
 
 zoom_max_level_hps=33; //Hz/pixel
-zoom_levels_count=5;
+zoom_levels_count=14;
 
 function get_zoom_coeff_from_hps(hps)
 {
@@ -1040,8 +1040,10 @@ function mkzoomlevels()
 	zoom_levels=[1];
 	maxc=get_zoom_coeff_from_hps(zoom_max_level_hps);
 	if(maxc<1) return;
+	// logarithmic interpolation
+	zoom_ratio = Math.pow(maxc, 1/zoom_levels_count);
 	for(i=1;i<zoom_levels_count;i++)
-		zoom_levels.push(1+(maxc-1)*(i/(zoom_levels_count-1)));
+		zoom_levels.push(Math.pow(zoom_ratio, i));
 }
 
 function zoom_step(out, where, onscreen)
@@ -1297,14 +1299,14 @@ var audio_node;
 var audio_input_buffer_size;
 
 // Optimalise these if audio lags or is choppy:
-var audio_buffer_size = 4096;//2048 was choppy
+var audio_buffer_size;
 var audio_buffer_maximal_length_sec=3; //actual number of samples are calculated from sample rate
 var audio_buffer_decrease_to_on_overrun_sec=2.2;
 var audio_flush_interval_ms=500; //the interval in which audio_flush() is called
 
 var audio_prepared_buffers = Array();
-var audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
-var audio_last_output_buffer = new Float32Array(audio_buffer_size);
+var audio_rebuffer;
+var audio_last_output_buffer;
 var audio_last_output_offset = 0;
 var audio_buffering = false;
 //var audio_buffering_fill_to=4; //on audio underrun we wait until this n*audio_buffer_size samples are present
@@ -1419,7 +1421,7 @@ var audio_underrun_cnt = 0;
 function audio_buffer_progressbar_update()
 {
 	if(audio_buffer_progressbar_update_disabled) return;
-	var audio_buffer_value=(audio_prepared_buffers.length*audio_buffer_size)/44100;
+	var audio_buffer_value=(audio_prepared_buffers.length*audio_buffer_size)/audio_context.sampleRate;
 	audio_buffer_total_average_level_length++; audio_buffer_total_average_level=(audio_buffer_total_average_level*((audio_buffer_total_average_level_length-1)/audio_buffer_total_average_level_length))+(audio_buffer_value/audio_buffer_total_average_level_length);
 	var overrun=audio_buffer_value>audio_buffer_maximal_length_sec;
 	var underrun=audio_prepared_buffers.length==0;
@@ -1522,6 +1524,7 @@ function parsehash()
 			harr=x.split("=");
 			console.log(harr);
 			if(harr[0]=="mod") starting_mod = harr[1];
+			if(harr[0]=="sql") { e("openwebrx-panel-squelch").value=harr[1]; updateSquelch(); }
 			if(harr[0]=="freq") {
 			console.log(parseInt(harr[1]));
 			console.log(center_freq);
@@ -1542,12 +1545,21 @@ function audio_preinit()
 	catch(e)
 	{
 		divlog('Your browser does not support Web Audio API, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.', 1);
+		return;
 	}
 
-	//we send our setup packet
+	if(audio_context.sampleRate<44100*2)
+		audio_buffer_size = 4096;
+	else if(audio_context.sampleRate>=44100*2 && audio_context.sampleRate<44100*4)
+		audio_buffer_size = 4096 * 2;
+	else if(audio_context.sampleRate>44100*4)
+		audio_buffer_size = 4096 * 4;
 
+	audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
+	audio_last_output_buffer = new Float32Array(audio_buffer_size);
+
+	//we send our setup packet
 	parsehash();
-	 //needs audio_context.sampleRate to exist
 
 	audio_calculate_resampling(audio_context.sampleRate);
 	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);

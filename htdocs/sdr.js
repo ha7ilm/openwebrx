@@ -1167,7 +1167,7 @@ function enlargeMemory() {
 }
 
 var TOTAL_STACK = Module['TOTAL_STACK'] || 5242880;
-var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 16777216;
+var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 67108864;
 var FAST_MEMORY = Module['FAST_MEMORY'] || 2097152;
 
 var totalMemory = 4096;
@@ -7565,7 +7565,7 @@ var asm = (function(global, env, buffer) {
         h = a + 12 | 0;
         k = +g[h >> 2];
         k = +g[a + 24 >> 2] / (o < k ? k : o);
-        k = k > 65.0e3 ? 65.0e3 : k;
+        k = k > 50.0 ? 50.0 : k;
         if (j) {
             j = a + 28 | 0;
             l = a | 0;
@@ -7741,17 +7741,23 @@ var asm = (function(global, env, buffer) {
                     break
                 }
                 do {
-                    n = d + (k << 2) | 0;
-                    g[n >> 2] = +g[n >> 2] * .340447550238101 / +g[f + (k << 2) >> 2];
+                    o = +g[f + (k << 2) >> 2];
+                    l = d + (k << 2) | 0;
+                    if (o != 0.0) {
+                        o = +g[l >> 2] * .340447550238101 / o
+                    } else {
+                        o = 0.0
+                    }
+                    g[l >> 2] = o;
                     k = k + 1 | 0;
                 } while ((k | 0) < (e | 0))
             }
         } while (0);
-        m = b + (e - 1 << 3) | 0;
+        h = b + (e - 1 << 3) | 0;
         n = a;
-        h = c[m + 4 >> 2] | 0;
-        c[n >> 2] = c[m >> 2];
-        c[n + 4 >> 2] = h;
+        m = c[h + 4 >> 2] | 0;
+        c[n >> 2] = c[h >> 2];
+        c[n + 4 >> 2] = m;
         i = j;
         return
     }
@@ -8047,24 +8053,7 @@ var asm = (function(global, env, buffer) {
         return
     }
 
-    function Rb(a, c, d) {
-        a = a | 0;
-        c = c | 0;
-        d = d | 0;
-        var e = 0;
-        if ((d | 0) > 0) {
-            e = 0
-        } else {
-            return
-        }
-        do {
-            g[c + (e << 2) >> 2] = +(b[a + (e << 1) >> 1] | 0) / 32767.0;
-            e = e + 1 | 0;
-        } while ((e | 0) < (d | 0));
-        return
-    }
-
-    function Sb(b, c, d) {
+    function Rb(b, c, d) {
         b = b | 0;
         c = c | 0;
         d = d | 0;
@@ -8076,6 +8065,23 @@ var asm = (function(global, env, buffer) {
         }
         do {
             a[c + e | 0] = ~~(+g[b + (e << 2) >> 2] * 255.0 * .5 + 128.0);
+            e = e + 1 | 0;
+        } while ((e | 0) < (d | 0));
+        return
+    }
+
+    function Sb(a, c, d) {
+        a = a | 0;
+        c = c | 0;
+        d = d | 0;
+        var e = 0;
+        if ((d | 0) > 0) {
+            e = 0
+        } else {
+            return
+        }
+        do {
+            g[c + (e << 2) >> 2] = +(b[a + (e << 1) >> 1] | 0) / 32767.0;
             e = e + 1 | 0;
         } while ((e | 0) < (d | 0));
         return
@@ -8381,8 +8387,8 @@ var asm = (function(global, env, buffer) {
         var m = 0.0,
             n = 0,
             o = 0,
-            p = 0.0,
-            q = 0,
+            p = 0,
+            q = 0.0,
             r = 0.0,
             s = 0,
             t = 0.0;
@@ -8393,59 +8399,49 @@ var asm = (function(global, env, buffer) {
         }
         o = 0;
         m = l;
-        p = d / l;
-        q = 0;
+        q = d / l;
+        p = 0;
         n = 1;
-        while (1) {
+        do {
             l = +g[a + (n << 2) >> 2];
             t = +M(+l);
             r = d / t - m;
-            do {
-                if (l != 0.0) {
-                    do {
-                        if (r < 0.0) {
-                            s = p < t;
-                            o = s ? j : o;
-                            p = s ? t : p;
-                            if (o << 16 >> 16 > 0) {
-                                r = 0.0;
-                                o = o - 1 & 65535;
-                                break
-                            } else {
-                                r = r * e;
-                                q = i;
-                                break
-                            }
+            if (l != 0.0) {
+                do {
+                    if (r < 0.0) {
+                        s = q < t;
+                        o = s ? j : o;
+                        q = s ? t : q;
+                        if (o << 16 >> 16 > 0) {
+                            r = 0.0;
+                            o = o - 1 & 65535;
+                            break
                         } else {
-                            if (q << 16 >> 16 > 0) {
-                                r = 0.0;
-                                q = q - 1 & 65535;
-                                break
-                            } else {
-                                r = r * f;
-                                break
-                            }
+                            r = r * e;
+                            p = i;
+                            break
                         }
-                    } while (0);
-                    r = m + r;
-                    r = r > h ? h : r;
-                    if (r >= 0.0) {
-                        break
+                    } else {
+                        if (p << 16 >> 16 > 0) {
+                            r = 0.0;
+                            p = p - 1 & 65535;
+                            break
+                        } else {
+                            r = r * f;
+                            break
+                        }
                     }
-                    r = 0.0
-                } else {
-                    r = m
-                }
-            } while (0);
-            g[b + (n << 2) >> 2] = (m + r - m * k) * l;
-            n = n + 1 | 0;
-            if ((n | 0) < (c | 0)) {
-                m = r
+                } while (0);
+                r = m + r
             } else {
-                break
+                r = m
             }
-        }
-        return +r
+            r = r > h ? h : r;
+            m = m + (r < 0.0 ? 0.0 : r) - m * k;
+            g[b + (n << 2) >> 2] = l * m;
+            n = n + 1 | 0;
+        } while ((n | 0) < (c | 0));
+        return +m
     }
 
     function _b(d, e, f, g, h) {
@@ -10994,7 +10990,7 @@ var asm = (function(global, env, buffer) {
         _firdes_wkernel_hamming: lb,
         _fir_decimate_cc: ub,
         _encode_ima_adpcm_i16_u8: _b,
-        _convert_i16_f: Rb,
+        _convert_i16_f: Sb,
         _shift_addition_init: Vb,
         _decimating_shift_addition_cc: Yb,
         _decimating_shift_addition_init: Xb,
@@ -11005,7 +11001,7 @@ var asm = (function(global, env, buffer) {
         _fmdemod_quadri_cf: Gb,
         _amdemod_cf: zb,
         _log2n: Lb,
-        _convert_f_u8: Sb,
+        _convert_f_u8: Rb,
         _rational_resampler_get_lowpass_f: wb,
         _apply_fir_fft_cc: yb,
         _fractional_decimator_ff: xb,

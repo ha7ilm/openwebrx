@@ -12,7 +12,7 @@ It has the following features:
 - waterfall display can be shifted back in time,
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
-- currently supports RTL-SDR and HackRF; other SDR hardware may be easily added.
+- currently supports RTL-SDR, HackRF, SDRplay, AirSpy and many other devices, see the <a href="https://github.com/simonyiszk/openwebrx/wiki/">OpenWebRX Wiki</a>.
 
 **News (2015-08-18)**
 - My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
@@ -27,6 +27,10 @@ It has the following features:
 - Also we use *ncat* instead of *rtl_mus*, and it is 3 times faster in some cases.
 - OpenWebRX now supports URLs like: `http://localhost:8073/#freq=145555000,mod=usb`
 - UI improvements were made, thanks to John Seamons and Gnoxter.
+
+**News (2017-04-04)**
+- *ncat* has been replaced with a custom implementation called *nmux* due to a bug that caused regular crashes on some machines. The *nmux* tool is part of the *csdr* package.
+- Most consumer SDR devices are supported via <a href="https://github.com/rxseger/rx_tools">rx_tools</a>, see the <a href="https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX">OpenWebRX Wiki</a> on that.
 
 > When upgrading OpenWebRX, please make sure that you also upgrade *csdr*, and install the new dependency, *ncat*!
 
@@ -44,11 +48,6 @@ First you will need to install the dependencies:
 
 - <a href="https://github.com/simonyiszk/csdr">libcsdr</a>
 - <a href="http://sdr.osmocom.org/trac/wiki/rtl-sdr">rtl-sdr</a>
-- ncat (On Debian/Ubuntu, it is in the *nmap* package). 
-
-> By the way, *nmap* is a tool commonly used for auditing network security, and it is not used by OpenWebRX in any way. We need to install it, because the *ncat* command is packaged with it.
->
-> *ncat* is a better *netcat* alternative, which is used by OpenWebRX for internally distributing the I/Q data stream. It also solves the problem of having different versions of *netcat* on different Linux distributions, which are not compatible by their command-line arguments.
 
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 
@@ -62,7 +61,7 @@ Please note that the server is also listening on the following ports (on localho
 
 Now the next step is to customize the parameters of your server in `config_webrx.py`.
 
-Actually, if you do something cool with OpenWebRX (or just have a problem), please drop me a mail:  
+Actually, if you do something cool with OpenWebRX, please drop me a mail:  
 *Andras Retzler, HA7ILM &lt;randras@sdr.hu&gt;*
 
 ## Usage tips
@@ -85,4 +84,4 @@ If you want to run OpenWebRX on a remote server instead of *localhost*, do not f
 
 OpenWebRX is available under Affero GPL v3 license (<a href="https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)">summary</a>).
 
-OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for other licensing options. 
+OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for licensing options. 

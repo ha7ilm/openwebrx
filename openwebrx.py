@@ -20,7 +20,8 @@ print "" # python2.7 is required to run OpenWebRX instead of python3. Please run
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-sw_version="v0.14+"
+sw_version="v0.15"
+#0.15 (added nmux)
 
 import os
 import code
@@ -131,7 +132,7 @@ def main():
 	import_all_plugins("plugins/dsp/")
 
 	#Pypy
-	if pypy: print "pypy detected (and now something completely different: a c code is expected to run at a speed of 3*10^8 m/s?)"
+	if pypy: print "pypy detected (and now something completely different: c code is expected to run at a speed of 3*10^8 m/s?)"
 
 	#Change process name to "openwebrx" (to be seen in ps)
 	try:
@@ -144,11 +145,21 @@ def main():
 		pass
 
 	#Start rtl thread
-	if os.system("ncat --version > /dev/null") == 32512: #check for ncat
-		print "[openwebrx-main] Error: ncat not detected, please install it! The ncat tool is a netcat alternative, used for distributing the I/Q data stream. It is usually available in the nmap package (sudo apt-get install nmap). For more explanation, look into the README.md"
+	if os.system("csdr 2> /dev/null") == 32512: #check for csdr
+		print "[openwebrx-main] You need to install \"csdr\" to run OpenWebRX!\n"
+		return
+	if os.system("nmux --help 2> /dev/null") == 32512: #check for nmux
+		print "[openwebrx-main] You need to install an up-to-date version of \"csdr\" that contains the \"nmux\" tool to run OpenWebRX! Please upgrade \"csdr\"!\n"
 		return
 	if cfg.start_rtl_thread:
-		cfg.start_rtl_command += "| ncat -4l %d -k --send-only --allow 127.0.0.1" % cfg.iq_server_port
+                nmux_bufcnt = nmux_bufsize = 0
+                while nmux_bufsize < cfg.samp_rate/4: nmux_bufsize += 4096
+                while nmux_bufsize * nmux_bufcnt < cfg.nmux_memory * 1e6: nmux_bufcnt += 1
+                if nmux_bufcnt == 0 or nmux_bufsize == 0: 
+                    print "[openwebrx-main] Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py"
+                    return
+                print "[openwebrx-main] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt)
+		cfg.start_rtl_command += "| nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, cfg.iq_server_port)
 		rtl_thread=threading.Thread(target = lambda:subprocess.Popen(cfg.start_rtl_command, shell=True),  args=())
 		rtl_thread.start()
 		print "[openwebrx-main] Started rtl_thread: "+cfg.start_rtl_command
@@ -287,6 +298,7 @@ def spectrum_thread_function():
 	dsp.set_samp_rate(cfg.samp_rate)
 	dsp.set_fft_size(cfg.fft_size)
 	dsp.set_fft_fps(cfg.fft_fps)
+	dsp.set_fft_averages(int(round(1.0 * cfg.samp_rate / cfg.fft_size / cfg.fft_fps / (1.0 - cfg.fft_voverlap_factor))) if cfg.fft_voverlap_factor>0 else 0)
 	dsp.set_fft_compression(cfg.fft_compression)
 	dsp.set_format_conversion(cfg.format_conversion)
 	apply_csdr_cfg_to_dsp(dsp)
@@ -631,7 +643,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
 						("%[START_MOD]",cfg.start_mod),
 						("%[WATERFALL_COLORS]",cfg.waterfall_colors),
 						("%[WATERFALL_MIN_LEVEL]",str(cfg.waterfall_min_level)),
-						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level))
+						("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level)),
+						("%[WATERFALL_AUTO_LEVEL_MARGIN]","[%d,%d]"%cfg.waterfall_auto_level_margin)
 					)
 					for rule in replace_dictionary:
 						while data.find(rule[0])!=-1:
