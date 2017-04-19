@@ -28,6 +28,11 @@ html, body
 	overflow: hidden;
 }
 
+select
+{
+	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
+}
+
 input
 {
 	vertical-align:middle;
@@ -544,7 +549,7 @@ input[type=range]:focus::-ms-fill-upper
 	display: inline-block;
 }
 
-.openwebrx-button:hover
+.openwebrx-button:hover, .openwebrx-demodulator-button.highlighted
 {
 	/*background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #3F3F3F), color-stop(1, #777777) );
 	background:-moz-linear-gradient( center top, #373737 5%, #4F4F4F 100% );*/
@@ -806,3 +811,54 @@ img.openwebrx-mirror-img
 {
 	width: 150px;
 }
+
+#openwebrx-digimode-canvas-container
+{
+	margin: -10px -10px 10px -10px;
+	border-radius: 15px;
+	height: 150px;
+	background-color: #333;
+}
+
+#openwebrx-select-digimod
+{
+	width: 195px;
+	height: 27px;
+	border-radius: 5px;
+	background-color: #373737;
+	color: White;
+	font-weight: normal;
+	font-size: 13pt;
+	margin-right: 1px;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #373737), color-stop(1, #4F4F4F) );
+	background:-moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
+	border-color: transparent;
+	border-width: 0px;
+	-moz-appearance: none;
+	padding-left:3px;
+}
+
+#openwebrx-select-digimod option
+{
+	border-width: 0px;
+	background-color: #373737;
+	color: White;
+}
+
+#openwebrx-cursor-blink
+{
+	animation: cursor-blink 1s infinite;
+	height: 1em;
+	width: 8px;
+	background-color: White;
+	display: inline-block;
+}
+
+@keyframes cursor-blink
+{
+	0%{ opacity: 0; }
+	50% { opacity: 1; }
+	100%{ opacity: 0; }
+}
+
+

@@ -549,6 +549,7 @@ function demodulator_default_analog(offset_frequency,subtype)
 
 	this.envelope.drag_end=function(x)
 	{ //in this demodulator we've already changed values in the drag_move() function so we shouldn't do too much here.
+		demodulator_buttons_update();
 		to_return=this.dragged_range!=demodulator.draggable_ranges.none; //this part is required for cliking anywhere on the scale to set offset
 		this.dragged_range=demodulator.draggable_ranges.none;
 		return to_return;
@@ -588,6 +589,7 @@ function demodulator_analog_replace(subtype)
 		demodulator_remove(0);
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
+	demodulator_buttons_update();
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1523,12 +1525,18 @@ function parsehash()
 		h.substring(1).split(",").forEach(function(x){
 			harr=x.split("=");
 			console.log(harr);
-			if(harr[0]=="mod") starting_mod = harr[1];
-			if(harr[0]=="sql") { e("openwebrx-panel-squelch").value=harr[1]; updateSquelch(); }
-			if(harr[0]=="freq") {
-			console.log(parseInt(harr[1]));
-			console.log(center_freq);
-			starting_offset_frequency = parseInt(harr[1])-center_freq;
+			if(harr[0]=="mute") toggleMute();
+			else if(harr[0]=="mod") starting_mod = harr[1];
+			else if(harr[0]=="sql") 
+			{ 
+				e("openwebrx-panel-squelch").value=harr[1]; 
+				updateSquelch(); 
+			}
+			else if(harr[0]=="freq") 
+			{
+				console.log(parseInt(harr[1]));
+				console.log(center_freq);
+				starting_offset_frequency = parseInt(harr[1])-center_freq;
 			}
 		});
 
@@ -2124,4 +2132,32 @@ function progressbar_set(obj,val,text,over)
 	innerBar.style.backgroundColor=(over)?"#ff6262":"#00aba6";
 	if(innerText==null) return;
 	innerText.innerHTML=text;
+}
+
+function demodulator_buttons_update()
+{
+	$(".openwebrx-demodulator-button").removeClass("highlighted");
+	switch(demodulators[0].subtype)
+	{
+	case "nfm":
+		$("#openwebrx-button-nfm").addClass("highlighted");
+		break;
+	case "am":
+		$("#openwebrx-button-am").addClass("highlighted");
+		break;
+	case "lsb":
+	case "usb":
+	case "cw":
+		if(demodulators[0].high_cut-demodulators[0].low_cut<300)
+			$("#openwebrx-button-cw").addClass("highlighted");
+		else
+		{
+			if(demodulators[0].high_cut<0) 
+				$("#openwebrx-button-lsb").addClass("highlighted");
+			else if(demodulators[0].low_cut>0) 
+				$("#openwebrx-button-usb").addClass("highlighted");
+			else $("#openwebrx-button-lsb, #openwebrx-button-usb").addClass("highlighted");
+		}
+		break;
+	}
 }

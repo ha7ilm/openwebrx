@@ -37,6 +37,7 @@
 		</script>
 		<script src="sdr.js"></script>
 		<script src="openwebrx.js"></script>
+		<script src="jquery-3.2.1.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="openwebrx.css" />
 		<meta charset="utf-8">
 	</head>
@@ -82,13 +83,25 @@
 				<div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="259,115">
 					<div id="webrx-actual-freq">---.--- MHz</div>
 					<div id="webrx-mouse-freq">---.--- MHz</div>
-					<!--<div class="openwebrx-button" onclick="ws.send('SET mod=wfm');" >WFM</div>-->
 					<div class="openwebrx-panel-line">
-						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('nfm');">FM</div>
-						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('am');">AM</div>
-						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('lsb');">LSB</div>
-						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('usb');">USB</div>
-						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('cw');">CW</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-nfm" 
+							onclick="demodulator_analog_replace('nfm');">FM</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-am" 
+							onclick="demodulator_analog_replace('am');">AM</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-lsb" 
+							onclick="demodulator_analog_replace('lsb');">LSB</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-usb" 
+							onclick="demodulator_analog_replace('usb');">USB</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-cw"
+							onclick="demodulator_analog_replace('cw');">CW</div>
+					</div>
+					<div class="openwebrx-panel-line">
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('cw');">DIG</div>
+						<select id="openwebrx-select-digimod">
+							<option value="none"></option>
+							<option value="bpsk31">BPSK31</option>
+							<option value="rtty">RTTY</option>
+						</select>
 					</div>
 					<div class="openwebrx-panel-line">
 						<div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><img src="gfx/openwebrx-speaker.png" class="openwebrx-sliderbtn-img" id="openwebrx-mute-img"></div>
@@ -133,6 +146,12 @@
 				<div class="openwebrx-panel" data-panel-name="client-under-devel" data-panel-pos="none" data-panel-order="0" data-panel-size="245,55" style="background-color: Red;">
 					<span style="font-size: 15pt; font-weight: bold;">Under construction</span>
 					<br />We're working on the code right now, so the application might fail.
+				</div>
+				<div class="openwebrx-panel" id="openwebrx-panel-digimodes" data-panel-name="digimodes" data-panel-pos="left" data-panel-order="2" data-panel-size="619,500">
+					<div id="openwebrx-digimode-canvas-container"></div>
+					<div id="openwebrx-digimode-content">
+						macska<span id="openwebrx-cursor-blink"></span>
+					</div>
 				</div>
 			</div>
 	</div>
