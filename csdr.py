@@ -27,7 +27,7 @@ import code
 import signal
 import fcntl
 
-class dsp_plugin:
+class dsp:
 
     def __init__(self):
         self.samp_rate = 250000

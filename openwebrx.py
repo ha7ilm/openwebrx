@@ -26,8 +26,7 @@ sw_version="v0.15"
 import os
 import code
 import importlib
-import plugins
-import plugins.dsp
+import csdr
 import thread
 import time
 import datetime
@@ -63,6 +62,7 @@ try: import __pypy__
 except: pass
 pypy="__pypy__" in globals()
 
+"""
 def import_all_plugins(directory):
     for subdir in os.listdir(directory):
         if os.path.isdir(directory+subdir) and not subdir[0]=="_":
@@ -71,6 +71,7 @@ def import_all_plugins(directory):
                 importname=(directory+subdir+"/plugin").replace("/",".")
                 print "[openwebrx-import] Found plugin:",importname
                 importlib.import_module(importname)
+"""
 
 class MultiThreadHTTPServer(ThreadingMixIn, HTTPServer):
     pass
@@ -127,9 +128,6 @@ def main():
     #Set signal handler
     signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
     signal.signal(signal.SIGUSR1, handle_signal)
-
-    #Load plugins
-    import_all_plugins("plugins/dsp/")
 
     #Pypy
     if pypy: print "pypy detected (and now something completely different: c code is expected to run at a speed of 3*10^8 m/s?)"
@@ -292,7 +290,7 @@ def apply_csdr_cfg_to_dsp(dsp):
 
 def spectrum_thread_function():
     global clients, spectrum_dsp, spectrum_thread_watchdog_last_tick
-    spectrum_dsp=dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+    spectrum_dsp=dsp=csdr.dsp()
     dsp.nc_port=cfg.iq_server_port
     dsp.set_demodulator("fft")
     dsp.set_samp_rate(cfg.samp_rate)
@@ -459,7 +457,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients))
 
                     # ========= Initialize DSP =========
-                    dsp=getattr(plugins.dsp,cfg.dsp_plugin).plugin.dsp_plugin()
+                    dsp=csdr.dsp()
                     dsp_initialized=False
                     dsp.set_audio_compression(cfg.audio_compression)
                     dsp.set_format_conversion(cfg.format_conversion)
