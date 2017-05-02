@@ -3,9 +3,9 @@
 """
 config_webrx: configuration options for OpenWebRX
 
-	This file is part of OpenWebRX,
-	an open-source SDR receiver software with a web UI.
-	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
+    This file is part of OpenWebRX,
+    an open-source SDR receiver software with a web UI.
+    Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -20,15 +20,15 @@ config_webrx: configuration options for OpenWebRX
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	In addition, as a special exception, the copyright holders
-	state that config_rtl.py and config_webrx.py are not part of the
-	Corresponding Source defined in GNU AGPL version 3 section 1.
+    In addition, as a special exception, the copyright holders
+    state that config_rtl.py and config_webrx.py are not part of the
+    Corresponding Source defined in GNU AGPL version 3 section 1.
 
-	(It means that you do not have to redistribute config_rtl.py and
-	config_webrx.py if you make any changes to these two configuration files,
-	and use them for running your web service with OpenWebRX.)
+    (It means that you do not have to redistribute config_rtl.py and
+    config_webrx.py if you make any changes to these two configuration files,
+    and use them for running your web service with OpenWebRX.)
 """
 
 # NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
@@ -181,8 +181,8 @@ waterfall_auto_level_margin = (5, 40)
 ##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
 #Note: When the auto waterfall level button is clicked, the following happens:
-#	[waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
-#	[waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin[1]]
+#   [waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
+#   [waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin[1]]
 #
 #   ___|____________________________________|____________________________________|____________________________________|___> signal power
 #        \_waterfall_auto_level_margin[0]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin[1]_/
