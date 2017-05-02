@@ -2,9 +2,9 @@
 print "" # python2.7 is required to run OpenWebRX instead of python3. Please run me by: python2 openwebrx.py
 """
 
-	This file is part of OpenWebRX,
-	an open-source SDR receiver software with a web UI.
-	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
+    This file is part of OpenWebRX,
+    an open-source SDR receiver software with a web UI.
+    Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
