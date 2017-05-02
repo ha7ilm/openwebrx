@@ -96,11 +96,11 @@
 							onclick="demodulator_analog_replace('cw');">CW</div>
 					</div>
 					<div class="openwebrx-panel-line">
-						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_analog_replace('cw');">DIG</div>
+						<div class="openwebrx-button openwebrx-demodulator-button" onclick="demodulator_digital_replace_last();">DIG</div>
 						<select id="openwebrx-select-digimod">
-							<option value="none"></option>
-							<option value="bpsk31">BPSK31</option>
-							<option value="rtty">RTTY</option>
+							<option value="none" onselect="demodulator_analog_replace_last();"></option>
+							<option value="bpsk31" onselect="demodulator_digital_replace('bpsk31');">BPSK31</option>
+							<option value="rtty" onselect="demodulator_digital_replace('rtty');">RTTY</option>
 						</select>
 					</div>
 					<div class="openwebrx-panel-line">
@@ -149,8 +149,11 @@
 				</div>
 				<div class="openwebrx-panel" id="openwebrx-panel-digimodes" data-panel-name="digimodes" data-panel-pos="left" data-panel-order="2" data-panel-size="619,500">
 					<div id="openwebrx-digimode-canvas-container"></div>
-					<div id="openwebrx-digimode-content">
+					<div id="openwebrx-digimode-content-container">
+                        <div class="gradient"></div>
+                        <div id="openwebrx-digimode-content">
 						macska<span id="openwebrx-cursor-blink"></span>
+                        </div>
 					</div>
 				</div>
 			</div>

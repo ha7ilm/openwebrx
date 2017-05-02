@@ -580,8 +580,13 @@ function demodulator_add(what)
 	mkenvelopes(get_visible_freq_range());
 }
 
-function demodulator_analog_replace(subtype)
+last_analog_demodulator_subtype = 'nfm';
+last_digital_demodulator_subtype = 'bpsk31';
+
+function demodulator_analog_replace(subtype, for_digital)
 { //this function should only exist until the multi-demodulator capability is added
+    if(typeof for_digital !== "undefined" && for_digital && secondary_demod) secondary_demod_close_window();
+    last_analog_demodulator_subtype = subtype;
 	var temp_offset=0;
 	if(demodulators.length)
 	{
@@ -2160,4 +2165,67 @@ function demodulator_buttons_update()
 		}
 		break;
 	}
+}
+function demodulator_analog_replace_last() { demodulator_analog_replace(last_analog_demodulator_subtype); }
+
+/*
+  _____  _       _                     _           
+ |  __ \(_)     (_)                   | |          
+ | |  | |_  __ _ _ _ __ ___   ___   __| | ___  ___ 
+ | |  | | |/ _` | | '_ ` _ \ / _ \ / _` |/ _ \/ __|
+ | |__| | | (_| | | | | | | | (_) | (_| |  __/\__ \
+ |_____/|_|\__, |_|_| |_| |_|\___/ \__,_|\___||___/
+            __/ |                                  
+           |___/                                   
+*/
+
+secondary_demod = false;
+secondary_demod_offset_freq = 0;
+secondary_demod_ffts = [];
+
+function demodulator_digital_replace_last() { demodulator_digital_replace(last_digital_demodulator_subtype); }
+function demodulator_digital_replace(subtype)
+{
+    switch(subtype) 
+    {
+    case "bpsk31":
+    case "rtty":
+        demodulator_analog_replace('usb', true);
+        secondary_demod_start(subtype);
+        break;
+    }
+}
+
+function secondary_demod_start(subtype) 
+{ 
+    ws.send("SET secondary_mod="+subtype); 
+    secondary_demod = true; 
+}
+
+function secondary_demod_set()
+{
+    ws.send("SET secondary_offset_freq="+secondary_demod_offset_freq.toString());
+}
+
+function secondary_demod_stop()
+{
+    ws.send("SET secondary_mod=off");
+    secondary_demod = false; 
+}
+
+function secondary_demod_push_fft(x)
+{
+
+}
+
+function secondary_demod_push_data(x)
+{
+    //$("#openwebrx-digimode-content").append("<span class=\"part\">"+x+"</span>");
+    $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
+}
+
+
+
+function secondary_demod_close_window()
+{
 }
