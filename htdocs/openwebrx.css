@@ -415,11 +415,15 @@ input[type=range]:focus::-ms-fill-upper
 	height: 396px;
 }*/
 
-/*#webrx-debugdiv
+#openwebrx-log-scroll
 {
-	font-size: 10pt;
-	/*overflow-y:scroll;*/
-/*}*/
+    /*overflow-y:auto;*/
+    height: 125px;
+    width: 619px
+}
+
+.nano .nano-pane   { background: #444; }
+.nano .nano-slider { background: #eee !important;  }
 
 #webrx-main-container
 {
@@ -504,7 +508,7 @@ input[type=range]:focus::-ms-fill-upper
 
 .openwebrx-panel
 {
-	transform: perspective( 600px );
+	transform: perspective( 600px ) rotateX( 90deg );
 	visibility: hidden;
 	background-color: #575757;
 	padding: 10px;
@@ -821,7 +825,7 @@ img.openwebrx-mirror-img
 	background-color: #333;
 }
 
-#openwebrx-select-digimod
+#openwebrx-secondary-demod-listbox
 {
 	width: 195px;
 	height: 27px;
@@ -839,7 +843,7 @@ img.openwebrx-mirror-img
 	padding-left:3px;
 }
 
-#openwebrx-select-digimod option
+#openwebrx-secondary-demod-listbox option
 {
 	border-width: 0px;
 	background-color: #373737;
@@ -856,6 +860,8 @@ img.openwebrx-mirror-img
 	width: 8px;
 	background-color: White;
 	display: inline-block;
+    position: relative;
+    top: 1px;
 	/*perspective: 60px;*/
 
 }

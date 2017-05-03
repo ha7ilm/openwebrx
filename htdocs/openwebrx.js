@@ -585,7 +585,11 @@ last_digital_demodulator_subtype = 'bpsk31';
 
 function demodulator_analog_replace(subtype, for_digital)
 { //this function should only exist until the multi-demodulator capability is added
-    if(typeof for_digital !== "undefined" && for_digital && secondary_demod) secondary_demod_close_window();
+    if(!(typeof for_digital !== "undefined" && for_digital && secondary_demod)) 
+    { 
+        secondary_demod_close_window(); 
+        secondary_demod_listbox_update(); 
+    }
     last_analog_demodulator_subtype = subtype;
 	var temp_offset=0;
 	if(demodulators.length)
@@ -1062,7 +1066,7 @@ function zoom_step(out, where, onscreen)
 	zoom_center_rel=canvas_get_freq_offset(where);
 	//console.log("zoom_step || zlevel: "+zoom_level.toString()+" zlevel_val: "+zoom_levels[zoom_level].toString()+" zoom_center_rel: "+zoom_center_rel.toString());
 	zoom_center_where=onscreen;
-	console.log(zoom_center_where, zoom_center_rel, where);
+	//console.log(zoom_center_where, zoom_center_rel, where);
 	resize_canvases(true);
 	mkscale();
 }
@@ -1137,7 +1141,7 @@ function on_ws_recv(evt)
 	if(firstChars=="CLI")
 	{
 		var stringData=arrayBufferToString(evt.data);
-		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Acknowledged WebSocket connection: "+stringData);
+		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Server acknowledged WebSocket connection.");
 
 	}
 	if(firstChars=="AUD")
@@ -1161,7 +1165,8 @@ function on_ws_recv(evt)
 			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
 			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
 			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-			waterfall_add_queue(waterfall_f32);
+            if(evt.data[3]=="S") secondary_demod_waterfall_add_queue(waterfall_f32);
+            else waterfall_add_queue(waterfall_f32);
 		}
 	} else if(firstChars=="MSG")
 	{
@@ -1286,8 +1291,10 @@ function divlog(what, is_error)
 		if(e("openwebrx-panel-log").openwebrxHidden) toggle_panel("openwebrx-panel-log"); //show panel if any error is present
 	}
 	e("openwebrx-debugdiv").innerHTML+=what+"<br />";
-	var wls=e("openwebrx-log-scroll");
-	wls.scrollTop=wls.scrollHeight; //scroll to bottom
+	//var wls=e("openwebrx-log-scroll");
+	//wls.scrollTop=wls.scrollHeight; //scroll to bottom
+    $(".nano").nanoScroller();
+    $(".nano").nanoScroller({ scroll: 'bottom' });
 }
 
 var audio_context;
@@ -1778,7 +1785,7 @@ function resize_canvases(zoom)
 function waterfall_init()
 {
 	init_canvas_container();
-	waterfall_timer = window.setInterval(waterfall_dequeue,900/fft_fps);
+	waterfall_timer = window.setInterval(()=>{waterfall_dequeue(); secondary_demod_waterfall_dequeue();},900/fft_fps);
 	resize_waterfall_container(false); /* then */ resize_canvases();
 	scale_setup();
 	mkzoomlevels();
@@ -1922,6 +1929,7 @@ function openwebrx_init()
 	(opb=e("openwebrx-play-button-text")).style.marginTop=(window.innerHeight/2-opb.clientHeight/2).toString()+"px";
 	init_rx_photo();
 	open_websocket();
+    secondary_demod_init();
 	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
@@ -2015,9 +2023,14 @@ function pop_bottommost_panel(from)
 	return to_return;
 }
 
-function toggle_panel(what)
+function toggle_panel(what, on)
 {
-	var item=e(what);
+    var item=e(what);
+    if(typeof on !== "undefined") 
+    {
+        if(item.openwebrxHidden && !on) return;
+        if(!item.openwebrxHidden && on) return;
+    }
 	if(item.openwebrxDisableClick) return;
 	item.style.transitionDuration="599ms";
 	item.style.transitionDelay="0ms";
@@ -2106,6 +2119,7 @@ function place_panels(function_apply)
 		p.style.visibility="visible";
 		y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
 		if(function_apply) function_apply(p);
+        //console.log(p.id, y, p.openwebrxPanelTransparent);
 	}
 	y=hoffset;
 	while(right_col.length>0)
@@ -2114,7 +2128,7 @@ function place_panels(function_apply)
 		p.style.right=(e("webrx-canvas-container").offsetWidth-e("webrx-canvas-container").clientWidth).toString()+"px"; //get scrollbar width
 		p.style.bottom=y.toString()+"px";
 		p.style.visibility="visible";
-		y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
+        y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
 		if(function_apply) function_apply(p);
 	}
 }
@@ -2142,7 +2156,8 @@ function progressbar_set(obj,val,text,over)
 function demodulator_buttons_update()
 {
 	$(".openwebrx-demodulator-button").removeClass("highlighted");
-	switch(demodulators[0].subtype)
+    if(secondary_demod) $("#openwebrx-button-dig").addClass("highlighted");
+    else switch(demodulators[0].subtype)
 	{
 	case "nfm":
 		$("#openwebrx-button-nfm").addClass("highlighted");
@@ -2181,25 +2196,36 @@ function demodulator_analog_replace_last() { demodulator_analog_replace(last_ana
 
 secondary_demod = false;
 secondary_demod_offset_freq = 0;
-secondary_demod_ffts = [];
+secondary_demod_waterfall_queue = [];
 
-function demodulator_digital_replace_last() { demodulator_digital_replace(last_digital_demodulator_subtype); }
+function demodulator_digital_replace_last() 
+{ 
+    demodulator_digital_replace(last_digital_demodulator_subtype); 
+    secondary_demod_listbox_update();
+}
 function demodulator_digital_replace(subtype)
 {
     switch(subtype) 
     {
     case "bpsk31":
     case "rtty":
-        demodulator_analog_replace('usb', true);
         secondary_demod_start(subtype);
+        demodulator_analog_replace('usb', true);
+        demodulator_buttons_update();
         break;
     }
+    toggle_panel("openwebrx-panel-digimodes", true);
+}
+
+function secondary_demod_init()
+{
+    $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
 }
 
 function secondary_demod_start(subtype) 
 { 
     ws.send("SET secondary_mod="+subtype); 
-    secondary_demod = true; 
+    secondary_demod = subtype; 
 }
 
 function secondary_demod_set()
@@ -2211,21 +2237,62 @@ function secondary_demod_stop()
 {
     ws.send("SET secondary_mod=off");
     secondary_demod = false; 
+    secondary_demod_waterfall_queue = [];
 }
 
-function secondary_demod_push_fft(x)
+function secondary_demod_waterfall_add_queue(x)
 {
-
+    secondary_demod_waterfall_queue.push(what);
 }
 
 function secondary_demod_push_data(x)
 {
-    //$("#openwebrx-digimode-content").append("<span class=\"part\">"+x+"</span>");
     $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
 }
 
-
-
 function secondary_demod_close_window()
 {
+    secondary_demod_stop();
+    toggle_panel("openwebrx-panel-digimodes", false);
+}
+
+function secondary_demod_waterfall_add(x)
+{
+}
+
+function secondary_demod_waterfall_dequeue()
+{
+    if(!secondary_demod) return;
+	if(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(waterfall_queue.shift());
+	if(secondary_demod_waterfall_queue.length>Math.max(fft_fps/2,20)) //in case of fft overflow
+	{
+		console.log("secondary waterfall overflow, queue length:", secondary_demod_waterfall_queue.length);
+		while(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(secondary_demod_waterfall_queue.shift());
+	}
+} 
+
+secondary_demod_listbox_updating = false;
+function secondary_demod_listbox_changed()
+{
+    if(secondary_demod_listbox_updating) return;
+    switch ($("#openwebrx-secondary-demod-listbox")[0].value)
+    {
+        case "none":
+            demodulator_analog_replace_last();
+            break;
+        case "bpsk31":
+            demodulator_digital_replace('bpsk31');
+            break;
+        case "rtty":
+            demodulator_digital_replace('rtty');
+            break;
+    }
+}
+
+function secondary_demod_listbox_update()
+{
+    secondary_demod_listbox_updating = true;
+    $("#openwebrx-secondary-demod-listbox").val((secondary_demod)?secondary_demod:"none");
+    console.log("update");
+    secondary_demod_listbox_updating = false;
 }
