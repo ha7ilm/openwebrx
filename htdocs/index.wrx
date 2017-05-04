@@ -34,6 +34,7 @@
             var waterfall_min_level_default=%[WATERFALL_MIN_LEVEL];
             var waterfall_max_level_default=%[WATERFALL_MAX_LEVEL];
             var waterfall_auto_level_margin=%[WATERFALL_AUTO_LEVEL_MARGIN];
+            var server_enable_digimodes=%[ENABLE_DIGIMODES];
         </script>
         <script src="sdr.js"></script>
         <script src="openwebrx.js"></script>
@@ -130,7 +131,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="1" data-panel-size="619,142">
+                <div class="openwebrx-panel" id="openwebrx-panel-log" data-panel-name="debug" data-panel-pos="left" data-panel-order="1" data-panel-size="619,137">
                     <div class="openwebrx-panel-inner nano" id="openwebrx-log-scroll">
                         <div class="nano-content">
                             <div id="openwebrx-client-log-title">OpenWebRX client log</strong><span id="openwebrx-problems"></span></div>

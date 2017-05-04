@@ -92,7 +92,8 @@ def handle_signal(sig, frame):
             print
             for key in client._fields:
                 print "\t%s = %s"%(key,str(getattr(client,key)))
-
+    elif sig == signal.SIGUSR2:
+        code.interact(local=globals())
     else:
         print "[openwebrx] Ctrl+C: aborting."
         cleanup_clients(True)
@@ -128,6 +129,7 @@ def main():
     #Set signal handler
     signal.signal(signal.SIGINT, handle_signal) #http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
     signal.signal(signal.SIGUSR1, handle_signal)
+    signal.signal(signal.SIGUSR2, handle_signal)
 
     #Pypy
     if pypy: print "pypy detected (and now something completely different: c code is expected to run at a speed of 3*10^8 m/s?)"
@@ -460,6 +462,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     dsp=csdr.dsp()
                     dsp_initialized=False
                     dsp.set_audio_compression(cfg.audio_compression)
+                    dsp.set_fft_compression(cfg.fft_compression) #used by secondary chains
                     dsp.set_format_conversion(cfg.format_conversion)
                     dsp.set_offset_freq(0)
                     dsp.set_bpf(-4000,4000)
@@ -470,6 +473,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     access_log("Started streaming to client: "+self.client_address[0]+"#"+myclient.id+" (users now: "+str(len(clients))+")")
 
                     myclient.loopstat=0
+                    do_secondary_demod=False
 
                     while True:
                         if myclient.closed[0]:
@@ -512,6 +516,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
                             rxws.send(self,myclient.bcastmsg)
                             myclient.bcastmsg=""
 
+                        # ========= send secondary =========
+                        if do_secondary_demod:
+                            while True:
+                                secondary_spectrum_data=dsp.read_secondary_fft(dsp.get_secondary_fft_bytes_to_read())
+                                if not secondary_spectrum_data: break
+                                rxws.send(self, "FFTS", secondary_spectrum_data)
+                            while True:
+                                secondary_demod_data=dsp.read_secondary_demod(1)
+                                if not secondary_demod_data: break
+                                rxws.send(self, "DAT ", secondary_demod_data)
+
                         # ========= process commands =========
                         while True:
                             myclient.loopstat=50
@@ -526,13 +541,13 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                 filter_limit=dsp.get_output_rate()/2
                                 for pair in pairs:
                                     param_name, param_value = pair.split("=")
-                                    if param_name == "low_cut" and -filter_limit <= float(param_value) <= filter_limit:
+                                    if param_name == "low_cut" and -filter_limit <= int(param_value) <= filter_limit:
                                         bpf_set=True
                                         new_bpf[0]=int(param_value)
-                                    elif param_name == "high_cut" and -filter_limit <= float(param_value) <= filter_limit:
+                                    elif param_name == "high_cut" and -filter_limit <= int(param_value) <= filter_limit:
                                         bpf_set=True
                                         new_bpf[1]=int(param_value)
-                                    elif param_name == "offset_freq" and -cfg.samp_rate/2 <= float(param_value) <= cfg.samp_rate/2:
+                                    elif param_name == "offset_freq" and -cfg.samp_rate/2 <= int(param_value) <= cfg.samp_rate/2:
                                         myclient.loopstat=510
                                         dsp.set_offset_freq(int(param_value))
                                     elif param_name == "squelch_level" and float(param_value) >= 0:
@@ -555,6 +570,18 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                             myclient.loopstat=550
                                             dsp.start()
                                             dsp_initialized=True
+                                    elif param_name=="secondary_mod" and cfg.enable_digimodes:
+                                        if (dsp.get_secondary_demodulator() != param_value):
+                                            if dsp_initialized: dsp.stop()
+                                            if param_value == "off":
+                                                dsp.set_secondary_demodulator(None)
+                                                do_secondary_demod = False
+                                            else:
+                                                dsp.set_secondary_demodulator(param_value)
+                                                do_secondary_demod = True
+                                            if dsp_initialized: dsp.start()
+                                    elif param_name=="secondary_offset_freq" and 0 <= int(param_value) <= dsp.if_samp_rate()/2 and cfg.enable_digimodes:
+                                        dsp.set_secondary_offset_freq(int(param_value))
                                     else:
                                         print "[openwebrx-httpd:ws] invalid parameter"
                                 if bpf_set:
@@ -642,7 +669,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         ("%[WATERFALL_COLORS]",cfg.waterfall_colors),
                         ("%[WATERFALL_MIN_LEVEL]",str(cfg.waterfall_min_level)),
                         ("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level)),
-                        ("%[WATERFALL_AUTO_LEVEL_MARGIN]","[%d,%d]"%cfg.waterfall_auto_level_margin)
+                        ("%[WATERFALL_AUTO_LEVEL_MARGIN]","[%d,%d]"%cfg.waterfall_auto_level_margin),
+                        ("%[ENABLE_DIGIMODES]",("true" if cfg.enable_digimodes else "false"))
                     )
                     for rule in replace_dictionary:
                         while data.find(rule[0])!=-1:

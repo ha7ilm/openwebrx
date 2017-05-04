@@ -1165,10 +1165,15 @@ function on_ws_recv(evt)
 			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
 			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
 			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-            if(evt.data[3]=="S") secondary_demod_waterfall_add_queue(waterfall_f32);
+            if(evt.data[3]=="S") secondary_demod_waterfall_add_queue(waterfall_f32), console.log("FFTS");
             else waterfall_add_queue(waterfall_f32);
 		}
-	} else if(firstChars=="MSG")
+	} 
+    else if(firstChars=="DAT")
+    {
+        console.log("DAT");
+	} 
+    else if(firstChars=="MSG")
 	{
 		/*try
 		{*/

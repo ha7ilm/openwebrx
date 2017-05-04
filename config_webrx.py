@@ -79,6 +79,8 @@ ppm = 0
 audio_compression="adpcm" #valid values: "adpcm", "none"
 fft_compression="adpcm" #valid values: "adpcm", "none"
 
+enable_digimodes=True #If set to True, it will take more CPU per client
+
 start_rtl_thread=True
 
 """

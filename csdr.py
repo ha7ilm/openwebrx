@@ -77,8 +77,8 @@ class dsp:
                 return fft_chain_base
         chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
-            chain_begin+="tee {iqtee_pipe} | "
-            chain_begin+="tee {iqtee_pipe2} | "
+            chain_begin+="csdr tee {iqtee_pipe} | "
+            chain_begin+="csdr tee {iqtee2_pipe} | "
         chain_end = ""
         if self.audio_compression=="adpcm":
             chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -90,16 +90,12 @@ class dsp:
         secondary_chain_base="cat {input_pipe} | "
 
         if which == "fft":
-            return secondary_chain_base+"csdr fft_cc {secondary_fft_size} {secondary_fft_block_size} | csdrr logpower_cf -70 | csdr fft_one_side_ff {secondary_fft_size}"
+            return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_size} {secondary_fft_block_size} | csdr logpower_cf -70 | csdr fft_one_side_ff {secondary_fft_size}" + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
-            return secondary_chain_base+"""csdr dsb_fc | \
-csdr shift_addition_cc {secondary_shift_pipe} | \
-csdr REM fir_decimate_cc {secondary_decimation} | \
+            return secondary_chain_base+"""csdr shift_addition_cc {secondary_shift_pipe} | \
 csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | \
 csdr simple_agc_cc 0.0001 0.5 | \
-csdr matched_filter_cc COSINE 48 | \
 csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | \
-
 CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | \
 CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | \
 CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | \
@@ -112,37 +108,44 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
     def secondary_fft_block_size(self):
         return (self.samp_rate/self.decimation)/self.fft_fps
 
-    def secondary_decimation(self, which):
-        return 1
+    def secondary_decimation(self):
+        return 1 #currently unused
 
-    def secondary_bpf_cutoff(self, which):
+    def secondary_bpf_cutoff(self):
         if self.secondary_demodulator == "bpsk31":
-             return 31.25 / self.if_samp_rate()
+             return (31.25/2) / self.if_samp_rate()
         return 0
 
-    def secondary_bpf_transition_bw(self, which):
+    def secondary_bpf_transition_bw(self):
         if self.secondary_demodulator == "bpsk31":
-            return (31.25 / 2) * self.if_samp_rate()
+            return (31.25/2) / self.if_samp_rate()
+        return 0
+
+    def secondary_samples_per_bits(self):
+        if self.secondary_demodulator == "bpsk31":
+            return int(round(self.if_samp_rate()/31.25))
         return 0
 
     def start_secondary_demodulator(self):
         if(not self.secondary_demodulator): return
-        secondary_command_fft=secondary_chain("fft")
+        print "[openwebrx] starting secondary demodulator from IF input sampled at %d"%self.if_samp_rate()
+        secondary_command_fft=self.secondary_chain("fft")
+        secondary_command_demod=self.secondary_chain(self.secondary_demodulator)
+        self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod + secondary_command_fft)
+
         secondary_command_fft=secondary_command_fft.format( \
             input_pipe=self.iqtee_pipe, \
             secondary_fft_size=self.secondary_fft_size, \
             secondary_fft_block_size=self.secondary_fft_block_size(), \
             )
-        secondary_command_demod=self.secondary_chain(self.secondary_demodulator)
-        secondary_command_demod.format( \
+        secondary_command_demod=secondary_command_demod.format( \
             input_pipe=self.iqtee2_pipe, \
             secondary_shift_pipe=self.secondary_shift_pipe, \
-            secondary_decimation=self.secondary_decimation(self.secondary_demodulator), \
-            secondary_samples_per_bits=self.secondary_samples_per_bits(self.secondary_demodulator), \
-            secondary_bpf_cutoff=self.secondary_bpf_cutoff(self.secondary_demodulator), \
-            secondary_bpf_transition_bw=self.secondary_bpf_transition_bw(self.secondary_demodulator)
+            secondary_decimation=self.secondary_decimation(), \
+            secondary_samples_per_bits=self.secondary_samples_per_bits(), \
+            secondary_bpf_cutoff=self.secondary_bpf_cutoff(), \
+            secondary_bpf_transition_bw=self.secondary_bpf_transition_bw()
             )
-        try_create_pipes(secondary_command_demod + secondary_command_fft, self.secondary_pipe_names)
 
         print "[openwebrx-dsp-plugin:csdr] secondary command (fft) =", secondary_command_fft
         print "[openwebrx-dsp-plugin:csdr] secondary command (demod) =", secondary_command_demod
@@ -151,13 +154,18 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
         #if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
         self.secondary_process_fft = subprocess.Popen(secondary_command_fft, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
+        print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (fft)"
         self.secondary_process_demod = subprocess.Popen(secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
+        print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)"
         self.secondary_processes_running = True
 
         #open control pipes for csdr and send initialization data
         if self.secondary_shift_pipe != None:
             self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w")
             self.set_secondary_offset_freq(self.secondary_offset_freq)
+
+        self.set_pipe_nonblocking(self.secondary_process_demod.stdout)
+        self.set_pipe_nonblocking(self.secondary_process_fft.stdout)
 
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq=value
@@ -178,6 +186,9 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
     def read_secondary_fft(self, size):
         return self.secondary_process_fft.stdout.read(size)
 
+    def get_secondary_demodulator(self):
+        return self.secondary_demodulator
+
     def set_audio_compression(self,what):
         self.audio_compression = what
 
@@ -187,6 +198,10 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
     def get_fft_bytes_to_read(self):
         if self.fft_compression=="none": return self.fft_size*4
         if self.fft_compression=="adpcm": return (self.fft_size/2)+(10/2)
+
+    def get_secondary_fft_bytes_to_read(self):
+        if self.fft_compression=="none": return self.secondary_fft_size*4
+        if self.fft_compression=="adpcm": return (self.secondary_fft_size/2)+(10/2)
 
     def set_samp_rate(self,samp_rate):
         #to change this, restart is required
@@ -273,7 +288,9 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
         return self.ddc_transition_bw_rate*(self.if_samp_rate()/float(self.samp_rate))
 
     def try_create_pipes(self, pipe_names, command_base):
+        print "try_create_pipes"
         for pipe_name in pipe_names:
+            print "\t"+pipe_name
             if "{"+pipe_name+"}" in command_base:
                 setattr(self, pipe_name, self.pipe_base_path+pipe_name)
                 self.mkfifo(getattr(self, pipe_name))
@@ -287,6 +304,9 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
                 try: os.unlink(pipe_path)
                 except: print "[openwebrx-dsp-plugin:csdr] try_delete_pipes() :: unlink failed: " + pipe_path
 
+    def set_pipe_nonblocking(self, pipe):
+        flags = fcntl.fcntl(pipe, fcntl.F_GETFL)
+        fcntl.fcntl(pipe, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     def start(self):
         command_base=self.chain(self.demodulator)
@@ -321,7 +341,7 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
             last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), fft_averages=self.fft_averages, \
             bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port, \
-            squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe )
+            squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe )
 
         print "[openwebrx-dsp-plugin:csdr] Command =",command
         #code.interact(local=locals())
@@ -343,7 +363,7 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
             self.set_squelch_level(self.squelch_level)
         if self.smeter_pipe != None:
             self.smeter_pipe_file=open(self.smeter_pipe,"r")
-            fcntl.fcntl(self.smeter_pipe_file, fcntl.F_SETFL, os.O_NONBLOCK)
+            self.set_pipe_nonblocking(self.smeter_pipe_file)
 
         self.start_secondary_demodulator()
 
