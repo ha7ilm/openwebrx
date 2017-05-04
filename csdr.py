@@ -77,8 +77,8 @@ class dsp:
                 return fft_chain_base
         chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
-            chain_begin+="csdr tee {iqtee_pipe} | "
-            chain_begin+="csdr tee {iqtee2_pipe} | "
+            chain_begin+="tee {iqtee_pipe} | "
+            # chain_begin+="tee {iqtee2_pipe} | " #TODO digimodes
         chain_end = ""
         if self.audio_compression=="adpcm":
             chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -87,20 +87,19 @@ class dsp:
         elif which == "ssb": return chain_begin + "csdr realpart_cf | csdr old_fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
 
     def secondary_chain(self, which):
+        return "cat {input_pipe}" #TODO digimodes
         secondary_chain_base="cat {input_pipe} | "
-
         if which == "fft":
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_size} {secondary_fft_block_size} | csdr logpower_cf -70 | csdr fft_one_side_ff {secondary_fft_size}" + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
-            return secondary_chain_base+"""csdr shift_addition_cc {secondary_shift_pipe} | \
-csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | \
-csdr simple_agc_cc 0.0001 0.5 | \
-csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | \
-CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | \
-CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | \
-CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | \
-CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
-"""
+            return secondary_chain_base + "csdr shift_addition_cc {secondary_shift_pipe} | " + \
+                "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
+                "csdr simple_agc_cc 0.0001 0.5 | " + \
+                "csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | " + \
+                "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
+                "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
+                "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
+                "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
 
     def set_secondary_demodulator(self, what):
         self.secondary_demodulator = what
@@ -302,7 +301,7 @@ CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8
             pipe_path = getattr(self,pipe_name,None)
             if pipe_path:
                 try: os.unlink(pipe_path)
-                except: print "[openwebrx-dsp-plugin:csdr] try_delete_pipes() :: unlink failed: " + pipe_path
+                except Exception as e: print "[openwebrx-dsp-plugin:csdr] try_delete_pipes() ::", e
 
     def set_pipe_nonblocking(self, pipe):
         flags = fcntl.fcntl(pipe, fcntl.F_GETFL)

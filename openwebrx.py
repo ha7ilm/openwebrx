@@ -519,13 +519,17 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         # ========= send secondary =========
                         if do_secondary_demod:
                             while True:
-                                secondary_spectrum_data=dsp.read_secondary_fft(dsp.get_secondary_fft_bytes_to_read())
-                                if not secondary_spectrum_data: break
-                                rxws.send(self, "FFTS", secondary_spectrum_data)
+                                try: 
+                                    secondary_spectrum_data=dsp.read_secondary_fft(dsp.get_secondary_fft_bytes_to_read())
+                                    if len(secondary_spectrum_data) == 0: break
+                                    rxws.send(self, "FFTS", secondary_spectrum_data)
+                                except: break
                             while True:
-                                secondary_demod_data=dsp.read_secondary_demod(1)
-                                if not secondary_demod_data: break
-                                rxws.send(self, "DAT ", secondary_demod_data)
+                                try:
+                                    secondary_demod_data=dsp.read_secondary_demod(1)
+                                    if len(secondary_demod_data) == 0: break
+                                    rxws.send(self, "DAT ", secondary_demod_data)
+                                except: break
 
                         # ========= process commands =========
                         while True:
@@ -590,13 +594,15 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                 #code.interact(local=locals())
                 except:
                     exc_type, exc_value, exc_traceback = sys.exc_info()
-                    if exc_value[0]==32: #"broken pipe", client disconnected
-                        pass
-                    elif exc_value[0]==11: #"resource unavailable" on recv, client disconnected
-                        pass
-                    else:
-                        print "[openwebrx-httpd] error in /ws/ handler: ",exc_type,exc_value
-                        traceback.print_tb(exc_traceback)
+                    print "[openwebrx-httpd:ws] exception: ",exc_type,exc_value
+                    traceback.print_tb(exc_traceback) #TODO digimodes
+                    #if exc_value[0]==32: #"broken pipe", client disconnected
+                    #    pass
+                    #elif exc_value[0]==11: #"resource unavailable" on recv, client disconnected
+                    #    pass
+                    #else:
+                    #    print "[openwebrx-httpd] error in /ws/ handler: ",exc_type,exc_value
+                    #    traceback.print_tb(exc_traceback)
 
                 #stop dsp for the disconnected client
                 try:
