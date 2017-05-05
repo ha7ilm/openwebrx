@@ -469,13 +469,11 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     dsp.nc_port=cfg.iq_server_port
                     apply_csdr_cfg_to_dsp(dsp)
                     myclient.dsp=dsp
-
+                    do_secondary_demod=False
                     access_log("Started streaming to client: "+self.client_address[0]+"#"+myclient.id+" (users now: "+str(len(clients))+")")
 
-                    myclient.loopstat=0
-                    do_secondary_demod=False
-
                     while True:
+                        myclient.loopstat=0
                         if myclient.closed[0]:
                             print "[openwebrx-httpd:ws] client closed by other thread"
                             break
@@ -518,6 +516,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
 
                         # ========= send secondary =========
                         if do_secondary_demod:
+                            myclient.loopstat=41
                             while True:
                                 try: 
                                     secondary_spectrum_data=dsp.read_secondary_fft(dsp.get_secondary_fft_bytes_to_read())
@@ -525,6 +524,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                     print "len(secondary_spectrum_data)", len(secondary_spectrum_data) #TODO digimodes
                                     rxws.send(self, secondary_spectrum_data, "FFTS")
                                 except: break
+                            myclient.loopstat=42
                             while True:
                                 try:
                                     secondary_demod_data=dsp.read_secondary_demod(1)
@@ -536,8 +536,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         while True:
                             myclient.loopstat=50
                             rdata=rxws.recv(self, False)
-                            if not rdata: break
+                            myclient.loopstat=51
                             #try:
+                            if not rdata: break
                             elif rdata[:3]=="SET":
                                 print "[openwebrx-httpd:ws,%d] command: %s"%(client_i,rdata)
                                 pairs=rdata[4:].split(" ")
@@ -594,6 +595,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                     dsp.set_bpf(*new_bpf)
                                 #code.interact(local=locals())
                 except:
+                    myclient.loopstat=990
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     print "[openwebrx-httpd:ws] exception: ",exc_type,exc_value
                     traceback.print_tb(exc_traceback) #TODO digimodes
@@ -606,6 +608,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     #    traceback.print_tb(exc_traceback)
 
                 #stop dsp for the disconnected client
+                myclient.loopstat=991
                 try:
                     dsp.stop()
                     del dsp
@@ -613,6 +616,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     print "[openwebrx-httpd] error in dsp.stop()"
 
                 #delete disconnected client
+                myclient.loopstat=992
                 try:
                     cma("do_GET /ws/ delete disconnected")
                     id_to_close=get_client_by_id(myclient.id,False)

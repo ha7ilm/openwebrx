@@ -78,7 +78,7 @@ class dsp:
         chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
             chain_begin+="tee {iqtee_pipe} | "
-            # chain_begin+="tee {iqtee2_pipe} | " #TODO digimodes
+            # chain_begin+="tee {iqtee2_pipe} | " #TODO digimodes, and yes, tee sometimes hangs everything
         chain_end = ""
         if self.audio_compression=="adpcm":
             chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -87,7 +87,6 @@ class dsp:
         elif which == "ssb": return chain_begin + "csdr realpart_cf | csdr old_fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
 
     def secondary_chain(self, which):
-        return "cat {input_pipe}" #TODO digimodes
         secondary_chain_base="cat {input_pipe} | "
         if which == "fft":
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_size} {secondary_fft_block_size} | csdr logpower_cf -70 | csdr fft_one_side_ff {secondary_fft_size}" + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
@@ -154,16 +153,16 @@ class dsp:
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
         self.secondary_process_fft = subprocess.Popen(secondary_command_fft, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
         print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (fft)"
-        self.secondary_process_demod = subprocess.Popen(secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
-        print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)"
+        # self.secondary_process_demod = subprocess.Popen(secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env) #TODO digimodes
+        # print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)" #TODO digimodes
         self.secondary_processes_running = True
 
         #open control pipes for csdr and send initialization data
-        if self.secondary_shift_pipe != None:
-            self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w")
-            self.set_secondary_offset_freq(self.secondary_offset_freq)
+        # if self.secondary_shift_pipe != None: #TODO digimodes
+            # self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
+            # self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
 
-        self.set_pipe_nonblocking(self.secondary_process_demod.stdout)
+        # self.set_pipe_nonblocking(self.secondary_process_demod.stdout) #TODO digimodes
         self.set_pipe_nonblocking(self.secondary_process_fft.stdout)
 
     def set_secondary_offset_freq(self, value):
