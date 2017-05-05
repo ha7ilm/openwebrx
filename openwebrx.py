@@ -522,13 +522,14 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                 try: 
                                     secondary_spectrum_data=dsp.read_secondary_fft(dsp.get_secondary_fft_bytes_to_read())
                                     if len(secondary_spectrum_data) == 0: break
-                                    rxws.send(self, "FFTS", secondary_spectrum_data)
+                                    print "len(secondary_spectrum_data)", len(secondary_spectrum_data) #TODO digimodes
+                                    rxws.send(self, secondary_spectrum_data, "FFTS")
                                 except: break
                             while True:
                                 try:
                                     secondary_demod_data=dsp.read_secondary_demod(1)
                                     if len(secondary_demod_data) == 0: break
-                                    rxws.send(self, "DAT ", secondary_demod_data)
+                                    rxws.send(self, secondary_demod_data, "DAT ")
                                 except: break
 
                         # ========= process commands =========

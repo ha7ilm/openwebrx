@@ -1137,14 +1137,15 @@ function on_ws_recv(evt)
 	if(!(evt.data instanceof ArrayBuffer)) { divlog("on_ws_recv(): Not ArrayBuffer received...",1); return; }
 	//
 	debug_ws_data_received+=evt.data.byteLength/1000;
-	firstChars=getFirstChars(evt.data,3);
-	if(firstChars=="CLI")
+	first4Chars=getFirstChars(evt.data,4);
+    first3Chars=first4Chars.slice(0,3);
+	if(first3Chars=="CLI")
 	{
 		var stringData=arrayBufferToString(evt.data);
 		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Server acknowledged WebSocket connection.");
 
 	}
-	if(firstChars=="AUD")
+	if(first3Chars=="AUD")
 	{
 		var audio_data;
 		if(audio_compression=="adpcm") audio_data=new Uint8Array(evt.data,4)
@@ -1154,9 +1155,10 @@ function on_ws_recv(evt)
 		audio_buffer_all_size_debug+=audio_data.length;
 		if(!ios && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
 	}
-	else if(firstChars=="FFT")
+	else if(first3Chars=="FFT")
 	{
 		//alert("Yupee! Doing FFT");
+        if(first4Chars=="FFTS") console.log("FFTS"); 
 		if(fft_compression=="none") waterfall_add_queue(new Float32Array(evt.data,4));
 		else if(fft_compression="adpcm")
 		{
@@ -1165,15 +1167,15 @@ function on_ws_recv(evt)
 			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
 			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
 			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-            if(evt.data[3]=="S") { secondary_demod_waterfall_add_queue(waterfall_f32); console.log("FFTS"); }
+            if(first4Chars=="FFTS");// secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
             else waterfall_add_queue(waterfall_f32);
 		}
 	} 
-    else if(firstChars=="DAT")
+    else if(first3Chars=="DAT")
     {
         console.log("DAT");
 	} 
-    else if(firstChars=="MSG")
+    else if(first3Chars=="MSG")
 	{
 		/*try
 		{*/
