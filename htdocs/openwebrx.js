@@ -51,6 +51,7 @@ var audio_compression="none";
 var waterfall_setup_done=0;
 var waterfall_queue = [];
 var waterfall_timer;
+var secondary_fft_size;
 
 /*function fade(something,from,to,time_ms,fps)
 {
@@ -1158,7 +1159,7 @@ function on_ws_recv(evt)
 	else if(first3Chars=="FFT")
 	{
 		//alert("Yupee! Doing FFT");
-        if(first4Chars=="FFTS") console.log("FFTS"); 
+        //if(first4Chars=="FFTS") console.log("FFTS"); 
 		if(fft_compression=="none") waterfall_add_queue(new Float32Array(evt.data,4));
 		else if(fft_compression="adpcm")
 		{
@@ -1167,14 +1168,14 @@ function on_ws_recv(evt)
 			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
 			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
 			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-            if(first4Chars=="FFTS");// secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
+            if(first4Chars=="FFTS") secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
             else waterfall_add_queue(waterfall_f32);
 		}
 	} 
     else if(first3Chars=="DAT")
     {
         secondary_demod_push_binary_data(new Uint8Array(evt.data,4))
-        console.log("DAT");
+        //console.log("DAT");
 	} 
     else if(first3Chars=="MSG")
 	{
@@ -1200,6 +1201,12 @@ function on_ws_recv(evt)
 					case "fft_size":
 						fft_size=parseInt(param[1]);
 						break;
+					case "secondary_fft_size":
+						secondary_fft_size=parseInt(param[1]);
+						break;
+                    case "secondary_setup":
+                        secondary_demod_init_canvases();
+                        break;
 					case "fft_fps":
 						fft_fps=parseInt(param[1]);
 						break;
@@ -1544,7 +1551,7 @@ function parsehash()
 	{
 		h.substring(1).split(",").forEach(function(x){
 			harr=x.split("=");
-			console.log(harr);
+			//console.log(harr);
 			if(harr[0]=="mute") toggleMute();
 			else if(harr[0]=="mod") starting_mod = harr[1];
 			else if(harr[0]=="sql") 
@@ -2225,13 +2232,61 @@ function demodulator_digital_replace(subtype)
     toggle_panel("openwebrx-panel-digimodes", true);
 }
 
+function secondary_demod_create_canvas()
+{
+	var new_canvas = document.createElement("canvas");
+	new_canvas.width=secondary_fft_size;
+	new_canvas.height=$(secondary_demod_canvas_container).height();
+	new_canvas.style.width=$(secondary_demod_canvas_container).width()+"px";
+	new_canvas.style.height=$(secondary_demod_canvas_container).height()+"px";
+    console.log(new_canvas.width, new_canvas.height, new_canvas.style.width, new_canvas.style.height);
+	canvas_actual_line=new_canvas.height-1;
+	$(secondary_demod_canvas_container).append(new_canvas);
+    return new_canvas;
+}
+
+function secondary_demod_remove_canvases()
+{
+    $(secondary_demod_canvas_container).children().remove();
+}
+
+function secondary_demod_init_canvases()
+{
+    secondary_demod_remove_canvases();
+    secondary_demod_canvases=[];
+    secondary_demod_canvases.push(secondary_demod_create_canvas());
+    secondary_demod_canvases.push(secondary_demod_create_canvas());
+    secondary_demod_canvases[0].openwebrx_top=-$(secondary_demod_canvas_container).height();
+    secondary_demod_canvases[1].openwebrx_top=0;
+    secondary_demod_canvases_update_top();
+    secondary_demod_current_canvas_context = secondary_demod_canvases[0].getContext("2d");
+    secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
+    secondary_demod_current_canvas_index=0;
+    secondary_demod_canvases_initialized=true;
+}
+
+function secondary_demod_canvases_update_top()
+{
+    for(var i=0;i<2;i++) secondary_demod_canvases[i].style.top=secondary_demod_canvases[i].openwebrx_top+"px";
+}
+
+function secondary_demod_swap_canvases()
+{
+    secondary_demod_canvases[0+!secondary_demod_current_canvas_index].style.openwebrx_top-=$(secondary_demod_canvas_container).height()*2;
+    secondary_demod_current_canvas_index=0+!secondary_demod_current_canvas_index;
+    secondary_demod_current_canvas_context = secondary_demod_canvases[secondary_demod_current_canvas_index].getContext("2d");
+    secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
+}
+
 function secondary_demod_init()
 {
     $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
+    secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
 }
 
 function secondary_demod_start(subtype) 
 { 
+    secondary_demod_canvases_initialized = false;
     ws.send("SET secondary_mod="+subtype); 
     secondary_demod = subtype; 
 }
@@ -2246,11 +2301,12 @@ function secondary_demod_stop()
     ws.send("SET secondary_mod=off");
     secondary_demod = false; 
     secondary_demod_waterfall_queue = [];
+    secondary_demod_remove_canvases();
 }
 
 function secondary_demod_waterfall_add_queue(x)
 {
-    secondary_demod_waterfall_queue.push(what);
+    secondary_demod_waterfall_queue.push(x);
 }
 
 function secondary_demod_push_binary_data(x)
@@ -2274,14 +2330,33 @@ function secondary_demod_close_window()
     toggle_panel("openwebrx-panel-digimodes", false);
 }
 
-function secondary_demod_waterfall_add(x)
+function secondary_demod_waterfall_add(data)
 {
+    if(!secondary_demod) return;
+	var w=secondary_fft_size;
+
+	//Add line to waterfall image
+	var oneline_image = secondary_demod_current_canvas_context.createImageData(w,1);
+	for(x=0;x<w;x++)
+	{
+		var color=waterfall_mkcolor(data[x]+30);
+		for(i=0;i<4;i++) oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
+	}
+
+	//Draw image
+    console.log(oneline_image);
+	secondary_demod_current_canvas_context.putImageData(oneline_image, 0, secondary_demod_current_canvas_actual_line--);
+    secondary_demod_canvases.map((x)=>{x.openwebrx_top += 1;});
+    secondary_demod_canvases_update_top();
+	if(secondary_demod_current_canvas_actual_line<0) secondary_demod_swap_canvases();
 }
+
+var secondary_demod_canvases_initialized = false;
 
 function secondary_demod_waterfall_dequeue()
 {
-    if(!secondary_demod) return;
-	if(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(waterfall_queue.shift());
+    if(!secondary_demod || !secondary_demod_canvases_initialized) return;
+	if(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(secondary_demod_waterfall_queue.shift());
 	if(secondary_demod_waterfall_queue.length>Math.max(fft_fps/2,20)) //in case of fft overflow
 	{
 		console.log("secondary waterfall overflow, queue length:", secondary_demod_waterfall_queue.length);

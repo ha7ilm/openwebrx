@@ -466,6 +466,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     dsp.set_format_conversion(cfg.format_conversion)
                     dsp.set_offset_freq(0)
                     dsp.set_bpf(-4000,4000)
+                    dsp.set_secondary_fft_size(cfg.digimodes_fft_size)
                     dsp.nc_port=cfg.iq_server_port
                     apply_csdr_cfg_to_dsp(dsp)
                     myclient.dsp=dsp
@@ -531,7 +532,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                     secondary_demod_data=dsp.read_secondary_demod(1)
                                     myclient.loopstat=423
                                     if len(secondary_demod_data) == 0: break
-                                    print "len(secondary_demod_data)", len(secondary_demod_data), secondary_demod_data #TODO digimodes
+                                    # print "len(secondary_demod_data)", len(secondary_demod_data), secondary_demod_data #TODO digimodes
                                     rxws.send(self, secondary_demod_data, "DAT ")
                                 except: break
 
@@ -579,7 +580,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                             myclient.loopstat=550
                                             dsp.start()
                                             dsp_initialized=True
-                                    elif param_name=="secondary_mod" and cfg.enable_digimodes:
+                                    elif param_name=="secondary_mod" and cfg.digimodes_enable:
                                         if (dsp.get_secondary_demodulator() != param_value):
                                             if dsp_initialized: dsp.stop()
                                             if param_value == "off":
@@ -588,8 +589,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                             else:
                                                 dsp.set_secondary_demodulator(param_value)
                                                 do_secondary_demod = True
+                                                rxws.send(self, "MSG secondary_fft_size={0} secondary_setup".format(cfg.digimodes_fft_size))
                                             if dsp_initialized: dsp.start()
-                                    elif param_name=="secondary_offset_freq" and 0 <= int(param_value) <= dsp.if_samp_rate()/2 and cfg.enable_digimodes:
+                                    elif param_name=="secondary_offset_freq" and 0 <= int(param_value) <= dsp.if_samp_rate()/2 and cfg.digimodes_enable:
                                         dsp.set_secondary_offset_freq(int(param_value))
                                     else:
                                         print "[openwebrx-httpd:ws] invalid parameter"
@@ -684,7 +686,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         ("%[WATERFALL_MIN_LEVEL]",str(cfg.waterfall_min_level)),
                         ("%[WATERFALL_MAX_LEVEL]",str(cfg.waterfall_max_level)),
                         ("%[WATERFALL_AUTO_LEVEL_MARGIN]","[%d,%d]"%cfg.waterfall_auto_level_margin),
-                        ("%[ENABLE_DIGIMODES]",("true" if cfg.enable_digimodes else "false"))
+                        ("%[DIGIMODES_ENABLE]",("true" if cfg.digimodes_enable else "false"))
                     )
                     for rule in replace_dictionary:
                         while data.find(rule[0])!=-1:

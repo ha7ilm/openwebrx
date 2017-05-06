@@ -34,7 +34,7 @@
             var waterfall_min_level_default=%[WATERFALL_MIN_LEVEL];
             var waterfall_max_level_default=%[WATERFALL_MAX_LEVEL];
             var waterfall_auto_level_margin=%[WATERFALL_AUTO_LEVEL_MARGIN];
-            var server_enable_digimodes=%[ENABLE_DIGIMODES];
+            var server_enable_digimodes=%[DIGIMODES_ENABLE];
         </script>
         <script src="sdr.js"></script>
         <script src="openwebrx.js"></script>

@@ -79,7 +79,8 @@ ppm = 0
 audio_compression="adpcm" #valid values: "adpcm", "none"
 fft_compression="adpcm" #valid values: "adpcm", "none"
 
-enable_digimodes=True #If set to True, it will take more CPU per client
+digimodes_enable=True #Decoding digimodes come with higher CPU usage. 
+digimodes_fft_size=1024
 
 start_rtl_thread=True
 

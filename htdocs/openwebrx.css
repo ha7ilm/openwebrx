@@ -823,6 +823,13 @@ img.openwebrx-mirror-img
 	border-radius: 15px;
 	height: 150px;
 	background-color: #333;
+    position: relative;
+    overflow: hidden;
+}
+
+#openwebrx-digimode-canvas-container canvas
+{
+    position: absolute;
 }
 
 #openwebrx-secondary-demod-listbox
@@ -911,6 +918,7 @@ img.openwebrx-mirror-img
 {
     perspective: 700px;
 }
+
 #openwebrx-digimode-content .part
 {
     animation: new-digimode-data-3d 100ms;

@@ -198,6 +198,10 @@ class dsp:
     def get_secondary_demodulator(self):
         return self.secondary_demodulator
 
+    def set_secondary_fft_size(self,secondary_fft_size):
+        #to change this, restart is required
+        self.secondary_fft_size=secondary_fft_size
+
     def set_audio_compression(self,what):
         self.audio_compression = what
 
