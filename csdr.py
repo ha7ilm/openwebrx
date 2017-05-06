@@ -78,7 +78,7 @@ class dsp:
         chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
             chain_begin+="tee {iqtee_pipe} | "
-            # chain_begin+="tee {iqtee2_pipe} | " #TODO digimodes, and yes, tee sometimes hangs everything
+            chain_begin+="tee {iqtee2_pipe} | " #TODO digimodes, and yes, tee sometimes hangs everything
         chain_end = ""
         if self.audio_compression=="adpcm":
             chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -91,6 +91,16 @@ class dsp:
         if which == "fft":
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_size} {secondary_fft_block_size} | csdr logpower_cf -70 | csdr fft_one_side_ff {secondary_fft_size}" + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
+            return secondary_chain_base + ("csdr shift_addition_cc {secondary_shift_pipe} | " if 0 else "") + \
+                    "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
+                    "csdr simple_agc_cc 0.0001 0.5 | " + \
+                    "csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | " + \
+                    "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
+                    "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
+                    "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
+                    "cat"
+            #TODO digimodes:
+            """
             return secondary_chain_base + "csdr shift_addition_cc {secondary_shift_pipe} | " + \
                 "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
                 "csdr simple_agc_cc 0.0001 0.5 | " + \
@@ -99,6 +109,7 @@ class dsp:
                 "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
                 "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
                 "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
+            """
 
     def set_secondary_demodulator(self, what):
         self.secondary_demodulator = what
@@ -153,8 +164,8 @@ class dsp:
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
         self.secondary_process_fft = subprocess.Popen(secondary_command_fft, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
         print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (fft)"
-        # self.secondary_process_demod = subprocess.Popen(secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env) #TODO digimodes
-        # print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)" #TODO digimodes
+        self.secondary_process_demod = subprocess.Popen(secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env) #TODO digimodes
+        print "[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)" #TODO digimodes
         self.secondary_processes_running = True
 
         #open control pipes for csdr and send initialization data
@@ -162,7 +173,7 @@ class dsp:
             # self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
             # self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
 
-        # self.set_pipe_nonblocking(self.secondary_process_demod.stdout) #TODO digimodes
+        self.set_pipe_nonblocking(self.secondary_process_demod.stdout)
         self.set_pipe_nonblocking(self.secondary_process_fft.stdout)
 
     def set_secondary_offset_freq(self, value):

@@ -527,8 +527,11 @@ class WebRXHandler(BaseHTTPRequestHandler):
                             myclient.loopstat=42
                             while True:
                                 try:
+                                    myclient.loopstat=422
                                     secondary_demod_data=dsp.read_secondary_demod(1)
+                                    myclient.loopstat=423
                                     if len(secondary_demod_data) == 0: break
+                                    print "len(secondary_demod_data)", len(secondary_demod_data), secondary_demod_data #TODO digimodes
                                     rxws.send(self, secondary_demod_data, "DAT ")
                                 except: break
 

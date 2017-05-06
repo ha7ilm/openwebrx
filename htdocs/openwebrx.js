@@ -1173,6 +1173,7 @@ function on_ws_recv(evt)
 	} 
     else if(first3Chars=="DAT")
     {
+        secondary_demod_push_binary_data(new Uint8Array(evt.data,4))
         console.log("DAT");
 	} 
     else if(first3Chars=="MSG")
@@ -2252,9 +2253,19 @@ function secondary_demod_waterfall_add_queue(x)
     secondary_demod_waterfall_queue.push(what);
 }
 
+function secondary_demod_push_binary_data(x)
+{
+    secondary_demod_push_data(Array.from(x).map( y => (y)?"1":"0" ).join(""));
+}
+
 function secondary_demod_push_data(x)
 {
     $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
+}
+
+function secondary_demod_data_clear()
+{
+    $("#openwebrx-cursor-blink").prevAll().remove();
 }
 
 function secondary_demod_close_window()
