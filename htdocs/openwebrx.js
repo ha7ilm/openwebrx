@@ -2337,6 +2337,7 @@ function secondary_demod_push_data(x)
         if(y=="&") return "&amp;";
         if(y=="<") return "&lt;";
         if(y==">") return "&gt;";
+        if(y==" ") return "&nbsp;";
         return y;
     }).join("");
     $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
