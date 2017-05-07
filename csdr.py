@@ -89,7 +89,7 @@ class dsp:
     def secondary_chain(self, which):
         secondary_chain_base="cat {input_pipe} | "
         if which == "fft":
-            return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 | csdr fft_one_side_ff {secondary_fft_size}" + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
+            return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
             return secondary_chain_base + ("csdr shift_addition_cc {secondary_shift_pipe} | " if 0 else "") + \
                     "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
@@ -115,7 +115,7 @@ class dsp:
         self.secondary_demodulator = what
 
     def secondary_fft_block_size(self):
-        return (self.samp_rate/self.decimation)/(self.fft_fps*2) #*2 is there because we do FFT on real signal here
+        return (self.samp_rate/self.decimation)/(self.fft_fps) #*2 is there because we do FFT on real signal here
 
     def secondary_decimation(self):
         return 1 #currently unused
@@ -144,7 +144,7 @@ class dsp:
 
         secondary_command_fft=secondary_command_fft.format( \
             input_pipe=self.iqtee_pipe, \
-            secondary_fft_input_size=self.secondary_fft_size*2, \
+            secondary_fft_input_size=self.secondary_fft_size, \
             secondary_fft_size=self.secondary_fft_size, \
             secondary_fft_block_size=self.secondary_fft_block_size(), \
             )
