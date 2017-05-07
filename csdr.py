@@ -77,8 +77,8 @@ class dsp:
                 return fft_chain_base
         chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
-            chain_begin+="tee {iqtee_pipe} | "
-            chain_begin+="tee {iqtee2_pipe} | " #TODO digimodes, and yes, tee sometimes hangs everything
+            chain_begin+="csdr tee {iqtee_pipe} | "
+            chain_begin+="csdr tee {iqtee2_pipe} | " #TODO digimodes, and yes, tee sometimes hangs everything
         chain_end = ""
         if self.audio_compression=="adpcm":
             chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -115,7 +115,7 @@ class dsp:
         self.secondary_demodulator = what
 
     def secondary_fft_block_size(self):
-        return (self.samp_rate/self.decimation)/(self.fft_fps) #*2 is there because we do FFT on real signal here
+        return (self.samp_rate/self.decimation)/(self.fft_fps*2) #*2 is there because we do FFT on real signal here
 
     def secondary_decimation(self):
         return 1 #currently unused

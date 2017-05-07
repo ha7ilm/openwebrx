@@ -2240,7 +2240,7 @@ function secondary_demod_create_canvas()
 	new_canvas.style.width=$(secondary_demod_canvas_container).width()+"px";
 	new_canvas.style.height=$(secondary_demod_canvas_container).height()+"px";
     console.log(new_canvas.width, new_canvas.height, new_canvas.style.width, new_canvas.style.height);
-	canvas_actual_line=new_canvas.height-1;
+	secondary_demod_current_canvas_actual_line=new_canvas.height-1;
 	$(secondary_demod_canvas_container).append(new_canvas);
     return new_canvas;
 }
@@ -2302,7 +2302,6 @@ function secondary_demod_stop()
     ws.send("SET secondary_mod=off");
     secondary_demod = false; 
     secondary_demod_waterfall_queue = [];
-    secondary_demod_remove_canvases();
 }
 
 function secondary_demod_waterfall_add_queue(x)
