@@ -958,5 +958,8 @@ img.openwebrx-mirror-img
     top: 0px;
     left: 0px;
     opacity: 0.7;
+    border-style: solid;
+    border-width: 0px;
+    border-color: Red;
 }
 

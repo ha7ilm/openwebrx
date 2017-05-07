@@ -1174,7 +1174,8 @@ function on_ws_recv(evt)
 	} 
     else if(first3Chars=="DAT")
     {
-        secondary_demod_push_binary_data(new Uint8Array(evt.data,4))
+        //secondary_demod_push_binary_data(new Uint8Array(evt.data,4));
+        secondary_demod_push_data(arrayBufferToString(evt.data).substring(4));
         //console.log("DAT");
 	} 
     else if(first3Chars=="MSG")
@@ -2269,7 +2270,7 @@ function secondary_demod_init_canvases()
     secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
     secondary_demod_current_canvas_index=0;
     secondary_demod_canvases_initialized=true;
-    secondary_demod_update_marker();
+    secondary_demod_update_channel_freq_from_event();
 }
 
 function secondary_demod_canvases_update_top()
@@ -2329,6 +2330,15 @@ function secondary_demod_push_binary_data(x)
 
 function secondary_demod_push_data(x)
 {
+    x=Array.from(x).map((y)=>{
+        var c=y.charCodeAt(0);
+        if(c<32||c>126) return "";
+        if(y=="\n") return "<br />";
+        if(y=="&") return "&amp;";
+        if(y=="<") return "&lt;";
+        if(y==">") return "&gt;";
+        return y;
+    }).join("");
     $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
 }
 
@@ -2407,25 +2417,38 @@ function secondary_demod_listbox_update()
 secondary_demod_channel_freq=1000;
 function secondary_demod_update_marker()
 {
-    var width =  Math.max( (secondary_bw / if_samp_rate) * $(secondary_demod_canvas_container).width(), 5);
-    var center_at = (secondary_demod_channel_freq / if_samp_rate) * $(secondary_demod_canvas_container).width();
+    var width =  Math.max( (secondary_bw / (if_samp_rate/2)) * $(secondary_demod_canvas_container).width(), 5);
+    var center_at = (secondary_demod_channel_freq / (if_samp_rate/2)) * $(secondary_demod_canvas_container).width();
     var left = center_at-width / 2;
-    console.log("sdum", width, left);
+    //console.log("sdum", width, left);
     $("#openwebrx-digimode-select-channel").width(width).css("left",left+"px") 
 }
 
+secondary_demod_waiting_for_set = false;
 function secondary_demod_update_channel_freq_from_event(evt)
 {
-    var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
-    //console.log("ize", evt, e);
-    secondary_demod_channel_freq=(relativeX/$(secondary_demod_canvas_container).width()) * if_samp_rate;
+    if(typeof evt !== "undefined")
+    {
+        var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
+        secondary_demod_channel_freq=(relativeX/$(secondary_demod_canvas_container).width()) * (if_samp_rate/2);
+    }
+    //console.log("toset:", secondary_demod_channel_freq);
+    if(!secondary_demod_waiting_for_set)
+    {
+        secondary_demod_waiting_for_set = true;
+        window.setTimeout(()=>{
+            ws.send("SET secondary_offset_freq="+Math.floor(secondary_demod_channel_freq));
+            //console.log("doneset:", secondary_demod_channel_freq);
+            secondary_demod_waiting_for_set = false;
+        }, 50);
+    }
     secondary_demod_update_marker();
 }
 
 secondary_demod_mousedown=false;
 function secondary_demod_canvas_container_mousein()
 {
-    $("#openwebrx-digimode-select-channel").css("opacity","0.7");
+    $("#openwebrx-digimode-select-channel").css("opacity","0.7"); //.css("border-width", "1px");
 }
 
 function secondary_demod_canvas_container_mouseout()

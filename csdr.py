@@ -61,6 +61,7 @@ class dsp:
         self.secondary_process_demod = None
         self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "iqtee_pipe", "iqtee2_pipe"]
         self.secondary_pipe_names=["secondary_shift_pipe"]
+        self.secondary_offset_freq = 1000
 
     def chain(self,which):
         any_chain_base="nc -v 127.0.0.1 {nc_port} | "
@@ -91,14 +92,14 @@ class dsp:
         if which == "fft":
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
-            return secondary_chain_base + ("csdr shift_addition_cc {secondary_shift_pipe} | " if 0 else "") + \
+            return secondary_chain_base + ("csdr shift_addition_cc --fifo {secondary_shift_pipe} | " if 1 else "") + \
                     "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
                     "csdr simple_agc_cc 0.0001 0.5 | " + \
                     "csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
-                    "cat"
+                    "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
             #TODO digimodes:
             """
             return secondary_chain_base + "csdr shift_addition_cc {secondary_shift_pipe} | " + \
@@ -174,9 +175,13 @@ class dsp:
         self.secondary_processes_running = True
 
         #open control pipes for csdr and send initialization data
-        # if self.secondary_shift_pipe != None: #TODO digimodes
-            # self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
-            # self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
+        print "==========> 1"
+        if self.secondary_shift_pipe != None: #TODO digimodes
+            print "==========> 2", self.secondary_shift_pipe
+            self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
+            print "==========> 3"
+            self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
+            print "==========> 4"
 
         self.set_pipe_nonblocking(self.secondary_process_demod.stdout)
         self.set_pipe_nonblocking(self.secondary_process_fft.stdout)
