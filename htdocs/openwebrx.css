@@ -830,6 +830,7 @@ img.openwebrx-mirror-img
 #openwebrx-digimode-canvas-container canvas
 {
     position: absolute;
+    pointer-events: none;
 }
 
 #openwebrx-secondary-demod-listbox
@@ -944,3 +945,18 @@ img.openwebrx-mirror-img
 	0%{ transform: rotateX(0deg) rotateY(-90deg) translateX(-5px) scale(1.3); }
 	100%{ transform: rotateX(0deg) rotateY(0deg) translateX(0) scale(1); }
 }
+
+#openwebrx-digimode-select-channel
+{
+    transition: all 500ms;
+    background-color: Yellow;
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    height: 100%;
+    width: 0px;
+    top: 0px;
+    left: 0px;
+    opacity: 0.7;
+}
+

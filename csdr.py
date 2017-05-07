@@ -135,6 +135,10 @@ class dsp:
             return int(round(self.if_samp_rate()/31.25))
         return 0
 
+    def secondary_bw(self):
+        if self.secondary_demodulator == "bpsk31":
+            return 31.25
+
     def start_secondary_demodulator(self):
         if(not self.secondary_demodulator): return
         print "[openwebrx] starting secondary demodulator from IF input sampled at %d"%self.if_samp_rate()

@@ -153,7 +153,9 @@
                     <br />We're working on the code right now, so the application might fail.
                 </div>
                 <div class="openwebrx-panel" id="openwebrx-panel-digimodes" data-panel-name="digimodes" data-panel-pos="left" data-panel-order="2" data-panel-size="619,210">
-                    <div id="openwebrx-digimode-canvas-container"></div>
+                    <div id="openwebrx-digimode-canvas-container">
+                        <div id="openwebrx-digimode-select-channel"></div>
+                    </div>
                     <div id="openwebrx-digimode-content-container">
                         <div class="gradient"></div>
                         <div id="openwebrx-digimode-content">

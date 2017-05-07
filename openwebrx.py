@@ -522,7 +522,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                 try: 
                                     secondary_spectrum_data=dsp.read_secondary_fft(dsp.get_secondary_fft_bytes_to_read())
                                     if len(secondary_spectrum_data) == 0: break
-                                    print "len(secondary_spectrum_data)", len(secondary_spectrum_data) #TODO digimodes
+                                    # print "len(secondary_spectrum_data)", len(secondary_spectrum_data) #TODO digimodes
                                     rxws.send(self, secondary_spectrum_data, "FFTS")
                                 except: break
                             myclient.loopstat=42
@@ -589,7 +589,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                             else:
                                                 dsp.set_secondary_demodulator(param_value)
                                                 do_secondary_demod = True
-                                                rxws.send(self, "MSG secondary_fft_size={0} secondary_setup".format(cfg.digimodes_fft_size))
+                                                rxws.send(self, "MSG secondary_fft_size={0} if_samp_rate={1} secondary_bw={2} secondary_setup".format(cfg.digimodes_fft_size, dsp.if_samp_rate(), dsp.secondary_bw()))
                                             if dsp_initialized: dsp.start()
                                     elif param_name=="secondary_offset_freq" and 0 <= int(param_value) <= dsp.if_samp_rate()/2 and cfg.digimodes_enable:
                                         dsp.set_secondary_offset_freq(int(param_value))

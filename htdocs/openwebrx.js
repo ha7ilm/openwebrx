@@ -1207,6 +1207,12 @@ function on_ws_recv(evt)
                     case "secondary_setup":
                         secondary_demod_init_canvases();
                         break;
+                    case "if_samp_rate":
+                        if_samp_rate=parseInt(param[1]);
+                        break;
+                    case "secondary_bw":
+                        secondary_bw=parseFloat(param[1]);
+                        break;
 					case "fft_fps":
 						fft_fps=parseInt(param[1]);
 						break;
@@ -2241,13 +2247,13 @@ function secondary_demod_create_canvas()
 	new_canvas.style.height=$(secondary_demod_canvas_container).height()+"px";
     console.log(new_canvas.width, new_canvas.height, new_canvas.style.width, new_canvas.style.height);
 	secondary_demod_current_canvas_actual_line=new_canvas.height-1;
-	$(secondary_demod_canvas_container).append(new_canvas);
+	$(secondary_demod_canvas_container).children().last().before(new_canvas);
     return new_canvas;
 }
 
 function secondary_demod_remove_canvases()
 {
-    $(secondary_demod_canvas_container).children().remove();
+    $(secondary_demod_canvas_container).children("canvas").remove();
 }
 
 function secondary_demod_init_canvases()
@@ -2263,6 +2269,7 @@ function secondary_demod_init_canvases()
     secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
     secondary_demod_current_canvas_index=0;
     secondary_demod_canvases_initialized=true;
+    secondary_demod_update_marker();
 }
 
 function secondary_demod_canvases_update_top()
@@ -2283,6 +2290,12 @@ function secondary_demod_init()
 {
     $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
     secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
+    $(secondary_demod_canvas_container)
+        .mousemove(secondary_demod_canvas_container_mousemove)
+        .mouseup(secondary_demod_canvas_container_mouseup)
+        .mousedown(secondary_demod_canvas_container_mousedown)
+        .mouseenter(secondary_demod_canvas_container_mousein)
+        .mouseleave(secondary_demod_canvas_container_mouseout);
 }
 
 function secondary_demod_start(subtype) 
@@ -2389,4 +2402,49 @@ function secondary_demod_listbox_update()
     $("#openwebrx-secondary-demod-listbox").val((secondary_demod)?secondary_demod:"none");
     console.log("update");
     secondary_demod_listbox_updating = false;
+}
+
+secondary_demod_channel_freq=1000;
+function secondary_demod_update_marker()
+{
+    var width =  Math.max( (secondary_bw / if_samp_rate) * $(secondary_demod_canvas_container).width(), 5);
+    var center_at = (secondary_demod_channel_freq / if_samp_rate) * $(secondary_demod_canvas_container).width();
+    var left = center_at-width / 2;
+    console.log("sdum", width, left);
+    $("#openwebrx-digimode-select-channel").width(width).css("left",left+"px") 
+}
+
+function secondary_demod_update_channel_freq_from_event(evt)
+{
+    var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
+    //console.log("ize", evt, e);
+    secondary_demod_channel_freq=(relativeX/$(secondary_demod_canvas_container).width()) * if_samp_rate;
+    secondary_demod_update_marker();
+}
+
+secondary_demod_mousedown=false;
+function secondary_demod_canvas_container_mousein()
+{
+    $("#openwebrx-digimode-select-channel").css("opacity","0.7");
+}
+
+function secondary_demod_canvas_container_mouseout()
+{
+    $("#openwebrx-digimode-select-channel").css("opacity","0");
+}
+
+function secondary_demod_canvas_container_mousemove(evt)
+{
+    if(secondary_demod_mousedown) secondary_demod_update_channel_freq_from_event(evt);
+}
+
+function secondary_demod_canvas_container_mousedown(evt)
+{
+    if(evt.which==1) secondary_demod_mousedown=true;
+}
+
+function secondary_demod_canvas_container_mouseup(evt)
+{
+    if(evt.which==1) secondary_demod_mousedown=false;
+    secondary_demod_update_channel_freq_from_event(evt);
 }
