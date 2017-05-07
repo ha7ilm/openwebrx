@@ -1721,7 +1721,7 @@ var canvas_phantom;
 
 function add_canvas()
 {
-	new_canvas = document.createElement("canvas");
+	var new_canvas = document.createElement("canvas");
 	new_canvas.width=fft_size;
 	new_canvas.height=canvas_default_height;
 	canvas_actual_line=canvas_default_height-1;
@@ -2272,7 +2272,8 @@ function secondary_demod_canvases_update_top()
 
 function secondary_demod_swap_canvases()
 {
-    secondary_demod_canvases[0+!secondary_demod_current_canvas_index].style.openwebrx_top-=$(secondary_demod_canvas_container).height()*2;
+    console.log("swap");
+    secondary_demod_canvases[0+!secondary_demod_current_canvas_index].openwebrx_top-=$(secondary_demod_canvas_container).height()*2;
     secondary_demod_current_canvas_index=0+!secondary_demod_current_canvas_index;
     secondary_demod_current_canvas_context = secondary_demod_canvases[secondary_demod_current_canvas_index].getContext("2d");
     secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
@@ -2330,6 +2331,8 @@ function secondary_demod_close_window()
     toggle_panel("openwebrx-panel-digimodes", false);
 }
 
+secondary_demod_fft_offset_db=30; //need to calculate that later
+
 function secondary_demod_waterfall_add(data)
 {
     if(!secondary_demod) return;
@@ -2339,12 +2342,11 @@ function secondary_demod_waterfall_add(data)
 	var oneline_image = secondary_demod_current_canvas_context.createImageData(w,1);
 	for(x=0;x<w;x++)
 	{
-		var color=waterfall_mkcolor(data[x]+30);
+		var color=waterfall_mkcolor(data[x]+secondary_demod_fft_offset_db);
 		for(i=0;i<4;i++) oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}
 
 	//Draw image
-    console.log(oneline_image);
 	secondary_demod_current_canvas_context.putImageData(oneline_image, 0, secondary_demod_current_canvas_actual_line--);
     secondary_demod_canvases.map((x)=>{x.openwebrx_top += 1;});
     secondary_demod_canvases_update_top();
