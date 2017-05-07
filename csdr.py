@@ -93,15 +93,17 @@ class dsp:
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
             return secondary_chain_base + ("csdr shift_addition_cc --fifo {secondary_shift_pipe} | " if 1 else "") + \
-                    "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
-                    "csdr simple_agc_cc 0.0001 0.5 | " + \
-                    "csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | " + \
+                    "csdr simple_agc_cc 0.001 0.5 | " + \
+                    "tee /tmp/iqtmp1 | " + \
+                    "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} --add_q | " + \
+                    "CSDR_FIXED_BUFSIZE=1 csdr bpsk_costas_loop_cc $(csdr =2*pi/100) $(csdr =0.707) 7 |" + \
                     "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
             #TODO digimodes:
             """
+                    "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
             return secondary_chain_base + "csdr shift_addition_cc {secondary_shift_pipe} | " + \
                 "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
                 "csdr simple_agc_cc 0.0001 0.5 | " + \
