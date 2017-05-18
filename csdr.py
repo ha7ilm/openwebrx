@@ -92,27 +92,17 @@ class dsp:
         if which == "fft":
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
-            return secondary_chain_base + ("csdr shift_addition_cc --fifo {secondary_shift_pipe} | " if 1 else "") + \
+            return secondary_chain_base + "csdr shift_addition_cc --fifo {secondary_shift_pipe} | " + \
+                    "csdr bandpass_fir_fft_cc $(csdr '=-(31.25)/{if_samp_rate}') $(csdr '=(31.25)/{if_samp_rate}') $(csdr '=31.25/{if_samp_rate}') | " + \
                     "csdr simple_agc_cc 0.001 0.5 | " + \
-                    "tee /tmp/iqtmp1 | " + \
-                    "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} --add_q | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr bpsk_costas_loop_cc $(csdr =2*pi/100) $(csdr =0.707) 7 |" + \
+                    "CSDR_FIXED_BUFSIZE=256 csdr tee /s/tr_input | " + \
+                    "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
+                    "CSDR_FIXED_BUFSIZE=1 csdr tee /s/costas_input | CSDR_FIXED_BUFSIZE=1 csdr bpsk_costas_loop_cc 0.1 0.707 --dd --output_combined /s/costas_error /s/costas_dphase /s/costas_nco | CSDR_FIXED_BUFSIZE=1 csdr tee /s/costas_output | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
-            #TODO digimodes:
-            """
-                    "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
-            return secondary_chain_base + "csdr shift_addition_cc {secondary_shift_pipe} | " + \
-                "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_transition_bw} HAMMING | " + \
-                "csdr simple_agc_cc 0.0001 0.5 | " + \
-                "csdr timing_recovery_cc EARLYLATE {secondary_samples_per_bits} --add_q | " + \
-                "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
-                "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
-                "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
-                "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
-            """
+            # "CSDR_FIXED_BUFSIZE=1 csdr bpsk_costas_loop_cc 0.3 0.707 |" + \
 
     def set_secondary_demodulator(self, what):
         self.secondary_demodulator = what
@@ -135,7 +125,7 @@ class dsp:
 
     def secondary_samples_per_bits(self):
         if self.secondary_demodulator == "bpsk31":
-            return int(round(self.if_samp_rate()/31.25))
+            return int(round(self.if_samp_rate()/31.25))&~3
         return 0
 
     def secondary_bw(self):
@@ -161,7 +151,8 @@ class dsp:
             secondary_decimation=self.secondary_decimation(), \
             secondary_samples_per_bits=self.secondary_samples_per_bits(), \
             secondary_bpf_cutoff=self.secondary_bpf_cutoff(), \
-            secondary_bpf_transition_bw=self.secondary_bpf_transition_bw()
+            secondary_bpf_transition_bw=self.secondary_bpf_transition_bw(), \
+            if_samp_rate=self.if_samp_rate()
             )
 
         print "[openwebrx-dsp-plugin:csdr] secondary command (fft) =", secondary_command_fft
