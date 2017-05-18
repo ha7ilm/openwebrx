@@ -97,12 +97,8 @@ class dsp:
                     "csdr simple_agc_cc 0.001 0.5 | " + \
                     "CSDR_FIXED_BUFSIZE=256 csdr tee /s/tr_input | " + \
                     "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr tee /s/costas_input | CSDR_FIXED_BUFSIZE=1 csdr bpsk_costas_loop_cc 0.1 0.707 --dd --output_combined /s/costas_error /s/costas_dphase /s/costas_nco | CSDR_FIXED_BUFSIZE=1 csdr tee /s/costas_output | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr realpart_cf | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr binary_slicer_f_u8 | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr differential_decoder_u8_u8 | " + \
+                    "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
-            # "CSDR_FIXED_BUFSIZE=1 csdr bpsk_costas_loop_cc 0.3 0.707 |" + \
 
     def set_secondary_demodulator(self, what):
         self.secondary_demodulator = what
