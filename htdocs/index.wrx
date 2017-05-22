@@ -103,7 +103,6 @@
                         <select id="openwebrx-secondary-demod-listbox" onchange="secondary_demod_listbox_changed();">
                             <option value="none"></option>
                             <option value="bpsk31">BPSK31</option>
-                            <option value="rtty">RTTY</option>
                         </select>
                     </div>
                     <div class="openwebrx-panel-line">

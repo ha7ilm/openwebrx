@@ -164,13 +164,13 @@ class dsp:
         self.secondary_processes_running = True
 
         #open control pipes for csdr and send initialization data
-        print "==========> 1"
+        # print "==========> 1"
         if self.secondary_shift_pipe != None: #TODO digimodes
-            print "==========> 2", self.secondary_shift_pipe
+            # print "==========> 2", self.secondary_shift_pipe
             self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
-            print "==========> 3"
+            # print "==========> 3"
             self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
-            print "==========> 4"
+            # print "==========> 4"
 
         self.set_pipe_nonblocking(self.secondary_process_demod.stdout)
         self.set_pipe_nonblocking(self.secondary_process_fft.stdout)
