@@ -567,6 +567,7 @@ function mkenvelopes(visible_range) //called from mkscale
 	{
 		demodulators[i].envelope.draw(visible_range);
 	}
+    if(demodulators.length) secondary_demod_waterfall_set_zoom(demodulators[0].low_cut, demodulators[0].high_cut);
 }
 
 function demodulator_remove(which)
@@ -2471,4 +2472,24 @@ function secondary_demod_canvas_container_mouseup(evt)
 {
     if(evt.which==1) secondary_demod_mousedown=false;
     secondary_demod_update_channel_freq_from_event(evt);
+}
+
+
+function secondary_demod_waterfall_set_zoom(low_cut, high_cut)
+{
+    if(!secondary_demod || !secondary_demod_canvases_initialized) return;
+    if(low_cut<0 && high_cut<0)
+    {
+        [low_cut, high_cut] = [-high_cut, -low_cut];
+    }
+    else if(low_cut<0 && high_cut>0)
+    {
+        high_cut=Math.max(Math.abs(high_cut), Math.abs(low_cut));
+        low_cut=0;
+    }
+    var shown_bw = high_cut-low_cut;
+    var canvas_width = $(secondary_demod_canvas_container).width()  * (if_samp_rate/2)/shown_bw;
+    var canvas_left = -canvas_width*(low_cut/(if_samp_rate/2));
+    console.log("setzoom", canvas_width, canvas_left, low_cut, high_cut);
+    secondary_demod_canvases.map((x)=>{$(x).css("left",canvas_left+"px").css("width",canvas_width+"px");});
 }
