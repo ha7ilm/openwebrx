@@ -399,6 +399,7 @@ input[type=range]:focus::-ms-fill-upper
 	border-style: none;
 	image-rendering: crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
+    /*transition: left 200ms, width 200ms;*/
 }
 
 #openwebrx-phantom-canvas
@@ -831,6 +832,7 @@ img.openwebrx-mirror-img
 {
     position: absolute;
     pointer-events: none;
+    transition: width 500ms, left 500ms;
 }
 
 #openwebrx-secondary-demod-listbox

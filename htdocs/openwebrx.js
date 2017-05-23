@@ -2271,7 +2271,8 @@ function secondary_demod_init_canvases()
     secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
     secondary_demod_current_canvas_index=0;
     secondary_demod_canvases_initialized=true;
-    secondary_demod_update_channel_freq_from_event();
+    //secondary_demod_update_channel_freq_from_event();
+    mkscale(); //so that the secondary waterfall zoom level will be initialized
 }
 
 function secondary_demod_canvases_update_top()
@@ -2419,9 +2420,9 @@ function secondary_demod_listbox_update()
 secondary_demod_channel_freq=1000;
 function secondary_demod_update_marker()
 {
-    var width =  Math.max( (secondary_bw / (if_samp_rate/2)) * $(secondary_demod_canvas_container).width(), 5);
-    var center_at = (secondary_demod_channel_freq / (if_samp_rate/2)) * $(secondary_demod_canvas_container).width();
-    var left = center_at-width / 2;
+    var width =  Math.max( (secondary_bw / (if_samp_rate/2)) * secondary_demod_canvas_width, 5);
+    var center_at = (secondary_demod_channel_freq / (if_samp_rate/2)) * secondary_demod_canvas_width + secondary_demod_canvas_left;
+    var left = center_at-width/2;
     //console.log("sdum", width, left);
     $("#openwebrx-digimode-select-channel").width(width).css("left",left+"px") 
 }
@@ -2487,9 +2488,12 @@ function secondary_demod_waterfall_set_zoom(low_cut, high_cut)
         high_cut=Math.max(Math.abs(high_cut), Math.abs(low_cut));
         low_cut=0;
     }
+    secondary_demod_low_cut = low_cut;
+    secondary_demod_high_cut = high_cut;
     var shown_bw = high_cut-low_cut;
-    var canvas_width = $(secondary_demod_canvas_container).width()  * (if_samp_rate/2)/shown_bw;
-    var canvas_left = -canvas_width*(low_cut/(if_samp_rate/2));
-    console.log("setzoom", canvas_width, canvas_left, low_cut, high_cut);
-    secondary_demod_canvases.map((x)=>{$(x).css("left",canvas_left+"px").css("width",canvas_width+"px");});
+    secondary_demod_canvas_width = $(secondary_demod_canvas_container).width()  * (if_samp_rate/2)/shown_bw;
+    secondary_demod_canvas_left = -secondary_demod_canvas_width*(low_cut/(if_samp_rate/2));
+    //console.log("setzoom", secondary_demod_canvas_width, secondary_demod_canvas_left, low_cut, high_cut);
+    secondary_demod_canvases.map((x)=>{$(x).css("left",secondary_demod_canvas_left+"px").css("width",secondary_demod_canvas_width+"px");});
+    secondary_demod_update_channel_freq_from_event();
 }
