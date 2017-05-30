@@ -20,7 +20,7 @@ print "" # python2.7 is required to run OpenWebRX instead of python3. Please run
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-sw_version="v0.15"
+sw_version="v0.17"
 #0.15 (added nmux)
 
 import os
