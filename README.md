@@ -3,11 +3,11 @@ OpenWebRX
 
 OpenWebRX is a multi-user SDR receiver software with a web interface.
 
-![OpenWebRX](http://blog.sdr.hu/images/screenshot.png)
+![OpenWebRX](http://blog.sdr.hu/images/openwebrx/screenshot.png)
 
 Its 3D waterfall display looks like this:
 
-![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/screenshot-3d.gif)
+![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/openwebrx/screenshot-3d.gif)
 
 It has the following features:
 
@@ -41,7 +41,7 @@ It has the following features:
 
 [SDR.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
 
-![sdr.hu](http://blog.sdr.hu/images/screenshot-sdrhu.png)
+![sdr.hu](http://blog.sdr.hu/images/openwebrx/screenshot-sdrhu.png)
 
 ## Setup
 
