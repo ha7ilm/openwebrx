@@ -300,9 +300,9 @@ class dsp:
         return self.ddc_transition_bw_rate*(self.if_samp_rate()/float(self.samp_rate))
 
     def try_create_pipes(self, pipe_names, command_base):
-        print "try_create_pipes"
+        # print "try_create_pipes"
         for pipe_name in pipe_names:
-            print "\t"+pipe_name
+            # print "\t"+pipe_name
             if "{"+pipe_name+"}" in command_base:
                 setattr(self, pipe_name, self.pipe_base_path+pipe_name)
                 self.mkfifo(getattr(self, pipe_name))

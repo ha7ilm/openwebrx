@@ -3,7 +3,11 @@ OpenWebRX
 
 OpenWebRX is a multi-user SDR receiver software with a web interface.
 
-![OpenWebRX](/screenshot.png?raw=true)
+![OpenWebRX](http://blog.sdr.hu/images/screenshot.png)
+
+Its 3D waterfall display looks like this:
+
+![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/screenshot-3d.gif)
 
 It has the following features:
 
@@ -28,13 +32,16 @@ It has the following features:
 - OpenWebRX now supports URLs like: `http://localhost:8073/#freq=145555000,mod=usb`
 - UI improvements were made, thanks to John Seamons and Gnoxter.
 
-> When upgrading OpenWebRX, please make sure that you also upgrade *csdr*, and install the new dependency, *ncat*!
+**News (2017-05-30)**
+- OpenWebRX now has a BPSK31 demodulator and a 3D waterfall display.
+
+> When upgrading OpenWebRX, please make sure that you also upgrade *csdr*!
 
 ## OpenWebRX servers on SDR.hu
 
 [SDR.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
 
-![sdr.hu](/screenshot-sdrhu.png?raw=true)
+![sdr.hu](http://blog.sdr.hu/images/screenshot-sdrhu.png)
 
 ## Setup
 

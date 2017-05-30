@@ -2024,6 +2024,7 @@ function mathbox_init()
       controls: { klass: THREE.OrbitControls },
     });
     three = mathbox.three;
+    if(typeof three == "undefined") divlog("3D waterfall cannot be initialized because WebGL is not supported in your browser.", true);
 
     three.renderer.setClearColor(new THREE.Color(0x808080), 1.0);
 	mathbox_container.appendChild((mathbox_element=three.renderer.domElement));
@@ -2715,7 +2716,10 @@ function secondary_demod_waterfall_set_zoom(low_cut, high_cut)
     if(!secondary_demod || !secondary_demod_canvases_initialized) return;
     if(low_cut<0 && high_cut<0)
     {
-        [low_cut, high_cut] = [-high_cut, -low_cut];
+        var hctmp = high_cut;
+        var lctmp = low_cut;
+        low_cut = -hctmp;
+        low_cut = -lctmp;
     }
     else if(low_cut<0 && high_cut>0)
     {
