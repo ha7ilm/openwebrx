@@ -576,7 +576,7 @@ input[type=range]:focus::-ms-fill-upper
 
 .openwebrx-demodulator-button
 {
-	width: 35px;
+	width: 38px;
 	height: 19px;
 	font-size: 12pt;
 	text-align: center;
@@ -584,7 +584,7 @@ input[type=range]:focus::-ms-fill-upper
 
 .openwebrx-square-button img
 {
-	height: 30px;
+	height: 27px;
 }
 
 .openwebrx-round-button
@@ -748,7 +748,7 @@ img.openwebrx-mirror-img
 {
 	position: relative;
 	top: -2px;
-	width:91px;
+	width: 95px;
 }
 
 .openwebrx-sliderbtn-img
@@ -792,7 +792,7 @@ img.openwebrx-mirror-img
 	font-size: 10pt;
 	float: right;
 	margin-right: 5px;
-	margin-top: 29px;
+	margin-top: 24px;
 	font-family: 'expletus-sans-medium';
 }
 
@@ -843,7 +843,7 @@ img.openwebrx-mirror-img
 
 #openwebrx-secondary-demod-listbox
 {
-	width: 195px;
+	width: 201px;
 	height: 27px;
 	border-radius: 5px;
 	background-color: #373737;
