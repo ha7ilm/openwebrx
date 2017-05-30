@@ -129,9 +129,9 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #format_conversion="csdr convert_s16_f | csdr gain_ff 30"
 
 # >> /dev/urandom test signal source
-#samp_rate = 2400000
-#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
-#format_conversion="csdr convert_u8_f"
+samp_rate = 2400000
+start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
+format_conversion="csdr convert_u8_f"
 
 # >> Pre-recorded raw I/Q file as signal source
 # You will have to correctly specify: samp_rate, center_freq, format_conversion in order to correctly play an I/Q file.
@@ -190,9 +190,14 @@ waterfall_auto_level_margin = (5, 40)
 #   ___|____________________________________|____________________________________|____________________________________|___> signal power
 #        \_waterfall_auto_level_margin[0]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin[1]_/
 #                                                      current_max_power_level __|
-# ==== Experimental settings ===
 
-#Warning! These are very experimental.
+# 3D view settings
+mathbox_waterfall_frequency_resolution = 128 #bins
+mathbox_waterfall_history_length = 10 #seconds
+mathbox_waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
+
+# === Experimental settings ===
+#Warning! The settings below are very experimental.
 csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.

@@ -28,15 +28,19 @@
             var ws_url="%[WS_URL]";
             var rx_photo_height=%[RX_PHOTO_HEIGHT];
             var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
-            var starting_mod = "%[START_MOD]";
+			var starting_mod="%[START_MOD]";
             var starting_offset_frequency = %[START_OFFSET_FREQ];
             var waterfall_colors=%[WATERFALL_COLORS];
             var waterfall_min_level_default=%[WATERFALL_MIN_LEVEL];
             var waterfall_max_level_default=%[WATERFALL_MAX_LEVEL];
             var waterfall_auto_level_margin=%[WATERFALL_AUTO_LEVEL_MARGIN];
             var server_enable_digimodes=%[DIGIMODES_ENABLE];
+			var mathbox_waterfall_frequency_resolution=%[MATHBOX_WATERFALL_FRES];
+			var mathbox_waterfall_history_length=%[MATHBOX_WATERFALL_THIST];
+			var mathbox_waterfall_colors=%[MATHBOX_WATERFALL_COLORS];
         </script>
         <script src="sdr.js"></script>
+		<script src="mathbox-bundle.min.js"></script>
         <script src="openwebrx.js"></script>
         <script src="jquery-3.2.1.min.js"></script>
         <script src="jquery.nanoscroller.js"></script>
@@ -77,8 +81,8 @@
             <div id="openwebrx-scale-container">
                 <canvas id="openwebrx-scale-canvas" width="0" height="0"></canvas>
             </div>
+			<div id="openwebrx-mathbox-container"> </div>
             <div id="webrx-canvas-container">
-
                 <div id="openwebrx-phantom-canvas"></div>
                 <!-- add canvas here by javascript -->
             </div>
@@ -122,6 +126,8 @@
                         <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"> <img src="gfx/openwebrx-zoom-out.png" /></div>
                         <div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><img src="gfx/openwebrx-zoom-in-total.png" /></div>
                         <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><img src="gfx/openwebrx-zoom-out-total.png" /></div>
+						<div class="openwebrx-button openwebrx-square-button" onclick="mathbox_toggle();" title="Zoom out totally"><img src="gfx/openwebrx-3d-spectrum.png" /></div>
+						<div class="openwebrx-button openwebrx-square-button" onclick="mathbox_toggle();" title="Zoom out totally"><img src="gfx/openwebrx-3d-spectrum.png" /></div>
                         <div id="openwebrx-smeter-db">0 dB</div>
                     </div>
                     <div class="openwebrx-panel-line">

@@ -402,6 +402,12 @@ input[type=range]:focus::-ms-fill-upper
     /*transition: left 200ms, width 200ms;*/
 }
 
+#openwebrx-mathbox-container
+{
+	overflow: none;
+	display: none;
+}
+
 #openwebrx-phantom-canvas
 {
 	position: absolute;
@@ -536,7 +542,7 @@ input[type=range]:focus::-ms-fill-upper
 .openwebrx-button
 {
 	background-color: #373737;
-	padding: 5px;
+	padding: 4.2px;
 	border-radius: 5px;
 	-moz-border-radius: 5px;
 	color: White;
