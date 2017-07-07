@@ -5,18 +5,17 @@ OpenWebRX is a multi-user SDR receiver software with a web interface.
 
 ![OpenWebRX](http://blog.sdr.hu/images/openwebrx/screenshot.png)
 
-Its 3D waterfall display looks like this:
-
-![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/openwebrx/screenshot-3d.gif)
-
 It has the following features:
 
-- <a href="https://github.com/simonyiszk/csdr">libcsdr</a> based demodulators (AM/FM/SSB),
+- <a href="https://github.com/simonyiszk/csdr">csdr</a> based demodulators (AM/FM/SSB/CW/BPSK31),
 - filter passband can be set from GUI,
 - waterfall display can be shifted back in time,
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
-- currently supports RTL-SDR and HackRF; other SDR hardware may be easily added.
+- currently supports RTL-SDR, HackRF, and a lot of other SDR hardware, [see the full list here](https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support),
+- it has a 3D waterfall display:
+
+![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/openwebrx/screenshot-3d.gif)
 
 **News (2015-08-18)**
 - My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
@@ -32,7 +31,7 @@ It has the following features:
 - OpenWebRX now supports URLs like: `http://localhost:8073/#freq=145555000,mod=usb`
 - UI improvements were made, thanks to John Seamons and Gnoxter.
 
-**News (2017-05-30)**
+**News (2017-07-07)**
 - OpenWebRX now has a BPSK31 demodulator and a 3D waterfall display.
 
 > When upgrading OpenWebRX, please make sure that you also upgrade *csdr*!
