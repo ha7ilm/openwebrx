@@ -3,9 +3,9 @@
 """
 config_webrx: configuration options for OpenWebRX
 
-	This file is part of OpenWebRX,
-	an open-source SDR receiver software with a web UI.
-	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
+    This file is part of OpenWebRX,
+    an open-source SDR receiver software with a web UI.
+    Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -20,15 +20,15 @@ config_webrx: configuration options for OpenWebRX
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	In addition, as a special exception, the copyright holders
-	state that config_rtl.py and config_webrx.py are not part of the
-	Corresponding Source defined in GNU AGPL version 3 section 1.
+    In addition, as a special exception, the copyright holders
+    state that config_rtl.py and config_webrx.py are not part of the
+    Corresponding Source defined in GNU AGPL version 3 section 1.
 
-	(It means that you do not have to redistribute config_rtl.py and
-	config_webrx.py if you make any changes to these two configuration files,
-	and use them for running your web service with OpenWebRX.)
+    (It means that you do not have to redistribute config_rtl.py and
+    config_webrx.py if you make any changes to these two configuration files,
+    and use them for running your web service with OpenWebRX.)
 """
 
 # NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
@@ -67,18 +67,21 @@ sdrhu_key = ""
 sdrhu_public_listing = False
 
 # ==== DSP/RX settings ====
-dsp_plugin="csdr"
 fft_fps=9
 fft_size=4096 #Should be power of 2
 fft_voverlap_factor=0.3 #If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
 
-samp_rate = 250000
-center_freq = 145525000
+# samp_rate = 250000
+samp_rate = 2400000
+center_freq = 144250000
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
 ppm = 0
 
 audio_compression="adpcm" #valid values: "adpcm", "none"
 fft_compression="adpcm" #valid values: "adpcm", "none"
+
+digimodes_enable=True #Decoding digimodes come with higher CPU usage. 
+digimodes_fft_size=1024
 
 start_rtl_thread=True
 
@@ -104,7 +107,9 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
 format_conversion="csdr convert_u8_f"
 
-#start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l16 -a0 -q -r-".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+#lna_gain=8
+#rf_amp=1
+#start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm, rf_amp=rf_amp, lna_gain=lna_gain)
 #format_conversion="csdr convert_s8_f"
 """
 To use a HackRF, compile the HackRF host tools from its "stdout" branch:
@@ -127,9 +132,9 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 #format_conversion="csdr convert_s16_f | csdr gain_ff 30"
 
 # >> /dev/urandom test signal source
-#samp_rate = 2400000
-#start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
-#format_conversion="csdr convert_u8_f"
+# samp_rate = 2400000
+# start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
+# format_conversion="csdr convert_u8_f"
 
 # >> Pre-recorded raw I/Q file as signal source
 # You will have to correctly specify: samp_rate, center_freq, format_conversion in order to correctly play an I/Q file.
@@ -182,15 +187,20 @@ waterfall_auto_level_margin = (5, 40)
 ##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
 #Note: When the auto waterfall level button is clicked, the following happens:
-#	[waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
-#	[waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin[1]]
+#   [waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
+#   [waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin[1]]
 #
 #   ___|____________________________________|____________________________________|____________________________________|___> signal power
 #        \_waterfall_auto_level_margin[0]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin[1]_/
 #                                                      current_max_power_level __|
-# ==== Experimental settings ===
 
-#Warning! These are very experimental.
+# 3D view settings
+mathbox_waterfall_frequency_resolution = 128 #bins
+mathbox_waterfall_history_length = 10 #seconds
+mathbox_waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
+
+# === Experimental settings ===
+#Warning! The settings below are very experimental.
 csdr_dynamic_bufsize = False # This allows you to change the buffering mode of csdr.
 csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
