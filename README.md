@@ -12,7 +12,7 @@ It has the following features:
 - waterfall display can be shifted back in time,
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
-- currently supports RTL-SDR, HackRF, and a lot of other SDR hardware, [see the full list here](https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support),
+- currently supports RTL-SDR, HackRF, and a lot of other SDR hardware ([see the full list here](https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support)),
 - it has a 3D waterfall display:
 
 ![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/openwebrx/screenshot-3d.gif)
