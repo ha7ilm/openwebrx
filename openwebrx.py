@@ -457,7 +457,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         return
                     myclient.ws_started=True
                     #send default parameters
-                    rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients))
+                    rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} waterfall_auto_adjust={7} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients,cfg.waterfall_auto_adjust))
 
                     # ========= Initialize DSP =========
                     dsp=csdr.dsp()

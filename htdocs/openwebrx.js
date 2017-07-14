@@ -1249,6 +1249,9 @@ function on_ws_recv(evt)
 						smeter_level=parseFloat(param[1]);
 						setSmeterAbsoluteValue(smeter_level);
 						break;
+					case "waterfall_auto_adjust":
+					   waterfall_measure_minmax_now=(param[1]=="True")? true:false;
+						break;
 				}
 			}
 		/*}
