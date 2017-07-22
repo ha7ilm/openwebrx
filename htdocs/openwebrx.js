@@ -174,6 +174,15 @@ function updateWaterfallColors(which)
 	waterfall_min_level=parseInt(wfmin.value);
 	waterfall_max_level=parseInt(wfmax.value);
 }
+
+function waterfallColorsSet(min, max)
+{
+	waterfall_min_level=min;
+	waterfall_max_level=max;
+	e("openwebrx-waterfall-color-min").value=waterfall_min_level.toString();
+	e("openwebrx-waterfall-color-max").value=waterfall_max_level.toString();
+}
+
 function waterfallColorsDefault()
 {
 	waterfall_min_level=waterfall_min_level_default;
@@ -435,6 +444,14 @@ function demodulator_default_analog(offset_frequency,subtype)
 		this.low_cut=-4000;
 		this.high_cut=4000;
 	}
+	else if(subtype=="wspr")
+	{
+	   var WSPR_BFO = 750, WSPR_BW=375+50;
+		var hbw = Math.round(WSPR_BW/2);
+		this.low_cut=WSPR_BFO-hbw;
+		this.high_cut=WSPR_BFO+hbw;
+		this.server_mod="ssb";
+	}
 
 	this.wait_for_timer=false;
 	this.set_after=false;
@@ -567,7 +584,7 @@ function mkenvelopes(visible_range) //called from mkscale
 	{
 		demodulators[i].envelope.draw(visible_range);
 	}
-    if(demodulators.length) secondary_demod_waterfall_set_zoom(demodulators[0].low_cut, demodulators[0].high_cut);
+   if(demodulators.length && secondary_waterfall_zoom) secondary_demod_waterfall_set_zoom(demodulators[0].low_cut, demodulators[0].high_cut);
 }
 
 function demodulator_remove(which)
@@ -1139,6 +1156,7 @@ function audio_calculate_resampling(targetRate)
 
 debug_ws_data_received=0;
 max_clients_num=0;
+sdr_source='';
 
 var COMPRESS_FFT_PAD_N=10; //should be the same as in csdr.c
 
@@ -1169,7 +1187,12 @@ function on_ws_recv(evt)
 	{
 		//alert("Yupee! Doing FFT");
         //if(first4Chars=="FFTS") console.log("FFTS"); 
-		if(fft_compression=="none") waterfall_add_queue(new Float32Array(evt.data,4));
+		if(fft_compression=="none")
+		{
+			var waterfall_f32=new Float32Array(evt.data,4);
+         if(first4Chars=="FFTS") secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
+         else waterfall_add_queue(waterfall_f32);
+		}
 		else if(fft_compression="adpcm")
 		{
 			fft_codec.reset();
@@ -1186,6 +1209,11 @@ function on_ws_recv(evt)
         //secondary_demod_push_binary_data(new Uint8Array(evt.data,4));
         secondary_demod_push_data(arrayBufferToString(evt.data).substring(4));
         //console.log("DAT");
+	} 
+    else if(first4Chars=="HTML")
+    {
+        secondary_demod_push_HTML(arrayBufferToString(evt.data).substring(4));
+        //console.log("HTML");
 	} 
     else if(first3Chars=="MSG")
 	{
@@ -1216,6 +1244,7 @@ function on_ws_recv(evt)
 						break;
                     case "secondary_setup":
                         secondary_demod_init_canvases();
+                        secondary_demod_data_clear();
                         break;
                     case "if_samp_rate":
                         if_samp_rate=parseInt(param[1]);
@@ -1249,8 +1278,8 @@ function on_ws_recv(evt)
 						smeter_level=parseFloat(param[1]);
 						setSmeterAbsoluteValue(smeter_level);
 						break;
-					case "waterfall_auto_adjust":
-					   waterfall_measure_minmax_now=(param[1]=="True")? true:false;
+					case "sdr_source":
+						sdr_source=param[1];
 						break;
 				}
 			}
@@ -1719,6 +1748,20 @@ function waterfall_mkcolor(db_value, waterfall_colors_arg)
 	if(db_value>waterfall_max_level) db_value=waterfall_max_level;
 	full_scale=waterfall_max_level-waterfall_min_level;
 	relative_value=db_value-waterfall_min_level;
+	value_percent=relative_value/full_scale;
+	percent_for_one_color=1/(waterfall_colors_arg.length-1);
+	index=Math.floor(value_percent/percent_for_one_color);
+	remain=(value_percent-percent_for_one_color*index)/percent_for_one_color;
+	return color_between(waterfall_colors_arg[index+1],waterfall_colors_arg[index],remain);
+}
+
+function secondary_waterfall_mkcolor(db_value, waterfall_colors_arg, max_level, min_level)
+{
+	if(typeof waterfall_colors_arg === 'undefined') waterfall_colors_arg = waterfall_colors;
+	if(db_value<secondary_waterfall_min_level) db_value=secondary_waterfall_min_level;
+	if(db_value>secondary_waterfall_max_level) db_value=secondary_waterfall_max_level;
+	full_scale=secondary_waterfall_max_level-secondary_waterfall_min_level;
+	relative_value=db_value-secondary_waterfall_min_level;
 	value_percent=relative_value/full_scale;
 	percent_for_one_color=1/(waterfall_colors_arg.length-1);
 	index=Math.floor(value_percent/percent_for_one_color);
@@ -2457,6 +2500,11 @@ function demodulator_analog_replace_last() { demodulator_analog_replace(last_ana
 secondary_demod = false;
 secondary_demod_offset_freq = 0;
 secondary_demod_waterfall_queue = [];
+secondary_demod_canvas_container_height = 50;
+secondary_demod_show_marker = true;
+secondary_waterfall_zoom = true;
+secondary_waterfall_max_level = 0;
+secondary_waterfall_min_level = 0;
 
 function demodulator_digital_replace_last() 
 { 
@@ -2465,16 +2513,42 @@ function demodulator_digital_replace_last()
 }
 function demodulator_digital_replace(subtype)
 {
-    switch(subtype) 
-    {
-    case "bpsk31":
-    case "rtty":
-        secondary_demod_start(subtype);
-        demodulator_analog_replace('usb', true);
-        demodulator_buttons_update();
-        break;
-    }
-    toggle_panel("openwebrx-panel-digimodes", true);
+   secondary_demod_canvas_container_height = 50;
+   secondary_demod_show_marker = true;
+   secondary_waterfall_zoom = true;
+   secondary_waterfall_max_level = waterfall_max_level;
+   secondary_waterfall_min_level = waterfall_min_level;
+   $("#openwebrx-cursor-blink").show();
+   $("#openwebrx-digimode-status").hide();
+   
+   switch(subtype) 
+   {
+      case "bpsk31":
+      case "rtty":
+         secondary_demod_start(subtype);
+         demodulator_analog_replace('usb', true);
+         demodulator_buttons_update();
+         break;
+      case "wspr":
+         secondary_demod_canvas_container_height = 100;
+         secondary_demod_show_marker = false;
+         secondary_waterfall_zoom = false;
+         secondary_waterfall_max_level = 6;
+         secondary_waterfall_min_level = -33;
+         secondary_demod_start(subtype);
+         demodulator_analog_replace('wspr', true);
+         demodulator_buttons_update();
+         $("#openwebrx-cursor-blink").hide();
+         $("#openwebrx-digimode-status-text").empty();
+         $("#openwebrx-digimode-status").show();
+         $("#openwebrx-digimode-select-channel").css("opacity","0");
+         if (sdr_source == "IQ_file")
+            waterfallColorsSet(-145, -10);
+         zoom_max_level_hps = 1;
+         mkzoomlevels();
+         break;
+   }
+   toggle_panel("openwebrx-panel-digimodes", true);
 }
 
 function secondary_demod_create_canvas()
@@ -2497,6 +2571,7 @@ function secondary_demod_remove_canvases()
 
 function secondary_demod_init_canvases()
 {
+    $("#openwebrx-digimode-content-container").height(secondary_demod_canvas_container_height);
     secondary_demod_remove_canvases();
     secondary_demod_canvases=[];
     secondary_demod_canvases.push(secondary_demod_create_canvas());
@@ -2581,12 +2656,43 @@ function secondary_demod_push_data(x)
         if(y==" ") return "&nbsp;";
         return y;
     }).join("");
-    $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
+    $("#openwebrx-digimode-text").append("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
+}
+
+
+// Interesting issue: If you append a single-character-at-a-time to the innerHTML then the characters are
+// NOT evaluated for HTML tags. So we buffer up a string and append in one go when there is a line break.
+// Should probably also use a timeout to accomodate output without a line break.
+// This happens here because secondary_demod_push_HTML() is currently called with single character input.
+
+var secondary_demod_push_HTML_s = '';
+var wspr_status = [ "Idle", "Sync", "Running", "Decoding" ];
+var wspr_status_color = [ 'lightSkyBlue', 'violet', '#00aba6', '#ff6262' ];   // last two are OpenWebRX progress bar colors
+
+function secondary_demod_push_HTML(x)
+{
+   var update = (x == '\n');
+   x = x.replace(/\n/g, "<br />");
+   
+   var status = x.charCodeAt(0);
+   if (status >= 1 && status <= 4) {
+      $("#openwebrx-digimode-status-text").html(wspr_status[status-1]);
+      $("#openwebrx-digimode-status").css("background-color", wspr_status_color[status-1]);
+      return;
+   }
+   
+   secondary_demod_push_HTML_s += encodeURIComponent(x);
+   if (update) {
+      $("#openwebrx-digimode-HTML").append(decodeURIComponent(secondary_demod_push_HTML_s));
+      secondary_demod_push_HTML_s = '';
+   }
 }
 
 function secondary_demod_data_clear()
 {
-    $("#openwebrx-cursor-blink").prevAll().remove();
+    $("#openwebrx-digimode-text").empty();
+    $("#openwebrx-digimode-HTML").empty();
+    secondary_demod_push_HTML_s = '';
 }
 
 function secondary_demod_close_window()
@@ -2606,7 +2712,7 @@ function secondary_demod_waterfall_add(data)
 	var oneline_image = secondary_demod_current_canvas_context.createImageData(w,1);
 	for(x=0;x<w;x++)
 	{
-		var color=waterfall_mkcolor(data[x]+secondary_demod_fft_offset_db);
+		var color=secondary_waterfall_mkcolor(data[x]+secondary_demod_fft_offset_db);
 		for(i=0;i<4;i++) oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}
 
@@ -2644,6 +2750,9 @@ function secondary_demod_listbox_changed()
             break;
         case "rtty":
             demodulator_digital_replace('rtty');
+            break;
+        case "wspr":
+            demodulator_digital_replace('wspr');
             break;
     }
 }
@@ -2691,7 +2800,8 @@ function secondary_demod_update_channel_freq_from_event(evt)
 secondary_demod_mousedown=false;
 function secondary_demod_canvas_container_mousein()
 {
-    $("#openwebrx-digimode-select-channel").css("opacity","0.7"); //.css("border-width", "1px");
+   if (secondary_demod_show_marker)
+      $("#openwebrx-digimode-select-channel").css("opacity","0.7"); //.css("border-width", "1px");
 }
 
 function secondary_demod_canvas_container_mouseout()
