@@ -97,6 +97,8 @@ class dsp:
                 fractional_decimate = self.if_samp_rate()/375.0
                 integer_decimate = round(fractional_decimate)
                 if abs(fractional_decimate - integer_decimate) > 1e-15:
+                    # FIXME: fractional_decimator_cc doesn't exist yet (needs to be derived from fractional_decimator_ff)
+                    # so for now WSPR only works with the corresponding demo IQ sample file
                     secondary_chain_base += "csdr fractional_decimator_cc {decimate} | csdr wspr --fft {{iqtee2_pipe}} 1 ".format(decimate=fractional_decimate)
                     integer_decimate = 1
                 secondary_chain_base += "csdr wspr --fft {{iqtee2_pipe}} {decimate} ".format(decimate=integer_decimate)
