@@ -1,7 +1,7 @@
 OpenWebRX
 =========
 
-[:floppy_disk: Setup guide for Ubuntu](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html)  •  [:blue_book: Knowledge base on the Wiki](https://github.com/simonyiszk/openwebrx/wiki/)  •  [:earth_americas: Receivers on SDR.hu](http://sdr.hu/) 
+[:floppy_disk: Setup guide for Ubuntu](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html)  |  [:blue_book: Knowledge base on the Wiki](https://github.com/simonyiszk/openwebrx/wiki/)  |  [:earth_americas: Receivers on SDR.hu](http://sdr.hu/) 
 
 OpenWebRX is a multi-user SDR receiver software with a web interface.
 
