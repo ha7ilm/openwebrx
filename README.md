@@ -1,6 +1,8 @@
 OpenWebRX
 =========
 
+[[Setup guide for Ubuntu]](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html) 
+
 OpenWebRX is a multi-user SDR receiver software with a web interface.
 
 ![OpenWebRX](http://blog.sdr.hu/images/openwebrx/screenshot.png)
