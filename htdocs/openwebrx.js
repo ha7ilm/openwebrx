@@ -196,6 +196,7 @@ function updateShareLink(freq){
 
 }
 
+
 function zoomInOneStep ()  { zoom_set(zoom_level+1); }
 function zoomOutOneStep () { zoom_set(zoom_level-1); }
 function zoomInTotal ()    { zoom_set(zoom_levels.length-1); }
@@ -1867,6 +1868,7 @@ function add_canvas()
 	new_canvas.addEventListener("mouseup", canvas_mouseup, false);
 	new_canvas.addEventListener("mousedown", canvas_mousedown, false);
 	new_canvas.addEventListener("wheel",canvas_mousewheel, false);
+	
 	canvases.push(new_canvas);
 	
 	if (canvases.length > 30){
@@ -2313,7 +2315,39 @@ function openwebrx_init()
 	//Synchronise volume with slider
 	updateVolume();
 	waterfallColorsDefault();
+	
+	init_key_listener();
+}
 
+function init_key_listener(zEvent){
+	//https://stackoverflow.com/questions/37557990/detecting-combination-keypresses-control-alt-shift
+	document.addEventListener ("keydown", function (zEvent) {
+    if (zEvent.ctrlKey  &&  zEvent.altKey  &&  zEvent.code === "KeyE") {
+        console.log(zEvent);
+    }
+    
+    // shift and +
+    if ((zEvent.keyCode == "171" || zEvent.keyCode == "107") && zEvent.shiftKey){
+		freqstep(4);
+    }
+    
+    //shift and -
+    if ((zEvent.keyCode == "109" || zEvent.keyCode == "173") && zEvent.shiftKey){
+		freqstep(1);
+    }
+    
+    // - and not shift
+    if ((zEvent.keyCode == "109" || zEvent.keyCode == "173") &! zEvent.shiftKey){
+		freqstep(2);
+    }
+    
+    // + and not shift
+    if ((zEvent.keyCode == "171" || zEvent.keyCode == "107") &! zEvent.shiftKey){
+		freqstep(3);
+    }
+    
+    //console.log(zEvent);
+	} );
 }
 
 function iosPlayButtonClick()
