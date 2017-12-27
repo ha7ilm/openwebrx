@@ -89,7 +89,18 @@
             <div id="openwebrx-panels-container">
                 <div class="openwebrx-panel" id="openwebrx-panel-receiver" data-panel-name="client-params" data-panel-pos="right" data-panel-order="0" data-panel-size="259,115">
                     <div id="webrx-actual-freq">---.--- MHz</div>
+                    <div id="id-freq-link"></div>
                     <div id="webrx-mouse-freq">---.--- MHz</div>
+
+                    <div id="id-step-freq" class="bal">
+                        <img id="id-step-0" src="icons/stepdn.20.png" onclick="freqstep(0)" title="-5k">
+                        <img id="id-step-1" src="icons/stepdn.18.png" onclick="freqstep(1)" style="padding-bottom:1px" title="-100">
+                        <img id="id-step-2" src="icons/stepdn.16.png" onclick="freqstep(2)" style="padding-bottom:2px" title="-10">
+                        <img id="id-step-3" src="icons/stepup.16.png" onclick="freqstep(3)" style="padding-bottom:2px" title="+10">
+                        <img id="id-step-4" src="icons/stepup.18.png" onclick="freqstep(4)" style="padding-bottom:1px" title="+100">
+                        <img id="id-step-5" src="icons/stepup.20.png" onclick="freqstep(5)" title="+5k">
+                    </div>
+                    
                     <div class="openwebrx-panel-line">
                         <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-nfm" 
                             onclick="demodulator_analog_replace('nfm');">FM</div>

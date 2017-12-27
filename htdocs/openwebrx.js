@@ -20,6 +20,10 @@
 """
 
 */
+var base_url = window.location.origin;
+//console.log(base_url);
+var act_freq=0;
+
 
 is_firefox=navigator.userAgent.indexOf("Firefox")!=-1;
 
@@ -149,6 +153,49 @@ function toggleMute()
 	updateVolume();
 }
 
+function freqstep(sel){
+
+	stepsize = 0;
+	
+	switch(sel) {
+    case 0:
+        stepsize = -5000;
+        break;
+    case 1:
+        stepsize = -100;
+        break;
+    case 2:
+        stepsize = -10;
+        break;
+    case 3:
+        stepsize = 10;
+        break;
+    case 4:
+        stepsize = 100;
+        break;
+    case 5:
+        stepsize = 5000;
+        break;
+    default:
+        stepsize = 0;
+} 
+	
+	offset_frequency = parseInt(act_freq)-center_freq;
+	new_offset= offset_frequency + stepsize;
+	new_qrg = act_freq + stepsize;
+	demodulator_set_offset_frequency(0, new_offset);
+	e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",new_qrg,1e6,5);
+	updateShareLink(new_qrg);
+	act_freq = new_qrg;
+	}
+
+function updateShareLink(freq){
+	//console.log(freq);
+	var sqlSliderValue=parseInt(e("openwebrx-panel-squelch").value);
+	e("id-freq-link").innerHTML='<a href="'+base_url+'/#freq='+freq+',mod='+last_analog_demodulator_subtype+',sql='+sqlSliderValue+'" target="_blank" title="Share Settings"><img src="icons/link.png"></a>';
+
+}
+
 function zoomInOneStep ()  { zoom_set(zoom_level+1); }
 function zoomOutOneStep () { zoom_set(zoom_level-1); }
 function zoomInTotal ()    { zoom_set(zoom_levels.length-1); }
@@ -160,6 +207,7 @@ function updateSquelch()
 	var sliderValue=parseInt(e("openwebrx-panel-squelch").value);
 	var outputValue=(sliderValue==parseInt(e("openwebrx-panel-squelch").min))?0:getLinearSmeterValue(sliderValue);
 	ws.send("SET squelch_level="+outputValue.toString());
+	updateShareLink(act_freq);
 }
 
 function updateWaterfallColors(which)
@@ -544,7 +592,9 @@ function demodulator_default_analog(offset_frequency,subtype)
 		mkenvelopes(this.visible_range);
 		this.parent.set();
 		//will have to change this when changing to multi-demodulator mode:
-		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+this.parent.offset_frequency,1e6,4);
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+this.parent.offset_frequency,1e6,5);
+		act_freq=center_freq+this.parent.offset_frequency;
+		updateShareLink(act_freq);
 		return true;
 	};
 
@@ -601,6 +651,7 @@ function demodulator_analog_replace(subtype, for_digital)
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
+	updateShareLink(act_freq);
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -621,13 +672,57 @@ var scale_canvas;
 
 function scale_setup()
 {
-	e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(window.innerWidth/2),1e6,4);
+	act_freq=center_freq;
+	e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",act_freq,1e6,5);
+	updateShareLink(act_freq);
+
 	scale_canvas=e("openwebrx-scale-canvas");
 	scale_ctx=scale_canvas.getContext("2d");
 	scale_canvas.addEventListener("mousedown", scale_canvas_mousedown, false);
 	scale_canvas.addEventListener("mousemove", scale_canvas_mousemove, false);
 	scale_canvas.addEventListener("mouseup", scale_canvas_mouseup, false);
+	scale_canvas.addEventListener("wheel",scale_canvas_mousewheel, false);
 	resize_scale();
+}
+
+var scale_canvas_scroll_params={
+	key_modifiers: {shiftKey:false, altKey: false, ctrlKey: false}
+};
+
+
+function scale_canvas_mousewheel(evt)
+{
+	//if(!waterfall_setup_done) return;
+	
+	var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
+	var dir=(evt.deltaY/Math.abs(evt.deltaY))>0;
+	if (dir){ // scroll down on scale
+
+		if (evt.shiftKey){ // shift pressed
+			stepsize = -5000;
+		} else {
+			stepsize = -100; 
+		}
+	} else { // scroll up on scale
+		if (evt.shiftKey){ // shift pressed
+			stepsize = 5000;
+		} else {
+			stepsize = 100; 
+		}
+	}
+	//console.log(act_freq);
+	offset_frequency = parseInt(act_freq)-center_freq;
+	new_offset= offset_frequency + stepsize;
+	//console.log(new_offset);
+	if (Math.abs(new_offset) < bandwidth/2){ // don't tune out of range
+		
+		new_qrg = act_freq + stepsize
+		demodulator_set_offset_frequency(0, new_offset);
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",new_qrg,1e6,5);
+		updateShareLink(new_qrg);
+		act_freq = new_qrg;
+	}
+	evt.preventDefault(); 
 }
 
 var scale_canvas_drag_params={
@@ -685,7 +780,13 @@ function scale_canvas_end_drag(x)
 	var event_handled=false;
 	for (var i=0;i<demodulators.length;i++) event_handled|=demodulators[i].envelope.drag_end(x);
 	//console.log(event_handled);
-	if (!event_handled) demodulator_set_offset_frequency(0,scale_offset_freq_from_px(x));
+	if (!event_handled) {
+		demodulator_set_offset_frequency(0,scale_offset_freq_from_px(x));
+		new_qrg = parseInt(center_freq + scale_offset_freq_from_px(x));
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",new_qrg,1e6,5);
+		updateShareLink(new_qrg);
+		act_freq = new_qrg;
+	}
 }
 
 function scale_canvas_mouseup(evt)
@@ -993,7 +1094,9 @@ function canvas_mouseup(evt)
 	{
 		//ws.send("SET offset_freq="+canvas_get_freq_offset(relativeX).toString());
 		demodulator_set_offset_frequency(0, canvas_get_freq_offset(relativeX));
-		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,5);
+		act_freq=canvas_get_frequency(relativeX);
+		updateShareLink(act_freq);
 	}
 	else
 	{
@@ -1579,10 +1682,11 @@ function parsehash()
 			}
 			else if(harr[0]=="freq") 
 			{
-				console.log(parseInt(harr[1]));
-				console.log(center_freq);
+				//console.log(parseInt(harr[1]));
+				//console.log(center_freq);
 				starting_offset_frequency = parseInt(harr[1])-center_freq;
 			}
+			
 		});
 
 	}
@@ -1654,9 +1758,12 @@ function audio_init()
 	if(starting_offset_frequency)
 	{
 		demodulators[0].offset_frequency = starting_offset_frequency;
-		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+starting_offset_frequency,1e6,4);
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+starting_offset_frequency,1e6,5);
+		act_freq=center_freq+starting_offset_frequency;
+		updateShareLink(act_freq);
 		demodulators[0].set();
 		mkscale();
+		//console.log("start offset: " + starting_offset_frequency);
 	}
 
 	//hide log panel in a second (if user has not hidden it yet)
@@ -1761,6 +1868,16 @@ function add_canvas()
 	new_canvas.addEventListener("mousedown", canvas_mousedown, false);
 	new_canvas.addEventListener("wheel",canvas_mousewheel, false);
 	canvases.push(new_canvas);
+	
+	if (canvases.length > 30){
+        //Remove the canvases element
+        canvases.shift();
+        //Remove the actual image element?
+        var list = document.getElementById("webrx-canvas-container");
+        // Magic numbver 5 is apparently the bottommost canvas object
+        list.removeChild(list.childNodes[5]);
+	}
+	//console.log(canvases.length);
 }
 
 
@@ -1965,6 +2082,7 @@ function waterfall_add(data)
 	//Draw image
 	canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
 	shift_canvases();
+
 	if(canvas_actual_line<0) add_canvas();
 	}
 
@@ -2195,6 +2313,7 @@ function openwebrx_init()
 	//Synchronise volume with slider
 	updateVolume();
 	waterfallColorsDefault();
+
 }
 
 function iosPlayButtonClick()
@@ -2438,7 +2557,9 @@ function demodulator_buttons_update()
 		break;
 	}
 }
-function demodulator_analog_replace_last() { demodulator_analog_replace(last_analog_demodulator_subtype); }
+function demodulator_analog_replace_last() { 
+	demodulator_analog_replace(last_analog_demodulator_subtype); 
+	}
 
 /*
   _____  _       _                     _           
