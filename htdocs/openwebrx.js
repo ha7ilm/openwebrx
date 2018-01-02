@@ -770,6 +770,11 @@ function scale_canvas_mousemove(evt)
 		for (var i=0;i<demodulators.length;i++) event_handled|=demodulators[i].envelope.drag_move(evt.pageX);
 		if (!event_handled) demodulator_set_offset_frequency(0,scale_offset_freq_from_px(evt.pageX));
 	}
+	else
+	{
+		relativeX=(evt.offsetX)?evt.offsetX:evt.layerX; 
+		e("webrx-mouse-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
+	}
 
 }
 
