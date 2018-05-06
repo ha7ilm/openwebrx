@@ -26,8 +26,8 @@ def run(continuously=True):
     if not cfg.sdrhu_key: return 
     firsttime="(Your receiver is soon getting listed on sdr.hu!)"
     while True:
-        cmd = "wget --timeout=15 -4qO- http://sdr.hu/update --post-data \"url=http://"+cfg.server_hostname+":"+str(cfg.web_port)+"&apikey="+cfg.sdrhu_key+"\" 2>&1"
-        #print "[openwebrx-sdrhu]", cmd
+        cmd = "wget --timeout=15 -4qO- https://sdr.hu/update --post-data \"url=http://"+cfg.server_hostname+":"+str(cfg.web_port)+"&apikey="+cfg.sdrhu_key+"\" 2>&1"
+        print "[openwebrx-sdrhu]", cmd
         returned=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
         returned=returned[0]
         #print returned
