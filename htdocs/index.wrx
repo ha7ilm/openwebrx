@@ -58,7 +58,7 @@
         </div>
         <div id="webrx-top-bar-background" class="webrx-top-bar-parts"></div>
         <div id="webrx-top-bar" class="webrx-top-bar-parts">
-            <a href="http://openwebrx.org/" target="_blank"><img src="gfx/openwebrx-top-logo.png" id="webrx-top-logo" /></a>
+            <a href="https://sdr.hu/openwebrx" target="_blank"><img src="gfx/openwebrx-top-logo.png" id="webrx-top-logo" /></a>
             <a href="http://ha5kfu.sch.bme.hu/" target="_blank"><img src="gfx/openwebrx-ha5kfu-top-logo.png" id="webrx-ha5kfu-top-logo" /></a>
             <img id="webrx-rx-avatar-background" src="gfx/openwebrx-avatar-background.png" onclick="toggle_rx_photo();"/>
             <img id="webrx-rx-avatar" src="gfx/openwebrx-avatar.png" onclick="toggle_rx_photo();"/>

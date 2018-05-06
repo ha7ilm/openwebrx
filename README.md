@@ -20,7 +20,7 @@ It has the following features:
 ![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/openwebrx/screenshot-3d.gif)
 
 **News (2015-08-18)**
-- My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
+- My BSc. thesis written on OpenWebRX is <a href="https://sdr.hu/static/bsc-thesis.pdf">available here.</a>
 - Several bugs were fixed to improve reliability and stability.
 - OpenWebRX now supports compression of audio and waterfall stream, so the required network uplink bandwidth has been decreased from 2 Mbit/s to about 200 kbit/s per client! (Measured with the default settings. It is also dependent on `fft_size`.)
 - OpenWebRX now uses <a href="https://github.com/simonyiszk/csdr#sdrjs">sdr.js</a> (*libcsdr* compiled to JavaScript) for some client-side DSP tasks. 
