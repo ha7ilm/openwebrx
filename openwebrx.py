@@ -306,13 +306,16 @@ def spectrum_thread_function():
     print "[openwebrx-spectrum] Spectrum thread initialized successfully."
     dsp.start()
     if cfg.csdr_dynamic_bufsize:
-        dsp.read(8) #dummy read to skip bufsize & preamble
+        dsp.read_async(8) #dummy read to skip bufsize & preamble
         print "[openwebrx-spectrum] Note: CSDR_DYNAMIC_BUFSIZE_ON = 1"
     print "[openwebrx-spectrum] Spectrum thread started."
     bytes_to_read=int(dsp.get_fft_bytes_to_read())
     spectrum_thread_counter=0
     while True:
-        data=dsp.read(bytes_to_read)
+        data=dsp.read_async(bytes_to_read)
+        if data is None:
+            time.sleep(.01)
+            continue
         #print "gotcha",len(data),"bytes of spectrum data via spectrum_thread_function()"
         if spectrum_thread_counter >= cfg.fft_fps:
             spectrum_thread_counter=0

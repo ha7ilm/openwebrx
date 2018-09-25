@@ -26,7 +26,6 @@ import os
 import code
 import signal
 import fcntl
-import select
 
 class dsp:
 
@@ -394,6 +393,10 @@ class dsp:
         if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
         self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
+
+        #set stdout to non-blocking to avoid blocking the main loop when no audio was decoded in digital modes
+        self.set_pipe_nonblocking(self.process.stdout)
+
         self.running = True
 
         #open control pipes for csdr and send initialization data
@@ -419,9 +422,9 @@ class dsp:
         return self.process.stdout.read(size)
 
     def read_async(self, size):
-        if (select.select([self.process.stdout], [], [], 0)[0] != []):
+        try:
             return self.process.stdout.read(size)
-        else:
+        except IOError:
             return None
 
     def stop(self):
