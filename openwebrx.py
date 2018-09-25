@@ -480,16 +480,16 @@ class WebRXHandler(BaseHTTPRequestHandler):
                             print "[openwebrx-httpd:ws] client closed by other thread"
                             break
 
-						# ========= send audio =========
-						if dsp_initialized:
-							myclient.loopstat=10
-							temp_audio_data=dsp.read_async(256)
-							if (temp_audio_data is not None):
-								myclient.loopstat=11
-								rxws.send(self, temp_audio_data, "AUD ")
-							else:
-								#time.sleep((256.0 * 32) / 11025)
-								time.sleep(.01)
+                        # ========= send audio =========
+                        if dsp_initialized:
+                            myclient.loopstat=10
+                            temp_audio_data=dsp.read_async(256)
+                            if (temp_audio_data is not None):
+                                myclient.loopstat=11
+                                rxws.send(self, temp_audio_data, "AUD ")
+                            else:
+                                #time.sleep((256.0 * 32) / 11025)
+                                time.sleep(.01)
 
                         # ========= send spectrum =========
                         while not myclient.spectrum_queue.empty():
@@ -501,29 +501,29 @@ class WebRXHandler(BaseHTTPRequestHandler):
                             myclient.loopstat=21
                             rxws.send(self, spectrum_data[0],"FFT ")
 
-						# ========= send smeter_level =========
-						smeter_level=None
-						while True:
-							try:
-								myclient.loopstat=30
-								smeter_level=dsp.get_smeter_level()
-								if smeter_level == None: break
-							except:
-								break
-						if smeter_level!=None: 
-							myclient.loopstat=31
-							rxws.send(self, "MSG s={0}".format(smeter_level))
+                        # ========= send smeter_level =========
+                        smeter_level=None
+                        while True:
+                            try:
+                                myclient.loopstat=30
+                                smeter_level=dsp.get_smeter_level()
+                                if smeter_level == None: break
+                            except:
+                                break
+                        if smeter_level!=None:
+                            myclient.loopstat=31
+                            rxws.send(self, "MSG s={0}".format(smeter_level))
 
-						# ========= send metadata =========
-						metadata = None
-						while True:
-							try:
-								myclient.loopstat=35
-								metadata = dsp.get_metadata();
-								if metadata == None: break
-								rxws.send(self, "MET {0}".format(metadata.rstrip("\n")))
-							except:
-								break
+                        # ========= send metadata =========
+                        metadata = None
+                        while True:
+                            try:
+                                myclient.loopstat=35
+                                metadata = dsp.get_metadata();
+                                if metadata == None: break
+                                rxws.send(self, "MET {0}".format(metadata.rstrip("\n")))
+                            except:
+                                break
 
                         # ========= send bcastmsg =========
                         if myclient.bcastmsg!="":
