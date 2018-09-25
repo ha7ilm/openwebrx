@@ -26,6 +26,7 @@ import os
 import code
 import signal
 import fcntl
+import select
 
 class dsp:
 
@@ -59,7 +60,7 @@ class dsp:
         self.secondary_fft_size = 1024
         self.secondary_process_fft = None
         self.secondary_process_demod = None
-        self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "iqtee_pipe", "iqtee2_pipe"]
+        self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "meta_pipe", "iqtee_pipe", "iqtee2_pipe"]
         self.secondary_pipe_names=["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
 
@@ -247,7 +248,7 @@ class dsp:
         #to change this, restart is required
         self.samp_rate=samp_rate
         self.decimation=1
-        while self.samp_rate/(self.decimation+1)>self.output_rate:
+        while self.samp_rate/(self.decimation+1)>=self.output_rate:
             self.decimation+=1
         self.last_decimation=float(self.if_samp_rate())/self.output_rate
 
@@ -317,6 +318,10 @@ class dsp:
             line=self.smeter_pipe_file.readline()
             return float(line[:-1])
 
+    def get_metadata(self):
+        if self.running and self.meta_pipe:
+            return self.meta_pipe_file.readline()
+
     def mkfifo(self,path):
         try:
             os.unlink(path)
@@ -381,7 +386,7 @@ class dsp:
             last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), fft_averages=self.fft_averages, \
             bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port, \
-            squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe )
+            squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe )
 
         print "[openwebrx-dsp-plugin:csdr] Command =",command
         #code.interact(local=locals())
@@ -404,11 +409,20 @@ class dsp:
         if self.smeter_pipe != None:
             self.smeter_pipe_file=open(self.smeter_pipe,"r")
             self.set_pipe_nonblocking(self.smeter_pipe_file)
+        if self.meta_pipe != None:
+            self.meta_pipe_file=open(self.meta_pipe,"r")
+            self.set_pipe_nonblocking(self.meta_pipe_file)
 
         self.start_secondary_demodulator()
 
     def read(self,size):
         return self.process.stdout.read(size)
+
+    def read_async(self, size):
+        if (select.select([self.process.stdout], [], [], 0)[0] != []):
+            return self.process.stdout.read(size)
+        else:
+            return None
 
     def stop(self):
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
