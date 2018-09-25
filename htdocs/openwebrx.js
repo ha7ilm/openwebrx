@@ -1267,7 +1267,7 @@ function on_ws_recv(evt)
 		{
 			divlog("Received invalid message over WebSocket.");
 		}*/
-	} else if (firstChars=='MET')
+	} else if (first3Chars=='MET')
     {
         var stringData=arrayBufferToString(evt.data);
         var metaPanels = Array.prototype.filter.call(document.getElementsByClassName('openwebrx-panel'), function(el) {
