@@ -51,6 +51,7 @@ var audio_compression="none";
 var waterfall_setup_done=0;
 var waterfall_queue = [];
 var waterfall_timer;
+var secondary_fft_size;
 
 /*function fade(something,from,to,time_ms,fps)
 {
@@ -72,7 +73,8 @@ var rx_photo_state=1;
 
 function e(what) { return document.getElementById(what); }
 
-ios = /iPad|iPod|iPhone/.test(navigator.userAgent);
+ios = /iPad|iPod|iPhone|Chrome/.test(navigator.userAgent);
+is_chrome = /Chrome/.test(navigator.userAgent);
 //alert("ios="+ios.toString()+"  "+navigator.userAgent);
 
 function init_rx_photo()
@@ -183,8 +185,8 @@ function waterfallColorsDefault()
 
 function waterfallColorsAuto()
 {
-	e("openwebrx-waterfall-color-min").value=(waterfall_measure_minmax_min-20).toString();
-	e("openwebrx-waterfall-color-max").value=(waterfall_measure_minmax_max+30).toString();
+	e("openwebrx-waterfall-color-min").value=(waterfall_measure_minmax_min-waterfall_auto_level_margin[0]).toString();
+	e("openwebrx-waterfall-color-max").value=(waterfall_measure_minmax_max+waterfall_auto_level_margin[1]).toString();
 	updateWaterfallColors(0);
 }
 
@@ -559,6 +561,7 @@ function demodulator_default_analog(offset_frequency,subtype)
 
 	this.envelope.drag_end=function(x)
 	{ //in this demodulator we've already changed values in the drag_move() function so we shouldn't do too much here.
+		demodulator_buttons_update();
 		to_return=this.dragged_range!=demodulator.draggable_ranges.none; //this part is required for cliking anywhere on the scale to set offset
 		this.dragged_range=demodulator.draggable_ranges.none;
 		return to_return;
@@ -575,6 +578,7 @@ function mkenvelopes(visible_range) //called from mkscale
 	{
 		demodulators[i].envelope.draw(visible_range);
 	}
+    if(demodulators.length) secondary_demod_waterfall_set_zoom(demodulators[0].low_cut, demodulators[0].high_cut);
 }
 
 function demodulator_remove(which)
@@ -589,8 +593,17 @@ function demodulator_add(what)
 	mkenvelopes(get_visible_freq_range());
 }
 
-function demodulator_analog_replace(subtype)
+last_analog_demodulator_subtype = 'nfm';
+last_digital_demodulator_subtype = 'bpsk31';
+
+function demodulator_analog_replace(subtype, for_digital)
 { //this function should only exist until the multi-demodulator capability is added
+    if(!(typeof for_digital !== "undefined" && for_digital && secondary_demod)) 
+    { 
+        secondary_demod_close_window(); 
+        secondary_demod_listbox_update(); 
+    }
+    last_analog_demodulator_subtype = subtype;
 	var temp_offset=0;
 	if(demodulators.length)
 	{
@@ -598,6 +611,7 @@ function demodulator_analog_replace(subtype)
 		demodulator_remove(0);
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
+	demodulator_buttons_update();
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1028,7 +1042,7 @@ function canvas_mousewheel(evt)
 
 
 zoom_max_level_hps=33; //Hz/pixel
-zoom_levels_count=5;
+zoom_levels_count=14;
 
 function get_zoom_coeff_from_hps(hps)
 {
@@ -1050,8 +1064,10 @@ function mkzoomlevels()
 	zoom_levels=[1];
 	maxc=get_zoom_coeff_from_hps(zoom_max_level_hps);
 	if(maxc<1) return;
+	// logarithmic interpolation
+	zoom_ratio = Math.pow(maxc, 1/zoom_levels_count);
 	for(i=1;i<zoom_levels_count;i++)
-		zoom_levels.push(1+(maxc-1)*(i/(zoom_levels_count-1)));
+		zoom_levels.push(Math.pow(zoom_ratio, i));
 }
 
 function zoom_step(out, where, onscreen)
@@ -1063,7 +1079,7 @@ function zoom_step(out, where, onscreen)
 	zoom_center_rel=canvas_get_freq_offset(where);
 	//console.log("zoom_step || zlevel: "+zoom_level.toString()+" zlevel_val: "+zoom_levels[zoom_level].toString()+" zoom_center_rel: "+zoom_center_rel.toString());
 	zoom_center_where=onscreen;
-	console.log(zoom_center_where, zoom_center_rel, where);
+	//console.log(zoom_center_where, zoom_center_rel, where);
 	resize_canvases(true);
 	mkscale();
 }
@@ -1095,9 +1111,17 @@ function zoom_calc()
 function resize_waterfall_container(check_init)
 {
 	if(check_init&&!waterfall_setup_done) return;
-	canvas_container.style.height=(window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
-}
+	var numHeight;
+	mathbox_container.style.height=canvas_container.style.height=(numHeight=window.innerHeight-e("webrx-top-container").clientHeight-e("openwebrx-scale-container").clientHeight).toString()+"px";
+	if(mathbox)
+	{
+		//mathbox.three.camera.aspect = document.body.offsetWidth / numHeight;
+  		//mathbox.three.camera.updateProjectionMatrix();
+		mathbox.three.renderer.setSize(document.body.offsetWidth, numHeight);
+		console.log(document.body.offsetWidth, numHeight);
+	}
 
+}
 
 audio_server_output_rate=11025;
 audio_client_resampling_factor=4;
@@ -1134,14 +1158,15 @@ function on_ws_recv(evt)
 	if(!(evt.data instanceof ArrayBuffer)) { divlog("on_ws_recv(): Not ArrayBuffer received...",1); return; }
 	//
 	debug_ws_data_received+=evt.data.byteLength/1000;
-	firstChars=getFirstChars(evt.data,3);
-	if(firstChars=="CLI")
+	first4Chars=getFirstChars(evt.data,4);
+    first3Chars=first4Chars.slice(0,3);
+	if(first3Chars=="CLI")
 	{
 		var stringData=arrayBufferToString(evt.data);
-		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Acknowledged WebSocket connection: "+stringData);
+		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Server acknowledged WebSocket connection.");
 
 	}
-	if(firstChars=="AUD")
+	if(first3Chars=="AUD")
 	{
 		var audio_data;
 		if(audio_compression=="adpcm") audio_data=new Uint8Array(evt.data,4)
@@ -1149,11 +1174,12 @@ function on_ws_recv(evt)
 		audio_prepare(audio_data);
 		audio_buffer_current_size_debug+=audio_data.length;
 		audio_buffer_all_size_debug+=audio_data.length;
-		if(!ios && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
+		if(!(ios||is_chrome) && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
 	}
-	else if(firstChars=="FFT")
+	else if(first3Chars=="FFT")
 	{
 		//alert("Yupee! Doing FFT");
+        //if(first4Chars=="FFTS") console.log("FFTS"); 
 		if(fft_compression=="none") waterfall_add_queue(new Float32Array(evt.data,4));
 		else if(fft_compression="adpcm")
 		{
@@ -1162,9 +1188,17 @@ function on_ws_recv(evt)
 			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
 			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
 			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-			waterfall_add_queue(waterfall_f32);
+            if(first4Chars=="FFTS") secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
+            else waterfall_add_queue(waterfall_f32);
 		}
-	} else if(firstChars=="MSG")
+	} 
+    else if(first3Chars=="DAT")
+    {
+        //secondary_demod_push_binary_data(new Uint8Array(evt.data,4));
+        secondary_demod_push_data(arrayBufferToString(evt.data).substring(4));
+        //console.log("DAT");
+	} 
+    else if(first3Chars=="MSG")
 	{
 		/*try
 		{*/
@@ -1188,6 +1222,18 @@ function on_ws_recv(evt)
 					case "fft_size":
 						fft_size=parseInt(param[1]);
 						break;
+					case "secondary_fft_size":
+						secondary_fft_size=parseInt(param[1]);
+						break;
+                    case "secondary_setup":
+                        secondary_demod_init_canvases();
+                        break;
+                    case "if_samp_rate":
+                        if_samp_rate=parseInt(param[1]);
+                        break;
+                    case "secondary_bw":
+                        secondary_bw=parseFloat(param[1]);
+                        break;
 					case "fft_fps":
 						fft_fps=parseInt(param[1]);
 						break;
@@ -1336,8 +1382,10 @@ function divlog(what, is_error)
 		if(e("openwebrx-panel-log").openwebrxHidden) toggle_panel("openwebrx-panel-log"); //show panel if any error is present
 	}
 	e("openwebrx-debugdiv").innerHTML+=what+"<br />";
-	var wls=e("openwebrx-log-scroll");
-	wls.scrollTop=wls.scrollHeight; //scroll to bottom
+	//var wls=e("openwebrx-log-scroll");
+	//wls.scrollTop=wls.scrollHeight; //scroll to bottom
+    $(".nano").nanoScroller();
+    $(".nano").nanoScroller({ scroll: 'bottom' });
 }
 
 var audio_context;
@@ -1585,19 +1633,27 @@ function webrx_set_param(what, value)
 	ws.send("SET "+what+"="+value.toString());
 }
 
+var starting_mute = false;
+
 function parsehash()
 {
 	if(h=window.location.hash)
 	{
 		h.substring(1).split(",").forEach(function(x){
 			harr=x.split("=");
-			console.log(harr);
-			if(harr[0]=="mod") starting_mod = harr[1];
-			if(harr[0]=="sql") { e("openwebrx-panel-squelch").value=harr[1]; updateSquelch(); }
-			if(harr[0]=="freq") {
-			console.log(parseInt(harr[1]));
-			console.log(center_freq);
-			starting_offset_frequency = parseInt(harr[1])-center_freq;
+			//console.log(harr);
+			if(harr[0]=="mute") toggleMute();
+			else if(harr[0]=="mod") starting_mod = harr[1];
+			else if(harr[0]=="sql") 
+			{ 
+				e("openwebrx-panel-squelch").value=harr[1]; 
+				updateSquelch(); 
+			}
+			else if(harr[0]=="freq") 
+			{
+				console.log(parseInt(harr[1]));
+				console.log(center_freq);
+				starting_offset_frequency = parseInt(harr[1])-center_freq;
 			}
 		});
 
@@ -1638,6 +1694,9 @@ function audio_preinit()
 
 function audio_init()
 {
+    if(is_chrome) audio_context.resume()
+	if(starting_mute) toggleMute();
+
 	if(audio_client_resampling_factor==0) return; //if failed to find a valid resampling factor...
 
 	audio_debug_time_start=(new Date()).getTime();
@@ -1682,6 +1741,7 @@ function audio_init()
 			//window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
 		}
 	},2000);
+
 }
 
 function on_ws_closed()
@@ -1722,17 +1782,18 @@ function open_websocket()
 	ws.onerror = on_ws_error;
 }
 
-function waterfall_mkcolor(db_value)
+function waterfall_mkcolor(db_value, waterfall_colors_arg)
 {
+	if(typeof waterfall_colors_arg === 'undefined') waterfall_colors_arg = waterfall_colors;
 	if(db_value<waterfall_min_level) db_value=waterfall_min_level;
 	if(db_value>waterfall_max_level) db_value=waterfall_max_level;
 	full_scale=waterfall_max_level-waterfall_min_level;
 	relative_value=db_value-waterfall_min_level;
 	value_percent=relative_value/full_scale;
-	percent_for_one_color=1/(waterfall_colors.length-1);
+	percent_for_one_color=1/(waterfall_colors_arg.length-1);
 	index=Math.floor(value_percent/percent_for_one_color);
 	remain=(value_percent-percent_for_one_color*index)/percent_for_one_color;
-	return color_between(waterfall_colors[index+1],waterfall_colors[index],remain);
+	return color_between(waterfall_colors_arg[index+1],waterfall_colors_arg[index],remain);
 }
 
 function color_between(first, second, percent)
@@ -1755,7 +1816,7 @@ var canvas_phantom;
 
 function add_canvas()
 {
-	new_canvas = document.createElement("canvas");
+	var new_canvas = document.createElement("canvas");
 	new_canvas.width=fft_size;
 	new_canvas.height=canvas_default_height;
 	canvas_actual_line=canvas_default_height-1;
@@ -1780,9 +1841,11 @@ function add_canvas()
     }
 }
 
+
 function init_canvas_container()
 {
 	canvas_container=e("webrx-canvas-container");
+	mathbox_container=e("openwebrx-mathbox-container");
 	canvas_container.addEventListener("mouseout",canvas_container_mouseout, false);
 	//window.addEventListener("mouseout",window_mouseout,false);
 	//document.body.addEventListener("mouseup",body_mouseup,false);
@@ -1839,7 +1902,7 @@ function resize_canvases(zoom)
 function waterfall_init()
 {
 	init_canvas_container();
-	waterfall_timer = window.setInterval(waterfall_dequeue,900/fft_fps);
+	waterfall_timer = window.setInterval(()=>{waterfall_dequeue(); secondary_demod_waterfall_dequeue();},900/fft_fps);
 	resize_waterfall_container(false); /* then */ resize_canvases();
 	scale_setup();
 	mkzoomlevels();
@@ -1847,6 +1910,42 @@ function waterfall_init()
 }
 
 var waterfall_dont_scale=0;
+
+var mathbox_shift = function()
+{
+	if(mathbox_data_current_depth < mathbox_data_max_depth) mathbox_data_current_depth++;
+	if(mathbox_data_index+1>=mathbox_data_max_depth) mathbox_data_index = 0;
+	else mathbox_data_index++;
+	mathbox_data_global_index++;
+}
+
+var mathbox_clear_data = function()
+{
+	mathbox_data_index = 50;
+	mathbox_data_current_depth = 0;
+}
+
+//var mathbox_get_data_line = function(x) //x counts from 0 to mathbox_data_current_depth
+//{
+//	return (mathbox_data_max_depth + mathbox_data_index - mathbox_data_current_depth + x - 1) % mathbox_data_max_depth;
+//}
+//
+//var mathbox_data_index_valid = function(x) //x counts from 0 to mathbox_data_current_depth
+//{
+//	return x<mathbox_data_current_depth;
+//}
+
+var mathbox_get_data_line = function(x)
+{
+	return (mathbox_data_max_depth + mathbox_data_index + x - 1) % mathbox_data_max_depth;
+}
+
+var mathbox_data_index_valid = function(x)
+{
+	return x>mathbox_data_max_depth-mathbox_data_current_depth;
+}
+
+
 
 function waterfall_add(data)
 {
@@ -1924,6 +2023,14 @@ function waterfall_add(data)
 			waterfall_image.data[base+x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}*/
 
+	if(mathbox_mode==MATHBOX_MODES.WATERFALL)
+	{
+		//Handle mathbox
+		for(var i=0;i<fft_size;i++) mathbox_data[i+mathbox_data_index*fft_size]=data[i];
+		mathbox_shift();
+	}
+	else
+	{
 	//Add line to waterfall image
 	oneline_image = canvas_context.createImageData(w,1);
 	for(x=0;x<w;x++)
@@ -1933,13 +2040,13 @@ function waterfall_add(data)
 			oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}
 
-
 	//Draw image
 	canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
 	shift_canvases();
 	if(canvas_actual_line<0) add_canvas();
+	}
 
-	//divlog("Drawn FFT");
+
 }
 
 /*
@@ -1969,6 +2076,180 @@ function check_top_bar_congestion()
 
 }
 
+var MATHBOX_MODES =
+{
+	UNINITIALIZED: 0,
+	NONE: 1,
+	WATERFALL: 2,
+	CONSTELLATION: 3
+};
+var mathbox_mode = MATHBOX_MODES.UNINITIALIZED;
+var mathbox;
+var mathbox_element;
+
+function mathbox_init()
+{
+	//mathbox_waterfall_history_length is defined in the config
+	mathbox_data_max_depth = fft_fps * mathbox_waterfall_history_length; //how many lines can the buffer store
+	mathbox_data_current_depth = 0; //how many lines are in the buffer currently
+	mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
+	mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
+	mathbox_data_global_index = 0;
+	mathbox_correction_for_z = 0;
+
+	mathbox = mathBox({
+      plugins: ['core', 'controls', 'cursor', 'stats'],
+      controls: { klass: THREE.OrbitControls },
+    });
+    three = mathbox.three;
+    if(typeof three == "undefined") divlog("3D waterfall cannot be initialized because WebGL is not supported in your browser.", true);
+
+    three.renderer.setClearColor(new THREE.Color(0x808080), 1.0);
+	mathbox_container.appendChild((mathbox_element=three.renderer.domElement));
+    view = mathbox
+    .set({
+      scale: 1080,
+      focus: 3,
+    })
+    .camera({
+      proxy: true,
+      position: [-2, 1, 3],
+    })
+    .cartesian({
+      range: [[-1, 1], [0, 1], [0, 1]],
+      scale: [2, 2/3, 1],
+    });
+
+    view.axis({
+      axis: 1,
+      width: 3,
+	  color: "#fff",
+  });
+    view.axis({
+      axis: 2,
+      width: 3,
+	  color: "#fff",
+	  //offset: [0, 0, 0],
+  });
+    view.axis({
+      axis: 3,
+      width: 3,
+	  color: "#fff",
+  });
+
+    view.grid({
+      width: 2,
+      opacity: 0.5,
+      axes: [1, 3],
+      zOrder: 1,
+	  color: "#fff",
+    });
+
+    //var remap = function (v) { return Math.sqrt(.5 + .5 * v); };
+
+
+	var remap = function(x,z,t)
+	{
+		var currentTimePos = mathbox_data_global_index/(fft_fps*1.0);
+		var realZAdd = (-(t-currentTimePos)/mathbox_waterfall_history_length);
+		var zAdd = realZAdd - mathbox_correction_for_z;
+		if(zAdd<-0.2 || zAdd>0.2) { mathbox_correction_for_z = realZAdd; }
+
+		var xIndex = Math.trunc(((x+1)/2.0)*fft_size); //x: frequency
+		var zIndex = Math.trunc(z*(mathbox_data_max_depth-1)); //z: time
+		var realZIndex = mathbox_get_data_line(zIndex);
+		if(!mathbox_data_index_valid(zIndex)) return {y: undefined, dBValue: undefined, zAdd: 0 };
+		//if(realZIndex>=(mathbox_data_max_depth-1)) console.log("realZIndexundef", realZIndex, zIndex);
+		var index = Math.trunc(xIndex + realZIndex * fft_size);
+		/*if(mathbox_data[index]==undefined) console.log("Undef", index, mathbox_data.length, zIndex,
+				realZIndex, mathbox_data_max_depth,
+				mathbox_data_current_depth, mathbox_data_index);*/
+		var dBValue = mathbox_data[index];
+		//y=1;
+		if(dBValue>waterfall_max_level) y = 1;
+		else if(dBValue<waterfall_min_level) y = 0;
+		else y = (dBValue-waterfall_min_level)/(waterfall_max_level-waterfall_min_level);
+		mathbox_dbg = { dbv: dBValue, indexval: index, mbd: mathbox_data.length, yval: y };
+		if(!y) y=0;
+		return {y: y, dBValue: dBValue, zAdd: zAdd};
+	}
+
+    var points = view.area({
+      expr: function (emit, x, z, i, j, t) {
+		var y;
+		remapResult=remap(x,z,t);
+		if((y=remapResult.y)==undefined) return;
+        emit(x, y, z+remapResult.zAdd);
+      },
+      width:  mathbox_waterfall_frequency_resolution,
+      height: mathbox_data_max_depth - 1,
+      channels: 3,
+      axes: [1, 3],
+    });
+
+    var colors = view.area({
+      expr: function (emit, x, z, i, j, t) {
+		var dBValue;
+		if((dBValue=remap(x,z,t).dBValue)==undefined) return;
+		var color=waterfall_mkcolor(dBValue, mathbox_waterfall_colors);
+        var b = (color&0xff)/255.0;
+        var g = ((color&0xff00)>>8)/255.0;
+        var r = ((color&0xff0000)>>16)/255.0;
+        emit(r, g, b, 1.0);
+      },
+      width:  mathbox_waterfall_frequency_resolution,
+      height: mathbox_data_max_depth - 1,
+      channels: 4,
+      axes: [1, 3],
+    });
+
+    view.surface({
+      shaded: true,
+      points: '<<',
+      colors: '<',
+      color: 0xFFFFFF,
+    });
+
+    view.surface({
+      fill: false,
+      lineX: false,
+      lineY: false,
+      points: '<<',
+      colors: '<',
+      color: 0xFFFFFF,
+      width: 2,
+      blending: 'add',
+      opacity: .25,
+      zBias: 5,
+    });
+	mathbox_mode = MATHBOX_MODES.NONE;
+
+	//mathbox_element.style.width="100%";
+	//mathbox_element.style.height="100%";
+
+}
+
+function mathbox_toggle()
+{
+
+	if(mathbox_mode == MATHBOX_MODES.UNINITIALIZED) mathbox_init();
+	mathbox_mode = (mathbox_mode == MATHBOX_MODES.NONE) ? MATHBOX_MODES.WATERFALL : MATHBOX_MODES.NONE;
+	mathbox_container.style.display = (mathbox_mode == MATHBOX_MODES.WATERFALL) ? "block" : "none";
+	mathbox_clear_data();
+	waterfall_clear();
+}
+
+function waterfall_clear()
+{
+	while(canvases.length) //delete all canvases
+	{
+		var x=canvases.shift();
+		x.parentNode.removeChild(x);
+		delete x;
+	}
+	add_canvas();
+}
+
 function openwebrx_resize()
 {
 	resize_canvases();
@@ -1979,10 +2260,11 @@ function openwebrx_resize()
 
 function openwebrx_init()
 {
-	if(ios) e("openwebrx-big-grey").style.display="table-cell";
+	if(ios||is_chrome) e("openwebrx-big-grey").style.display="table-cell";
 	(opb=e("openwebrx-play-button-text")).style.marginTop=(window.innerHeight/2-opb.clientHeight/2).toString()+"px";
 	init_rx_photo();
 	open_websocket();
+    secondary_demod_init();
 	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
@@ -2076,9 +2358,14 @@ function pop_bottommost_panel(from)
 	return to_return;
 }
 
-function toggle_panel(what)
+function toggle_panel(what, on)
 {
-	var item=e(what);
+    var item=e(what);
+    if(typeof on !== "undefined") 
+    {
+        if(item.openwebrxHidden && !on) return;
+        if(!item.openwebrxHidden && on) return;
+    }
 	if(item.openwebrxDisableClick) return;
 	item.style.transitionDuration="599ms";
 	item.style.transitionDelay="0ms";
@@ -2167,6 +2454,7 @@ function place_panels(function_apply)
 		p.style.visibility="visible";
 		y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
 		if(function_apply) function_apply(p);
+        //console.log(p.id, y, p.openwebrxPanelTransparent);
 	}
 	y=hoffset;
 	while(right_col.length>0)
@@ -2175,7 +2463,7 @@ function place_panels(function_apply)
 		p.style.right=(e("webrx-canvas-container").offsetWidth-e("webrx-canvas-container").clientWidth).toString()+"px"; //get scrollbar width
 		p.style.bottom=y.toString()+"px";
 		p.style.visibility="visible";
-		y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
+        y+=p.openwebrxPanelHeight+((p.openwebrxPanelTransparent)?0:3)*panel_margin;
 		if(function_apply) function_apply(p);
 	}
 }
@@ -2198,4 +2486,332 @@ function progressbar_set(obj,val,text,over)
 	innerBar.style.backgroundColor=(over)?"#ff6262":"#00aba6";
 	if(innerText==null) return;
 	innerText.innerHTML=text;
+}
+
+function demodulator_buttons_update()
+{
+	$(".openwebrx-demodulator-button").removeClass("highlighted");
+    if(secondary_demod) $("#openwebrx-button-dig").addClass("highlighted");
+    else switch(demodulators[0].subtype)
+	{
+	case "nfm":
+		$("#openwebrx-button-nfm").addClass("highlighted");
+		break;
+	case "am":
+		$("#openwebrx-button-am").addClass("highlighted");
+		break;
+	case "lsb":
+	case "usb":
+	case "cw":
+		if(demodulators[0].high_cut-demodulators[0].low_cut<300)
+			$("#openwebrx-button-cw").addClass("highlighted");
+		else
+		{
+			if(demodulators[0].high_cut<0) 
+				$("#openwebrx-button-lsb").addClass("highlighted");
+			else if(demodulators[0].low_cut>0) 
+				$("#openwebrx-button-usb").addClass("highlighted");
+			else $("#openwebrx-button-lsb, #openwebrx-button-usb").addClass("highlighted");
+		}
+		break;
+	}
+}
+function demodulator_analog_replace_last() { demodulator_analog_replace(last_analog_demodulator_subtype); }
+
+/*
+  _____  _       _                     _           
+ |  __ \(_)     (_)                   | |          
+ | |  | |_  __ _ _ _ __ ___   ___   __| | ___  ___ 
+ | |  | | |/ _` | | '_ ` _ \ / _ \ / _` |/ _ \/ __|
+ | |__| | | (_| | | | | | | | (_) | (_| |  __/\__ \
+ |_____/|_|\__, |_|_| |_| |_|\___/ \__,_|\___||___/
+            __/ |                                  
+           |___/                                   
+*/
+
+secondary_demod = false;
+secondary_demod_offset_freq = 0;
+secondary_demod_waterfall_queue = [];
+
+function demodulator_digital_replace_last() 
+{ 
+    demodulator_digital_replace(last_digital_demodulator_subtype); 
+    secondary_demod_listbox_update();
+}
+function demodulator_digital_replace(subtype)
+{
+    switch(subtype) 
+    {
+    case "bpsk31":
+    case "rtty":
+        secondary_demod_start(subtype);
+        demodulator_analog_replace('usb', true);
+        demodulator_buttons_update();
+        break;
+    }
+    toggle_panel("openwebrx-panel-digimodes", true);
+}
+
+function secondary_demod_create_canvas()
+{
+	var new_canvas = document.createElement("canvas");
+	new_canvas.width=secondary_fft_size;
+	new_canvas.height=$(secondary_demod_canvas_container).height();
+	new_canvas.style.width=$(secondary_demod_canvas_container).width()+"px";
+	new_canvas.style.height=$(secondary_demod_canvas_container).height()+"px";
+    console.log(new_canvas.width, new_canvas.height, new_canvas.style.width, new_canvas.style.height);
+	secondary_demod_current_canvas_actual_line=new_canvas.height-1;
+	$(secondary_demod_canvas_container).children().last().before(new_canvas);
+    return new_canvas;
+}
+
+function secondary_demod_remove_canvases()
+{
+    $(secondary_demod_canvas_container).children("canvas").remove();
+}
+
+function secondary_demod_init_canvases()
+{
+    secondary_demod_remove_canvases();
+    secondary_demod_canvases=[];
+    secondary_demod_canvases.push(secondary_demod_create_canvas());
+    secondary_demod_canvases.push(secondary_demod_create_canvas());
+    secondary_demod_canvases[0].openwebrx_top=-$(secondary_demod_canvas_container).height();
+    secondary_demod_canvases[1].openwebrx_top=0;
+    secondary_demod_canvases_update_top();
+    secondary_demod_current_canvas_context = secondary_demod_canvases[0].getContext("2d");
+    secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
+    secondary_demod_current_canvas_index=0;
+    secondary_demod_canvases_initialized=true;
+    //secondary_demod_update_channel_freq_from_event();
+    mkscale(); //so that the secondary waterfall zoom level will be initialized
+}
+
+function secondary_demod_canvases_update_top()
+{
+    for(var i=0;i<2;i++) secondary_demod_canvases[i].style.top=secondary_demod_canvases[i].openwebrx_top+"px";
+}
+
+function secondary_demod_swap_canvases()
+{
+    console.log("swap");
+    secondary_demod_canvases[0+!secondary_demod_current_canvas_index].openwebrx_top-=$(secondary_demod_canvas_container).height()*2;
+    secondary_demod_current_canvas_index=0+!secondary_demod_current_canvas_index;
+    secondary_demod_current_canvas_context = secondary_demod_canvases[secondary_demod_current_canvas_index].getContext("2d");
+    secondary_demod_current_canvas_actual_line=$(secondary_demod_canvas_container).height()-1;
+}
+
+function secondary_demod_init()
+{
+    $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
+    secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
+    $(secondary_demod_canvas_container)
+        .mousemove(secondary_demod_canvas_container_mousemove)
+        .mouseup(secondary_demod_canvas_container_mouseup)
+        .mousedown(secondary_demod_canvas_container_mousedown)
+        .mouseenter(secondary_demod_canvas_container_mousein)
+        .mouseleave(secondary_demod_canvas_container_mouseout);
+}
+
+function secondary_demod_start(subtype) 
+{ 
+    secondary_demod_canvases_initialized = false;
+    ws.send("SET secondary_mod="+subtype); 
+    secondary_demod = subtype; 
+}
+
+function secondary_demod_set()
+{
+    ws.send("SET secondary_offset_freq="+secondary_demod_offset_freq.toString());
+}
+
+function secondary_demod_stop()
+{
+    ws.send("SET secondary_mod=off");
+    secondary_demod = false; 
+    secondary_demod_waterfall_queue = [];
+}
+
+function secondary_demod_waterfall_add_queue(x)
+{
+    secondary_demod_waterfall_queue.push(x);
+}
+
+function secondary_demod_push_binary_data(x)
+{
+    secondary_demod_push_data(Array.from(x).map( y => (y)?"1":"0" ).join(""));
+}
+
+function secondary_demod_push_data(x)
+{
+    x=Array.from(x).map((y)=>{
+        var c=y.charCodeAt(0);
+        if(y=="\r") return "&nbsp;";
+        if(y=="\n") return "&nbsp;";
+        //if(y=="\n") return "<br />";
+        if(c<32||c>126) return "";
+        if(y=="&") return "&amp;";
+        if(y=="<") return "&lt;";
+        if(y==">") return "&gt;";
+        if(y==" ") return "&nbsp;";
+        return y;
+    }).join("");
+    $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
+}
+
+function secondary_demod_data_clear()
+{
+    $("#openwebrx-cursor-blink").prevAll().remove();
+}
+
+function secondary_demod_close_window()
+{
+    secondary_demod_stop();
+    toggle_panel("openwebrx-panel-digimodes", false);
+}
+
+secondary_demod_fft_offset_db=30; //need to calculate that later
+
+function secondary_demod_waterfall_add(data)
+{
+    if(!secondary_demod) return;
+	var w=secondary_fft_size;
+
+	//Add line to waterfall image
+	var oneline_image = secondary_demod_current_canvas_context.createImageData(w,1);
+	for(x=0;x<w;x++)
+	{
+		var color=waterfall_mkcolor(data[x]+secondary_demod_fft_offset_db);
+		for(i=0;i<4;i++) oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
+	}
+
+	//Draw image
+	secondary_demod_current_canvas_context.putImageData(oneline_image, 0, secondary_demod_current_canvas_actual_line--);
+    secondary_demod_canvases.map((x)=>{x.openwebrx_top += 1;});
+    secondary_demod_canvases_update_top();
+	if(secondary_demod_current_canvas_actual_line<0) secondary_demod_swap_canvases();
+}
+
+var secondary_demod_canvases_initialized = false;
+
+function secondary_demod_waterfall_dequeue()
+{
+    if(!secondary_demod || !secondary_demod_canvases_initialized) return;
+	if(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(secondary_demod_waterfall_queue.shift());
+	if(secondary_demod_waterfall_queue.length>Math.max(fft_fps/2,20)) //in case of fft overflow
+	{
+		console.log("secondary waterfall overflow, queue length:", secondary_demod_waterfall_queue.length);
+		while(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(secondary_demod_waterfall_queue.shift());
+	}
+} 
+
+secondary_demod_listbox_updating = false;
+function secondary_demod_listbox_changed()
+{
+    if(secondary_demod_listbox_updating) return;
+    switch ($("#openwebrx-secondary-demod-listbox")[0].value)
+    {
+        case "none":
+            demodulator_analog_replace_last();
+            break;
+        case "bpsk31":
+            demodulator_digital_replace('bpsk31');
+            break;
+        case "rtty":
+            demodulator_digital_replace('rtty');
+            break;
+    }
+}
+
+function secondary_demod_listbox_update()
+{
+    secondary_demod_listbox_updating = true;
+    $("#openwebrx-secondary-demod-listbox").val((secondary_demod)?secondary_demod:"none");
+    console.log("update");
+    secondary_demod_listbox_updating = false;
+}
+
+secondary_demod_channel_freq=1000;
+function secondary_demod_update_marker()
+{
+    var width =  Math.max( (secondary_bw / (if_samp_rate/2)) * secondary_demod_canvas_width, 5);
+    var center_at = (secondary_demod_channel_freq / (if_samp_rate/2)) * secondary_demod_canvas_width + secondary_demod_canvas_left;
+    var left = center_at-width/2;
+    //console.log("sdum", width, left);
+    $("#openwebrx-digimode-select-channel").width(width).css("left",left+"px") 
+}
+
+secondary_demod_waiting_for_set = false;
+function secondary_demod_update_channel_freq_from_event(evt)
+{
+    if(typeof evt !== "undefined")
+    {
+        var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
+        secondary_demod_channel_freq=secondary_demod_low_cut + 
+            (relativeX/$(secondary_demod_canvas_container).width()) * (secondary_demod_high_cut-secondary_demod_low_cut);
+    }
+    //console.log("toset:", secondary_demod_channel_freq);
+    if(!secondary_demod_waiting_for_set)
+    {
+        secondary_demod_waiting_for_set = true;
+        window.setTimeout(()=>{
+            ws.send("SET secondary_offset_freq="+Math.floor(secondary_demod_channel_freq));
+            //console.log("doneset:", secondary_demod_channel_freq);
+            secondary_demod_waiting_for_set = false;
+        }, 50);
+    }
+    secondary_demod_update_marker();
+}
+
+secondary_demod_mousedown=false;
+function secondary_demod_canvas_container_mousein()
+{
+    $("#openwebrx-digimode-select-channel").css("opacity","0.7"); //.css("border-width", "1px");
+}
+
+function secondary_demod_canvas_container_mouseout()
+{
+    $("#openwebrx-digimode-select-channel").css("opacity","0");
+}
+
+function secondary_demod_canvas_container_mousemove(evt)
+{
+    if(secondary_demod_mousedown) secondary_demod_update_channel_freq_from_event(evt);
+}
+
+function secondary_demod_canvas_container_mousedown(evt)
+{
+    if(evt.which==1) secondary_demod_mousedown=true;
+}
+
+function secondary_demod_canvas_container_mouseup(evt)
+{
+    if(evt.which==1) secondary_demod_mousedown=false;
+    secondary_demod_update_channel_freq_from_event(evt);
+}
+
+
+function secondary_demod_waterfall_set_zoom(low_cut, high_cut)
+{
+    if(!secondary_demod || !secondary_demod_canvases_initialized) return;
+    if(low_cut<0 && high_cut<0)
+    {
+        var hctmp = high_cut;
+        var lctmp = low_cut;
+        low_cut = -hctmp;
+        low_cut = -lctmp;
+    }
+    else if(low_cut<0 && high_cut>0)
+    {
+        high_cut=Math.max(Math.abs(high_cut), Math.abs(low_cut));
+        low_cut=0;
+    }
+    secondary_demod_low_cut = low_cut;
+    secondary_demod_high_cut = high_cut;
+    var shown_bw = high_cut-low_cut;
+    secondary_demod_canvas_width = $(secondary_demod_canvas_container).width()  * (if_samp_rate/2)/shown_bw;
+    secondary_demod_canvas_left = -secondary_demod_canvas_width*(low_cut/(if_samp_rate/2));
+    //console.log("setzoom", secondary_demod_canvas_width, secondary_demod_canvas_left, low_cut, high_cut);
+    secondary_demod_canvases.map((x)=>{$(x).css("left",secondary_demod_canvas_left+"px").css("width",secondary_demod_canvas_width+"px");});
+    secondary_demod_update_channel_freq_from_event();
 }

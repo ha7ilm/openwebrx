@@ -1,21 +1,26 @@
 OpenWebRX
 =========
 
+[:floppy_disk: Setup guide for Ubuntu](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html)  |  [:blue_book: Knowledge base on the Wiki](https://github.com/simonyiszk/openwebrx/wiki/)  |  [:earth_americas: Receivers on SDR.hu](http://sdr.hu/) 
+
 OpenWebRX is a multi-user SDR receiver software with a web interface.
 
-![OpenWebRX](/screenshot.png?raw=true)
+![OpenWebRX](http://blog.sdr.hu/images/openwebrx/screenshot.png)
 
 It has the following features:
 
-- <a href="https://github.com/simonyiszk/csdr">libcsdr</a> based demodulators (AM/FM/SSB),
+- <a href="https://github.com/simonyiszk/csdr">csdr</a> based demodulators (AM/FM/SSB/CW/BPSK31),
 - filter passband can be set from GUI,
 - waterfall display can be shifted back in time,
-- it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;.
+- it extensively uses HTML5 features like WebSocket, Web Audio API, and &lt;canvas&gt;,
 - it works in Google Chrome, Chromium (above version 37) and Mozilla Firefox (above version 28),
-- currently supports RTL-SDR and HackRF; other SDR hardware may be easily added.
+- currently supports RTL-SDR, HackRF, SDRplay, AirSpy and many other devices, see the <a href="https://github.com/simonyiszk/openwebrx/wiki/">OpenWebRX Wiki</a>,
+- it has a 3D waterfall display:
+
+![OpenWebRX 3D waterfall](http://blog.sdr.hu/images/openwebrx/screenshot-3d.gif)
 
 **News (2015-08-18)**
-- My BSc. thesis written on OpenWebRX is <a href="http://openwebrx.org/bsc-thesis.pdf">available here.</a>
+- My BSc. thesis written on OpenWebRX is <a href="https://sdr.hu/static/bsc-thesis.pdf">available here.</a>
 - Several bugs were fixed to improve reliability and stability.
 - OpenWebRX now supports compression of audio and waterfall stream, so the required network uplink bandwidth has been decreased from 2 Mbit/s to about 200 kbit/s per client! (Measured with the default settings. It is also dependent on `fft_size`.)
 - OpenWebRX now uses <a href="https://github.com/simonyiszk/csdr#sdrjs">sdr.js</a> (*libcsdr* compiled to JavaScript) for some client-side DSP tasks. 
@@ -28,13 +33,20 @@ It has the following features:
 - OpenWebRX now supports URLs like: `http://localhost:8073/#freq=145555000,mod=usb`
 - UI improvements were made, thanks to John Seamons and Gnoxter.
 
-> When upgrading OpenWebRX, please make sure that you also upgrade *csdr*, and install the new dependency, *ncat*!
+**News (2017-04-04)**
+- *ncat* has been replaced with a custom implementation called *nmux* due to a bug that caused regular crashes on some machines. The *nmux* tool is part of the *csdr* package.
+- Most consumer SDR devices are supported via <a href="https://github.com/rxseger/rx_tools">rx_tools</a>, see the <a href="https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX">OpenWebRX Wiki</a> on that.
+
+**News (2017-07-12)**
+- OpenWebRX now has a BPSK31 demodulator and a 3D waterfall display.
+
+> When upgrading OpenWebRX, please make sure that you also upgrade *csdr*!
 
 ## OpenWebRX servers on SDR.hu
 
 [SDR.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
 
-![sdr.hu](/screenshot-sdrhu.png?raw=true)
+![sdr.hu](http://blog.sdr.hu/images/openwebrx/screenshot-sdrhu.png)
 
 ## Setup
 
@@ -44,11 +56,6 @@ First you will need to install the dependencies:
 
 - <a href="https://github.com/simonyiszk/csdr">libcsdr</a>
 - <a href="http://sdr.osmocom.org/trac/wiki/rtl-sdr">rtl-sdr</a>
-- ncat (On Debian/Ubuntu, it is in the *nmap* package). 
-
-> By the way, *nmap* is a tool commonly used for auditing network security, and it is not used by OpenWebRX in any way. We need to install it, because the *ncat* command is packaged with it.
->
-> *ncat* is a better *netcat* alternative, which is used by OpenWebRX for internally distributing the I/Q data stream. It also solves the problem of having different versions of *netcat* on different Linux distributions, which are not compatible by their command-line arguments.
 
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 
@@ -62,7 +69,7 @@ Please note that the server is also listening on the following ports (on localho
 
 Now the next step is to customize the parameters of your server in `config_webrx.py`.
 
-Actually, if you do something cool with OpenWebRX (or just have a problem), please drop me a mail:  
+Actually, if you do something cool with OpenWebRX, please drop me a mail:  
 *Andras Retzler, HA7ILM &lt;randras@sdr.hu&gt;*
 
 ## Usage tips
@@ -85,4 +92,4 @@ If you want to run OpenWebRX on a remote server instead of *localhost*, do not f
 
 OpenWebRX is available under Affero GPL v3 license (<a href="https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)">summary</a>).
 
-OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for other licensing options. 
+OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for licensing options. 
