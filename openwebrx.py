@@ -655,6 +655,8 @@ class WebRXHandler(BaseHTTPRequestHandler):
                 return
             elif self.path in ("/status", "/status/"):
                 #self.send_header('Content-type','text/plain')
+                self.send_response(200)
+                self.end_headers()
                 getbands=lambda: str(int(cfg.shown_center_freq-cfg.samp_rate/2))+"-"+str(int(cfg.shown_center_freq+cfg.samp_rate/2))
                 self.wfile.write("status="+("inactive" if receiver_failed else "active")+"\nname="+cfg.receiver_name+"\nsdr_hw="+cfg.receiver_device+"\nop_email="+cfg.receiver_admin+"\nbands="+getbands()+"\nusers="+str(len(clients))+"\nusers_max="+str(cfg.max_clients)+"\navatar_ctime="+avatar_ctime+"\ngps="+str(cfg.receiver_gps)+"\nasl="+str(cfg.receiver_asl)+"\nloc="+cfg.receiver_location+"\nsw_version="+sw_version+"\nantenna="+cfg.receiver_ant+"\n")
                 print "[openwebrx-httpd] GET /status/ from",self.client_address[0]
