@@ -7,5 +7,7 @@ ADD . /openwebrx
 
 WORKDIR /openwebrx
 
-CMD python2.7 openwebrx.py 
+VOLUME /config
+
+ENTRYPOINT [ "/openwebrx/docker/run.sh" ]
 EXPOSE 8073
