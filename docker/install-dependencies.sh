@@ -1,11 +1,13 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
 
 cd /tmp
 
+STATIC_PACKAGES="sox libfftw3-dev python2.7 rtl-sdr netcat libitpp-dev libsndfile1-dev"
 BUILD_PACKAGES="git build-essential cmake"
 
-apt-get -y install $BUILD_PACKAGES
+apt-get update
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/simonyiszk/csdr.git
 cd csdr
@@ -44,6 +46,6 @@ make install
 cd ../..
 rm -rf dsd
 
-apt-get -y purge $BUILD_PACKAGES
-apt-get -y autoremove
+apt-get remove --purge --autoremove -y $BUILD_PACKAGES
+rm -rf /var/lib/apt/lists/*
 
