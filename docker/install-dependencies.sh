@@ -73,7 +73,7 @@ cmakebuild mbelib
 git clone https://github.com/jketterl/digiham.git
 cmakebuild digiham
 
-git clone https://github.com/szechyjs/dsd.git
+git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd
 
 apt-get remove --purge --autoremove -y $BUILD_PACKAGES
