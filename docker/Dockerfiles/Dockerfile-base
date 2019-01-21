@@ -1,6 +1,6 @@
 FROM raspbian/stretch
 
-ADD docker/install-dependencies.sh /
+ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh
 
 ADD . /openwebrx
@@ -9,5 +9,5 @@ WORKDIR /openwebrx
 
 VOLUME /config
 
-ENTRYPOINT [ "/openwebrx/docker/run.sh" ]
+ENTRYPOINT [ "/openwebrx/docker/scripts/run.sh" ]
 EXPOSE 8073
