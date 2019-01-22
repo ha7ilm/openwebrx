@@ -20,8 +20,17 @@ BUILD_PACKAGES="git build-essential cmake patch ca-certificates wget sudo udev"
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
-wget http://www.sdrplay.com/software/SDRplay_RSP_API-RPi-2.13.1.run 
-sh SDRplay_RSP_API-RPi-2.13.1.run --noexec --target sdrplay
+case $(arch) in
+  x86_64)
+    BINARY=SDRplay_RSP_API-Linux-2.13.1.run
+    ;;
+  armv*)
+    BINARY=SDRplay_RSP_API-RPi-2.13.1.run
+    ;;
+esac
+
+wget http://www.sdrplay.com/software/$BINARY
+sh $BINARY --noexec --target sdrplay
 patch -Np0 <<'EOF'
 --- sdrplay/install_lib.sh	2018-06-20 23:57:02.000000000 +0000
 +++ sdrplay/install_lib_patched.sh	2019-01-13 17:52:56.723838354 +0000
@@ -49,7 +58,7 @@ cd sdrplay
 ./install_lib.sh
 cd ..
 rm -rf sdrplay
-rm SDRplay_RSP_API-RPi-2.13.1.run
+rm $BINARY
 
 git clone https://github.com/pothosware/SoapySDR
 cmakebuild SoapySDR
@@ -60,6 +69,6 @@ cmakebuild SoapySDRPlay
 git clone https://github.com/rxseger/rx_tools
 cmakebuild rx_tools
 
-apt-get remove --purge --autoremove -y $BUILD_PACKAGES
+SUDO_FORCE_REMOVE=yes apt-get remove --purge --autoremove -y $BUILD_PACKAGES
 rm -rf /var/lib/apt/lists/*
 
