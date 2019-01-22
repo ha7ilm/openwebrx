@@ -6,8 +6,8 @@ function cmakebuild() {
   mkdir build
   cd build
   cmake ..
-  make 
-  sudo make install
+  make
+  make install
   cd ../..
   rm -rf $1
 }
@@ -15,7 +15,7 @@ function cmakebuild() {
 cd /tmp
 
 STATIC_PACKAGES="libusb-1.0.0-dev"
-BUILD_PACKAGES="git build-essential cmake patch"
+BUILD_PACKAGES="git build-essential cmake patch ca-certificates wget sudo udev"
 
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES

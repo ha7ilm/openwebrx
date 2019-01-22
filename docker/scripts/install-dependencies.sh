@@ -6,8 +6,8 @@ function cmakebuild() {
   mkdir build
   cd build
   cmake ..
-  make 
-  sudo make install
+  make
+  make install
   cd ../..
   rm -rf $1
 }
@@ -15,7 +15,7 @@ function cmakebuild() {
 cd /tmp
 
 STATIC_PACKAGES="sox libfftw3-dev python2.7 netcat libitpp-dev libsndfile1-dev"
-BUILD_PACKAGES="git build-essential cmake"
+BUILD_PACKAGES="git build-essential cmake ca-certificates"
 
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
