@@ -5,7 +5,7 @@ ARCH=$(uname -m)
 
 case $ARCH in
   x86_64)
-    BASE_IMAGE=debian:stretch
+    BASE_IMAGE=alpine
     ;;
   armv*)
     BASE_IMAGE=arm32v6/alpine

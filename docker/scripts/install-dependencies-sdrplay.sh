@@ -20,7 +20,7 @@ BUILD_PACKAGES="git cmake make patch wget sudo udev gcc g++ libusb-dev"
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
-case $(arch) in
+case $(uname -m) in
   x86_64)
     BINARY=SDRplay_RSP_API-Linux-2.13.1.run
     ;;
@@ -31,13 +31,13 @@ esac
 
 wget http://www.sdrplay.com/software/$BINARY
 sh $BINARY --noexec --target sdrplay
-patch -Np0 <<'EOF'
---- sdrplay/install_lib.sh	2018-06-20 23:57:02.000000000 +0000
-+++ sdrplay/install_lib_patched.sh	2019-01-13 17:52:56.723838354 +0000
-@@ -2,18 +2,6 @@
- 
+patch --verbose -Np0 <<'EOF'
+--- sdrplay/install_lib.sh	2018-06-21 01:57:02.000000000 +0200
++++ sdrplay/install_lib_patched.sh	2019-01-22 17:21:06.445804136 +0100
+@@ -2,19 +2,7 @@
+
  echo "Installing SDRplay RSP API library 2.13..."
- 
+
 -more sdrplay_license.txt
 -
 -while true; do
@@ -50,9 +50,28 @@ patch -Np0 <<'EOF'
 -    esac
 -done
 -
- export ARCH=`arch`
+-export ARCH=`arch`
++export ARCH=`uname -m`
  export VERS="2.13"
- 
+
+ echo "Architecture: ${ARCH}"
+@@ -60,16 +48,6 @@
+ 	echo " "
+ 	exit 1
+ fi
+-
+-if /sbin/ldconfig -p | /bin/fgrep -q libusb-1.0; then
+-	echo "Libusb found, continuing..."
+-else
+-	echo " "
+-	echo "ERROR: Libusb cannot be found. Please install libusb and then run"
+-	echo "the installer again. Libusb can be installed from http://libusb.info"
+-	echo " "
+-	exit 1
+-fi
+
+ #echo "Installing SoapySDRPlay..."
+
 EOF
 cd sdrplay
 ./install_lib.sh
