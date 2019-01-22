@@ -14,11 +14,11 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb-1.0.0-dev"
-BUILD_PACKAGES="git build-essential cmake patch ca-certificates wget sudo udev"
+STATIC_PACKAGES="libusb"
+BUILD_PACKAGES="git cmake make patch wget sudo udev gcc g++ libusb-dev"
 
-apt-get update
-apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
+apk add --no-cache $STATIC_PACKAGES
+apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 case $(arch) in
   x86_64)
@@ -69,6 +69,4 @@ cmakebuild SoapySDRPlay
 git clone https://github.com/rxseger/rx_tools
 cmakebuild rx_tools
 
-SUDO_FORCE_REMOVE=yes apt-get remove --purge --autoremove -y $BUILD_PACKAGES
-rm -rf /var/lib/apt/lists/*
-
+apk del .build-deps

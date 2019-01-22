@@ -1,6 +1,8 @@
 ARG BASE_IMAGE
 FROM $BASE_IMAGE
 
+RUN apk add --no-cache bash
+
 ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh
 

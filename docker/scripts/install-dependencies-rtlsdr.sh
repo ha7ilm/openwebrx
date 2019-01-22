@@ -1,9 +1,26 @@
 #!/bin/bash
 set -euxo pipefail
 
-apt-get update
-apt-get -y install --no-install-recommends rtl-sdr
+function cmakebuild() {
+  cd $1
+  mkdir build
+  cd build
+  cmake ..
+  make
+  make install
+  cd ../..
+  rm -rf $1
+}
 
-apt-get autoremove --purge -y
-rm -rf /var/lib/apt/lists/*
+cd /tmp
 
+STATIC_PACKAGES="libusb"
+BUILD_PACKAGES="git libusb-dev cmake make gcc musl-dev g++ linux-headers"
+
+apk add --no-cache $STATIC_PACKAGES
+apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
+
+git clone https://github.com/osmocom/rtl-sdr.git
+cmakebuild rtl-sdr
+
+apk del .build-deps

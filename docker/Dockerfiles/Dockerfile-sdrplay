@@ -1,4 +1,5 @@
-FROM openwebrx-base
+ARG ARCH
+FROM openwebrx-base:$ARCH
 
 ADD docker/scripts/install-dependencies-sdrplay.sh /
 RUN /install-dependencies-sdrplay.sh

@@ -1,4 +1,5 @@
-FROM openwebrx-base
+ARG ARCH
+FROM openwebrx-base:$ARCH
 
 ADD docker/scripts/install-dependencies-rtlsdr.sh /
 RUN /install-dependencies-rtlsdr.sh
