@@ -41,13 +41,7 @@ cd ..
 rm -rf sdrplay
 rm $BINARY
 
-git clone https://github.com/pothosware/SoapySDR
-cmakebuild SoapySDR
-
 git clone https://github.com/pothosware/SoapySDRPlay.git
 cmakebuild SoapySDRPlay
-
-git clone https://github.com/rxseger/rx_tools
-cmakebuild rx_tools
 
 apk del .build-deps
