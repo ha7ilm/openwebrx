@@ -26,7 +26,10 @@ import select
 import code
 
 class WebSocketException(Exception):
-    pass
+    def __init__(self, message):
+        self.msg_ = message
+    def __str__(self):
+        return self.msg_
 
 def handshake(myself):
     my_client_id=myself.path[4:]
@@ -38,8 +41,10 @@ def handshake(myself):
     #print h_key_exists("upgrade")
     #print h_value("upgrade")
     #print h_key_exists("sec-websocket-key")
-    if (not h_key_exists("upgrade")) or not (h_value("upgrade")=="websocket") or (not h_key_exists("sec-websocket-key")):
-        raise WebSocketException
+    # NB: WebSocket headers are case insensitive (RFC 6455, p19)
+    if (not h_key_exists("upgrade")) or not (h_value("upgrade").lower()=="websocket") or (not h_key_exists("sec-websocket-key")):
+        raise WebSocketException("Bad WebSocket handshake: upgrade={}, sec-websocket-key={}"
+                                 .format(h_value("upgrade"), h_value("sec-websocket-key")))
     ws_key=h_value("sec-websocket-key")
     ws_key_toreturn=base64.b64encode(sha.new(ws_key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").digest())
     #A sample list of keys we get: [('origin', 'http://localhost:8073'), ('upgrade', 'websocket'), ('sec-websocket-extensions', 'x-webkit-deflate-frame'), ('sec-websocket-version', '13'), ('host', 'localhost:8073'), ('sec-websocket-key', 't9J1rgy4fc9fg2Hshhnkmg=='), ('connection', 'Upgrade'), ('pragma', 'no-cache'), ('cache-control', 'no-cache')]
