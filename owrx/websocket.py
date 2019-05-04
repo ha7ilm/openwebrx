@@ -3,8 +3,9 @@ import hashlib
 import json
 
 class WebSocketConnection(object):
-    def __init__(self, handler):
+    def __init__(self, handler, messageHandler):
         self.handler = handler
+        self.messageHandler = messageHandler
         my_headers = self.handler.headers.items()
         my_header_keys = list(map(lambda x:x[0],my_headers))
         h_key_exists = lambda x:my_header_keys.count(x)
@@ -40,8 +41,35 @@ class WebSocketConnection(object):
         else:
             header = self.get_header(len(data), 2)
             self.handler.wfile.write(header)
-            self.handler.wfile.write(data.encode())
+            self.handler.wfile.write(data)
             self.handler.wfile.flush()
+
+    def read_loop(self):
+        open = True
+        while (open):
+            header = self.handler.rfile.read(2)
+            opcode = header[0] & 0x0F
+            length = header[1] & 0x7F
+            mask = (header[1] & 0x80) >> 7
+            if (length == 126):
+                header = self.handler.rfile.read(2)
+                length = (header[0] << 8) + header[1]
+            if (mask):
+                masking_key = self.handler.rfile.read(4)
+            data = self.handler.rfile.read(length)
+            print("opcode: {0}, length: {1}, mask: {2}".format(opcode, length, mask))
+            if (mask):
+                data = bytes([b ^ masking_key[index % 4] for (index, b) in enumerate(data)])
+            if (opcode == 1):
+                message = data.decode('utf-8')
+                self.messageHandler.handleTextMessage(self, message)
+            elif (opcode == 2):
+                self.messageHandler.handleBinaryMessage(self, data)
+            elif (opcode == 8):
+                open = False
+                self.messageHandler.handleClose(self)
+            else:
+                print("unsupported opcode: {0}".format(opcode))
 
 class WebSocketException(Exception):
     pass

@@ -21,3 +21,6 @@ class PropertyManager(object):
         if not name in self.properties:
             self.properties[name] = Property()
         return self.properties[name]
+
+    def getPropertyValue(self, name):
+        return self.getProperty(name).getValue()

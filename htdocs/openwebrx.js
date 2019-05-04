@@ -1184,6 +1184,25 @@ function on_ws_recv(evt)
 		}
     } else if (evt.data instanceof ArrayBuffer) {
         // binary messages
+        type = new Uint8Array(evt.data, 0, 1)[0]
+        data = evt.data.slice(1)
+
+        switch (type) {
+            case 1:
+                if (fft_compression=="none") {
+                    waterfall_add_queue(new Float32Array(data));
+                } else if (fft_compression == "adpcm") {
+                    fft_codec.reset();
+
+                    var waterfall_i16=fft_codec.decode(new Uint8Array(data));
+                    var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
+                    for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
+                    waterfall_add_queue(waterfall_f32);
+                }
+            break;
+            default:
+                console.warn('unknown type of binary message: ' + type)
+        }
     }
     return
 	if(!(evt.data instanceof ArrayBuffer)) { divlog("on_ws_recv(): Not ArrayBuffer received...",1); return; }
@@ -1656,8 +1675,8 @@ function audio_preinit()
 
 	audio_calculate_resampling(audio_context.sampleRate);
 	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
-	ws.send("SET output_rate="+audio_server_output_rate.toString()+" action=start"); //now we'll get AUD packets as well
 
+	ws.send(JSON.stringify({"type":"start","params":{"output_rate":audio_server_output_rate}}))
 }
 
 function audio_init()
@@ -1982,27 +2001,23 @@ function waterfall_add(data)
 			waterfall_image.data[base+x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}*/
 
-	if(mathbox_mode==MATHBOX_MODES.WATERFALL)
-	{
+	if (mathbox_mode==MATHBOX_MODES.WATERFALL) {
 		//Handle mathbox
 		for(var i=0;i<fft_size;i++) mathbox_data[i+mathbox_data_index*fft_size]=data[i];
 		mathbox_shift();
-	}
-	else
-	{
-	//Add line to waterfall image
-	oneline_image = canvas_context.createImageData(w,1);
-	for(x=0;x<w;x++)
-	{
-		color=waterfall_mkcolor(data[x]);
-		for(i=0;i<4;i++)
-			oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
-	}
+	} else {
+        //Add line to waterfall image
+        oneline_image = canvas_context.createImageData(w,1);
+        for (x=0;x<w;x++) {
+            color=waterfall_mkcolor(data[x]);
+            for(i=0;i<4;i++)
+                oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
+        }
 
-	//Draw image
-	canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
-	shift_canvases();
-	if(canvas_actual_line<0) add_canvas();
+        //Draw image
+        canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
+        shift_canvases();
+        if(canvas_actual_line<0) add_canvas();
 	}
 
 
