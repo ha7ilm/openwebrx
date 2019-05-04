@@ -1162,6 +1162,8 @@ function on_ws_recv(evt)
                         window.waterfall_auto_level_margin = config.waterfall_auto_level_margin;
                         waterfallColorsDefault();
 
+			            window.starting_mod = config.start_mod
+                        window.starting_offset_frequency = config.start_offset_frequency;
                         bandwidth = config.samp_rate;
                         center_freq = config.shown_center_freq;
                         fft_size = config.fft_size;

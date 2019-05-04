@@ -64,9 +64,11 @@ class WebSocketMessageHandler(object):
 
             for key in ["waterfall_colors", "waterfall_min_level", "waterfall_max_level", "waterfall_auto_level_margin",
                         "shown_center_freq", "samp_rate", "fft_size", "fft_fps", "audio_compression", "fft_compression",
-                        "max_clients"]:
+                        "max_clients", "start_mod"]:
 
-                config[key] = pm.getProperty(key).getValue()
+                config[key] = pm.getPropertyValue(key)
+
+            config["start_offset_freq"] = pm.getPropertyValue("start_freq") - pm.getPropertyValue("center_freq")
 
             conn.send({"type":"config","value":config})
             print("client connection intitialized")
