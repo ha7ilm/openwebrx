@@ -153,3 +153,6 @@ class DspThread(threading.Thread):
         self.dsp.stop()
         self.dsp.set_demodulator(mod)
         self.dsp.start()
+
+    def set_squelch_level(self, lvl):
+        self.dsp.set_squelch_level(lvl)
