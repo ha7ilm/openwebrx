@@ -1,4 +1,4 @@
-from owrx.controllers import StatusController, IndexController, AssetsController
+from owrx.controllers import StatusController, IndexController, AssetsController, WebSocketController
 from http.server import BaseHTTPRequestHandler
 import re
 
@@ -13,7 +13,8 @@ class Router(object):
     mappings = [
         {"route": "/", "controller": IndexController},
         {"route": "/status", "controller": StatusController},
-        {"regex": "/static/(.+)", "controller": AssetsController}
+        {"regex": "/static/(.+)", "controller": AssetsController},
+        {"route": "/ws/", "controller": WebSocketController}
     ]
     def find_controller(self, path):
         for m in Router.mappings:

@@ -22,23 +22,16 @@
 <html>
     <head>
         <title>OpenWebRX | Open Source SDR Web App for Everyone!</title>
-        <script type="text/javascript">
+        <!-- <script type="text/javascript">
             //Global variables
-            var client_id="%[CLIENT_ID]";
-            var ws_url="%[WS_URL]";
-            var rx_photo_height=%[RX_PHOTO_HEIGHT];
             var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
 			var starting_mod="%[START_MOD]";
             var starting_offset_frequency = %[START_OFFSET_FREQ];
-            var waterfall_colors=%[WATERFALL_COLORS];
-            var waterfall_min_level_default=%[WATERFALL_MIN_LEVEL];
-            var waterfall_max_level_default=%[WATERFALL_MAX_LEVEL];
-            var waterfall_auto_level_margin=%[WATERFALL_AUTO_LEVEL_MARGIN];
             var server_enable_digimodes=%[DIGIMODES_ENABLE];
 			var mathbox_waterfall_frequency_resolution=%[MATHBOX_WATERFALL_FRES];
 			var mathbox_waterfall_history_length=%[MATHBOX_WATERFALL_THIST];
 			var mathbox_waterfall_colors=%[MATHBOX_WATERFALL_COLORS];
-        </script>
+        </script> -->
         <script src="static/sdr.js"></script>
 		<script src="static/mathbox-bundle.min.js"></script>
         <script src="static/openwebrx.js"></script>

@@ -79,7 +79,8 @@ is_chrome = /Chrome/.test(navigator.userAgent);
 
 function init_rx_photo()
 {
-	e("webrx-top-photo-clip").style.maxHeight=rx_photo_height.toString()+"px";
+    var clip = e("webrx-top-photo-clip");
+	clip.style.maxHeight=clip.clientHeight+"px";
 	window.setTimeout(function() { animate(e("webrx-rx-photo-title"),"opacity","",1,0,1,500,30); },1000);
 	window.setTimeout(function() { animate(e("webrx-rx-photo-desc"),"opacity","",1,0,1,500,30); },1500);
 	window.setTimeout(function() { close_rx_photo() },2500);
@@ -1145,6 +1146,46 @@ var COMPRESS_FFT_PAD_N=10; //should be the same as in csdr.c
 
 function on_ws_recv(evt)
 {
+    if (typeof evt.data == 'string') {
+        // text messages
+		if (evt.data.substr(0, 16) == "CLIENT DE SERVER") {
+		    divlog("Server acknowledged WebSocket connection.");
+		} else {
+		    try {
+		        json = JSON.parse(evt.data)
+		        switch (json.type) {
+                    case "config":
+                        config = json.value;
+                        window.waterfall_colors = config.waterfall_colors;
+                        window.waterfall_min_level_default = config.waterfall_min_level;
+                        window.waterfall_max_level_default = config.waterfall_max_level;
+                        window.waterfall_auto_level_margin = config.waterfall_auto_level_margin;
+                        waterfallColorsDefault();
+
+                        bandwidth = config.samp_rate;
+                        center_freq = config.shown_center_freq;
+                        fft_size = config.fft_size;
+						fft_fps = config.fft_fps;
+						audio_compression = config.audio_compression;
+						divlog( "Audio stream is "+ ((audio_compression=="adpcm")?"compressed":"uncompressed")+"." )
+						fft_compression = config.fft_compression;
+						divlog( "FFT stream is "+ ((fft_compression=="adpcm")?"compressed":"uncompressed")+"." )
+						max_clients_num = config.max_clients;
+						waterfall_init();
+						audio_preinit();
+                    break;
+                    default:
+                        console.warn('received message of unknown type', json);
+		        }
+		    } catch (e) {
+		        // don't lose exception
+		        console.error(e)
+		    }
+		}
+    } else if (evt.data instanceof ArrayBuffer) {
+        // binary messages
+    }
+    return
 	if(!(evt.data instanceof ArrayBuffer)) { divlog("on_ws_recv(): Not ArrayBuffer received...",1); return; }
 	//
 	debug_ws_data_received+=evt.data.byteLength/1000;
@@ -1152,8 +1193,6 @@ function on_ws_recv(evt)
     first3Chars=first4Chars.slice(0,3);
 	if(first3Chars=="CLI")
 	{
-		var stringData=arrayBufferToString(evt.data);
-		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Server acknowledged WebSocket connection.");
 
 	}
 	if(first3Chars=="AUD")
@@ -1574,7 +1613,7 @@ function parsehash()
 			if(harr[0]=="mute") toggleMute();
 			else if(harr[0]=="mod") starting_mod = harr[1];
 			else if(harr[0]=="sql") 
-			{ 
+			{ config
 				e("openwebrx-panel-squelch").value=harr[1]; 
 				updateSquelch(); 
 			}
@@ -1692,14 +1731,10 @@ String.prototype.startswith=function(str){ return this.indexOf(str) == 0; }; //h
 
 function open_websocket()
 {
-	//if(ws_url.startswith("ws://localhost:")&&window.location.hostname!="127.0.0.1"&&window.location.hostname!="localhost")
-	//{
-		//divlog("Server administrator should set <em>server_hostname</em> correctly, because it is left as <em>\"localhost\"</em>. Now guessing hostname from page URL.",1);
-		ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/"; //guess automatically -> now default behaviour
-	//}
+    ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/"; //guess automatically -> now default behaviour
 	if (!("WebSocket" in window))
 		divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
-	ws = new WebSocket(ws_url+client_id);
+	ws = new WebSocket(ws_url);
 	ws.onopen = on_ws_opened;
 	ws.onmessage = on_ws_recv;
 	ws.onclose = on_ws_closed;
@@ -2196,7 +2231,7 @@ function openwebrx_init()
 
 	//Synchronise volume with slider
 	updateVolume();
-	waterfallColorsDefault();
+
 }
 
 function iosPlayButtonClick()
