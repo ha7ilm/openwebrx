@@ -1,8 +1,7 @@
 import mimetypes
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import SpectrumThread
-import csdr
+from owrx.source import SpectrumThread, DspThread
 import json
 
 class Controller(object):
@@ -52,6 +51,8 @@ class SpectrumForwarder(object):
         self.conn = conn
     def write_spectrum_data(self, data):
         self.conn.send(bytes([0x01]) + data)
+    def write_dsp_data(self, data):
+        self.conn.send(bytes([0x02]) + data)
 
 class WebSocketMessageHandler(object):
     def __init__(self):
@@ -64,7 +65,7 @@ class WebSocketMessageHandler(object):
 
             for key in ["waterfall_colors", "waterfall_min_level", "waterfall_max_level", "waterfall_auto_level_margin",
                         "shown_center_freq", "samp_rate", "fft_size", "fft_fps", "audio_compression", "fft_compression",
-                        "max_clients", "start_mod"]:
+                        "max_clients", "start_mod", "client_audio_buffer_size"]:
 
                 config[key] = pm.getPropertyValue(key)
 
@@ -73,29 +74,30 @@ class WebSocketMessageHandler(object):
             conn.send({"type":"config","value":config})
             print("client connection intitialized")
 
-            dsp = self.dsp = csdr.dsp()
-            dsp_initialized=False
-            dsp.set_audio_compression(pm.getPropertyValue("audio_compression"))
-            dsp.set_fft_compression(pm.getPropertyValue("fft_compression")) #used by secondary chains
-            dsp.set_format_conversion(pm.getPropertyValue("format_conversion"))
-            dsp.set_offset_freq(0)
-            dsp.set_bpf(-4000,4000)
-            dsp.set_secondary_fft_size(pm.getPropertyValue("digimodes_fft_size"))
-            dsp.nc_port=pm.getPropertyValue("iq_server_port")
-            dsp.csdr_dynamic_bufsize = pm.getPropertyValue("csdr_dynamic_bufsize")
-            dsp.csdr_print_bufsizes = pm.getPropertyValue("csdr_print_bufsizes")
-            dsp.csdr_through = pm.getPropertyValue("csdr_through")
-            do_secondary_demod=False
-
             self.forwarder = SpectrumForwarder(conn)
             SpectrumThread.getSharedInstance().add_client(self.forwarder)
+
+            self.dsp = DspThread(self.forwarder)
 
         else:
             try:
                 message = json.loads(message)
-                if message["type"] == "start":
-                    self.dsp.set_samp_rate(message["params"]["output_rate"])
-                    self.dsp.start()
+                if message["type"] == "dspcontrol":
+                    if "params" in message:
+                        params = message["params"]
+                        for key in params:
+                            methodname = "set_" + key
+                            if hasattr(self.dsp, methodname):
+                                method = getattr(self.dsp, methodname)
+                                if callable(method):
+                                    method(params[key])
+                                else:
+                                    print("method {0} is not callable".format(methodname))
+                            else:
+                                print("dsp has no method {0}".format(methodname))
+
+                    if "action" in message and message["action"] == "start":
+                        self.dsp.start()
             except json.JSONDecodeError:
                 print("message is not json: {0}".format(message))
 
@@ -105,6 +107,8 @@ class WebSocketMessageHandler(object):
     def handleClose(self, conn):
         if self.forwarder:
             SpectrumThread.getSharedInstance().remove_client(self.forwarder)
+        if self.dsp:
+            self.dsp.stop()
 
 class WebSocketController(Controller):
     def handle_request(self):

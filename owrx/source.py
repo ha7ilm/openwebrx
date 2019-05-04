@@ -99,3 +99,57 @@ class SpectrumThread(threading.Thread):
         print("shutting down spectrum thread")
         SpectrumThread.sharedInstance = None
         self.doRun = False
+
+class DspThread(threading.Thread):
+    def __init__(self, handler):
+        self.doRun = True
+        self.handler = handler
+
+        pm = PropertyManager.getSharedInstance()
+
+        self.dsp = csdr.dsp()
+        #dsp_initialized=False
+        self.dsp.set_audio_compression(pm.getPropertyValue("audio_compression"))
+        self.dsp.set_fft_compression(pm.getPropertyValue("fft_compression")) #used by secondary chains
+        self.dsp.set_format_conversion(pm.getPropertyValue("format_conversion"))
+        self.dsp.set_offset_freq(0)
+        self.dsp.set_bpf(-4000,4000)
+        self.dsp.set_secondary_fft_size(pm.getPropertyValue("digimodes_fft_size"))
+        self.dsp.nc_port=pm.getPropertyValue("iq_server_port")
+        self.dsp.csdr_dynamic_bufsize = pm.getPropertyValue("csdr_dynamic_bufsize")
+        self.dsp.csdr_print_bufsizes = pm.getPropertyValue("csdr_print_bufsizes")
+        self.dsp.csdr_through = pm.getPropertyValue("csdr_through")
+        self.dsp.set_samp_rate(pm.getPropertyValue("samp_rate"))
+        #do_secondary_demod=False
+        super().__init__()
+
+    def run(self):
+        self.dsp.start()
+        while (self.doRun):
+            data = self.dsp.read(256)
+            self.handler.write_dsp_data(data)
+
+    def stop(self):
+        self.doRun = False
+
+    def set_output_rate(self, samp_rate):
+        self.dsp.set_output_rate(samp_rate)
+
+    def set_low_cut(self, cut):
+        bpf = self.dsp.get_bpf()
+        bpf[0] = cut
+        self.dsp.set_bpf(*bpf)
+
+    def set_high_cut(self, cut):
+        bpf = self.dsp.get_bpf()
+        bpf[1] = cut
+        self.dsp.set_bpf(*bpf)
+
+    def set_offset_freq(self, freq):
+        self.dsp.set_offset_freq(freq)
+
+    def set_mod(self, mod):
+        if (self.dsp.get_demodulator() == mod): return
+        self.dsp.stop()
+        self.dsp.set_demodulator(mod)
+        self.dsp.start()

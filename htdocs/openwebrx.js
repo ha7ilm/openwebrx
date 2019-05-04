@@ -161,7 +161,7 @@ function updateSquelch()
 {
 	var sliderValue=parseInt(e("openwebrx-panel-squelch").value);
 	var outputValue=(sliderValue==parseInt(e("openwebrx-panel-squelch").min))?0:getLinearSmeterValue(sliderValue);
-	ws.send("SET squelch_level="+outputValue.toString());
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"squelch_level":outputValue}}));
 }
 
 function updateWaterfallColors(which)
@@ -461,9 +461,13 @@ function demodulator_default_analog(offset_frequency,subtype)
 
 	this.doset=function(first_time)
 	{  //this function sends demodulator parameters to the server
-		ws.send("SET"+((first_time)?" mod="+this.server_mod:"")+
-			" low_cut="+this.low_cut.toString()+" high_cut="+this.high_cut.toString()+
-			" offset_freq="+this.offset_frequency.toString());
+	    params = {
+	        "low_cut": this.low_cut,
+	        "high_cut": this.high_cut,
+	        "offset_freq": this.offset_frequency
+	    };
+	    if (first_time) params.mod = this.server_mod;
+	    ws.send(JSON.stringify({"type":"dspcontrol","params":params}));
 	}
 	this.doset(true); //we set parameters on object creation
 
@@ -1164,6 +1168,7 @@ function on_ws_recv(evt)
 
 			            window.starting_mod = config.start_mod
                         window.starting_offset_frequency = config.start_offset_frequency;
+                        window.audio_buffering_fill_to = config.client_audio_buffer_size;
                         bandwidth = config.samp_rate;
                         center_freq = config.shown_center_freq;
                         fft_size = config.fft_size;
@@ -1191,6 +1196,7 @@ function on_ws_recv(evt)
 
         switch (type) {
             case 1:
+                // FFT data
                 if (fft_compression=="none") {
                     waterfall_add_queue(new Float32Array(data));
                 } else if (fft_compression == "adpcm") {
@@ -1201,6 +1207,19 @@ function on_ws_recv(evt)
                     for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
                     waterfall_add_queue(waterfall_f32);
                 }
+            break;
+            case 2:
+                // audio data
+                var audio_data;
+                if (audio_compression=="adpcm") {
+                    audio_data = new Uint8Array(data);
+                } else {
+                    audio_data = new Int16Array(data);
+                }
+                audio_prepare(audio_data);
+                audio_buffer_current_size_debug += audio_data.length;
+                audio_buffer_all_size_debug += audio_data.length;
+                if (!(ios||is_chrome) && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
             break;
             default:
                 console.warn('unknown type of binary message: ' + type)
@@ -1619,7 +1638,9 @@ function audio_flush_notused()
 
 function webrx_set_param(what, value)
 {
-	ws.send("SET "+what+"="+value.toString());
+    params = {};
+    params[what] = value;
+	ws.send(JSON.stringify({"type":"dspcontrol","params":params}));
 }
 
 var starting_mute = false;
@@ -1678,7 +1699,7 @@ function audio_preinit()
 	audio_calculate_resampling(audio_context.sampleRate);
 	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
 
-	ws.send(JSON.stringify({"type":"start","params":{"output_rate":audio_server_output_rate}}))
+	ws.send(JSON.stringify({"type":"dspcontrol","action":"start","params":{"output_rate":audio_server_output_rate}}));
 }
 
 function audio_init()

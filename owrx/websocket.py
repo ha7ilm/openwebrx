@@ -20,7 +20,7 @@ class WebSocketConnection(object):
 
     def get_header(self, size, opcode):
         ws_first_byte = 0b10000000 | (opcode & 0x0F)
-        if(size>125):
+        if (size > 125):
             return bytes([ws_first_byte, 126, (size>>8) & 0xff, size & 0xff])
         else:
             # 256 bytes binary message in a single unmasked frame
@@ -34,14 +34,12 @@ class WebSocketConnection(object):
         # string-type messages are sent as text frames
         if (type(data) == str):
             header = self.get_header(len(data), 1)
-            self.handler.wfile.write(header)
-            self.handler.wfile.write(data.encode('utf-8'))
+            self.handler.wfile.write(header + data.encode('utf-8'))
             self.handler.wfile.flush()
         # anything else as binary
         else:
             header = self.get_header(len(data), 2)
-            self.handler.wfile.write(header)
-            self.handler.wfile.write(data)
+            self.handler.wfile.write(header + data)
             self.handler.wfile.flush()
 
     def read_loop(self):
