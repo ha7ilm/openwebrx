@@ -55,7 +55,6 @@ class WebSocketConnection(object):
             if (mask):
                 masking_key = self.handler.rfile.read(4)
             data = self.handler.rfile.read(length)
-            print("opcode: {0}, length: {1}, mask: {2}".format(opcode, length, mask))
             if (mask):
                 data = bytes([b ^ masking_key[index % 4] for (index, b) in enumerate(data)])
             if (opcode == 1):
