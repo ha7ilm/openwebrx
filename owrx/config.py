@@ -1,10 +1,18 @@
 class Property(object):
     def __init__(self, value = None):
         self.value = value
+        self.callbacks = []
     def getValue(self):
         return self.value
     def setValue(self, value):
         self.value = value
+        for c in self.callbacks:
+            c(self.value)
+        return self
+    def wire(self, callback):
+        self.callbacks.append(callback)
+        if not self.value is None: callback(self.value)
+        return self
 
 class PropertyManager(object):
     sharedInstance = None

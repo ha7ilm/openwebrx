@@ -85,16 +85,8 @@ class WebSocketMessageHandler(object):
                 if message["type"] == "dspcontrol":
                     if "params" in message:
                         params = message["params"]
-                        for key in params:
-                            methodname = "set_" + key
-                            if hasattr(self.dsp, methodname):
-                                method = getattr(self.dsp, methodname)
-                                if callable(method):
-                                    method(params[key])
-                                else:
-                                    print("method {0} is not callable".format(methodname))
-                            else:
-                                print("dsp has no method {0}".format(methodname))
+                        for key, value in params.items():
+                            self.dsp.setProperty(key, value)
 
                     if "action" in message and message["action"] == "start":
                         self.dsp.start()

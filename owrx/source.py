@@ -72,18 +72,6 @@ class SpectrumThread(threading.Thread):
             else: spectrum_thread_counter+=1
             for c in self.clients:
                 c.write_spectrum_data(data)
-            '''
-            correction=0
-            for i in range(0,len(clients)):
-                i-=correction
-                if (clients[i].ws_started):
-                    if clients[i].spectrum_queue.full():
-                        print "[openwebrx-spectrum] client spectrum queue full, closing it."
-                        close_client(i, False)
-                        correction+=1
-                    else:
-                        clients[i].spectrum_queue.put([data]) # add new string by "reference" to all clients
-            '''
 
         print("spectrum thread shut down")
 
@@ -109,18 +97,45 @@ class DspThread(threading.Thread):
 
         self.dsp = csdr.dsp()
         #dsp_initialized=False
-        self.dsp.set_audio_compression(pm.getPropertyValue("audio_compression"))
-        self.dsp.set_fft_compression(pm.getPropertyValue("fft_compression")) #used by secondary chains
-        self.dsp.set_format_conversion(pm.getPropertyValue("format_conversion"))
+        pm.getProperty("audio_compression").wire(self.dsp.set_audio_compression)
+        pm.getProperty("fft_compression").wire(self.dsp.set_fft_compression)
+        pm.getProperty("format_conversion").wire(self.dsp.set_format_conversion)
         self.dsp.set_offset_freq(0)
         self.dsp.set_bpf(-4000,4000)
-        self.dsp.set_secondary_fft_size(pm.getPropertyValue("digimodes_fft_size"))
+        pm.getProperty("digimodes_fft_size").wire(self.dsp.set_secondary_fft_size)
+
         self.dsp.nc_port=pm.getPropertyValue("iq_server_port")
         self.dsp.csdr_dynamic_bufsize = pm.getPropertyValue("csdr_dynamic_bufsize")
         self.dsp.csdr_print_bufsizes = pm.getPropertyValue("csdr_print_bufsizes")
         self.dsp.csdr_through = pm.getPropertyValue("csdr_through")
-        self.dsp.set_samp_rate(pm.getPropertyValue("samp_rate"))
+
+        pm.getProperty("samp_rate").wire(self.dsp.set_samp_rate)
         #do_secondary_demod=False
+
+        self.localProps = PropertyManager()
+        self.localProps.getProperty("output_rate").wire(self.dsp.set_output_rate)
+        self.localProps.getProperty("offset_freq").wire(self.dsp.set_offset_freq)
+        self.localProps.getProperty("squelch_level").wire(self.dsp.set_squelch_level)
+
+        def set_low_cut(cut):
+            bpf = self.dsp.get_bpf()
+            bpf[0] = cut
+            self.dsp.set_bpf(*bpf)
+        self.localProps.getProperty("low_cut").wire(set_low_cut)
+
+        def set_high_cut(cut):
+            bpf = self.dsp.get_bpf()
+            bpf[1] = cut
+            self.dsp.set_bpf(*bpf)
+        self.localProps.getProperty("high_cut").wire(set_high_cut)
+
+        def set_mod(mod):
+            if (self.dsp.get_demodulator() == mod): return
+            self.dsp.stop()
+            self.dsp.set_demodulator(mod)
+            self.dsp.start()
+        self.localProps.getProperty("mod").wire(set_mod)
+
         super().__init__()
 
     def run(self):
@@ -132,27 +147,5 @@ class DspThread(threading.Thread):
     def stop(self):
         self.doRun = False
 
-    def set_output_rate(self, samp_rate):
-        self.dsp.set_output_rate(samp_rate)
-
-    def set_low_cut(self, cut):
-        bpf = self.dsp.get_bpf()
-        bpf[0] = cut
-        self.dsp.set_bpf(*bpf)
-
-    def set_high_cut(self, cut):
-        bpf = self.dsp.get_bpf()
-        bpf[1] = cut
-        self.dsp.set_bpf(*bpf)
-
-    def set_offset_freq(self, freq):
-        self.dsp.set_offset_freq(freq)
-
-    def set_mod(self, mod):
-        if (self.dsp.get_demodulator() == mod): return
-        self.dsp.stop()
-        self.dsp.set_demodulator(mod)
-        self.dsp.start()
-
-    def set_squelch_level(self, lvl):
-        self.dsp.set_squelch_level(lvl)
+    def setProperty(self, prop, value):
+        self.localProps.getProperty(prop).setValue(value)
