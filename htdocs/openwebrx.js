@@ -80,7 +80,8 @@ is_chrome = /Chrome/.test(navigator.userAgent);
 function init_rx_photo()
 {
     var clip = e("webrx-top-photo-clip");
-	clip.style.maxHeight=clip.clientHeight+"px";
+    rx_photo_height = clip.clientHeight
+	clip.style.maxHeight=rx_photo_height+"px";
 	window.setTimeout(function() { animate(e("webrx-rx-photo-title"),"opacity","",1,0,1,500,30); },1000);
 	window.setTimeout(function() { animate(e("webrx-rx-photo-desc"),"opacity","",1,0,1,500,30); },1500);
 	window.setTimeout(function() { close_rx_photo() },2500);

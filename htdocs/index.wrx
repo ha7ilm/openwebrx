@@ -44,28 +44,30 @@
     <div id="webrx-top-container">
         <div id="webrx-top-photo-clip">
             <img src="static/gfx/openwebrx-top-photo.jpg" id="webrx-top-photo"/>
+            <div id="webrx-top-bar" class="webrx-top-bar-parts">
+                <a href="https://sdr.hu/openwebrx" target="_blank"><img src="static/gfx/openwebrx-top-logo.png" id="webrx-top-logo" /></a>
+                <a href="http://ha5kfu.sch.bme.hu/" target="_blank"><img src="static/gfx/openwebrx-ha5kfu-top-logo.png" id="webrx-ha5kfu-top-logo" /></a>
+                <div id="webrx-rx-avatar-background">
+                    <img id="webrx-rx-avatar" src="static/gfx/openwebrx-avatar.png" onclick="toggle_rx_photo();"/>
+                </div>
+                <div id="webrx-rx-texts">
+                    <div id="webrx-rx-title" onclick="toggle_rx_photo();">%[RX_TITLE]</div>
+                    <div id="webrx-rx-desc" onclick="toggle_rx_photo();">%[RX_LOC] | Loc: %[RX_QRA], ASL: %[RX_ASL] m, <a href="https://www.google.hu/maps/place/%[RX_GPS]" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a></div>
+                </div>
+                <div id="openwebrx-rx-details-arrow">
+                    <a id="openwebrx-rx-details-arrow-up" onclick="toggle_rx_photo();"><img src="static/gfx/openwebrx-rx-details-arrow-up.png" /></a>
+                    <a id="openwebrx-rx-details-arrow-down" onclick="toggle_rx_photo();"><img src="static/gfx/openwebrx-rx-details-arrow.png" /></a>
+                </div>
+                <section id="openwebrx-main-buttons">
+                    <ul>
+                        <li onmouseup="toggle_panel('openwebrx-panel-status');"><img src="static/gfx/openwebrx-panel-status.png" /><br/>Status</li>
+                        <li onmouseup="toggle_panel('openwebrx-panel-log');"><img  src="static/gfx/openwebrx-panel-log.png" /><br/>Log</li>
+                        <li onmouseup="toggle_panel('openwebrx-panel-receiver');"><img src="static/gfx/openwebrx-panel-receiver.png" /><br/>Receiver</li>
+                    </ul>
+                </section>
+            </div>
             <div id="webrx-rx-photo-title">%[RX_PHOTO_TITLE]</div>
             <div id="webrx-rx-photo-desc">%[RX_PHOTO_DESC]</div>
-        </div>
-        <div id="webrx-top-bar-background" class="webrx-top-bar-parts"></div>
-        <div id="webrx-top-bar" class="webrx-top-bar-parts">
-            <a href="https://sdr.hu/openwebrx" target="_blank"><img src="static/gfx/openwebrx-top-logo.png" id="webrx-top-logo" /></a>
-            <a href="http://ha5kfu.sch.bme.hu/" target="_blank"><img src="static/gfx/openwebrx-ha5kfu-top-logo.png" id="webrx-ha5kfu-top-logo" /></a>
-            <img id="webrx-rx-avatar-background" src="static/gfx/openwebrx-avatar-background.png" onclick="toggle_rx_photo();"/>
-            <img id="webrx-rx-avatar" src="static/gfx/openwebrx-avatar.png" onclick="toggle_rx_photo();"/>
-            <div id="webrx-rx-title" onclick="toggle_rx_photo();">%[RX_TITLE]</div>
-            <div id="webrx-rx-desc" onclick="toggle_rx_photo();">%[RX_LOC] | Loc: %[RX_QRA], ASL: %[RX_ASL] m, <a href="https://www.google.hu/maps/place/%[RX_GPS]" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a></div>
-            <div id="openwebrx-rx-details-arrow">
-                <a id="openwebrx-rx-details-arrow-up" onclick="toggle_rx_photo();"><img src="static/gfx/openwebrx-rx-details-arrow-up.png" /></a>
-                <a id="openwebrx-rx-details-arrow-down" onclick="toggle_rx_photo();"><img src="static/gfx/openwebrx-rx-details-arrow.png" /></a>
-            </div>
-            <section id="openwebrx-main-buttons">
-                <ul>
-                    <li onmouseup="toggle_panel('openwebrx-panel-status');"><img src="static/gfx/openwebrx-panel-status.png" /><br/>Status</li>
-                    <li onmouseup="toggle_panel('openwebrx-panel-log');"><img  src="static/gfx/openwebrx-panel-log.png" /><br/>Log</li>
-                    <li onmouseup="toggle_panel('openwebrx-panel-receiver');"><img src="static/gfx/openwebrx-panel-receiver.png" /><br/>Receiver</li>
-                </ul>
-            </section>
         </div>
     </div>
     <div id="webrx-main-container">
