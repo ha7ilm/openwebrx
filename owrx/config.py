@@ -1,3 +1,5 @@
+import os
+
 class Property(object):
     def __init__(self, value = None):
         self.value = value
@@ -32,3 +34,21 @@ class PropertyManager(object):
 
     def getPropertyValue(self, name):
         return self.getProperty(name).getValue()
+
+class RequirementMissingException(Exception):
+    pass
+
+class FeatureDetector(object):
+    def detectAllFeatures(self):
+        print("Starting Feature detection")
+        self.detect_csdr()
+        self.detect_nmux()
+        print("Feature detection completed.")
+
+    def detect_csdr(self):
+        if os.system("csdr 2> /dev/null") == 32512: #check for csdr
+            raise RequirementMissingException("You need to install \"csdr\" to run OpenWebRX!")
+
+    def detect_nmux(self):
+        if os.system("nmux --help 2> /dev/null") == 32512: #check for nmux
+            raise RequirementMissingException("You need to install an up-to-date version of \"csdr\" that contains the \"nmux\" tool to run OpenWebRX! Please upgrade \"csdr\"!")
