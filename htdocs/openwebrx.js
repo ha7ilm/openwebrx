@@ -1185,8 +1185,12 @@ function on_ws_recv(evt)
                     case "smeter":
                         setSmeterAbsoluteValue(json.value);
                     break;
+                    case "cpuusage":
+						var server_cpu_usage = json.value;
+						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage/100,"Server CPU [" + server_cpu_usage + "%]",server_cpu_usage>85);
+                    break;
                     default:
-                        console.warn('received message of unknown type', json);
+                        console.warn('received message of unknown type: ' + json.type);
 		        }
 		    } catch (e) {
 		        // don't lose exception

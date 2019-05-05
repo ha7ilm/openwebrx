@@ -24,7 +24,6 @@
         <title>OpenWebRX | Open Source SDR Web App for Everyone!</title>
         <!-- <script type="text/javascript">
             //Global variables
-            var audio_buffering_fill_to=%[AUDIO_BUFSIZE];
             var server_enable_digimodes=%[DIGIMODES_ENABLE];
 			var mathbox_waterfall_frequency_resolution=%[MATHBOX_WATERFALL_FRES];
 			var mathbox_waterfall_history_length=%[MATHBOX_WATERFALL_THIST];
