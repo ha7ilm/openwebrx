@@ -60,10 +60,14 @@ class SpectrumForwarder(object):
 
 class WebSocketMessageHandler(object):
     def __init__(self):
+        self.handshake = None
         self.forwarder = None
 
     def handleTextMessage(self, conn, message):
         if (message[:16] == "SERVER DE CLIENT"):
+            # maybe put some more info in there? nothing to store yet.
+            self.handshake = "completed"
+
             config = {}
             pm = PropertyManager.getSharedInstance()
 
@@ -91,19 +95,24 @@ class WebSocketMessageHandler(object):
 
             self.dsp = DspManager(self.forwarder)
 
-        else:
-            try:
-                message = json.loads(message)
-                if message["type"] == "dspcontrol":
-                    if "params" in message:
-                        params = message["params"]
-                        for key, value in params.items():
-                            self.dsp.setProperty(key, value)
+            return
 
-                    if "action" in message and message["action"] == "start":
-                        self.dsp.start()
-            except json.JSONDecodeError:
-                print("message is not json: {0}".format(message))
+        if not self.handshake:
+            print("not answering client request since handshake is not complete")
+            return
+
+        try:
+            message = json.loads(message)
+            if message["type"] == "dspcontrol":
+                if "params" in message:
+                    params = message["params"]
+                    for key, value in params.items():
+                        self.dsp.setProperty(key, value)
+
+                if "action" in message and message["action"] == "start":
+                    self.dsp.start()
+        except json.JSONDecodeError:
+            print("message is not json: {0}".format(message))
 
     def handleBinaryMessage(self, conn, data):
         print("unsupported binary message, discarding")
