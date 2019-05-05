@@ -78,6 +78,13 @@ class WebSocketMessageHandler(object):
             conn.send({"type":"config","value":config})
             print("client connection intitialized")
 
+            receiver_details = dict((key, pm.getPropertyValue(key)) for key in ["receiver_name", "receiver_location",
+                                                                                "receiver_qra", "receiver_asl",
+                                                                                "receiver_gps", "photo_title",
+                                                                                "photo_desc"]
+                                    )
+            conn.send({"type":"receiver_details","value":receiver_details})
+
             self.forwarder = SpectrumForwarder(conn)
             SpectrumThread.getSharedInstance().add_client(self.forwarder)
             CpuUsageThread.getSharedInstance().add_client(self.forwarder)
