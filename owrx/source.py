@@ -155,6 +155,7 @@ class DspManager(object):
 
     def stop(self):
         self.doRun = False
+        self.dsp.stop()
 
     def setProperty(self, prop, value):
         self.localProps.getProperty(prop).setValue(value)
