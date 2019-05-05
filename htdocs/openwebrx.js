@@ -2628,19 +2628,19 @@ function secondary_demod_init()
 function secondary_demod_start(subtype) 
 { 
     secondary_demod_canvases_initialized = false;
-    ws.send("SET secondary_mod="+subtype); 
-    secondary_demod = subtype; 
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_mod":subtype}}));
+    secondary_demod = subtype;
 }
 
 function secondary_demod_set()
 {
-    ws.send("SET secondary_offset_freq="+secondary_demod_offset_freq.toString());
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_offset_freq":secondary_demod_offset_freq}}));
 }
 
 function secondary_demod_stop()
 {
-    ws.send("SET secondary_mod=off");
-    secondary_demod = false; 
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_mod":false}}));
+    secondary_demod = false;
     secondary_demod_waterfall_queue = [];
 }
 
@@ -2767,7 +2767,7 @@ function secondary_demod_update_channel_freq_from_event(evt)
     {
         secondary_demod_waiting_for_set = true;
         window.setTimeout(()=>{
-            ws.send("SET secondary_offset_freq="+Math.floor(secondary_demod_channel_freq));
+            ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_offset_freq":Math.floor(secondary_demod_channel_freq)}}));
             //console.log("doneset:", secondary_demod_channel_freq);
             secondary_demod_waiting_for_set = false;
         }, 50);

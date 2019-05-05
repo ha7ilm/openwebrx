@@ -136,6 +136,21 @@ class DspManager(object):
             self.dsp.start()
         self.localProps.getProperty("mod").wire(set_mod)
 
+        if (pm.getPropertyValue("digimodes_enable")):
+            def set_secondary_mod(mod):
+                self.dsp.stop()
+                if mod == False:
+                    self.dsp.set_secondary_demodulator(None)
+                else:
+                    self.dsp.set_secondary_demodulator(mod)
+                    # TODO frontend will probably miss this
+                    #rxws.send(self, "MSG secondary_fft_size={0} if_samp_rate={1} secondary_bw={2} secondary_setup".format(cfg.digimodes_fft_size, dsp.if_samp_rate(), dsp.secondary_bw()))
+                self.dsp.start()
+
+            self.localProps.getProperty("secondary_mod").wire(set_secondary_mod)
+
+            self.localProps.getProperty("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq)
+
         super().__init__()
 
     def start(self):
