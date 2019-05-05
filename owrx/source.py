@@ -4,20 +4,22 @@ import threading
 import csdr
 import time
 
-class RtlNmuxSource(object):
-    def __init__(self):
+class RtlNmuxSource(threading.Thread):
+    def run(self):
         pm = PropertyManager.getSharedInstance()
 
         nmux_bufcnt = nmux_bufsize = 0
         while nmux_bufsize < pm.getPropertyValue("samp_rate")/4: nmux_bufsize += 4096
         while nmux_bufsize * nmux_bufcnt < pm.getPropertyValue("nmux_memory") * 1e6: nmux_bufcnt += 1
         if nmux_bufcnt == 0 or nmux_bufsize == 0:
-            print("[openwebrx-main] Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py")
+            print("[RtlNmuxSource] Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py")
             return
-        print("[openwebrx-main] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
+        print("[RtlNmuxSource] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
         cmd = pm.getPropertyValue("start_rtl_command") + "| nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, pm.getPropertyValue("iq_server_port"))
-        subprocess.Popen(cmd, shell=True)
-        print("[openwebrx-main] Started rtl source: " + cmd)
+        self.process = subprocess.Popen(cmd, shell=True)
+        print("[RtlNmuxSource] Started rtl source: " + cmd)
+        self.process.wait()
+        print("[RtlNmuxSource] shut down")
 
 class SpectrumThread(threading.Thread):
     sharedInstance = None
@@ -63,13 +65,9 @@ class SpectrumThread(threading.Thread):
             print("[openwebrx-spectrum] Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
         print("[openwebrx-spectrum] Spectrum thread started.")
         bytes_to_read=int(dsp.get_fft_bytes_to_read())
-        spectrum_thread_counter=0
         while self.doRun:
             data=dsp.read(bytes_to_read)
             #print("gotcha",len(data),"bytes of spectrum data via spectrum_thread_function()")
-            if spectrum_thread_counter >= fft_fps:
-                spectrum_thread_counter=0
-            else: spectrum_thread_counter+=1
             for c in self.clients:
                 c.write_spectrum_data(data)
 
@@ -138,14 +136,23 @@ class DspManager(object):
 
         if (pm.getPropertyValue("digimodes_enable")):
             def set_secondary_mod(mod):
+                self.stopSecondaryThreads()
                 self.dsp.stop()
                 if mod == False:
                     self.dsp.set_secondary_demodulator(None)
                 else:
                     self.dsp.set_secondary_demodulator(mod)
+                    self.handler.write_secondary_dsp_config({
+                        "secondary_fft_size":pm.getPropertyValue("digimodes_fft_size"),
+                        "if_samp_rate":self.dsp.if_samp_rate(),
+                        "secondary_bw":self.dsp.secondary_bw()
+                    })
                     # TODO frontend will probably miss this
                     #rxws.send(self, "MSG secondary_fft_size={0} if_samp_rate={1} secondary_bw={2} secondary_setup".format(cfg.digimodes_fft_size, dsp.if_samp_rate(), dsp.secondary_bw()))
                 self.dsp.start()
+
+                if mod:
+                    self.startSecondaryThreads()
 
             self.localProps.getProperty("secondary_mod").wire(set_secondary_mod)
 
@@ -158,6 +165,18 @@ class DspManager(object):
         threading.Thread(target = self.readDspOutput).start()
         threading.Thread(target = self.readSMeterOutput).start()
 
+    def startSecondaryThreads(self):
+        self.runSecondary = True
+        self.secondaryDemodThread = threading.Thread(target = self.readSecondaryDemod)
+        self.secondaryDemodThread.start()
+        self.secondaryFftThread = threading.Thread(target = self.readSecondaryFft)
+        self.secondaryFftThread.start()
+
+    def stopSecondaryThreads(self):
+        self.runSecondary = False
+        self.secondaryDemodThread = None
+        self.secondaryFftThread = None
+
     def readDspOutput(self):
         while (self.doRun):
             data = self.dsp.read(256)
@@ -167,6 +186,16 @@ class DspManager(object):
         while (self.doRun):
             level = self.dsp.get_smeter_level()
             self.handler.write_s_meter_level(level)
+
+    def readSecondaryDemod(self):
+        while (self.runSecondary):
+            data = self.dsp.read_secondary_demod(1)
+            self.handler.write_secondary_demod(data)
+
+    def readSecondaryFft(self):
+        while (self.runSecondary):
+            data = self.dsp.read_secondary_fft(int(self.dsp.get_secondary_fft_bytes_to_read()))
+            self.handler.write_secondary_fft(data)
 
     def stop(self):
         self.doRun = False

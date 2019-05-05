@@ -93,7 +93,7 @@ class dsp:
             return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
         elif which == "bpsk31":
             return secondary_chain_base + "csdr shift_addition_cc --fifo {secondary_shift_pipe} | " + \
-                    "csdr bandpass_fir_fft_cc $(csdr '=-(31.25)/{if_samp_rate}') $(csdr '=(31.25)/{if_samp_rate}') $(csdr '=31.25/{if_samp_rate}') | " + \
+                    "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_cutoff} | " + \
                     "csdr simple_agc_cc 0.001 0.5 | " + \
                     "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | " + \
@@ -110,12 +110,12 @@ class dsp:
 
     def secondary_bpf_cutoff(self):
         if self.secondary_demodulator == "bpsk31":
-             return (31.25/2) / self.if_samp_rate()
+             return 31.25 / self.if_samp_rate()
         return 0
 
     def secondary_bpf_transition_bw(self):
         if self.secondary_demodulator == "bpsk31":
-            return (31.25/2) / self.if_samp_rate()
+            return 31.25 / self.if_samp_rate()
         return 0
 
     def secondary_samples_per_bits(self):
@@ -170,9 +170,6 @@ class dsp:
             # print "==========> 3"
             self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
             # print "==========> 4"
-
-        self.set_pipe_nonblocking(self.secondary_process_demod.stdout)
-        self.set_pipe_nonblocking(self.secondary_process_fft.stdout)
 
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq=value
@@ -286,7 +283,10 @@ class dsp:
     def get_smeter_level(self):
         if self.running:
             line=self.smeter_pipe_file.readline()
-            return float(line[:-1])
+            try:
+                return float(line[:-1])
+            except ValueError:
+                return 0
 
     def mkfifo(self,path):
         try:
@@ -314,10 +314,6 @@ class dsp:
             if pipe_path:
                 try: os.unlink(pipe_path)
                 except Exception as e: print("[openwebrx-dsp-plugin:csdr] try_delete_pipes() ::", e)
-
-    def set_pipe_nonblocking(self, pipe):
-        flags = fcntl.fcntl(pipe, fcntl.F_GETFL)
-        fcntl.fcntl(pipe, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     def start(self):
         command_base=self.chain(self.demodulator)

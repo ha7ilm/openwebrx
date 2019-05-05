@@ -57,6 +57,12 @@ class ClientDataForwarder(object):
         self.conn.send({"type":"smeter","value":level})
     def write_cpu_usage(self, usage):
         self.conn.send({"type":"cpuusage","value":usage})
+    def write_secondary_fft(self, data):
+        self.conn.send(bytes([0x03]) + data)
+    def write_secondary_demod(self, data):
+        self.conn.send(bytes([0x04]) + data)
+    def write_secondary_dsp_config(self, cfg):
+        self.conn.send({"type":"secondary_config", "value":cfg})
 
 class WebSocketMessageHandler(object):
     def __init__(self):

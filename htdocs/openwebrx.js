@@ -1182,6 +1182,12 @@ function on_ws_recv(evt)
 						waterfall_init();
 						audio_preinit();
                     break;
+                    case "secondary_config":
+                        window.secondary_fft_size = json.value.secondary_fft_size;
+                        window.secondary_bw = json.value.secondary_bw;
+                        window.if_samp_rate = json.value.if_samp_rate;
+                        secondary_demod_init_canvases();
+                    break;
                     case "receiver_details":
                         var r = json.value;
                         e('webrx-rx-title').innerHTML = r.receiver_name;
@@ -1235,6 +1241,23 @@ function on_ws_recv(evt)
                 audio_buffer_current_size_debug += audio_data.length;
                 audio_buffer_all_size_debug += audio_data.length;
                 if (!(ios||is_chrome) && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
+            break;
+            case 3:
+                // secondary FFT
+                if (fft_compression == "none") {
+                    secondary_demod_waterfall_add_queue(new Float32Array(data));
+                } else if (fft_compression == "adpcm") {
+                    fft_codec.reset();
+
+                    var waterfall_i16=fft_codec.decode(new Uint8Array(data));
+                    var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
+                    for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
+                    secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
+                }
+            break;
+            case 4:
+                // secondary demod
+                secondary_demod_push_data(arrayBufferToString(data));
             break;
             default:
                 console.warn('unknown type of binary message: ' + type)
