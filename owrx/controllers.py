@@ -46,7 +46,7 @@ class AssetsController(Controller):
         filename = self.matches.group(1)
         self.serve_file(filename)
 
-class SpectrumForwarder(object):
+class ClientDataForwarder(object):
     def __init__(self, conn):
         self.conn = conn
     def write_spectrum_data(self, data):
@@ -68,28 +68,23 @@ class WebSocketMessageHandler(object):
             # maybe put some more info in there? nothing to store yet.
             self.handshake = "completed"
 
-            config = {}
             pm = PropertyManager.getSharedInstance()
 
-            for key in ["waterfall_colors", "waterfall_min_level", "waterfall_max_level", "waterfall_auto_level_margin",
-                        "shown_center_freq", "samp_rate", "fft_size", "fft_fps", "audio_compression", "fft_compression",
-                        "max_clients", "start_mod", "client_audio_buffer_size"]:
-
-                config[key] = pm.getPropertyValue(key)
-
+            config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
+                           "waterfall_auto_level_margin", "shown_center_freq", "samp_rate", "fft_size", "fft_fps",
+                           "audio_compression", "fft_compression", "max_clients", "start_mod",
+                           "client_audio_buffer_size"]
+            config = dict((key, pm.getPropertyValue(key)) for key in config_keys)
             config["start_offset_freq"] = pm.getPropertyValue("start_freq") - pm.getPropertyValue("center_freq")
-
             conn.send({"type":"config","value":config})
             print("client connection intitialized")
 
-            receiver_details = dict((key, pm.getPropertyValue(key)) for key in ["receiver_name", "receiver_location",
-                                                                                "receiver_qra", "receiver_asl",
-                                                                                "receiver_gps", "photo_title",
-                                                                                "photo_desc"]
-                                    )
+            receiver_keys = ["receiver_name", "receiver_location", "receiver_qra", "receiver_asl",  "receiver_gps",
+                             "photo_title", "photo_desc"]
+            receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
             conn.send({"type":"receiver_details","value":receiver_details})
 
-            self.forwarder = SpectrumForwarder(conn)
+            self.forwarder = ClientDataForwarder(conn)
             SpectrumThread.getSharedInstance().add_client(self.forwarder)
             CpuUsageThread.getSharedInstance().add_client(self.forwarder)
 
