@@ -16,7 +16,7 @@ def main():
 
     RtlNmuxSource()
 
-    server = ThreadedHttpServer(('0.0.0.0', 3000), RequestHandler)
+    server = ThreadedHttpServer(('0.0.0.0', pm.getPropertyValue("web_port")), RequestHandler)
     server.serve_forever()
 
 if __name__=="__main__":
