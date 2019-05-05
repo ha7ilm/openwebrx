@@ -374,7 +374,6 @@ class dsp:
             self.set_squelch_level(self.squelch_level)
         if self.smeter_pipe != None:
             self.smeter_pipe_file=open(self.smeter_pipe,"r")
-            self.set_pipe_nonblocking(self.smeter_pipe_file)
 
         self.start_secondary_demodulator()
 

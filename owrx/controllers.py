@@ -1,7 +1,7 @@
 import mimetypes
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import SpectrumThread, DspThread
+from owrx.source import SpectrumThread, DspManager
 import json
 
 class Controller(object):
@@ -53,6 +53,8 @@ class SpectrumForwarder(object):
         self.conn.send(bytes([0x01]) + data)
     def write_dsp_data(self, data):
         self.conn.send(bytes([0x02]) + data)
+    def write_s_meter_level(self, level):
+        self.conn.send({"type":"smeter","value":level})
 
 class WebSocketMessageHandler(object):
     def __init__(self):
@@ -77,7 +79,7 @@ class WebSocketMessageHandler(object):
             self.forwarder = SpectrumForwarder(conn)
             SpectrumThread.getSharedInstance().add_client(self.forwarder)
 
-            self.dsp = DspThread(self.forwarder)
+            self.dsp = DspManager(self.forwarder)
 
         else:
             try:

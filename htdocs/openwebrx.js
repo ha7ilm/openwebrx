@@ -1181,6 +1181,9 @@ function on_ws_recv(evt)
 						waterfall_init();
 						audio_preinit();
                     break;
+                    case "smeter":
+                        setSmeterAbsoluteValue(json.value);
+                    break;
                     default:
                         console.warn('received message of unknown type', json);
 		        }

@@ -2,7 +2,6 @@ import subprocess
 from owrx.config import PropertyManager
 import threading
 import csdr
-import time
 
 class RtlNmuxSource(object):
     def __init__(self):
@@ -88,7 +87,7 @@ class SpectrumThread(threading.Thread):
         SpectrumThread.sharedInstance = None
         self.doRun = False
 
-class DspThread(threading.Thread):
+class DspManager(object):
     def __init__(self, handler):
         self.doRun = True
         self.handler = handler
@@ -138,11 +137,20 @@ class DspThread(threading.Thread):
 
         super().__init__()
 
-    def run(self):
+    def start(self):
         self.dsp.start()
+        threading.Thread(target = self.readDspOutput).start()
+        threading.Thread(target = self.readSMeterOutput).start()
+
+    def readDspOutput(self):
         while (self.doRun):
             data = self.dsp.read(256)
             self.handler.write_dsp_data(data)
+
+    def readSMeterOutput(self):
+        while (self.doRun):
+            level = self.dsp.get_smeter_level()
+            self.handler.write_s_meter_level(level)
 
     def stop(self):
         self.doRun = False
