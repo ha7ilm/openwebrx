@@ -1693,7 +1693,7 @@ function parsehash()
 			if(harr[0]=="mute") toggleMute();
 			else if(harr[0]=="mod") starting_mod = harr[1];
 			else if(harr[0]=="sql") 
-			{ config
+			{
 				e("openwebrx-panel-squelch").value=harr[1]; 
 				updateSquelch(); 
 			}
