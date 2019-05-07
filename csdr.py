@@ -26,6 +26,7 @@ import os
 import code
 import signal
 import fcntl
+import threading
 
 class dsp:
 
@@ -282,6 +283,8 @@ class dsp:
                 return float(line[:-1])
             except ValueError:
                 return 0
+        else:
+            time.sleep(1)
 
     def mkfifo(self,path):
         try:
@@ -351,6 +354,15 @@ class dsp:
         if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
         self.process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
+
+        def watch_thread():
+            rc = self.process.wait()
+            print("dsp thread ended with rc={0}".format(rc))
+            if (self.running):
+                self.restart()
+
+        threading.Thread(target = watch_thread).start()
+
         self.running = True
 
         #open control pipes for csdr and send initialization data
@@ -372,7 +384,13 @@ class dsp:
         return self.process.stdout.read(size)
 
     def stop(self):
-        os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+        self.running = False
+        if hasattr(self, "process"):
+            try:
+                os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+            except ProcessLookupError:
+                # been killed by something else, ignore
+                pass
         self.stop_secondary_demodulator()
         #if(self.process.poll()!=None):return # returns None while subprocess is running
         #while(self.process.poll()==None):
@@ -402,8 +420,6 @@ class dsp:
         # if self.iqtee2_pipe:
             # try: os.unlink(self.iqtee2_pipe)
             # except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.iqtee2_pipe
-
-        self.running = False
 
     def restart(self):
         self.stop()

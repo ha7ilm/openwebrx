@@ -126,11 +126,12 @@ class SpectrumThread(threading.Thread):
         while self.doRun:
             data=dsp.read(bytes_to_read)
             if len(data) == 0:
-                self.shutdown()
+                time.sleep(1)
             else:
                 for c in self.clients:
                     c.write_spectrum_data(data)
 
+        dsp.stop()
         print("spectrum thread shut down")
 
     def add_client(self, c):

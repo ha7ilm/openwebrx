@@ -72,6 +72,7 @@ class WebSocketMessageHandler(object):
     def __init__(self):
         self.handshake = None
         self.client = None
+        self.dsp = None
 
     def handleTextMessage(self, conn, message):
         pm = PropertyManager.getSharedInstance()
