@@ -67,9 +67,11 @@ class SpectrumThread(threading.Thread):
         bytes_to_read=int(dsp.get_fft_bytes_to_read())
         while self.doRun:
             data=dsp.read(bytes_to_read)
-            #print("gotcha",len(data),"bytes of spectrum data via spectrum_thread_function()")
-            for c in self.clients:
-                c.write_spectrum_data(data)
+            if len(data) == 0:
+                self.shutdown()
+            else:
+                for c in self.clients:
+                    c.write_spectrum_data(data)
 
         print("spectrum thread shut down")
 
@@ -136,9 +138,11 @@ class DspManager(object):
 
         if (pm.getPropertyValue("digimodes_enable")):
             def set_secondary_mod(mod):
+                if mod == False: mod = None
+                if self.dsp.get_secondary_demodulator() == mod: return
                 self.stopSecondaryThreads()
                 self.dsp.stop()
-                if mod == False:
+                if mod is None:
                     self.dsp.set_secondary_demodulator(None)
                 else:
                     self.dsp.set_secondary_demodulator(mod)
@@ -147,8 +151,6 @@ class DspManager(object):
                         "if_samp_rate":self.dsp.if_samp_rate(),
                         "secondary_bw":self.dsp.secondary_bw()
                     })
-                    # TODO frontend will probably miss this
-                    #rxws.send(self, "MSG secondary_fft_size={0} if_samp_rate={1} secondary_bw={2} secondary_setup".format(cfg.digimodes_fft_size, dsp.if_samp_rate(), dsp.secondary_bw()))
                 self.dsp.start()
 
                 if mod:
@@ -180,7 +182,10 @@ class DspManager(object):
     def readDspOutput(self):
         while (self.doRun):
             data = self.dsp.read(256)
-            self.handler.write_dsp_data(data)
+            if len(data) != 256:
+                time.sleep(1)
+            else:
+                self.handler.write_dsp_data(data)
 
     def readSMeterOutput(self):
         while (self.doRun):
@@ -199,6 +204,7 @@ class DspManager(object):
 
     def stop(self):
         self.doRun = False
+        self.runSecondary = False
         self.dsp.stop()
 
     def setProperty(self, prop, value):

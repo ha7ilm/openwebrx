@@ -46,7 +46,7 @@ class AssetsController(Controller):
         filename = self.matches.group(1)
         self.serve_file(filename)
 
-class ClientDataForwarder(object):
+class OpenWebRxClient(object):
     def __init__(self, conn):
         self.conn = conn
     def write_spectrum_data(self, data):
@@ -63,16 +63,22 @@ class ClientDataForwarder(object):
         self.conn.send(bytes([0x04]) + data)
     def write_secondary_dsp_config(self, cfg):
         self.conn.send({"type":"secondary_config", "value":cfg})
+    def write_config(self, cfg):
+        self.conn.send({"type":"config","value":cfg})
+    def write_receiver_details(self, details):
+        self.conn.send({"type":"receiver_details","value":details})
 
 class WebSocketMessageHandler(object):
     def __init__(self):
         self.handshake = None
-        self.forwarder = None
+        self.client = None
 
     def handleTextMessage(self, conn, message):
         if (message[:16] == "SERVER DE CLIENT"):
             # maybe put some more info in there? nothing to store yet.
             self.handshake = "completed"
+
+            self.client = OpenWebRxClient(conn)
 
             pm = PropertyManager.getSharedInstance()
 
@@ -82,19 +88,18 @@ class WebSocketMessageHandler(object):
                            "client_audio_buffer_size"]
             config = dict((key, pm.getPropertyValue(key)) for key in config_keys)
             config["start_offset_freq"] = pm.getPropertyValue("start_freq") - pm.getPropertyValue("center_freq")
-            conn.send({"type":"config","value":config})
+            self.client.write_config(config)
             print("client connection intitialized")
 
             receiver_keys = ["receiver_name", "receiver_location", "receiver_qra", "receiver_asl",  "receiver_gps",
                              "photo_title", "photo_desc"]
             receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
-            conn.send({"type":"receiver_details","value":receiver_details})
+            self.client.write_receiver_details(receiver_details)
 
-            self.forwarder = ClientDataForwarder(conn)
-            SpectrumThread.getSharedInstance().add_client(self.forwarder)
-            CpuUsageThread.getSharedInstance().add_client(self.forwarder)
+            SpectrumThread.getSharedInstance().add_client(self.client)
+            CpuUsageThread.getSharedInstance().add_client(self.client)
 
-            self.dsp = DspManager(self.forwarder)
+            self.dsp = DspManager(self.client)
 
             return
 
@@ -119,9 +124,9 @@ class WebSocketMessageHandler(object):
         print("unsupported binary message, discarding")
 
     def handleClose(self, conn):
-        if self.forwarder:
-            SpectrumThread.getSharedInstance().remove_client(self.forwarder)
-            CpuUsageThread.getSharedInstance().remove_client(self.forwarder)
+        if self.client:
+            SpectrumThread.getSharedInstance().remove_client(self.client)
+            CpuUsageThread.getSharedInstance().remove_client(self.client)
         if self.dsp:
             self.dsp.stop()
 
