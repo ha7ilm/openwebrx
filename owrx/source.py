@@ -34,16 +34,16 @@ class RtlNmuxSource(object):
             self.start()
         props.wire(restart)
 
-        featureDetector = FeatureDetector()
-        if not featureDetector.is_available(props["rtl_type"]):
-            print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
-            return
-
         self.start()
 
     def start(self):
 
         props = self.props
+
+        featureDetector = FeatureDetector()
+        if not featureDetector.is_available(props["rtl_type"]):
+            print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
+            return
 
         params = RtlNmuxSource.types[props["rtl_type"]]
 

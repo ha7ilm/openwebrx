@@ -1172,7 +1172,7 @@ function on_ws_recv(evt)
                         window.starting_offset_frequency = config.start_offset_frequency;
                         window.audio_buffering_fill_to = config.client_audio_buffer_size;
                         bandwidth = config.samp_rate;
-                        center_freq = config.shown_center_freq;
+                        center_freq = config.center_freq + config.lfo_offset;
                         fft_size = config.fft_size;
 						fft_fps = config.fft_fps;
 						audio_compression = config.audio_compression;
@@ -1183,7 +1183,7 @@ function on_ws_recv(evt)
 						waterfall_init();
 						audio_preinit();
 
-						if (audio_allowed) audio_init();
+						if (audio_allowed && !audio_initialized) audio_init();
 						waterfall_clear();
                     break;
                     case "secondary_config":

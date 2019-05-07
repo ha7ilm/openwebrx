@@ -211,8 +211,11 @@ class dsp:
         if self.fft_compression=="adpcm": return (self.secondary_fft_size/2)+(10/2)
 
     def set_samp_rate(self,samp_rate):
-        #to change this, restart is required
         self.samp_rate=samp_rate
+        self.calculate_decimation()
+        if self.running: self.restart()
+
+    def calculate_decimation(self):
         self.decimation=1
         while self.samp_rate/(self.decimation+1)>self.output_rate:
             self.decimation+=1
@@ -229,7 +232,7 @@ class dsp:
 
     def set_output_rate(self,output_rate):
         self.output_rate=output_rate
-        self.set_samp_rate(self.samp_rate) #as it depends on output_rate
+        self.calculate_decimation()
 
     def set_demodulator(self,demodulator):
         #to change this, restart is required
@@ -314,6 +317,9 @@ class dsp:
                 except Exception as e: print("[openwebrx-dsp-plugin:csdr] try_delete_pipes() ::", e)
 
     def start(self):
+        if (self.running): return
+        self.running = True
+
         command_base=self.chain(self.demodulator)
 
         #create control pipes for csdr
@@ -362,8 +368,6 @@ class dsp:
                 self.restart()
 
         threading.Thread(target = watch_thread).start()
-
-        self.running = True
 
         #open control pipes for csdr and send initialization data
         if self.bpf_pipe != None:
@@ -422,6 +426,7 @@ class dsp:
             # except: print "[openwebrx-dsp-plugin:csdr] stop() :: unlink failed: " + self.iqtee2_pipe
 
     def restart(self):
+        if not self.running: return
         self.stop()
         self.start()
 
