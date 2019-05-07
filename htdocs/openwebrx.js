@@ -1154,6 +1154,8 @@ function on_ws_recv(evt)
 {
     if (typeof evt.data == 'string') {
         // text messages
+        debug_ws_data_received += evt.data.length / 1000;
+
 		if (evt.data.substr(0, 16) == "CLIENT DE SERVER") {
 		    divlog("Server acknowledged WebSocket connection.");
 		} else {
@@ -1216,6 +1218,8 @@ function on_ws_recv(evt)
 		}
     } else if (evt.data instanceof ArrayBuffer) {
         // binary messages
+        debug_ws_data_received += evt.data.byteLength / 1000;
+
         type = new Uint8Array(evt.data, 0, 1)[0]
         data = evt.data.slice(1)
 
