@@ -45,7 +45,6 @@ class dsp:
         self.fft_compression = "none"
         self.demodulator = "nfm"
         self.name = "csdr"
-        self.format_conversion = "csdr convert_u8_f"
         self.base_bufsize = 512
         self.nc_port = 4951
         self.csdr_dynamic_bufsize = False
@@ -67,7 +66,6 @@ class dsp:
         any_chain_base="nc -v 127.0.0.1 {nc_port} | "
         if self.csdr_dynamic_bufsize: any_chain_base+="csdr setbuf {start_bufsize} | "
         if self.csdr_through: any_chain_base+="csdr through | "
-        any_chain_base+=self.format_conversion+(" | " if  self.format_conversion!="" else "") ##"csdr flowcontrol {flowcontrol} auto 1.5 10 | "
         if which == "fft":
             fft_chain_base = any_chain_base+"csdr fft_cc {fft_size} {fft_block_size} | " + \
                 ("csdr logpower_cf -70 | " if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages} | ") + \
@@ -254,9 +252,6 @@ class dsp:
     def fft_block_size(self):
         if self.fft_averages == 0: return self.samp_rate/self.fft_fps
         else: return self.samp_rate/self.fft_fps/self.fft_averages
-
-    def set_format_conversion(self,format_conversion):
-        self.format_conversion=format_conversion
 
     def set_offset_freq(self,offset_freq):
         self.offset_freq=offset_freq

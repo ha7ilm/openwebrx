@@ -1,12 +1,54 @@
 import subprocess
-from owrx.config import PropertyManager
+from owrx.config import PropertyManager, FeatureDetector
 import threading
 import csdr
 import time
 
 class RtlNmuxSource(threading.Thread):
     def run(self):
-        props = PropertyManager.getSharedInstance().collect("samp_rate", "nmux_memory", "start_rtl_command", "iq_server_port")
+        props = PropertyManager.getSharedInstance().collect(
+            "rtl_type", "samp_rate", "nmux_memory", "iq_server_port", "center_freq", "ppm",
+            "rf_gain", "lna_gain", "rf_amp"
+        )
+
+        def restart(name, value):
+            print("would now restart rtl source due to property change: {0} changed to {1}".format(name, value))
+            # TODO not sure how to implement an actual restart... help
+        props.wire(restart)
+
+        featureDetector = FeatureDetector()
+        if not featureDetector.is_available(props["rtl_type"]):
+            print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
+            return
+
+        types = {
+            "rtl_sdr": {
+                "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
+                "format_conversion": "csdr convert_u8_f",
+            },
+            "hackrf": {
+                "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
+                "format_conversion": "csdr convert_s8_f"
+            },
+            "sdrplay": {
+                "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
+                "format_conversion": None
+            }
+        }
+
+        params = types[props["rtl_type"]]
+
+        start_sdr_command = params["command"].format(
+            samp_rate = props["samp_rate"],
+            center_freq = props["center_freq"],
+            ppm = props["ppm"],
+            rf_gain = props["rf_gain"],
+            lna_gain = props["lna_gain"],
+            rf_amp = props["rf_amp"]
+        )
+
+        if params["format_conversion"] is not None:
+            start_sdr_command += " | " + params["format_conversion"]
 
         nmux_bufcnt = nmux_bufsize = 0
         while nmux_bufsize < props["samp_rate"]/4: nmux_bufsize += 4096
@@ -15,7 +57,7 @@ class RtlNmuxSource(threading.Thread):
             print("[RtlNmuxSource] Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py")
             return
         print("[RtlNmuxSource] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
-        cmd = props["start_rtl_command"] + "| nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, props["iq_server_port"])
+        cmd = start_sdr_command + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, props["iq_server_port"])
         self.process = subprocess.Popen(cmd, shell=True)
         print("[RtlNmuxSource] Started rtl source: " + cmd)
         self.process.wait()
@@ -37,7 +79,7 @@ class SpectrumThread(threading.Thread):
 
     def run(self):
         props = PropertyManager.getSharedInstance().collect(
-            "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression", "format_conversion",
+            "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression",
             "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through", "iq_server_port"
         )
 
@@ -54,7 +96,6 @@ class SpectrumThread(threading.Thread):
         dsp.set_fft_fps(fft_fps)
         dsp.set_fft_averages(int(round(1.0 * samp_rate / fft_size / fft_fps / (1.0 - fft_voverlap_factor))) if fft_voverlap_factor>0 else 0)
         dsp.set_fft_compression(props["fft_compression"])
-        dsp.set_format_conversion(props["format_conversion"])
         dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
         dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]
         dsp.csdr_through = props["csdr_through"]
@@ -94,7 +135,7 @@ class DspManager(object):
         self.handler = handler
 
         self.localProps = PropertyManager.getSharedInstance().collect(
-            "audio_compression", "fft_compression", "format_conversion", "digimodes_fft_size", "csdr_dynamic_bufsize",
+            "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
             "csdr_print_bufsizes", "csdr_through", "iq_server_port", "digimodes_enable", "samp_rate"
         )
 
@@ -102,7 +143,6 @@ class DspManager(object):
         #dsp_initialized=False
         self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression)
         self.localProps.getProperty("fft_compression").wire(self.dsp.set_fft_compression)
-        self.localProps.getProperty("format_conversion").wire(self.dsp.set_format_conversion)
         self.dsp.set_offset_freq(0)
         self.dsp.set_bpf(-4000,4000)
         self.localProps.getProperty("digimodes_fft_size").wire(self.dsp.set_secondary_fft_size)

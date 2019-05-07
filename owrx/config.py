@@ -29,12 +29,18 @@ class PropertyManager(object):
 
     def __init__(self, properties = None):
         self.properties = {}
+        self.callbacks = []
         if properties is not None:
             for (name, prop) in properties.items():
                 self.add(name, prop)
 
     def add(self, name, prop):
         self.properties[name] = prop
+        def fireCallbacks(value):
+            for c in self.callbacks:
+                c(name, value)
+        prop.wire(fireCallbacks)
+        return self
 
     def __getitem__(self, name):
         return self.getPropertyValue(name)
@@ -50,6 +56,10 @@ class PropertyManager(object):
     def getPropertyValue(self, name):
         return self.getProperty(name).getValue()
 
+    def wire(self, callback):
+        self.callbacks.append(callback)
+        return self
+
 class RequirementMissingException(Exception):
     pass
 
@@ -58,7 +68,7 @@ class FeatureDetector(object):
         "core": [ "csdr", "nmux" ],
         "rtl_sdr": [ "rtl_sdr" ],
         "sdrplay": [ "rx_tools" ],
-        "hackrf": [ "rx_tools" ]
+        "hackrf": [ "hackrf_transfer" ]
     }
 
     def is_available(self, feature):
@@ -88,3 +98,8 @@ class FeatureDetector(object):
 
     def has_rx_tools(self):
         return os.system("rx_sdr --help 2> /dev/null") != 32512
+
+    def has_hackrf_transfer(self):
+        # TODO i don't have a hackrf, so somebody doublecheck this.
+        # TODO also check if it has the stdout feature
+        return os.system("hackrf_transfer --help 2> /dev/null") != 32512

@@ -74,13 +74,13 @@ class WebSocketMessageHandler(object):
         self.client = None
 
     def handleTextMessage(self, conn, message):
+        pm = PropertyManager.getSharedInstance()
+
         if (message[:16] == "SERVER DE CLIENT"):
             # maybe put some more info in there? nothing to store yet.
             self.handshake = "completed"
 
             self.client = OpenWebRxClient(conn)
-
-            pm = PropertyManager.getSharedInstance()
 
             config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
                            "waterfall_auto_level_margin", "shown_center_freq", "samp_rate", "fft_size", "fft_fps",
@@ -117,6 +117,13 @@ class WebSocketMessageHandler(object):
 
                 if "action" in message and message["action"] == "start":
                     self.dsp.start()
+
+            if message["type"] == "config":
+                for key, value in message["params"].items():
+                    # only the keys in the protected property manager can be overridden from the web
+                    protected = pm.collect("samp_rate")
+                    protected[key] = value
+
         except json.JSONDecodeError:
             print("message is not json: {0}".format(message))
 
