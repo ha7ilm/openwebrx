@@ -21,13 +21,11 @@ def main():
         if (name.startswith("__")): continue
         pm.getProperty(name).setValue(value)
 
-    try:
-        FeatureDetector().detectAllFeatures()
-
-    except RequirementMissingException as e:
+    featureDetector = FeatureDetector()
+    if not featureDetector.is_available("core"):
         print("you are missing required dependencies to run openwebrx. "
-              "please check the message and the readme for details:")
-        print(e)
+              "please check that the following core requirements are installed:")
+        print(", ".join(featureDetector.get_requirements("core")))
         return
 
     if (pm.getPropertyValue("start_rtl_thread")):
