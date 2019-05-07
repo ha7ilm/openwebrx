@@ -9,7 +9,10 @@ class Property(object):
     def setValue(self, value):
         self.value = value
         for c in self.callbacks:
-            c(self.value)
+            try:
+                c(self.value)
+            except Exception as e:
+                print(e)
         return self
     def wire(self, callback):
         self.callbacks.append(callback)
@@ -38,7 +41,10 @@ class PropertyManager(object):
         self.properties[name] = prop
         def fireCallbacks(value):
             for c in self.callbacks:
-                c(name, value)
+                try:
+                    c(name, value)
+                except Exception as e:
+                    print(e)
         prop.wire(fireCallbacks)
         return self
 

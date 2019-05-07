@@ -80,17 +80,24 @@ class WebSocketMessageHandler(object):
         if (message[:16] == "SERVER DE CLIENT"):
             # maybe put some more info in there? nothing to store yet.
             self.handshake = "completed"
+            print("client connection intitialized")
 
             self.client = OpenWebRxClient(conn)
 
             config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
                            "waterfall_auto_level_margin", "shown_center_freq", "samp_rate", "fft_size", "fft_fps",
                            "audio_compression", "fft_compression", "max_clients", "start_mod",
-                           "client_audio_buffer_size"]
-            config = dict((key, pm.getPropertyValue(key)) for key in config_keys)
-            config["start_offset_freq"] = pm.getPropertyValue("start_freq") - pm.getPropertyValue("center_freq")
-            self.client.write_config(config)
-            print("client connection intitialized")
+                           "client_audio_buffer_size", "start_freq", "center_freq"]
+
+            configProps = pm.collect(*config_keys)
+
+            def sendConfig(key, value):
+                config = dict((key, configProps[key]) for key in config_keys)
+                config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
+                self.client.write_config(config)
+
+            configProps.wire(sendConfig)
+            sendConfig(None, None)
 
             receiver_keys = ["receiver_name", "receiver_location", "receiver_qra", "receiver_asl",  "receiver_gps",
                              "photo_title", "photo_desc"]
