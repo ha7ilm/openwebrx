@@ -29,7 +29,7 @@ def main():
         return
 
     if (pm.getPropertyValue("start_rtl_thread")):
-        RtlNmuxSource().start()
+        RtlNmuxSource().setup()
 
     server = ThreadedHttpServer(('0.0.0.0', pm.getPropertyValue("web_port")), RequestHandler)
     server.serve_forever()

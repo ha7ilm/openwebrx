@@ -3,17 +3,35 @@ from owrx.config import PropertyManager, FeatureDetector
 import threading
 import csdr
 import time
+import os
+import signal
 
-class RtlNmuxSource(threading.Thread):
-    def run(self):
-        props = PropertyManager.getSharedInstance().collect(
+class RtlNmuxSource(object):
+    types = {
+        "rtl_sdr": {
+            "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
+            "format_conversion": "csdr convert_u8_f",
+        },
+        "hackrf": {
+            "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
+            "format_conversion": "csdr convert_s8_f"
+        },
+        "sdrplay": {
+            "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
+            "format_conversion": None
+        }
+    }
+
+    def setup(self):
+        self.props = props = PropertyManager.getSharedInstance().collect(
             "rtl_type", "samp_rate", "nmux_memory", "iq_server_port", "center_freq", "ppm",
             "rf_gain", "lna_gain", "rf_amp"
         )
 
         def restart(name, value):
             print("would now restart rtl source due to property change: {0} changed to {1}".format(name, value))
-            # TODO not sure how to implement an actual restart... help
+            self.stop()
+            self.start()
         props.wire(restart)
 
         featureDetector = FeatureDetector()
@@ -21,22 +39,13 @@ class RtlNmuxSource(threading.Thread):
             print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
             return
 
-        types = {
-            "rtl_sdr": {
-                "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-                "format_conversion": "csdr convert_u8_f",
-            },
-            "hackrf": {
-                "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
-                "format_conversion": "csdr convert_s8_f"
-            },
-            "sdrplay": {
-                "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-                "format_conversion": None
-            }
-        }
+        self.start()
 
-        params = types[props["rtl_type"]]
+    def start(self):
+
+        props = self.props
+
+        params = RtlNmuxSource.types[props["rtl_type"]]
 
         start_sdr_command = params["command"].format(
             samp_rate = props["samp_rate"],
@@ -58,10 +67,18 @@ class RtlNmuxSource(threading.Thread):
             return
         print("[RtlNmuxSource] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
         cmd = start_sdr_command + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, props["iq_server_port"])
-        self.process = subprocess.Popen(cmd, shell=True)
+        self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
         print("[RtlNmuxSource] Started rtl source: " + cmd)
-        self.process.wait()
-        print("[RtlNmuxSource] shut down")
+
+        # TODO use this to monitor unexpected failures / shutdowns and react accordingly
+        def wait_for_process_to_end():
+            rc = self.process.wait()
+            print("[RtlNmuxSource] shut down with RC={0}".format(rc))
+
+        threading.Thread(target = wait_for_process_to_end).start()
+
+    def stop(self):
+        os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
 
 class SpectrumThread(threading.Thread):
     sharedInstance = None

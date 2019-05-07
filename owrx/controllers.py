@@ -121,7 +121,7 @@ class WebSocketMessageHandler(object):
             if message["type"] == "config":
                 for key, value in message["params"].items():
                     # only the keys in the protected property manager can be overridden from the web
-                    protected = pm.collect("samp_rate")
+                    protected = pm.collect("samp_rate", "center_freq", "rf_gain")
                     protected[key] = value
 
         except json.JSONDecodeError:
