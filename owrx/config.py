@@ -24,12 +24,27 @@ class PropertyManager(object):
             PropertyManager.sharedInstance = PropertyManager()
         return PropertyManager.sharedInstance
 
-    def __init__(self):
+    def collect(self, *props):
+        return PropertyManager(dict((name, self.getProperty(name)) for name in props))
+
+    def __init__(self, properties = None):
         self.properties = {}
+        if properties is not None:
+            for (name, prop) in properties.items():
+                self.add(name, prop)
+
+    def add(self, name, prop):
+        self.properties[name] = prop
+
+    def __getitem__(self, name):
+        return self.getPropertyValue(name)
+
+    def __setitem__(self, name, value):
+        self.getProperty(name).setValue(value)
 
     def getProperty(self, name):
         if not name in self.properties:
-            self.properties[name] = Property()
+            self.add(name, Property())
         return self.properties[name]
 
     def getPropertyValue(self, name):
