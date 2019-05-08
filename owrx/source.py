@@ -29,7 +29,7 @@ class RtlNmuxSource(object):
         )
 
         def restart(name, value):
-            print("would now restart rtl source due to property change: {0} changed to {1}".format(name, value))
+            print("restarting rtl source due to property change: {0} changed to {1}".format(name, value))
             self.stop()
             self.start()
         props.wire(restart)
@@ -171,7 +171,6 @@ class DspManager(object):
         self.dsp.csdr_through = self.localProps["csdr_through"]
 
         self.localProps.getProperty("samp_rate").wire(self.dsp.set_samp_rate)
-        #do_secondary_demod=False
 
         self.localProps.getProperty("output_rate").wire(self.dsp.set_output_rate)
         self.localProps.getProperty("offset_freq").wire(self.dsp.set_offset_freq)
@@ -189,12 +188,7 @@ class DspManager(object):
             self.dsp.set_bpf(*bpf)
         self.localProps.getProperty("high_cut").wire(set_high_cut)
 
-        def set_mod(mod):
-            if (self.dsp.get_demodulator() == mod): return
-            self.dsp.stop()
-            self.dsp.set_demodulator(mod)
-            self.dsp.start()
-        self.localProps.getProperty("mod").wire(set_mod)
+        self.localProps.getProperty("mod").wire(self.dsp.set_demodulator)
 
         if (self.localProps["digimodes_enable"]):
             def set_secondary_mod(mod):
@@ -202,10 +196,8 @@ class DspManager(object):
                 if self.dsp.get_secondary_demodulator() == mod: return
                 self.stopSecondaryThreads()
                 self.dsp.stop()
-                if mod is None:
-                    self.dsp.set_secondary_demodulator(None)
-                else:
-                    self.dsp.set_secondary_demodulator(mod)
+                self.dsp.set_secondary_demodulator(mod)
+                if mod is not None:
                     self.handler.write_secondary_dsp_config({
                         "secondary_fft_size":self.localProps["digimodes_fft_size"],
                         "if_samp_rate":self.dsp.if_samp_rate(),
