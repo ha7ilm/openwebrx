@@ -1694,6 +1694,7 @@ function on_ws_closed()
 		audio_node.disconnect();
 	}
 	catch (dont_care) {}
+	audio_initialized = 0;
 	divlog("WebSocket has closed unexpectedly. Attempting to reconnect in 5 seconds...", 1);
 
 	setTimeout(open_websocket, 5000);
