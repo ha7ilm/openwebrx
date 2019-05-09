@@ -6,47 +6,87 @@ import time
 import os
 import signal
 
-class RtlNmuxSource(object):
-    types = {
-        "rtl_sdr": {
-            "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-            "format_conversion": "csdr convert_u8_f"
-        },
-        "hackrf": {
-            "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
-            "format_conversion": "csdr convert_s8_f"
-        },
-        "sdrplay": {
-            "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-            "format_conversion": None,
-            "sleep": 1
-        }
-    }
+class SdrService(object):
+    sdrProps = None
+    sources = {}
+    lastPort = None
+    @staticmethod
+    def getNextPort():
+        pm = PropertyManager.getSharedInstance()
+        (start, end) = pm["iq_port_range"]
+        if SdrService.lastPort is None:
+            SdrService.lastPort = start
+        else:
+            SdrService.lastPort += 1
+            if SdrService.lastPort > end:
+                raise IndexError("no more available ports to start more sdrs")
+        return SdrService.lastPort
+    @staticmethod
+    def getSource(id = None):
+        if SdrService.sdrProps is None:
+            pm = PropertyManager.getSharedInstance()
+            def loadIntoPropertyManager(dict: dict):
+                propertyManager = PropertyManager()
+                for (name, value) in dict.items():
+                    propertyManager[name] = value
+                return propertyManager
+            SdrService.sdrProps = dict((name, loadIntoPropertyManager(value)) for (name, value) in pm["sdrs"].items())
+            print(SdrService.sdrProps)
+        if id is None:
+            # TODO: configure default sdr in config? right now it will pick the first one off the list.
+            id = list(SdrService.sdrProps.keys())[0]
+        if not id in SdrService.sources:
+            SdrService.sources[id] = SdrSource(SdrService.sdrProps[id], SdrService.getNextPort())
+        return SdrService.sources[id]
 
-    def setup(self):
-        self.props = props = PropertyManager.getSharedInstance().collect(
-            "rtl_type", "samp_rate", "nmux_memory", "iq_server_port", "center_freq", "ppm",
-            "rf_gain", "lna_gain", "rf_amp"
-        )
+sdr_types = {
+    "rtl_sdr": {
+        "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
+        "format_conversion": "csdr convert_u8_f"
+    },
+    "hackrf": {
+        "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
+        "format_conversion": "csdr convert_s8_f"
+    },
+    "sdrplay": {
+        "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
+        "format_conversion": None,
+        "sleep": 1
+    }
+}
+
+class SdrSource(object):
+    def __init__(self, props, port):
+        self.props = props
+        self.rtlProps = self.props.collect(
+            "type", "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp"
+        ).defaults(PropertyManager.getSharedInstance())
 
         def restart(name, value):
-            print("restarting rtl source due to property change: {0} changed to {1}".format(name, value))
+            print("restarting sdr source due to property change: {0} changed to {1}".format(name, value))
             self.stop()
             self.start()
-        props.wire(restart)
+        self.rtlProps.wire(restart)
+        self.port = port
+        self.monitor = None
 
-        self.start()
+    def getProps(self):
+        return self.props
+
+    def getPort(self):
+        return self.port
 
     def start(self):
+        if self.monitor: return
 
-        props = self.props
+        props = self.rtlProps
 
         featureDetector = FeatureDetector()
-        if not featureDetector.is_available(props["rtl_type"]):
+        if not featureDetector.is_available(props["type"]):
             print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
             return
 
-        self.params = RtlNmuxSource.types[props["rtl_type"]]
+        self.params = sdr_types[props["type"]]
 
         start_sdr_command = self.params["command"].format(
             samp_rate = props["samp_rate"],
@@ -67,7 +107,7 @@ class RtlNmuxSource(object):
             print("[RtlNmuxSource] Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py")
             return
         print("[RtlNmuxSource] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
-        cmd = start_sdr_command + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, props["iq_server_port"])
+        cmd = start_sdr_command + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, self.port)
         self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
         print("[RtlNmuxSource] Started rtl source: " + cmd)
 
@@ -75,9 +115,12 @@ class RtlNmuxSource(object):
         def wait_for_process_to_end():
             rc = self.process.wait()
             print("[RtlNmuxSource] shut down with RC={0}".format(rc))
+            self.monitor = None
 
         self.monitor = threading.Thread(target = wait_for_process_to_end)
         self.monitor.start()
+
+        self.spectrumThread = SpectrumThread(self)
 
     def stop(self):
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
@@ -85,28 +128,23 @@ class RtlNmuxSource(object):
         if "sleep" in self.params:
             time.sleep(self.params["sleep"])
 
-class SpectrumThread(threading.Thread):
-    sharedInstance = None
-    @staticmethod
-    def getSharedInstance():
-        if SpectrumThread.sharedInstance is None:
-            SpectrumThread.sharedInstance = SpectrumThread()
-            SpectrumThread.sharedInstance.start()
-        return SpectrumThread.sharedInstance
-
-    def __init__(self):
+class SpectrumThread(object):
+    def __init__(self, sdrSource):
         self.clients = []
-        self.doRun = True
-        super().__init__()
+        self.doRun = False
+        self.sdrSource = sdrSource
+
+    def start(self):
+        threading.Thread(target = self.run).start()
 
     def run(self):
-        props = PropertyManager.getSharedInstance().collect(
+        props = self.sdrSource.props.collect(
             "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression",
-            "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through", "iq_server_port"
-        )
+            "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through"
+        ).defaults(PropertyManager.getSharedInstance())
 
         dsp = csdr.dsp()
-        dsp.nc_port = props["iq_server_port"]
+        dsp.nc_port = self.sdrSource.getPort()
         dsp.set_demodulator("fft")
         props.getProperty("samp_rate").wire(dsp.set_samp_rate)
         props.getProperty("fft_size").wire(dsp.set_fft_size)
@@ -146,26 +184,32 @@ class SpectrumThread(threading.Thread):
 
     def add_client(self, c):
         self.clients.append(c)
+        if not self.doRun:
+            self.doRun = True
+            self.start()
 
     def remove_client(self, c):
-        self.clients.remove(c)
+        try:
+            self.clients.remove(c)
+        except ValueError:
+            pass
         if not self.clients:
             self.shutdown()
 
     def shutdown(self):
         print("shutting down spectrum thread")
-        SpectrumThread.sharedInstance = None
         self.doRun = False
 
 class DspManager(object):
-    def __init__(self, handler):
+    def __init__(self, handler, sdrSource):
         self.doRun = True
         self.handler = handler
+        self.sdrSource = sdrSource
 
-        self.localProps = PropertyManager.getSharedInstance().collect(
+        self.localProps = self.sdrSource.getProps().collect(
             "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
-            "csdr_print_bufsizes", "csdr_through", "iq_server_port", "digimodes_enable", "samp_rate"
-        )
+            "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate"
+        ).defaults(PropertyManager.getSharedInstance())
 
         self.dsp = csdr.dsp()
         #dsp_initialized=False
@@ -175,7 +219,7 @@ class DspManager(object):
         self.dsp.set_bpf(-4000,4000)
         self.localProps.getProperty("digimodes_fft_size").wire(self.dsp.set_secondary_fft_size)
 
-        self.dsp.nc_port = self.localProps["iq_server_port"]
+        self.dsp.nc_port = self.sdrSource.getPort()
         self.dsp.csdr_dynamic_bufsize = self.localProps["csdr_dynamic_bufsize"]
         self.dsp.csdr_print_bufsizes = self.localProps["csdr_print_bufsizes"]
         self.dsp.csdr_through = self.localProps["csdr_through"]
@@ -322,7 +366,10 @@ class CpuUsageThread(threading.Thread):
         self.clients.append(c)
 
     def remove_client(self, c):
-        self.clients.remove(c)
+        try:
+            self.clients.remove(c)
+        except ValueError:
+            pass
         if not self.clients:
             self.shutdown()
 

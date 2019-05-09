@@ -71,12 +71,6 @@ fft_fps=9
 fft_size=4096 #Should be power of 2
 fft_voverlap_factor=0.3 #If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
 
-# samp_rate = 250000
-samp_rate = 2400000
-center_freq = 144250000
-rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
-ppm = 0
-
 audio_compression="adpcm" #valid values: "adpcm", "none"
 fft_compression="adpcm" #valid values: "adpcm", "none"
 
@@ -104,7 +98,30 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples... Some examples of configuration are available here (default is RTL-SDR):
 
 # valid: "rtl_sdr", "sdrplay", "hackrf"
-rtl_type = "rtl_sdr"
+#rtl_type = "sdrplay"
+
+sdrs = {
+    "rtlsdr": {
+        "name": "RTL-SDR USB Stick",
+        "type": "rtl_sdr",
+        "center_freq": 438800000,
+        "rf_gain": 30,
+        "samp_rate": 2400000,
+        "ppm": 0,
+        "start_freq": 439275000,
+        "start_mod": "nfm"
+    },
+    "sdrplay": {
+        "name": "SDRPlay RSP2",
+        "type": "sdrplay",
+        "center_freq": 14150000,
+        "rf_gain": 30,
+        "samp_rate": 500000,
+        "ppm": 0,
+        "start_freq": 14070000,
+        "start_mod": "usb"
+    }
+}
 
 # >> RTL-SDR via rtl_sdr
 #start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
@@ -168,10 +185,7 @@ client_audio_buffer_size = 5
 # - also increase the latency
 # - decrease the chance of audio underruns
 
-start_freq = center_freq
-start_mod = "nfm" #nfm, am, lsb, usb, cw
-
-iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
+iq_port_range = [4950, 4960] #TCP port for range ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
 
 #access_log = "~/openwebrx_access.log"
 

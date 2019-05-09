@@ -1,7 +1,7 @@
 from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import PropertyManager, FeatureDetector, RequirementMissingException
-from owrx.source import RtlNmuxSource
+from owrx.source import SdrService
 from socketserver import ThreadingMixIn
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
@@ -19,7 +19,7 @@ def main():
     pm = PropertyManager.getSharedInstance()
     for name, value in cfg.__dict__.items():
         if (name.startswith("__")): continue
-        pm.getProperty(name).setValue(value)
+        pm[name] = value
 
     featureDetector = FeatureDetector()
     if not featureDetector.is_available("core"):
@@ -27,9 +27,6 @@ def main():
               "please check that the following core requirements are installed:")
         print(", ".join(featureDetector.get_requirements("core")))
         return
-
-    if (pm.getPropertyValue("start_rtl_thread")):
-        RtlNmuxSource().setup()
 
     server = ThreadedHttpServer(('0.0.0.0', pm.getPropertyValue("web_port")), RequestHandler)
     server.serve_forever()

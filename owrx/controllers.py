@@ -1,7 +1,7 @@
 import mimetypes
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import SpectrumThread, DspManager, CpuUsageThread
+from owrx.source import SpectrumThread, DspManager, CpuUsageThread, SdrService
 import json
 import os
 from datetime import datetime
@@ -62,8 +62,76 @@ class IndexController(AssetsController):
         self.serve_file("index.wrx", "text/html")
 
 class OpenWebRxClient(object):
+    config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
+                   "waterfall_auto_level_margin", "lfo_offset", "samp_rate", "fft_size", "fft_fps",
+                   "audio_compression", "fft_compression", "max_clients", "start_mod",
+                   "client_audio_buffer_size", "start_freq", "center_freq"]
     def __init__(self, conn):
         self.conn = conn
+
+        self.dsp = None
+        self.sdr = None
+        self.configProps = None
+
+        pm = PropertyManager.getSharedInstance()
+
+        self.setSdr()
+
+        # send receiver info
+        receiver_keys = ["receiver_name", "receiver_location", "receiver_qra", "receiver_asl",  "receiver_gps",
+                         "photo_title", "photo_desc"]
+        receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
+        self.write_receiver_details(receiver_details)
+
+        CpuUsageThread.getSharedInstance().add_client(self)
+
+    def sendConfig(self, key, value):
+        config = dict((key, self.configProps[key]) for key in OpenWebRxClient.config_keys)
+        # TODO mathematical properties? hmmmm
+        config["start_offset_freq"] = self.configProps["start_freq"] - self.configProps["center_freq"]
+        self.write_config(config)
+    def setSdr(self, id = None):
+        self.stopDsp()
+
+        if self.configProps is not None:
+            self.configProps.unwire(self.sendConfig)
+
+        self.sdr = SdrService.getSource(id)
+        self.sdr.start()
+
+        # send initial config
+        self.configProps = self.sdr.getProps().collect(*OpenWebRxClient.config_keys).defaults(PropertyManager.getSharedInstance())
+
+        self.configProps.wire(self.sendConfig)
+        self.sendConfig(None, None)
+
+        self.sdr.spectrumThread.add_client(self)
+
+    def startDsp(self):
+        if self.dsp is None:
+            self.dsp = DspManager(self, self.sdr)
+            self.dsp.start()
+
+    def stopDsp(self):
+        if self.dsp is not None:
+            self.dsp.stop()
+            self.dsp = None
+        if self.sdr is not None:
+            self.sdr.spectrumThread.remove_client(self)
+        # TODO: this should be disabled somehow, just not with the dsp
+        #CpuUsageThread.getSharedInstance().remove_client(self)
+
+    def setParams(self, params):
+        # only the keys in the protected property manager can be overridden from the web
+        protected = self.sdr.getProps().collect("samp_rate", "center_freq", "rf_gain", "type") \
+            .defaults(PropertyManager.getSharedInstance())
+        for key, value in params.items():
+            protected[key] = value
+
+    def setDspProperties(self, params):
+        for key, value in params.items():
+            self.dsp.setProperty(key, value)
+
     def write_spectrum_data(self, data):
         self.conn.send(bytes([0x01]) + data)
     def write_dsp_data(self, data):
@@ -90,39 +158,12 @@ class WebSocketMessageHandler(object):
         self.dsp = None
 
     def handleTextMessage(self, conn, message):
-        pm = PropertyManager.getSharedInstance()
-
         if (message[:16] == "SERVER DE CLIENT"):
             # maybe put some more info in there? nothing to store yet.
             self.handshake = "completed"
             print("client connection intitialized")
 
             self.client = OpenWebRxClient(conn)
-
-            config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
-                           "waterfall_auto_level_margin", "lfo_offset", "samp_rate", "fft_size", "fft_fps",
-                           "audio_compression", "fft_compression", "max_clients", "start_mod",
-                           "client_audio_buffer_size", "start_freq", "center_freq"]
-
-            configProps = pm.collect(*config_keys)
-
-            def sendConfig(key, value):
-                config = dict((key, configProps[key]) for key in config_keys)
-                config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
-                self.client.write_config(config)
-
-            configProps.wire(sendConfig)
-            sendConfig(None, None)
-
-            receiver_keys = ["receiver_name", "receiver_location", "receiver_qra", "receiver_asl",  "receiver_gps",
-                             "photo_title", "photo_desc"]
-            receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
-            self.client.write_receiver_details(receiver_details)
-
-            SpectrumThread.getSharedInstance().add_client(self.client)
-            CpuUsageThread.getSharedInstance().add_client(self.client)
-
-            self.dsp = DspManager(self.client)
 
             return
 
@@ -132,20 +173,23 @@ class WebSocketMessageHandler(object):
 
         try:
             message = json.loads(message)
-            if message["type"] == "dspcontrol":
-                if "params" in message:
-                    params = message["params"]
-                    for key, value in params.items():
-                        self.dsp.setProperty(key, value)
+            if "type" in message:
+                if message["type"] == "dspcontrol":
+                    if "action" in message and message["action"] == "start":
+                        self.client.startDsp()
 
-                if "action" in message and message["action"] == "start":
-                    self.dsp.start()
+                    if "params" in message:
+                        params = message["params"]
+                        self.client.setDspProperties(params)
 
-            if message["type"] == "config":
-                for key, value in message["params"].items():
-                    # only the keys in the protected property manager can be overridden from the web
-                    protected = pm.collect("samp_rate", "center_freq", "rf_gain", "rtl_type")
-                    protected[key] = value
+                if message["type"] == "config":
+                    if "params" in message:
+                        self.client.setParams(message["params"])
+                if message["type"] == "setsdr":
+                    if "params" in message:
+                        self.client.setSdr(message["params"]["sdr"])
+            else:
+                print("received message without type: {0}".format(message))
 
         except json.JSONDecodeError:
             print("message is not json: {0}".format(message))
@@ -155,10 +199,7 @@ class WebSocketMessageHandler(object):
 
     def handleClose(self, conn):
         if self.client:
-            SpectrumThread.getSharedInstance().remove_client(self.client)
-            CpuUsageThread.getSharedInstance().remove_client(self.client)
-        if self.dsp:
-            self.dsp.stop()
+            self.client.stopDsp()
 
 class WebSocketController(Controller):
     def handle_request(self):

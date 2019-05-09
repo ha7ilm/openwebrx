@@ -28,7 +28,7 @@ class PropertyManager(object):
         return PropertyManager.sharedInstance
 
     def collect(self, *props):
-        return PropertyManager(dict((name, self.getProperty(name)) for name in props))
+        return PropertyManager(dict((name, self.getProperty(name) if self.hasProperty(name) else Property()) for name in props))
 
     def __init__(self, properties = None):
         self.properties = {}
@@ -52,10 +52,15 @@ class PropertyManager(object):
         return self.getPropertyValue(name)
 
     def __setitem__(self, name, value):
+        if not self.hasProperty(name):
+            self.add(name, Property())
         self.getProperty(name).setValue(value)
 
+    def hasProperty(self, name):
+        return name in self.properties
+
     def getProperty(self, name):
-        if not name in self.properties:
+        if not self.hasProperty(name):
             self.add(name, Property())
         return self.properties[name]
 
@@ -64,6 +69,16 @@ class PropertyManager(object):
 
     def wire(self, callback):
         self.callbacks.append(callback)
+        return self
+
+    def unwire(self, callback):
+        self.callbacks.remove(callback)
+        return self
+
+    def defaults(self, other_pm):
+        for (key, p) in self.properties.items():
+            if p.getValue() is None:
+                p.setValue(other_pm[key])
         return self
 
 class RequirementMissingException(Exception):
