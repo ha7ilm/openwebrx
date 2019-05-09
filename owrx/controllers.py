@@ -3,15 +3,21 @@ from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
 from owrx.source import SpectrumThread, DspManager, CpuUsageThread
 import json
+import os
+from datetime import datetime
 
 class Controller(object):
     def __init__(self, handler, matches):
         self.handler = handler
         self.matches = matches
-    def send_response(self, content, code = 200, content_type = "text/html"):
+    def send_response(self, content, code = 200, content_type = "text/html", last_modified: datetime = None, max_age = None):
         self.handler.send_response(code)
         if content_type is not None:
             self.handler.send_header("Content-Type", content_type)
+        if last_modified is not None:
+            self.handler.send_header("Last-Modified", last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        if max_age is not None:
+            self.handler.send_header("Cache-Control", "max-age: {0}".format(max_age))
         self.handler.end_headers()
         if (type(content) == str):
             content = content.encode()
@@ -27,24 +33,33 @@ class StatusController(Controller):
     def handle_request(self):
         self.send_response("you have reached the status page!")
 
-class IndexController(Controller):
-    def handle_request(self):
-        self.render_template("index.wrx")
-
 class AssetsController(Controller):
-    def serve_file(self, file):
+    def serve_file(self, file, content_type = None):
         try:
+            modified = datetime.fromtimestamp(os.path.getmtime('htdocs/' + file))
+
+            if "If-Modified-Since" in self.handler.headers:
+                client_modified = datetime.strptime(self.handler.headers["If-Modified-Since"], "%a, %d %b %Y %H:%M:%S %Z")
+                if modified <= client_modified:
+                    self.send_response("", code = 304)
+                    return
+
             f = open('htdocs/' + file, 'rb')
             data = f.read()
             f.close()
 
-            (content_type, encoding) = mimetypes.MimeTypes().guess_type(file)
-            self.send_response(data, content_type = content_type)
+            if content_type is None:
+                (content_type, encoding) = mimetypes.MimeTypes().guess_type(file)
+            self.send_response(data, content_type = content_type, last_modified = modified, max_age = 3600)
         except FileNotFoundError:
             self.send_response("file not found", code = 404)
     def handle_request(self):
         filename = self.matches.group(1)
         self.serve_file(filename)
+
+class IndexController(AssetsController):
+    def handle_request(self):
+        self.serve_file("index.wrx", "text/html")
 
 class OpenWebRxClient(object):
     def __init__(self, conn):
