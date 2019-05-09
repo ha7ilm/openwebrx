@@ -10,7 +10,7 @@ class RtlNmuxSource(object):
     types = {
         "rtl_sdr": {
             "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-            "format_conversion": "csdr convert_u8_f",
+            "format_conversion": "csdr convert_u8_f"
         },
         "hackrf": {
             "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
@@ -18,7 +18,8 @@ class RtlNmuxSource(object):
         },
         "sdrplay": {
             "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-            "format_conversion": None
+            "format_conversion": None,
+            "sleep": 1
         }
     }
 
@@ -45,9 +46,9 @@ class RtlNmuxSource(object):
             print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
             return
 
-        params = RtlNmuxSource.types[props["rtl_type"]]
+        self.params = RtlNmuxSource.types[props["rtl_type"]]
 
-        start_sdr_command = params["command"].format(
+        start_sdr_command = self.params["command"].format(
             samp_rate = props["samp_rate"],
             center_freq = props["center_freq"],
             ppm = props["ppm"],
@@ -56,8 +57,8 @@ class RtlNmuxSource(object):
             rf_amp = props["rf_amp"]
         )
 
-        if params["format_conversion"] is not None:
-            start_sdr_command += " | " + params["format_conversion"]
+        if self.params["format_conversion"] is not None:
+            start_sdr_command += " | " + self.params["format_conversion"]
 
         nmux_bufcnt = nmux_bufsize = 0
         while nmux_bufsize < props["samp_rate"]/4: nmux_bufsize += 4096
@@ -75,10 +76,14 @@ class RtlNmuxSource(object):
             rc = self.process.wait()
             print("[RtlNmuxSource] shut down with RC={0}".format(rc))
 
-        threading.Thread(target = wait_for_process_to_end).start()
+        self.monitor = threading.Thread(target = wait_for_process_to_end)
+        self.monitor.start()
 
     def stop(self):
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+        self.monitor.join()
+        if "sleep" in self.params:
+            time.sleep(self.params["sleep"])
 
 class SpectrumThread(threading.Thread):
     sharedInstance = None
