@@ -29,7 +29,8 @@ class WebSocketConnection(object):
     def send(self, data):
         # convenience
         if (type(data) == dict):
-            data = json.dumps(data)
+            # allow_nan = False disallows NaN and Infinty to be encoded. Browser JSON will not parse them anyway.
+            data = json.dumps(data, allow_nan = False)
 
         # string-type messages are sent as text frames
         if (type(data) == str):
