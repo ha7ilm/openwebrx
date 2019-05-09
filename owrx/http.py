@@ -14,7 +14,8 @@ class Router(object):
         {"route": "/", "controller": IndexController},
         {"route": "/status", "controller": StatusController},
         {"regex": "/static/(.+)", "controller": AssetsController},
-        {"route": "/ws/", "controller": WebSocketController}
+        {"route": "/ws/", "controller": WebSocketController},
+        {"regex": "(/favicon.ico)", "controller": AssetsController}
     ]
     def find_controller(self, path):
         for m in Router.mappings:
