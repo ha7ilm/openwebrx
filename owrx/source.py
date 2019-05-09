@@ -105,19 +105,24 @@ class SpectrumThread(threading.Thread):
             "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through", "iq_server_port"
         )
 
-        samp_rate = props["samp_rate"]
-        fft_size = props["fft_size"]
-        fft_fps = props["fft_fps"]
-        fft_voverlap_factor = props["fft_voverlap_factor"]
-
         dsp = csdr.dsp()
         dsp.nc_port = props["iq_server_port"]
         dsp.set_demodulator("fft")
-        dsp.set_samp_rate(samp_rate)
-        dsp.set_fft_size(fft_size)
-        dsp.set_fft_fps(fft_fps)
-        dsp.set_fft_averages(int(round(1.0 * samp_rate / fft_size / fft_fps / (1.0 - fft_voverlap_factor))) if fft_voverlap_factor>0 else 0)
-        dsp.set_fft_compression(props["fft_compression"])
+        props.getProperty("samp_rate").wire(dsp.set_samp_rate)
+        props.getProperty("fft_size").wire(dsp.set_fft_size)
+        props.getProperty("fft_fps").wire(dsp.set_fft_fps)
+        props.getProperty("fft_compression").wire(dsp.set_fft_compression)
+
+        def set_fft_averages(key, value):
+            samp_rate = props["samp_rate"]
+            fft_size = props["fft_size"]
+            fft_fps = props["fft_fps"]
+            fft_voverlap_factor = props["fft_voverlap_factor"]
+
+            dsp.set_fft_averages(int(round(1.0 * samp_rate / fft_size / fft_fps / (1.0 - fft_voverlap_factor))) if fft_voverlap_factor>0 else 0)
+        props.collect("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages)
+        set_fft_averages(None, None)
+
         dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
         dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]
         dsp.csdr_through = props["csdr_through"]

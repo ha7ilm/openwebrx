@@ -251,16 +251,16 @@ class dsp:
         return self.demodulator
 
     def set_fft_size(self,fft_size):
-        #to change this, restart is required
         self.fft_size=fft_size
+        self.restart()
 
     def set_fft_fps(self,fft_fps):
-        #to change this, restart is required
         self.fft_fps=fft_fps
+        self.restart()
 
     def set_fft_averages(self,fft_averages):
-        #to change this, restart is required
         self.fft_averages=fft_averages
+        self.restart()
 
     def fft_block_size(self):
         if self.fft_averages == 0: return self.samp_rate/self.fft_fps
