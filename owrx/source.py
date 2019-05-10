@@ -231,9 +231,12 @@ class SpectrumThread(object):
         self.doRun = False
         self.sdrSource = sdrSource
         self.sdrSource.addClient(self)
+        self.thread = None
 
     def start(self):
-        threading.Thread(target = self.run).start()
+        if self.thread is None:
+            self.thread = threading.Thread(target = self.run)
+            self.thread.start()
 
     def run(self):
         props = self.sdrSource.props.collect(
@@ -275,10 +278,16 @@ class SpectrumThread(object):
                 time.sleep(1)
             else:
                 for c in self.clients:
-                    c.write_spectrum_data(data)
+                    try:
+                        c.write_spectrum_data(data)
+                    except OSError:
+                        self.remove_client(c)
+                    except ValueError:
+                        pass
 
         dsp.stop()
         print("spectrum thread shut down")
+        self.thread = None
 
     def add_client(self, c):
         self.clients.append(c)
