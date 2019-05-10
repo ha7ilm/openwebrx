@@ -1,10 +1,11 @@
 import subprocess
-from owrx.config import PropertyManager, FeatureDetector
+from owrx.config import PropertyManager, FeatureDetector, UnknownFeatureException
 import threading
 import csdr
 import time
 import os
 import signal
+import sys
 
 class SdrService(object):
     sdrProps = None
@@ -22,38 +23,41 @@ class SdrService(object):
                 raise IndexError("no more available ports to start more sdrs")
         return SdrService.lastPort
     @staticmethod
-    def getSource(id = None):
+    def loadProps():
         if SdrService.sdrProps is None:
             pm = PropertyManager.getSharedInstance()
+            featureDetector = FeatureDetector()
             def loadIntoPropertyManager(dict: dict):
                 propertyManager = PropertyManager()
                 for (name, value) in dict.items():
                     propertyManager[name] = value
                 return propertyManager
-            SdrService.sdrProps = dict((name, loadIntoPropertyManager(value)) for (name, value) in pm["sdrs"].items())
-            print(SdrService.sdrProps)
+            def sdrTypeAvailable(value):
+                try:
+                    if not featureDetector.is_available(value["type"]):
+                        print("The RTL source type \"{0}\" is not available. please check requirements.".format(value["type"]))
+                        return False
+                    return True
+                except UnknownFeatureException:
+                    print("The RTL source type \"{0}\" is invalid. Please check your configuration".format(value["type"]))
+                    return False
+            # transform all dictionary items into PropertyManager object, filtering out unavailable ones
+            SdrService.sdrProps = {
+                name: loadIntoPropertyManager(value) for (name, value) in pm["sdrs"].items() if sdrTypeAvailable(value)
+            }
+            print("SDR sources loaded. Availables SDRs: {0}".format(", ".join(map(lambda x: x["name"], SdrService.sdrProps.values()))))
+    @staticmethod
+    def getSource(id = None):
+        SdrService.loadProps()
         if id is None:
             # TODO: configure default sdr in config? right now it will pick the first one off the list.
             id = list(SdrService.sdrProps.keys())[0]
         if not id in SdrService.sources:
-            SdrService.sources[id] = SdrSource(SdrService.sdrProps[id], SdrService.getNextPort())
+            props = SdrService.sdrProps[id]
+            className = ''.join(x for x in props["type"].title() if x.isalnum()) + "Source"
+            cls = getattr(sys.modules[__name__], className)
+            SdrService.sources[id] = cls(props, SdrService.getNextPort())
         return SdrService.sources[id]
-
-sdr_types = {
-    "rtl_sdr": {
-        "command": "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-        "format_conversion": "csdr convert_u8_f"
-    },
-    "hackrf": {
-        "command": "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-",
-        "format_conversion": "csdr convert_s8_f"
-    },
-    "sdrplay": {
-        "command": "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -",
-        "format_conversion": None,
-        "sleep": 1
-    }
-}
 
 class SdrSource(object):
     def __init__(self, props, port):
@@ -70,6 +74,10 @@ class SdrSource(object):
         self.port = port
         self.monitor = None
 
+        # override these in subclasses as necessary
+        self.command = None
+        self.format_conversion = None
+
     def getProps(self):
         return self.props
 
@@ -81,14 +89,7 @@ class SdrSource(object):
 
         props = self.rtlProps
 
-        featureDetector = FeatureDetector()
-        if not featureDetector.is_available(props["type"]):
-            print("The RTL source type {0} is not available. please check requirements.".format(props["rtl_type"]))
-            return
-
-        self.params = sdr_types[props["type"]]
-
-        start_sdr_command = self.params["command"].format(
+        start_sdr_command = self.command.format(
             samp_rate = props["samp_rate"],
             center_freq = props["center_freq"],
             ppm = props["ppm"],
@@ -97,8 +98,8 @@ class SdrSource(object):
             rf_amp = props["rf_amp"]
         )
 
-        if self.params["format_conversion"] is not None:
-            start_sdr_command += " | " + self.params["format_conversion"]
+        if self.format_conversion is not None:
+            start_sdr_command += " | " + self.format_conversion
 
         nmux_bufcnt = nmux_bufsize = 0
         while nmux_bufsize < props["samp_rate"]/4: nmux_bufsize += 4096
@@ -125,8 +126,31 @@ class SdrSource(object):
     def stop(self):
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
         self.monitor.join()
-        if "sleep" in self.params:
-            time.sleep(self.params["sleep"])
+        self.sleepOnRestart()
+
+    def sleepOnRestart(self):
+        pass
+
+class RtlSdrSource(SdrSource):
+    def __init__(self, props, port):
+        super().__init__(props, port)
+        self.command = "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -"
+        self.format_conversion = "csdr convert_u8_f"
+
+class HackrfSource(SdrSource):
+    def __init__(self, props, port):
+        super().__init__(props, port)
+        self.command = "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-"
+        self.format_conversion =  "csdr convert_s8_f"
+
+class SdrplaySource(SdrSource):
+    def __init__(self, props, port):
+        super().__init__(props, port)
+        self.command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -"
+        self.format_conversion = None
+
+    def sleepOnRestart(self):
+        time.sleep(1)
 
 class SpectrumThread(object):
     def __init__(self, sdrSource):

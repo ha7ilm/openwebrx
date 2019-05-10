@@ -81,6 +81,9 @@ class PropertyManager(object):
                 p.setValue(other_pm[key])
         return self
 
+class UnknownFeatureException(Exception):
+    pass
+
 class RequirementMissingException(Exception):
     pass
 
@@ -96,7 +99,10 @@ class FeatureDetector(object):
         return self.has_requirements(self.get_requirements(feature))
 
     def get_requirements(self, feature):
-        return FeatureDetector.features[feature]
+        try:
+            return FeatureDetector.features[feature]
+        except KeyError:
+            raise UnknownFeatureException("Feature \"{0}\" is not known.".format(feature))
 
     def has_requirements(self, requirements):
         passed = True

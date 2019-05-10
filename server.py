@@ -28,6 +28,9 @@ def main():
         print(", ".join(featureDetector.get_requirements("core")))
         return
 
+    # Get error messages about unknown / unavailable features as soon as possible
+    SdrService.loadProps()
+
     server = ThreadedHttpServer(('0.0.0.0', pm.getPropertyValue("web_port")), RequestHandler)
     server.serve_forever()
 
