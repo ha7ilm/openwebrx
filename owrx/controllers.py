@@ -107,7 +107,7 @@ class OpenWebRxClient(object):
         self.configProps.wire(self.sendConfig)
         self.sendConfig(None, None)
 
-        self.sdr.getSpectrumThread().add_client(self)
+        self.sdr.addSpectrumClient(self)
 
     def startDsp(self):
         if self.dsp is None:
@@ -124,7 +124,7 @@ class OpenWebRxClient(object):
             self.dsp.stop()
             self.dsp = None
         if self.sdr is not None:
-            self.sdr.spectrumThread.remove_client(self)
+            self.sdr.removeSpectrumClient(self)
 
     def setParams(self, params):
         # only the keys in the protected property manager can be overridden from the web

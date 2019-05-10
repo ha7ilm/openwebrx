@@ -83,6 +83,7 @@ class SdrSource(object):
         self.port = port
         self.monitor = None
         self.clients = []
+        self.spectrumClients = []
         self.spectrumThread = None
         self.modificationLock = threading.Lock()
 
@@ -163,6 +164,9 @@ class SdrSource(object):
         self.monitor = threading.Thread(target = wait_for_process_to_end)
         self.monitor.start()
 
+        self.spectrumThread = SpectrumThread(self)
+        self.spectrumThread.start()
+
         self.modificationLock.release()
 
         for c in self.clients:
@@ -171,22 +175,21 @@ class SdrSource(object):
     def isAvailable(self):
         return self.monitor is not None
 
-    def getSpectrumThread(self):
-        if self.spectrumThread is None:
-            self.spectrumThread = SpectrumThread(self)
-        return self.spectrumThread
-
     def stop(self):
         for c in self.clients:
             c.onSdrUnavailable()
 
         self.modificationLock.acquire()
+
+        self.spectrumThread.stop()
+
         try:
             os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
         except ProcessLookupError:
             # been killed by something else, ignore
             pass
-        self.monitor.join()
+        if self.monitor:
+            self.monitor.join()
         self.sleepOnRestart()
         self.modificationLock.release()
 
@@ -203,6 +206,20 @@ class SdrSource(object):
             pass
         if not self.clients:
             self.stop()
+
+    def addSpectrumClient(self, c):
+        self.spectrumClients.append(c)
+
+    def removeSpectrumClient(self, c):
+        try:
+            self.spectrumClients.remove(c)
+        except ValueError:
+            pass
+
+    def writeSpectrumData(self, data):
+        for c in self.spectrumClients:
+            c.write_spectrum_data(data)
+
 
 class RtlSdrSource(SdrSource):
     def __init__(self, props, port):
@@ -225,18 +242,11 @@ class SdrplaySource(SdrSource):
     def sleepOnRestart(self):
         time.sleep(1)
 
-class SpectrumThread(object):
+class SpectrumThread(threading.Thread):
     def __init__(self, sdrSource):
-        self.clients = []
-        self.doRun = False
+        self.doRun = True
         self.sdrSource = sdrSource
-        self.sdrSource.addClient(self)
-        self.thread = None
-
-    def start(self):
-        if self.thread is None:
-            self.thread = threading.Thread(target = self.run)
-            self.thread.start()
+        super().__init__()
 
     def run(self):
         props = self.sdrSource.props.collect(
@@ -277,40 +287,17 @@ class SpectrumThread(object):
             if len(data) == 0:
                 time.sleep(1)
             else:
-                for c in self.clients:
-                    c.write_spectrum_data(data)
+                self.sdrSource.writeSpectrumData(data)
 
         dsp.stop()
         print("spectrum thread shut down")
+
         self.thread = None
-
-    def add_client(self, c):
-        self.clients.append(c)
-        self.doRun = self.sdrSource.isAvailable()
-        if self.doRun:
-            self.start()
-
-    def remove_client(self, c):
-        try:
-            self.clients.remove(c)
-        except ValueError:
-            pass
-        if not self.clients:
-            self.stop()
+        self.sdrSource.removeClient(self)
 
     def stop(self):
         print("stopping spectrum thread")
         self.doRun = False
-
-    def onSdrAvailable(self):
-        print("Spectrum Thread: onSdrAvailable")
-        self.doRun = bool(self.clients)
-        if self.doRun:
-            self.start()
-
-    def onSdrUnavailable(self):
-        print("Spectrum Thread: onSdrUnavailable")
-        self.stop()
 
 class DspManager(object):
     def __init__(self, handler, sdrSource):
