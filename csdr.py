@@ -132,19 +132,19 @@ class dsp:
         secondary_command_demod=self.secondary_chain(self.secondary_demodulator)
         self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod + secondary_command_fft)
 
-        secondary_command_fft=secondary_command_fft.format( \
-            input_pipe=self.iqtee_pipe, \
-            secondary_fft_input_size=self.secondary_fft_size, \
-            secondary_fft_size=self.secondary_fft_size, \
-            secondary_fft_block_size=self.secondary_fft_block_size(), \
+        secondary_command_fft=secondary_command_fft.format(
+            input_pipe=self.iqtee_pipe,
+            secondary_fft_input_size=self.secondary_fft_size,
+            secondary_fft_size=self.secondary_fft_size,
+            secondary_fft_block_size=self.secondary_fft_block_size(),
             )
-        secondary_command_demod=secondary_command_demod.format( \
-            input_pipe=self.iqtee2_pipe, \
-            secondary_shift_pipe=self.secondary_shift_pipe, \
-            secondary_decimation=self.secondary_decimation(), \
-            secondary_samples_per_bits=self.secondary_samples_per_bits(), \
-            secondary_bpf_cutoff=self.secondary_bpf_cutoff(), \
-            secondary_bpf_transition_bw=self.secondary_bpf_transition_bw(), \
+        secondary_command_demod=secondary_command_demod.format(
+            input_pipe=self.iqtee2_pipe,
+            secondary_shift_pipe=self.secondary_shift_pipe,
+            secondary_decimation=self.secondary_decimation(),
+            secondary_samples_per_bits=self.secondary_samples_per_bits(),
+            secondary_bpf_cutoff=self.secondary_bpf_cutoff(),
+            secondary_bpf_transition_bw=self.secondary_bpf_transition_bw(),
             if_samp_rate=self.if_samp_rate()
             )
 
@@ -346,10 +346,10 @@ class dsp:
         self.try_create_pipes(self.pipe_names, command_base)
 
         #run the command
-        command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation, \
-            last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), fft_averages=self.fft_averages, \
-            bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(), \
-            flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port, \
+        command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation,
+            last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), fft_averages=self.fft_averages,
+            bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(),
+            flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe )
 
         print("[openwebrx-dsp-plugin:csdr] Command =",command)
