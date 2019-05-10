@@ -521,7 +521,7 @@ class ClientReporterThread(threading.Thread):
 
     def run(self):
         while (self.doRun):
-            n = len(self.clients)
+            n = self.clientCount()
             for c in self.clients:
                 c.write_clients(n)
             time.sleep(3)
@@ -532,6 +532,9 @@ class ClientReporterThread(threading.Thread):
         if len(self.clients) >= pm["max_clients"]:
             raise TooManyClientsException()
         self.clients.append(client)
+
+    def clientCount(self):
+        return len(self.clients)
 
     def removeClient(self, client):
         try:

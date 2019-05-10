@@ -34,7 +34,22 @@ class Controller(object):
 
 class StatusController(Controller):
     def handle_request(self):
-        self.send_response("you have reached the status page!")
+        pm = PropertyManager.getSharedInstance()
+        # TODO keys that have been left out since they are no longer simple strings: sdr_hw, bands, antenna
+        vars = {
+            "status": "active",
+            "name": pm["receiver_name"],
+            "op_email": pm["receiver_admin"],
+            "users": ClientReporterThread.getSharedInstance().clientCount(),
+            "users_max": pm["max_clients"],
+            "gps": pm["receiver_gps"],
+            "asl": pm["receiver_asl"],
+            "loc": pm["receiver_location"],
+            # TODO get some version in there
+            "sw_version": "TODO",
+            "avatar_ctime": os.path.getctime("htdocs/gfx/openwebrx-avatar.png")
+        }
+        self.send_response("\n".join(["{key}={value}".format(key = key, value = value) for key, value in vars.items()]))
 
 class AssetsController(Controller):
     def serve_file(self, file, content_type = None):
