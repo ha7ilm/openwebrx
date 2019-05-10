@@ -26,6 +26,9 @@ import os
 import signal
 import threading
 
+import logging
+logger = logging.getLogger(__name__)
+
 class dsp:
 
     def __init__(self):
@@ -127,7 +130,7 @@ class dsp:
 
     def start_secondary_demodulator(self):
         if not self.secondary_demodulator: return
-        print("[openwebrx] starting secondary demodulator from IF input sampled at %d"%self.if_samp_rate())
+        logger.debug("[openwebrx] starting secondary demodulator from IF input sampled at %d"%self.if_samp_rate())
         secondary_command_fft=self.secondary_chain("fft")
         secondary_command_demod=self.secondary_chain(self.secondary_demodulator)
         self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod + secondary_command_fft)
@@ -148,25 +151,21 @@ class dsp:
             if_samp_rate=self.if_samp_rate()
             )
 
-        print("[openwebrx-dsp-plugin:csdr] secondary command (fft) =", secondary_command_fft)
-        print("[openwebrx-dsp-plugin:csdr] secondary command (demod) =", secondary_command_demod)
+        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (fft) =", secondary_command_fft)
+        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (demod) =", secondary_command_demod)
         my_env=os.environ.copy()
         #if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
         self.secondary_process_fft = subprocess.Popen(secondary_command_fft, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env)
-        print("[openwebrx-dsp-plugin:csdr] Popen on secondary command (fft)")
+        logger.debug("[openwebrx-dsp-plugin:csdr] Popen on secondary command (fft)")
         self.secondary_process_demod = subprocess.Popen(secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env) #TODO digimodes
-        print("[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)") #TODO digimodes
+        logger.debug("[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)") #TODO digimodes
         self.secondary_processes_running = True
 
         #open control pipes for csdr and send initialization data
-        # print "==========> 1"
         if self.secondary_shift_pipe != None: #TODO digimodes
-            # print "==========> 2", self.secondary_shift_pipe
             self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
-            # print "==========> 3"
             self.set_secondary_offset_freq(self.secondary_offset_freq) #TODO digimodes
-            # print "==========> 4"
 
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq=value
@@ -315,9 +314,7 @@ class dsp:
         return self.ddc_transition_bw_rate*(self.if_samp_rate()/float(self.samp_rate))
 
     def try_create_pipes(self, pipe_names, command_base):
-        # print "try_create_pipes"
         for pipe_name in pipe_names:
-            # print "\t"+pipe_name
             if "{"+pipe_name+"}" in command_base:
                 setattr(self, pipe_name, self.pipe_base_path+pipe_name)
                 self.mkfifo(getattr(self, pipe_name))
@@ -329,7 +326,8 @@ class dsp:
             pipe_path = getattr(self,pipe_name,None)
             if pipe_path:
                 try: os.unlink(pipe_path)
-                except Exception as e: print("[openwebrx-dsp-plugin:csdr] try_delete_pipes() ::", e)
+                except Exception as e:
+                    logger.error("try_delete_pipes()", e)
 
     def start(self):
         self.modification_lock.acquire()
@@ -352,7 +350,7 @@ class dsp:
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe )
 
-        print("[openwebrx-dsp-plugin:csdr] Command =",command)
+        logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()
         if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
@@ -360,9 +358,9 @@ class dsp:
 
         def watch_thread():
             rc = self.process.wait()
-            print("dsp thread ended with rc={0}".format(rc))
+            logging.debug("dsp thread ended with rc=%d", rc)
             if (rc == 0 and self.running and not self.modification_lock.locked()):
-                print("restarting since rc = 0, self.running = true, and no modification")
+                logging.debug("restarting since rc = 0, self.running = true, and no modification")
                 self.restart()
 
         threading.Thread(target = watch_thread).start()
