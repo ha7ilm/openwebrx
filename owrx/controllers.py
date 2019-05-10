@@ -1,7 +1,7 @@
 import mimetypes
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import SpectrumThread, DspManager, CpuUsageThread, SdrService
+from owrx.source import DspManager, CpuUsageThread, SdrService
 import json
 import os
 from datetime import datetime

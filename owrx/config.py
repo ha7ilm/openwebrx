@@ -7,6 +7,8 @@ class Property(object):
     def getValue(self):
         return self.value
     def setValue(self, value):
+        if (self.value == value):
+            return self
         self.value = value
         for c in self.callbacks:
             try:
