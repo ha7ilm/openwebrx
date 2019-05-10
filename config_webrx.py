@@ -104,22 +104,59 @@ sdrs = {
     "rtlsdr": {
         "name": "RTL-SDR USB Stick",
         "type": "rtl_sdr",
-        "center_freq": 438800000,
-        "rf_gain": 30,
-        "samp_rate": 2400000,
         "ppm": 0,
-        "start_freq": 439275000,
-        "start_mod": "nfm"
+        "profiles": {
+            "70cm": {
+                "name": "70cm Relais",
+                "center_freq": 438800000,
+                "rf_gain": 30,
+                "samp_rate": 2400000,
+                "start_freq": 439275000,
+                "start_mod": "nfm"
+            },
+            "2m": {
+                "name": "2m komplett",
+                "center_freq": 145000000,
+                "rf_gain": 30,
+                "samp_rate": 2400000,
+                "start_freq": 145725000,
+                "start_mod": "nfm"
+            }
+        }
     },
     "sdrplay": {
         "name": "SDRPlay RSP2",
         "type": "sdrplay",
-        "center_freq": 14150000,
-        "rf_gain": 30,
-        "samp_rate": 500000,
         "ppm": 0,
-        "start_freq": 14070000,
-        "start_mod": "usb"
+        "profiles": {
+            "20m": {
+                "name":"20m",
+                "center_freq": 14150000,
+                "rf_gain": 30,
+                "samp_rate": 500000,
+                "start_freq": 14070000,
+                "start_mod": "usb"
+            },
+            "40m": {
+                "name":"40m",
+                "center_freq": 7100000,
+                "rf_gain": 30,
+                "samp_rate": 500000,
+                "start_freq": 7070000,
+                "start_mod": "usb"
+            },
+            "80m": {
+                "name":"80m",
+                "center_freq": 3650000,
+                "rf_gain": 30,
+                "samp_rate": 500000,
+                "start_freq": 3570000,
+                "start_mod": "usb"
+            }
+        }
+    },
+    "test": {
+        "type": "test"
     }
 }
 

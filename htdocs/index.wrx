@@ -83,6 +83,10 @@
                     <div id="webrx-actual-freq">---.--- MHz</div>
                     <div id="webrx-mouse-freq">---.--- MHz</div>
                     <div class="openwebrx-panel-line">
+                        <select id="openwebrx-sdr-profiles-listbox" onchange="sdr_profile_changed();">
+                        </select>
+                    </div>
+                    <div class="openwebrx-panel-line">
                         <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-nfm" 
                             onclick="demodulator_analog_replace('nfm');">FM</div>
                         <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-am" 

@@ -83,6 +83,9 @@ class OpenWebRxClient(object):
         receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
         self.write_receiver_details(receiver_details)
 
+        profiles = [{"name": s.getName() + " " + p["name"], "id":sid + "|" + pid} for (sid, s) in SdrService.getSources().items() for (pid, p) in s.getProfiles().items()]
+        self.write_profiles(profiles)
+
         CpuUsageThread.getSharedInstance().add_client(self)
 
     def sendConfig(self, key, value):
@@ -149,6 +152,8 @@ class OpenWebRxClient(object):
         self.conn.send({"type":"config","value":cfg})
     def write_receiver_details(self, details):
         self.conn.send({"type":"receiver_details","value":details})
+    def write_profiles(self, profiles):
+        self.conn.send({"type":"profiles","value":profiles})
 
 class WebSocketMessageHandler(object):
     def __init__(self):
@@ -187,6 +192,11 @@ class WebSocketMessageHandler(object):
                 if message["type"] == "setsdr":
                     if "params" in message:
                         self.client.setSdr(message["params"]["sdr"])
+                if message["type"] == "selectprofile":
+                    if "params" in message and "profile" in message["params"]:
+                        profile = message["params"]["profile"].split("|")
+                        self.client.setSdr(profile[0])
+                        self.client.sdr.activateProfile(profile[1])
             else:
                 print("received message without type: {0}".format(message))
 

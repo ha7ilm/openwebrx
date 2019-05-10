@@ -1208,6 +1208,12 @@ function on_ws_recv(evt)
 						var server_cpu_usage = json.value;
 						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage/100,"Server CPU [" + server_cpu_usage + "%]",server_cpu_usage>85);
                     break;
+                    case "profiles":
+                        var listbox = e("openwebrx-sdr-profiles-listbox");
+                        listbox.innerHTML = json.value.map(function(profile){
+                            return '<option value="' + profile.id + '">' + profile.name + "</option>";
+                        }).join("");
+                    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
@@ -2748,4 +2754,9 @@ function secondary_demod_waterfall_set_zoom(low_cut, high_cut)
     //console.log("setzoom", secondary_demod_canvas_width, secondary_demod_canvas_left, low_cut, high_cut);
     secondary_demod_canvases.map((x)=>{$(x).css("left",secondary_demod_canvas_left+"px").css("width",secondary_demod_canvas_width+"px");});
     secondary_demod_update_channel_freq_from_event();
+}
+
+function sdr_profile_changed() {
+    value = $('#openwebrx-sdr-profiles-listbox').val();
+    ws.send(JSON.stringify({ type:"selectprofile", params:{ profile:value }}));
 }

@@ -52,16 +52,24 @@ class SdrService(object):
         if id is None:
             # TODO: configure default sdr in config? right now it will pick the first one off the list.
             id = list(SdrService.sdrProps.keys())[0]
-        if not id in SdrService.sources:
-            props = SdrService.sdrProps[id]
-            className = ''.join(x for x in props["type"].title() if x.isalnum()) + "Source"
-            cls = getattr(sys.modules[__name__], className)
-            SdrService.sources[id] = cls(props, SdrService.getNextPort())
-        return SdrService.sources[id]
+        sources = SdrService.getSources()
+        return sources[id]
+    @staticmethod
+    def getSources():
+        SdrService.loadProps()
+        for id in SdrService.sdrProps.keys():
+            if not id in SdrService.sources:
+                props = SdrService.sdrProps[id]
+                className = ''.join(x for x in props["type"].title() if x.isalnum()) + "Source"
+                cls = getattr(sys.modules[__name__], className)
+                SdrService.sources[id] = cls(props, SdrService.getNextPort())
+        return SdrService.sources
+
 
 class SdrSource(object):
     def __init__(self, props, port):
         self.props = props
+        self.activateProfile()
         self.rtlProps = self.props.collect(
             "type", "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp"
         ).defaults(PropertyManager.getSharedInstance())
@@ -84,6 +92,23 @@ class SdrSource(object):
         # override these in subclasses as necessary
         self.command = None
         self.format_conversion = None
+
+    def activateProfile(self, id = None):
+        profiles = self.props["profiles"]
+        if id is None:
+            id = list(profiles.keys())[0]
+        print("activating profile {0}".format(id))
+        profile = profiles[id]
+        for (key, value) in profile.items():
+            # skip the name, that would overwrite the source name.
+            if key == "name": continue
+            self.props[key] = value
+
+    def getProfiles(self):
+        return self.props["profiles"]
+
+    def getName(self):
+        return self.props["name"]
 
     def getProps(self):
         return self.props

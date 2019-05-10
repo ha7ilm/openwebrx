@@ -790,10 +790,7 @@ img.openwebrx-mirror-img
     transition: width 500ms, left 500ms;
 }
 
-#openwebrx-secondary-demod-listbox
-{
-	width: 201px;
-	height: 27px;
+.openwebrx-panel select {
 	border-radius: 5px;
 	background-color: #373737;
 	color: White;
@@ -805,14 +802,25 @@ img.openwebrx-mirror-img
 	border-color: transparent;
 	border-width: 0px;
 	-moz-appearance: none;
-	padding-left:3px;
 }
 
-#openwebrx-secondary-demod-listbox option
-{
+.openwebrx-panel select option {
 	border-width: 0px;
 	background-color: #373737;
 	color: White;
+}
+
+#openwebrx-secondary-demod-listbox
+{
+	width: 201px;
+	height: 27px;
+	padding-left:3px;
+}
+
+#openwebrx-sdr-profiles-listbox {
+    width: 100%;
+    font-size: 10pt;
+    height: 27px;
 }
 
 #openwebrx-cursor-blink
