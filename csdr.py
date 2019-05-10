@@ -358,9 +358,9 @@ class dsp:
 
         def watch_thread():
             rc = self.process.wait()
-            logging.debug("dsp thread ended with rc=%d", rc)
+            logger.debug("dsp thread ended with rc=%d", rc)
             if (rc == 0 and self.running and not self.modification_lock.locked()):
-                logging.debug("restarting since rc = 0, self.running = true, and no modification")
+                logger.debug("restarting since rc = 0, self.running = true, and no modification")
                 self.restart()
 
         threading.Thread(target = watch_thread).start()
