@@ -2,6 +2,9 @@ from owrx.controllers import StatusController, IndexController, AssetsController
 from http.server import BaseHTTPRequestHandler
 import re
 
+import logging
+logger = logging.getLogger(__name__)
+
 class RequestHandler(BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         self.router = Router()
@@ -29,9 +32,9 @@ class Router(object):
                     return (m["controller"], matches)
     def route(self, handler):
         res = self.find_controller(handler.path)
-        #print("path: {0}, controller: {1}, matches: {2}".format(handler.path, controller, matches))
         if res is not None:
             (controller, matches) = res
+            logger.debug("path: {0}, controller: {1}, matches: {2}".format(handler.path, controller, matches))
             controller(handler, matches).handle_request()
         else:
             handler.send_error(404, "Not Found", "The page you requested could not be found.")

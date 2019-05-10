@@ -1,5 +1,8 @@
 import os
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Property(object):
     def __init__(self, value = None):
         self.value = value
@@ -14,7 +17,7 @@ class Property(object):
             try:
                 c(self.value)
             except Exception as e:
-                print(e)
+                logger.error(e)
         return self
     def wire(self, callback):
         self.callbacks.append(callback)
@@ -46,7 +49,7 @@ class PropertyManager(object):
                 try:
                     c(name, value)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
         prop.wire(fireCallbacks)
         return self
 
@@ -113,7 +116,7 @@ class FeatureDetector(object):
             if hasattr(self, methodname) and callable(getattr(self, methodname)):
                 passed = passed and getattr(self, methodname)()
             else:
-                print("detection of requirement {0} not implement. please fix in code!".format(requirement))
+                logger.error("detection of requirement {0} not implement. please fix in code!".format(requirement))
         return passed
 
     def has_csdr(self):

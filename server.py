@@ -4,6 +4,9 @@ from owrx.config import PropertyManager, FeatureDetector, RequirementMissingExce
 from owrx.source import SdrService
 from socketserver import ThreadingMixIn
 
+import logging
+logging.basicConfig(level = logging.DEBUG, format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
     pass
 

@@ -2,6 +2,9 @@ import base64
 import hashlib
 import json
 
+import logging
+logger = logging.getLogger(__name__)
+
 class WebSocketConnection(object):
     def __init__(self, handler, messageHandler):
         self.handler = handler
@@ -67,7 +70,7 @@ class WebSocketConnection(object):
                 open = False
                 self.messageHandler.handleClose(self)
             else:
-                print("unsupported opcode: {0}".format(opcode))
+                logger.warn("unsupported opcode: {0}".format(opcode))
 
 class WebSocketException(Exception):
     pass

@@ -6,6 +6,9 @@ import json
 import os
 from datetime import datetime
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Controller(object):
     def __init__(self, handler, matches):
         self.handler = handler
@@ -117,7 +120,7 @@ class OpenWebRxClient(object):
     def close(self):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
-        print("connection closed")
+        logger.debug("connection closed")
 
     def stopDsp(self):
         if self.dsp is not None:
@@ -177,14 +180,14 @@ class WebSocketMessageHandler(object):
         if (message[:16] == "SERVER DE CLIENT"):
             # maybe put some more info in there? nothing to store yet.
             self.handshake = "completed"
-            print("client connection intitialized")
+            logger.debug("client connection intitialized")
 
             self.client = OpenWebRxClient(conn)
 
             return
 
         if not self.handshake:
-            print("not answering client request since handshake is not complete")
+            logger.warn("not answering client request since handshake is not complete")
             return
 
         try:
@@ -210,13 +213,13 @@ class WebSocketMessageHandler(object):
                         self.client.setSdr(profile[0])
                         self.client.sdr.activateProfile(profile[1])
             else:
-                print("received message without type: {0}".format(message))
+                logger.warn("received message without type: {0}".format(message))
 
         except json.JSONDecodeError:
-            print("message is not json: {0}".format(message))
+            logger.warn("message is not json: {0}".format(message))
 
     def handleBinaryMessage(self, conn, data):
-        print("unsupported binary message, discarding")
+        logger.error("unsupported binary message, discarding")
 
     def handleClose(self, conn):
         if self.client:

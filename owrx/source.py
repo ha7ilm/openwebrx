@@ -7,6 +7,9 @@ import os
 import signal
 import sys
 import socket
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SdrService(object):
     sdrProps = None
@@ -36,17 +39,17 @@ class SdrService(object):
             def sdrTypeAvailable(value):
                 try:
                     if not featureDetector.is_available(value["type"]):
-                        print("The RTL source type \"{0}\" is not available. please check requirements.".format(value["type"]))
+                        logger.error("The RTL source type \"{0}\" is not available. please check requirements.".format(value["type"]))
                         return False
                     return True
                 except UnknownFeatureException:
-                    print("The RTL source type \"{0}\" is invalid. Please check your configuration".format(value["type"]))
+                    logger.error("The RTL source type \"{0}\" is invalid. Please check your configuration".format(value["type"]))
                     return False
             # transform all dictionary items into PropertyManager object, filtering out unavailable ones
             SdrService.sdrProps = {
                 name: loadIntoPropertyManager(value) for (name, value) in pm["sdrs"].items() if sdrTypeAvailable(value)
             }
-            print("SDR sources loaded. Availables SDRs: {0}".format(", ".join(map(lambda x: x["name"], SdrService.sdrProps.values()))))
+            logger.info("SDR sources loaded. Availables SDRs: {0}".format(", ".join(map(lambda x: x["name"], SdrService.sdrProps.values()))))
     @staticmethod
     def getSource(id = None):
         SdrService.loadProps()
@@ -76,7 +79,7 @@ class SdrSource(object):
         ).defaults(PropertyManager.getSharedInstance())
 
         def restart(name, value):
-            print("restarting sdr source due to property change: {0} changed to {1}".format(name, value))
+            logger.debug("restarting sdr source due to property change: {0} changed to {1}".format(name, value))
             self.stop()
             self.start()
         self.rtlProps.wire(restart)
@@ -95,7 +98,7 @@ class SdrSource(object):
         profiles = self.props["profiles"]
         if id is None:
             id = list(profiles.keys())[0]
-        print("activating profile {0}".format(id))
+        logger.debug("activating profile {0}".format(id))
         profile = profiles[id]
         for (key, value) in profile.items():
             # skip the name, that would overwrite the source name.
@@ -138,13 +141,13 @@ class SdrSource(object):
         while nmux_bufsize < props["samp_rate"]/4: nmux_bufsize += 4096
         while nmux_bufsize * nmux_bufcnt < props["nmux_memory"] * 1e6: nmux_bufcnt += 1
         if nmux_bufcnt == 0 or nmux_bufsize == 0:
-            print("[RtlNmuxSource] Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py")
+            logger.error("Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py")
             self.modificationLock.release()
             return
-        print("[RtlNmuxSource] nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
+        logger.debug("nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
         cmd = start_sdr_command + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, self.port)
         self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
-        print("[RtlNmuxSource] Started rtl source: " + cmd)
+        logger.info("Started rtl source: " + cmd)
 
         while True:
             testsock = socket.socket()
@@ -158,7 +161,7 @@ class SdrSource(object):
 
         def wait_for_process_to_end():
             rc = self.process.wait()
-            print("[RtlNmuxSource] shut down with RC={0}".format(rc))
+            logger.debug("shut down with RC={0}".format(rc))
             self.monitor = None
 
         self.monitor = threading.Thread(target = wait_for_process_to_end)
@@ -275,12 +278,12 @@ class SpectrumThread(threading.Thread):
         dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
         dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]
         dsp.csdr_through = props["csdr_through"]
-        print("[openwebrx-spectrum] Spectrum thread initialized successfully.")
+        logger.debug("Spectrum thread initialized successfully.")
         dsp.start()
         if props["csdr_dynamic_bufsize"]:
             dsp.read(8) #dummy read to skip bufsize & preamble
-            print("[openwebrx-spectrum] Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
-        print("[openwebrx-spectrum] Spectrum thread started.")
+            logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
+        logger.debug("Spectrum thread started.")
         bytes_to_read=int(dsp.get_fft_bytes_to_read())
         while self.doRun:
             data=dsp.read(bytes_to_read)
@@ -290,13 +293,13 @@ class SpectrumThread(threading.Thread):
                 self.sdrSource.writeSpectrumData(data)
 
         dsp.stop()
-        print("spectrum thread shut down")
+        logger.debug("spectrum thread shut down")
 
         self.thread = None
         self.sdrSource.removeClient(self)
 
     def stop(self):
-        print("stopping spectrum thread")
+        logger.debug("stopping spectrum thread")
         self.doRun = False
 
 class DspManager(object):
@@ -457,7 +460,7 @@ class CpuUsageThread(threading.Thread):
                 cpu_usage = 0
             for c in self.clients:
                 c.write_cpu_usage(cpu_usage)
-        print("cpu usage thread shut down")
+        logger.debug("cpu usage thread shut down")
 
     def get_cpu_usage(self):
         try:
