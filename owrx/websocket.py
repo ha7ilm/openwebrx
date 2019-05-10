@@ -70,7 +70,7 @@ class WebSocketConnection(object):
                 open = False
                 self.messageHandler.handleClose(self)
             else:
-                logger.warn("unsupported opcode: {0}".format(opcode))
+                logger.warning("unsupported opcode: {0}".format(opcode))
 
 class WebSocketException(Exception):
     pass

@@ -187,7 +187,7 @@ class WebSocketMessageHandler(object):
             return
 
         if not self.handshake:
-            logger.warn("not answering client request since handshake is not complete")
+            logger.warning("not answering client request since handshake is not complete")
             return
 
         try:
@@ -213,10 +213,10 @@ class WebSocketMessageHandler(object):
                         self.client.setSdr(profile[0])
                         self.client.sdr.activateProfile(profile[1])
             else:
-                logger.warn("received message without type: {0}".format(message))
+                logger.warning("received message without type: {0}".format(message))
 
         except json.JSONDecodeError:
-            logger.warn("message is not json: {0}".format(message))
+            logger.warning("message is not json: {0}".format(message))
 
     def handleBinaryMessage(self, conn, data):
         logger.error("unsupported binary message, discarding")
