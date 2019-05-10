@@ -278,12 +278,7 @@ class SpectrumThread(object):
                 time.sleep(1)
             else:
                 for c in self.clients:
-                    try:
-                        c.write_spectrum_data(data)
-                    except OSError:
-                        self.remove_client(c)
-                    except ValueError:
-                        pass
+                    c.write_spectrum_data(data)
 
         dsp.stop()
         print("spectrum thread shut down")
@@ -508,6 +503,7 @@ class CpuUsageThread(threading.Thread):
             self.shutdown()
 
     def shutdown(self):
-        print("shutting down cpu usage thread")
-        CpuUsageThread.sharedInstance = None
-        self.doRun = False
+        if self.doRun:
+            if CpuUsageThread.sharedInstance == self:
+                CpuUsageThread.sharedInstance = None
+            self.doRun = False

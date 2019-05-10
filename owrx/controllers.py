@@ -114,14 +114,17 @@ class OpenWebRxClient(object):
             self.dsp = DspManager(self, self.sdr)
             self.dsp.start()
 
+    def close(self):
+        self.stopDsp()
+        CpuUsageThread.getSharedInstance().remove_client(self)
+        print("connection closed")
+
     def stopDsp(self):
         if self.dsp is not None:
             self.dsp.stop()
             self.dsp = None
         if self.sdr is not None:
             self.sdr.spectrumThread.remove_client(self)
-        # TODO: this should be disabled somehow, just not with the dsp
-        #CpuUsageThread.getSharedInstance().remove_client(self)
 
     def setParams(self, params):
         # only the keys in the protected property manager can be overridden from the web
@@ -134,26 +137,35 @@ class OpenWebRxClient(object):
         for key, value in params.items():
             self.dsp.setProperty(key, value)
 
+    def protected_send(self, data):
+        try:
+            self.conn.send(data)
+        # these exception happen when the socket is closed
+        except OSError:
+            self.close()
+        except ValueError:
+            self.close()
+
     def write_spectrum_data(self, data):
-        self.conn.send(bytes([0x01]) + data)
+        self.protected_send(bytes([0x01]) + data)
     def write_dsp_data(self, data):
-        self.conn.send(bytes([0x02]) + data)
+        self.protected_send(bytes([0x02]) + data)
     def write_s_meter_level(self, level):
-        self.conn.send({"type":"smeter","value":level})
+        self.protected_send({"type":"smeter","value":level})
     def write_cpu_usage(self, usage):
-        self.conn.send({"type":"cpuusage","value":usage})
+        self.protected_send({"type":"cpuusage","value":usage})
     def write_secondary_fft(self, data):
-        self.conn.send(bytes([0x03]) + data)
+        self.protected_send(bytes([0x03]) + data)
     def write_secondary_demod(self, data):
-        self.conn.send(bytes([0x04]) + data)
+        self.protected_send(bytes([0x04]) + data)
     def write_secondary_dsp_config(self, cfg):
-        self.conn.send({"type":"secondary_config", "value":cfg})
+        self.protected_send({"type":"secondary_config", "value":cfg})
     def write_config(self, cfg):
-        self.conn.send({"type":"config","value":cfg})
+        self.protected_send({"type":"config","value":cfg})
     def write_receiver_details(self, details):
-        self.conn.send({"type":"receiver_details","value":details})
+        self.protected_send({"type":"receiver_details","value":details})
     def write_profiles(self, profiles):
-        self.conn.send({"type":"profiles","value":profiles})
+        self.protected_send({"type":"profiles","value":profiles})
 
 class WebSocketMessageHandler(object):
     def __init__(self):
@@ -208,7 +220,7 @@ class WebSocketMessageHandler(object):
 
     def handleClose(self, conn):
         if self.client:
-            self.client.stopDsp()
+            self.client.close()
 
 class WebSocketController(Controller):
     def handle_request(self):
