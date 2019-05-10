@@ -1,7 +1,7 @@
 import mimetypes
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import DspManager, CpuUsageThread, SdrService
+from owrx.source import DspManager, CpuUsageThread, SdrService, ClientReporterThread
 import json
 import os
 from datetime import datetime
@@ -72,6 +72,8 @@ class OpenWebRxClient(object):
     def __init__(self, conn):
         self.conn = conn
 
+        ClientReporterThread.getSharedInstance().addClient(self)
+
         self.dsp = None
         self.sdr = None
         self.configProps = None
@@ -120,6 +122,10 @@ class OpenWebRxClient(object):
     def close(self):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
+        try:
+            ClientReporterThread.getSharedInstance().removeClient(self)
+        except ValueError:
+            pass
         logger.debug("connection closed")
 
     def stopDsp(self):
@@ -157,6 +163,8 @@ class OpenWebRxClient(object):
         self.protected_send({"type":"smeter","value":level})
     def write_cpu_usage(self, usage):
         self.protected_send({"type":"cpuusage","value":usage})
+    def write_clients(self, clients):
+        self.protected_send({"type":"clients","value":clients})
     def write_secondary_fft(self, data):
         self.protected_send(bytes([0x03]) + data)
     def write_secondary_demod(self, data):

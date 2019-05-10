@@ -1208,6 +1208,10 @@ function on_ws_recv(evt)
 						var server_cpu_usage = json.value;
 						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage/100,"Server CPU [" + server_cpu_usage + "%]",server_cpu_usage>85);
                     break;
+                    case "clients":
+                        var clients = json.value;
+               			progressbar_set(e("openwebrx-bar-clients"), clients / max_clients_num, "Clients [" + clients + "]", clients > max_clients_num*0.85);
+                    break;
                     case "profiles":
                         var listbox = e("openwebrx-sdr-profiles-listbox");
                         listbox.innerHTML = json.value.map(function(profile){
