@@ -1629,14 +1629,16 @@ function audio_preinit()
 	else if(audio_context.sampleRate>44100*4)
 		audio_buffer_size = 4096 * 4;
 
-	audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
-	audio_last_output_buffer = new Float32Array(audio_buffer_size);
+    if (!audio_rebuffer) {
+        audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
+        audio_last_output_buffer = new Float32Array(audio_buffer_size);
 
-	//we send our setup packet
-	parsehash();
+        //we send our setup packet
+        parsehash();
 
-	audio_calculate_resampling(audio_context.sampleRate);
-	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
+        audio_calculate_resampling(audio_context.sampleRate);
+        audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
+    }
 
 	ws.send(JSON.stringify({"type":"dspcontrol","action":"start","params":{"output_rate":audio_server_output_rate}}));
 }
