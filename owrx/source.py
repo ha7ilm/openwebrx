@@ -88,6 +88,7 @@ class SdrSource(object):
         self.clients = []
         self.spectrumClients = []
         self.spectrumThread = None
+        self.process = None
         self.modificationLock = threading.Lock()
 
         # override these in subclasses as necessary
@@ -184,13 +185,15 @@ class SdrSource(object):
 
         self.modificationLock.acquire()
 
-        self.spectrumThread.stop()
+        if self.spectrumThread is not None:
+            self.spectrumThread.stop()
 
-        try:
-            os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
-        except ProcessLookupError:
-            # been killed by something else, ignore
-            pass
+        if self.process is not None:
+            try:
+                os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+            except ProcessLookupError:
+                # been killed by something else, ignore
+                pass
         if self.monitor:
             self.monitor.join()
         self.sleepOnRestart()
