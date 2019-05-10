@@ -427,14 +427,16 @@ class DspManager(object):
         self.localProps.getProperty(prop).setValue(value)
 
     def onSdrAvailable(self):
+        logger.debug("received onSdrAvailable, attempting DspSource restart")
         if not self.doRun:
             self.doRun = True
-            if self.dsp is not None:
-                self.dsp.start()
-                threading.Thread(target = self.readDspOutput).start()
-                threading.Thread(target = self.readSMeterOutput).start()
+        if self.dsp is not None:
+            self.dsp.start()
+            threading.Thread(target = self.readDspOutput).start()
+            threading.Thread(target = self.readSMeterOutput).start()
 
     def onSdrUnavailable(self):
+        logger.debug("received onSdrUnavailable, shutting down DspSource")
         if self.dsp is not None:
             self.dsp.stop()
 

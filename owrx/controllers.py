@@ -114,12 +114,16 @@ class OpenWebRxClient(object):
         config["start_offset_freq"] = self.configProps["start_freq"] - self.configProps["center_freq"]
         self.write_config(config)
     def setSdr(self, id = None):
+        next = SdrService.getSource(id)
+        if (next == self.sdr):
+            return
+
         self.stopDsp()
 
         if self.configProps is not None:
             self.configProps.unwire(self.sendConfig)
 
-        self.sdr = SdrService.getSource(id)
+        self.sdr = next
 
         # send initial config
         self.configProps = self.sdr.getProps().collect(*OpenWebRxClient.config_keys).defaults(PropertyManager.getSharedInstance())
