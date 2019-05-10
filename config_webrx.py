@@ -152,6 +152,14 @@ sdrs = {
                 "samp_rate": 500000,
                 "start_freq": 3570000,
                 "start_mod": "usb"
+            },
+            "49m": {
+                "name": "49m Broadcast",
+                "center_freq": 6000000,
+                "rf_gain": 30,
+                "samp_rate": 500000,
+                "start_freq": 6070000,
+                "start_mod": "am"
             }
         }
     },
