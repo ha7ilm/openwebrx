@@ -97,7 +97,6 @@ class OpenWebRxClient(object):
             self.configProps.unwire(self.sendConfig)
 
         self.sdr = SdrService.getSource(id)
-        self.sdr.start()
 
         # send initial config
         self.configProps = self.sdr.getProps().collect(*OpenWebRxClient.config_keys).defaults(PropertyManager.getSharedInstance())
@@ -105,7 +104,7 @@ class OpenWebRxClient(object):
         self.configProps.wire(self.sendConfig)
         self.sendConfig(None, None)
 
-        self.sdr.spectrumThread.add_client(self)
+        self.sdr.getSpectrumThread().add_client(self)
 
     def startDsp(self):
         if self.dsp is None:
