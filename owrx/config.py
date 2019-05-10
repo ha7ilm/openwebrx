@@ -17,7 +17,7 @@ class Property(object):
             try:
                 c(self.value)
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
         return self
     def wire(self, callback):
         self.callbacks.append(callback)
@@ -49,7 +49,7 @@ class PropertyManager(object):
                 try:
                     c(name, value)
                 except Exception as e:
-                    logger.error(e)
+                    logger.exception(e)
         prop.wire(fireCallbacks)
         return self
 
