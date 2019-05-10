@@ -1,14 +1,16 @@
 from http.server import HTTPServer
 from owrx.http import RequestHandler
-from owrx.config import PropertyManager, FeatureDetector, RequirementMissingException
+from owrx.config import PropertyManager, FeatureDetector
 from owrx.source import SdrService
 from socketserver import ThreadingMixIn
 
 import logging
 logging.basicConfig(level = logging.DEBUG, format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
+
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
     pass
+
 
 def main():
     print()
@@ -18,10 +20,11 @@ def main():
     print("Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>")
     print()
 
-    cfg=__import__("config_webrx")
+    cfg = __import__("config_webrx")
     pm = PropertyManager.getSharedInstance()
     for name, value in cfg.__dict__.items():
-        if (name.startswith("__")): continue
+        if name.startswith("__"):
+            continue
         pm[name] = value
 
     featureDetector = FeatureDetector()
@@ -38,5 +41,5 @@ def main():
     server.serve_forever()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
