@@ -326,8 +326,8 @@ class dsp:
             pipe_path = getattr(self,pipe_name,None)
             if pipe_path:
                 try: os.unlink(pipe_path)
-                except Exception as e:
-                    logger.error("try_delete_pipes()", e)
+                except Exception:
+                    logger.exception("try_delete_pipes()")
 
     def start(self):
         self.modification_lock.acquire()
