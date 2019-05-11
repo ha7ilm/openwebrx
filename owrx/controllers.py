@@ -2,6 +2,7 @@ import mimetypes
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
 from owrx.source import DspManager, CpuUsageThread, SdrService, ClientReporterThread
+from owrx.version import openwebrx_version
 import json
 import os
 from datetime import datetime
@@ -45,8 +46,7 @@ class StatusController(Controller):
             "gps": pm["receiver_gps"],
             "asl": pm["receiver_asl"],
             "loc": pm["receiver_location"],
-            # TODO get some version in there
-            "sw_version": "TODO",
+            "sw_version": openwebrx_version,
             "avatar_ctime": os.path.getctime("htdocs/gfx/openwebrx-avatar.png")
         }
         self.send_response("\n".join(["{key}={value}".format(key = key, value = value) for key, value in vars.items()]))
