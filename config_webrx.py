@@ -36,7 +36,6 @@ config_webrx: configuration options for OpenWebRX
 
 # ==== Server settings ====
 web_port=8073
-server_hostname="localhost" # If this contains an incorrect value, the web UI may freeze on load (it can't open websocket)
 max_clients=20
 
 # ==== Web GUI configuration ====
@@ -65,6 +64,7 @@ Website: <a href="http://localhost" target="_blank">http://localhost</a>
 sdrhu_key = ""
 # 3. Set this setting to True to enable listing:
 sdrhu_public_listing = False
+server_hostname="localhost"
 
 # ==== DSP/RX settings ====
 fft_fps=9
@@ -76,8 +76,6 @@ fft_compression="adpcm" #valid values: "adpcm", "none"
 
 digimodes_enable=True #Decoding digimodes come with higher CPU usage. 
 digimodes_fft_size=1024
-
-start_rtl_thread=True
 
 """
 Note: if you experience audio underruns while CPU usage is 100%, you can: 
@@ -95,16 +93,16 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # Check here: https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support #
 #################################################################################################
 
-# You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples... Some examples of configuration are available here (default is RTL-SDR):
-
-# valid: "rtl_sdr", "sdrplay", "hackrf"
-#rtl_type = "sdrplay"
+# Currently supported types of sdr receivers: "rtl_sdr", "sdrplay", "hackrf"
 
 sdrs = {
     "rtlsdr": {
         "name": "RTL-SDR USB Stick",
         "type": "rtl_sdr",
         "ppm": 0,
+        # you can change this if you use an upconverter. formula is:
+        # shown_center_freq = center_freq + lfo_offset
+        # "lfo_offset": 0,
         "profiles": {
             "70cm": {
                 "name": "70cm Relais",
@@ -163,67 +161,13 @@ sdrs = {
             }
         }
     },
+    # this one is just here to test feature detection
     "test": {
         "type": "test"
     }
 }
 
-# >> RTL-SDR via rtl_sdr
-#start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion="csdr convert_u8_f"
-
-#lna_gain=8
-#rf_amp=1
-#start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm, rf_amp=rf_amp, lna_gain=lna_gain)
-#format_conversion="csdr convert_s8_f"
-"""
-To use a HackRF, compile the HackRF host tools from its "stdout" branch:
- git clone https://github.com/mossmann/hackrf/
- cd hackrf
- git fetch
- git checkout origin/stdout
- cd host
- mkdir build
- cd build
- cmake .. -DINSTALL_UDEV_RULES=ON
- make
- sudo make install
-"""
-
-# >> Sound card SDR (needs ALSA)
-# I did not have the chance to properly test it.
-#samp_rate = 96000
-#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
-#format_conversion="csdr convert_s16_f | csdr gain_ff 30"
-
-# >> /dev/urandom test signal source
-# samp_rate = 2400000
-# start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
-# format_conversion="csdr convert_u8_f"
-
-# >> Pre-recorded raw I/Q file as signal source
-# You will have to correctly specify: samp_rate, center_freq, format_conversion in order to correctly play an I/Q file.
-#start_rtl_command="(while true; do cat my_iq_file.raw; done) | csdr flowcontrol {sr} 20 ".format(sr=samp_rate*2*1.05)
-#format_conversion="csdr convert_u8_f"
-
-#>> The rx_sdr command works with a variety of SDR harware: RTL-SDR, HackRF, SDRplay, UHD, Airspy, Red Pitaya, audio devices, etc. 
-# It will auto-detect your SDR hardware if the following tools are installed:
-# * the vendor provided driver and library, 
-# * the vendor-specific SoapySDR wrapper library, 
-# * and SoapySDR itself.
-# Check out this article on the OpenWebRX Wiki: https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX/
-#start_rtl_command="rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion=""
-
-# >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-GrOsmoSDR-as-signal-source)
-#start_rtl_command="cat /tmp/osmocom_fifo"
-#format_conversion=""
-
 # ==== Misc settings ====
-
-# you can change this if you use an upconverter. formula is:
-# shown_center_freq = center_freq + lfo_offset
-lfo_offset = 0
 
 client_audio_buffer_size = 5
 #increasing client_audio_buffer_size will:
@@ -231,8 +175,6 @@ client_audio_buffer_size = 5
 # - decrease the chance of audio underruns
 
 iq_port_range = [4950, 4960] #TCP port for range ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
-
-#access_log = "~/openwebrx_access.log"
 
 # ==== Color themes ====
 
@@ -270,11 +212,3 @@ csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr proces
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
 
 nmux_memory = 50 #in megabytes. This sets the approximate size of the circular buffer used by nmux.
-
-#Look up external IP address automatically from icanhazip.com, and use it as [server_hostname]
-"""
-print "[openwebrx-config] Detecting external IP address..."
-import urllib2
-server_hostname=urllib2.urlopen("http://icanhazip.com").read()[:-1]
-print "[openwebrx-config] External IP address detected:", server_hostname
-"""

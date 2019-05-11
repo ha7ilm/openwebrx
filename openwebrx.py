@@ -13,12 +13,14 @@ class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
 
 
 def main():
-    print()
-    print("OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package")
-    print("_________________________________________________________________________________________________")
-    print()
-    print("Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>")
-    print()
+    print("""
+
+OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package
+_________________________________________________________________________________________________
+
+Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>
+
+    """)
 
     cfg = __import__("config_webrx")
     pm = PropertyManager.getSharedInstance()

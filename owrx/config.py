@@ -131,6 +131,19 @@ class FeatureDetector(object):
     def has_rx_tools(self):
         return os.system("rx_sdr --help 2> /dev/null") != 32512
 
+    """
+    To use a HackRF, compile the HackRF host tools from its "stdout" branch:
+     git clone https://github.com/mossmann/hackrf/
+     cd hackrf
+     git fetch
+     git checkout origin/stdout
+     cd host
+     mkdir build
+     cd build
+     cmake .. -DINSTALL_UDEV_RULES=ON
+     make
+     sudo make install
+    """
     def has_hackrf_transfer(self):
         # TODO i don't have a hackrf, so somebody doublecheck this.
         # TODO also check if it has the stdout feature
