@@ -83,7 +83,8 @@ class OpenWebRxClient(object):
     config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
                    "waterfall_auto_level_margin", "lfo_offset", "samp_rate", "fft_size", "fft_fps",
                    "audio_compression", "fft_compression", "max_clients", "start_mod",
-                   "client_audio_buffer_size", "start_freq", "center_freq"]
+                   "client_audio_buffer_size", "start_freq", "center_freq", "mathbox_waterfall_colors",
+                   "mathbox_waterfall_history_length", "mathbox_waterfall_frequency_resolution"]
     def __init__(self, conn):
         self.conn = conn
 

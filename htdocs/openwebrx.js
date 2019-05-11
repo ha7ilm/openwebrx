@@ -1182,6 +1182,10 @@ function on_ws_recv(evt)
 						fft_compression = config.fft_compression;
 						divlog( "FFT stream is "+ ((fft_compression=="adpcm")?"compressed":"uncompressed")+"." )
 						max_clients_num = config.max_clients;
+						mathbox_waterfall_colors = config.mathbox_waterfall_colors;
+						mathbox_waterfall_frequency_resolution = config.mathbox_waterfall_frequency_resolution;
+						mathbox_waterfall_history_length = config.mathbox_waterfall_history_length;
+
 						waterfall_init();
 						audio_preinit();
 
