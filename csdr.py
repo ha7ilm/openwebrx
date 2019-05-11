@@ -151,8 +151,8 @@ class dsp:
             if_samp_rate=self.if_samp_rate()
             )
 
-        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (fft) =", secondary_command_fft)
-        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (demod) =", secondary_command_demod)
+        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (fft) = %s", secondary_command_fft)
+        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (demod) = %s", secondary_command_demod)
         my_env=os.environ.copy()
         #if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes: my_env["CSDR_PRINT_BUFSIZES"]="1";
