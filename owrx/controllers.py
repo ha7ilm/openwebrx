@@ -77,7 +77,7 @@ class AssetsController(Controller):
 
 class IndexController(AssetsController):
     def handle_request(self):
-        self.serve_file("index.wrx", "text/html")
+        self.serve_file("index.html", content_type = "text/html")
 
 class WebSocketController(Controller):
     def handle_request(self):
