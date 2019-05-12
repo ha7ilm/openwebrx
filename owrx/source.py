@@ -1,5 +1,6 @@
 import subprocess
-from owrx.config import PropertyManager, FeatureDetector, UnknownFeatureException
+from owrx.config import PropertyManager
+from owrx.feature import FeatureDetector, UnknownFeatureException
 import threading
 import csdr
 import time

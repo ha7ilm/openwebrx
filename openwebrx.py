@@ -1,6 +1,7 @@
 from http.server import HTTPServer
 from owrx.http import RequestHandler
-from owrx.config import PropertyManager, FeatureDetector
+from owrx.config import PropertyManager
+from owrx.feature import  FeatureDetector
 from owrx.source import SdrService
 from socketserver import ThreadingMixIn
 from owrx.sdrhu import SdrHuUpdater
