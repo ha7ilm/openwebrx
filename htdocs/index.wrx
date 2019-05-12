@@ -22,13 +22,6 @@
 <html>
     <head>
         <title>OpenWebRX | Open Source SDR Web App for Everyone!</title>
-        <!-- <script type="text/javascript">
-            //Global variables
-            var server_enable_digimodes=%[DIGIMODES_ENABLE];
-			var mathbox_waterfall_frequency_resolution=%[MATHBOX_WATERFALL_FRES];
-			var mathbox_waterfall_history_length=%[MATHBOX_WATERFALL_THIST];
-			var mathbox_waterfall_colors=%[MATHBOX_WATERFALL_COLORS];
-        </script> -->
         <script src="static/sdr.js"></script>
 		<script src="static/mathbox-bundle.min.js"></script>
         <script src="static/openwebrx.js"></script>
