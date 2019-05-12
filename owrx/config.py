@@ -53,6 +53,9 @@ class PropertyManager(object):
         prop.wire(fireCallbacks)
         return self
 
+    def __contains__(self, name):
+        return self.hasProperty(name)
+
     def __getitem__(self, name):
         return self.getPropertyValue(name)
 
@@ -60,6 +63,9 @@ class PropertyManager(object):
         if not self.hasProperty(name):
             self.add(name, Property())
         self.getProperty(name).setValue(value)
+
+    def __dict__(self):
+        return {k:v.getValue() for k, v in self.properties.items()}
 
     def hasProperty(self, name):
         return name in self.properties
@@ -85,6 +91,15 @@ class PropertyManager(object):
             if p.getValue() is None:
                 p.setValue(other_pm[key])
         return self
+
+    def loadConfig(self, filename):
+        cfg = __import__(filename)
+        for name, value in cfg.__dict__.items():
+            if name.startswith("__"):
+                continue
+            self[name] = value
+        return self
+
 
 class UnknownFeatureException(Exception):
     pass

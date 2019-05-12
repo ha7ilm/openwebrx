@@ -3,6 +3,7 @@ from owrx.http import RequestHandler
 from owrx.config import PropertyManager, FeatureDetector
 from owrx.source import SdrService
 from socketserver import ThreadingMixIn
+from owrx.sdrhu import SdrHuUpdater
 
 import logging
 logging.basicConfig(level = logging.DEBUG, format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -22,12 +23,7 @@ Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>
 
     """)
 
-    cfg = __import__("config_webrx")
-    pm = PropertyManager.getSharedInstance()
-    for name, value in cfg.__dict__.items():
-        if name.startswith("__"):
-            continue
-        pm[name] = value
+    pm = PropertyManager.getSharedInstance().loadConfig("config_webrx")
 
     featureDetector = FeatureDetector()
     if not featureDetector.is_available("core"):
@@ -38,6 +34,10 @@ Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>
 
     # Get error messages about unknown / unavailable features as soon as possible
     SdrService.loadProps()
+
+    if "sdrhu_key" in pm and pm["sdrhu_public_listing"]:
+        updater = SdrHuUpdater()
+        updater.start()
 
     server = ThreadedHttpServer(('0.0.0.0', pm.getPropertyValue("web_port")), RequestHandler)
     server.serve_forever()
