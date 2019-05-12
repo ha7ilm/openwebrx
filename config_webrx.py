@@ -130,7 +130,7 @@ sdrs = {
             "20m": {
                 "name":"20m",
                 "center_freq": 14150000,
-                "rf_gain": 30,
+                "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 14070000,
                 "start_mod": "usb"
@@ -138,7 +138,7 @@ sdrs = {
             "40m": {
                 "name":"40m",
                 "center_freq": 7100000,
-                "rf_gain": 30,
+                "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 7070000,
                 "start_mod": "usb"
@@ -146,7 +146,7 @@ sdrs = {
             "80m": {
                 "name":"80m",
                 "center_freq": 3650000,
-                "rf_gain": 30,
+                "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 3570000,
                 "start_mod": "usb"
@@ -154,7 +154,7 @@ sdrs = {
             "49m": {
                 "name": "49m Broadcast",
                 "center_freq": 6000000,
-                "rf_gain": 30,
+                "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 6070000,
                 "start_mod": "am"
@@ -203,7 +203,7 @@ waterfall_auto_level_margin = (5, 40)
 # 3D view settings
 mathbox_waterfall_frequency_resolution = 128 #bins
 mathbox_waterfall_history_length = 10 #seconds
-mathbox_waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
+mathbox_waterfall_colors = [0x000000ff,0x2e6893ff,0x69a5d0ff,0x214b69ff,0x9dc4e0ff,0xfff775ff,0xff8a8aff,0xb20000ff]
 
 # === Experimental settings ===
 #Warning! The settings below are very experimental.
