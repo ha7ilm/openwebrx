@@ -1206,7 +1206,8 @@ function on_ws_recv(evt)
                         e('webrx-rx-photo-desc').innerHTML = r.photo_desc;
                     break;
                     case "smeter":
-                        setSmeterAbsoluteValue(json.value);
+                        smeter_level = json.value;
+                        setSmeterAbsoluteValue(smeter_level);
                     break;
                     case "cpuusage":
 						var server_cpu_usage = json.value;
