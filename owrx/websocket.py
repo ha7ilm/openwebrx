@@ -72,5 +72,20 @@ class WebSocketConnection(object):
             else:
                 logger.warning("unsupported opcode: {0}".format(opcode))
 
+    def close(self):
+        try:
+            header = self.get_header(0, 8)
+            self.handler.wfile.write(header)
+            self.handler.wfile.flush()
+        except ValueError:
+            logger.exception("while writing close frame:")
+
+        try:
+            self.handler.finish()
+            self.handler.connection.close()
+        except Exception:
+            logger.exception("while closing connection:")
+
+
 class WebSocketException(Exception):
     pass

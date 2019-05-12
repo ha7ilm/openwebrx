@@ -2,7 +2,7 @@ from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import PropertyManager
 from owrx.feature import  FeatureDetector
-from owrx.source import SdrService
+from owrx.source import SdrService, ClientRegistry
 from socketserver import ThreadingMixIn
 from owrx.sdrhu import SdrHuUpdater
 
@@ -45,4 +45,8 @@ Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        for c in ClientRegistry.getSharedInstance().clients:
+            c.close()

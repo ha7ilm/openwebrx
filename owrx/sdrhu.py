@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class SdrHuUpdater(threading.Thread):
     def __init__(self):
         self.doRun = True
-        super().__init__()
+        super().__init__(daemon = True)
 
     def update(self):
         pm = PropertyManager.getSharedInstance()

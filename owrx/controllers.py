@@ -3,7 +3,7 @@ import mimetypes
 from datetime import datetime
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import ClientReporterThread
+from owrx.source import ClientRegistry
 from owrx.connection import WebSocketMessageHandler
 from owrx.version import openwebrx_version
 
@@ -41,7 +41,7 @@ class StatusController(Controller):
             "status": "active",
             "name": pm["receiver_name"],
             "op_email": pm["receiver_admin"],
-            "users": ClientReporterThread.getSharedInstance().clientCount(),
+            "users": ClientRegistry.getSharedInstance().clientCount(),
             "users_max": pm["max_clients"],
             "gps": pm["receiver_gps"],
             "asl": pm["receiver_asl"],

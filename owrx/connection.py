@@ -1,5 +1,5 @@
 from owrx.config import PropertyManager
-from owrx.source import DspManager, CpuUsageThread, SdrService, ClientReporterThread
+from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
 import json
 
 import logging
@@ -14,7 +14,7 @@ class OpenWebRxClient(object):
     def __init__(self, conn):
         self.conn = conn
 
-        ClientReporterThread.getSharedInstance().addClient(self)
+        ClientRegistry.getSharedInstance().addClient(self)
 
         self.dsp = None
         self.sdr = None
@@ -68,10 +68,8 @@ class OpenWebRxClient(object):
     def close(self):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
-        try:
-            ClientReporterThread.getSharedInstance().removeClient(self)
-        except ValueError:
-            pass
+        ClientRegistry.getSharedInstance().removeClient(self)
+        self.conn.close()
         logger.debug("connection closed")
 
     def stopDsp(self):

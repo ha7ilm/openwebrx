@@ -467,6 +467,8 @@ class CpuUsageThread(threading.Thread):
                 c.write_cpu_usage(cpu_usage)
             time.sleep(3)
         logger.debug("cpu usage thread shut down")
+        if CpuUsageThread.sharedInstance == self:
+            CpuUsageThread.sharedInstance = None
 
     def get_cpu_usage(self):
         try:
@@ -499,42 +501,49 @@ class CpuUsageThread(threading.Thread):
             self.shutdown()
 
     def shutdown(self):
-        if self.doRun:
-            if CpuUsageThread.sharedInstance == self:
-                CpuUsageThread.sharedInstance = None
-            self.doRun = False
+        self.doRun = False
+
+class ClientReportingThread(threading.Thread):
+    def __init__(self, registry):
+        self.doRun = True
+        self.registry = registry
+        super().__init__()
+    def run(self):
+        while self.doRun:
+            self.registry.broadcast()
+            time.sleep(3)
+    def stop(self):
+        self.doRun = False
 
 class TooManyClientsException(Exception):
     pass
 
-class ClientReporterThread(threading.Thread):
+class ClientRegistry(object):
     sharedInstance = None
     @staticmethod
     def getSharedInstance():
-        if ClientReporterThread.sharedInstance is None:
-            ClientReporterThread.sharedInstance = ClientReporterThread()
-            ClientReporterThread.sharedInstance.start()
-        ClientReporterThread.sharedInstance.doRun = True
-        return ClientReporterThread.sharedInstance
+        if ClientRegistry.sharedInstance is None:
+            ClientRegistry.sharedInstance = ClientRegistry()
+        return ClientRegistry.sharedInstance
 
     def __init__(self):
-        self.doRun = True
         self.clients = []
+        self.reporter = None
         super().__init__()
 
-    def run(self):
-        while (self.doRun):
-            n = self.clientCount()
-            for c in self.clients:
-                c.write_clients(n)
-            time.sleep(3)
-        ClientReporterThread.sharedInstance = None
+    def broadcast(self):
+        n = self.clientCount()
+        for c in self.clients:
+            c.write_clients(n)
 
     def addClient(self, client):
         pm = PropertyManager.getSharedInstance()
         if len(self.clients) >= pm["max_clients"]:
             raise TooManyClientsException()
         self.clients.append(client)
+        if self.reporter is None:
+            self.reporter = ClientReportingThread(self)
+            self.reporter.start()
 
     def clientCount(self):
         return len(self.clients)
@@ -544,5 +553,6 @@ class ClientReporterThread(threading.Thread):
             self.clients.remove(client)
         except ValueError:
             pass
-        if not self.clients:
-            self.doRun = False
+        if not self.clients and self.reporter is not None:
+            self.reporter.stop()
+            self.reporter = None
