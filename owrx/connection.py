@@ -1,5 +1,6 @@
 from owrx.config import PropertyManager
 from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
+from owrx.feature import FeatureDetector
 import json
 
 import logging
@@ -32,6 +33,9 @@ class OpenWebRxClient(object):
 
         profiles = [{"name": s.getName() + " " + p["name"], "id":sid + "|" + pid} for (sid, s) in SdrService.getSources().items() for (pid, p) in s.getProfiles().items()]
         self.write_profiles(profiles)
+
+        features = FeatureDetector().feature_availability()
+        self.write_features(features)
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
@@ -121,6 +125,8 @@ class OpenWebRxClient(object):
         self.protected_send({"type":"receiver_details","value":details})
     def write_profiles(self, profiles):
         self.protected_send({"type":"profiles","value":profiles})
+    def write_features(self, features):
+        self.protected_send({"type":"features","value":features})
 
 class WebSocketMessageHandler(object):
     def __init__(self):

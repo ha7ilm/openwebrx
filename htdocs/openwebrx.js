@@ -1233,6 +1233,11 @@ function on_ws_recv(evt)
                             return '<option value="' + profile.id + '">' + profile.name + "</option>";
                         }).join("");
                     break;
+					case "features":
+						for (var feature in json.value) {
+							$('[data-feature="' + feature + '"')[json.value[feature] ? "show" : "hide"]();
+						}
+					break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
