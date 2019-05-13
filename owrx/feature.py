@@ -16,7 +16,8 @@ class FeatureDetector(object):
         "rtl_sdr": [ "rtl_sdr" ],
         "sdrplay": [ "rx_tools" ],
         "hackrf": [ "hackrf_transfer" ],
-        "digital_voice": [ "digiham", "sox" ]
+        "digital_voice_digiham": [ "digiham", "sox" ],
+        "digital_voice_dsd": [ "dsd", "sox" ]
     }
 
     def feature_availability(self):
