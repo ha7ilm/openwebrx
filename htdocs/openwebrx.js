@@ -1238,6 +1238,9 @@ function on_ws_recv(evt)
 							$('[data-feature="' + feature + '"')[json.value[feature] ? "show" : "hide"]();
 						}
 					break;
+					case "metadata":
+						update_metadata(json.value);
+					break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
@@ -1301,6 +1304,55 @@ function on_ws_recv(evt)
                 console.warn('unknown type of binary message: ' + type)
         }
     }
+}
+
+function update_metadata(stringData) {
+    var metaPanels = Array.prototype.filter.call(document.getElementsByClassName('openwebrx-panel'), function(el) {
+        return el.dataset.panelName === 'metadata';
+    });
+
+    var meta = {};
+    stringData.split(";").forEach(function(s) {
+        var item = s.split(":");
+        meta[item[0]] = item[1];
+    });
+
+    var update = function(el) {
+        el.innerHTML = "";
+    };
+    if (meta.protocol) switch (meta.protocol) {
+        case 'DMR':
+            if (meta.slot) {
+                var html = 'Timeslot: ' + meta.slot;
+                if (meta.type) html += ' Typ: ' + meta.type;
+                if (meta.source && meta.target) html += ' Source: ' + meta.source + ' Target: ' + meta.target;
+                update = function(el) {
+                    var slotEl = el.getElementsByClassName('slot-' + meta.slot);
+                    if (!slotEl.length) {
+                        slotEl = document.createElement('div');
+                        slotEl.className = 'slot-' + meta.slot;
+                        el.appendChild(slotEl);
+                    } else {
+                        slotEl = slotEl[0];
+                    }
+                    slotEl.innerHTML = html;
+                };
+            }
+            break;
+        case 'YSF':
+            var strings = [];
+            if (meta.source) strings.push("Source: " + meta.source);
+            if (meta.target) strings.push("Destination: " + meta.target);
+            if (meta.up) strings.push("Up: " + meta.up);
+            if (meta.down) strings.push("Down: " + meta.down);
+            var html = strings.join(' ');
+            update = function(el) {
+                el.innerHTML = html;
+            }
+            break;
+    }
+
+    metaPanels.forEach(update);
 }
 
 function add_problem(what)

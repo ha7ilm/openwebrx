@@ -25,13 +25,20 @@ import time
 import os
 import signal
 import threading
+from functools import partial
 
 import logging
 logger = logging.getLogger(__name__)
 
-class dsp:
+class output(object):
+    def add_output(self, type, read_fn):
+        pass
+    def reset(self):
+        pass
 
-    def __init__(self):
+class dsp(object):
+
+    def __init__(self, output):
         self.samp_rate = 250000
         self.output_rate = 11025 #this is default, and cannot be set at the moment
         self.fft_size = 1024
@@ -64,6 +71,7 @@ class dsp:
         self.secondary_pipe_names=["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
         self.modification_lock = threading.Lock()
+        self.output = output
 
     def chain(self,which):
         if which in [ "dmr", "dstar", "nxdn", "ysf" ]:
@@ -191,6 +199,9 @@ class dsp:
         logger.debug("[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)") #TODO digimodes
         self.secondary_processes_running = True
 
+        self.output.add_output("secondary_fft", partial(self.secondary_process_fft.stdout.read, int(self.get_secondary_fft_bytes_to_read())))
+        self.output.add_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
+
         #open control pipes for csdr and send initialization data
         if self.secondary_shift_pipe != None: #TODO digimodes
             self.secondary_shift_pipe_file=open(self.secondary_shift_pipe,"w") #TODO digimodes
@@ -218,12 +229,6 @@ class dsp:
                 # been killed by something else, ignore
                 pass
         self.secondary_processes_running = False
-
-    def read_secondary_demod(self, size):
-        return self.secondary_process_demod.stdout.read(size)
-
-    def read_secondary_fft(self, size):
-        return self.secondary_process_fft.stdout.read(size)
 
     def get_secondary_demodulator(self):
         return self.secondary_demodulator
@@ -322,20 +327,6 @@ class dsp:
             self.squelch_pipe_file.flush()
             self.modification_lock.release()
 
-    def get_smeter_level(self):
-        if self.running:
-            line=self.smeter_pipe_file.readline()
-            try:
-                return float(line[:-1])
-            except ValueError:
-                return 0
-        else:
-            time.sleep(1)
-
-    def get_metadata(self):
-        if self.running and self.meta_pipe:
-            return self.meta_pipe_file.readline()
-
     def mkfifo(self,path):
         try:
             os.unlink(path)
@@ -398,6 +389,8 @@ class dsp:
 
         threading.Thread(target = watch_thread).start()
 
+        self.output.add_output("audio", partial(self.process.stdout.read, int(self.get_fft_bytes_to_read()) if self.demodulator == "fft" else 256))
+
         # open control pipes for csdr
         if self.bpf_pipe != None:
             self.bpf_pipe_file=open(self.bpf_pipe,"w")
@@ -419,11 +412,22 @@ class dsp:
             self.set_bpf(self.low_cut, self.high_cut)
         if self.smeter_pipe:
             self.smeter_pipe_file=open(self.smeter_pipe,"r")
+            def read_smeter():
+                raw = self.smeter_pipe_file.readline()
+                if len(raw) == 0:
+                    return None
+                else:
+                    return float(raw.rstrip("\n"))
+            self.output.add_output("smeter", read_smeter)
         if self.meta_pipe != None:
             self.meta_pipe_file=open(self.meta_pipe,"r")
-
-    def read(self,size):
-        return self.process.stdout.read(size)
+            def read_meta():
+                raw = self.meta_pipe_file.readline()
+                if len(raw) == 0:
+                    return None
+                else:
+                    return raw.rstrip("\n")
+            self.output.add_output("meta", read_meta)
 
     def stop(self):
         self.modification_lock.acquire()

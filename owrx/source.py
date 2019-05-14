@@ -169,9 +169,6 @@ class SdrSource(object):
         self.monitor = threading.Thread(target = wait_for_process_to_end)
         self.monitor.start()
 
-        self.spectrumThread = SpectrumThread(self)
-        self.spectrumThread.start()
-
         self.modificationLock.release()
 
         for c in self.clients:
@@ -185,9 +182,6 @@ class SdrSource(object):
             c.onSdrUnavailable()
 
         self.modificationLock.acquire()
-
-        if self.spectrumThread is not None:
-            self.spectrumThread.stop()
 
         if self.process is not None:
             try:
@@ -216,12 +210,18 @@ class SdrSource(object):
 
     def addSpectrumClient(self, c):
         self.spectrumClients.append(c)
+        if self.spectrumThread is None:
+            self.spectrumThread = SpectrumThread(self)
+            self.spectrumThread.start()
 
     def removeSpectrumClient(self, c):
         try:
             self.spectrumClients.remove(c)
         except ValueError:
             pass
+        if not self.spectrumClients and self.spectrumThread is not None:
+            self.spectrumThread.stop()
+            self.spectrumThread = None
 
     def writeSpectrumData(self, data):
         for c in self.spectrumClients:
@@ -249,19 +249,18 @@ class SdrplaySource(SdrSource):
     def sleepOnRestart(self):
         time.sleep(1)
 
-class SpectrumThread(threading.Thread):
+class SpectrumThread(csdr.output):
     def __init__(self, sdrSource):
-        self.doRun = True
         self.sdrSource = sdrSource
         super().__init__()
 
-    def run(self):
+    def start(self):
         props = self.sdrSource.props.collect(
             "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression",
             "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through"
         ).defaults(PropertyManager.getSharedInstance())
 
-        self.dsp = dsp = csdr.dsp()
+        self.dsp = dsp = csdr.dsp(self)
         dsp.nc_port = self.sdrSource.getPort()
         dsp.set_demodulator("fft")
         props.getProperty("samp_rate").wire(dsp.set_samp_rate)
@@ -288,25 +287,27 @@ class SpectrumThread(threading.Thread):
             dsp.read(8) #dummy read to skip bufsize & preamble
             logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
         logger.debug("Spectrum thread started.")
-        bytes_to_read=int(dsp.get_fft_bytes_to_read())
-        while self.doRun:
-            data=dsp.read(bytes_to_read)
-            if len(data) == 0:
-                time.sleep(1)
-            else:
-                self.sdrSource.writeSpectrumData(data)
 
-        dsp.stop()
-        logger.debug("spectrum thread shut down")
+    def add_output(self, type, read_fn):
+        if type != "audio":
+            logger.error("unsupported output type received by FFT: %s", type)
+            return
 
-        self.thread = None
-        self.sdrSource.removeClient(self)
+        def pipe():
+            run = True
+            while run:
+                data = read_fn()
+                if len(data) == 0:
+                    run = False
+                else:
+                    self.sdrSource.writeSpectrumData(data)
+
+        threading.Thread(target = pipe).start()
 
     def stop(self):
-        logger.debug("stopping spectrum thread")
-        self.doRun = False
+        self.dsp.stop()
 
-class DspManager(object):
+class DspManager(csdr.output):
     def __init__(self, handler, sdrSource):
         self.doRun = False
         self.handler = handler
@@ -319,7 +320,7 @@ class DspManager(object):
             "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate"
         ).defaults(PropertyManager.getSharedInstance())
 
-        self.dsp = csdr.dsp()
+        self.dsp = csdr.dsp(self)
         #dsp_initialized=False
         self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression)
         self.localProps.getProperty("fft_compression").wire(self.dsp.set_fft_compression)
@@ -356,7 +357,6 @@ class DspManager(object):
             def set_secondary_mod(mod):
                 if mod == False: mod = None
                 if self.dsp.get_secondary_demodulator() == mod: return
-                self.stopSecondaryThreads()
                 self.dsp.stop()
                 self.dsp.set_secondary_demodulator(mod)
                 if mod is not None:
@@ -366,9 +366,6 @@ class DspManager(object):
                         "secondary_bw":self.dsp.secondary_bw()
                     })
                 self.dsp.start()
-
-                if mod:
-                    self.startSecondaryThreads()
 
             self.localProps.getProperty("secondary_mod").wire(set_secondary_mod)
 
@@ -380,47 +377,34 @@ class DspManager(object):
         self.doRun = self.sdrSource.isAvailable()
         if self.doRun:
             self.dsp.start()
-            threading.Thread(target = self.readDspOutput).start()
-            threading.Thread(target = self.readSMeterOutput).start()
 
-    def startSecondaryThreads(self):
-        self.runSecondary = True
-        self.secondaryDemodThread = threading.Thread(target = self.readSecondaryDemod)
-        self.secondaryDemodThread.start()
-        self.secondaryFftThread = threading.Thread(target = self.readSecondaryFft)
-        self.secondaryFftThread.start()
+    def add_output(self, t, read_fn):
+        logger.debug("adding new output of type %s", t)
+        writers = {
+            "audio": self.handler.write_dsp_data,
+            "smeter": self.handler.write_s_meter_level,
+            "secondary_fft": self.handler.write_secondary_fft,
+            "secondary_demod": self.handler.write_secondary_demod,
+            "meta": self.handler.write_metadata
+        }
+        write = writers[t]
 
-    def stopSecondaryThreads(self):
-        self.runSecondary = False
-        self.secondaryDemodThread = None
-        self.secondaryFftThread = None
+        def pump(read, write):
+            def copy():
+                run = True
+                while run:
+                    data = read()
+                    if data is None or (isinstance(data, bytes) and len(data) == 0):
+                        logger.warning("zero read on {0}".format(t))
+                        run = False
+                    else:
+                        write(data)
+            return copy
 
-    def readDspOutput(self):
-        while (self.doRun):
-            data = self.dsp.read(256)
-            if len(data) != 256:
-                time.sleep(1)
-            else:
-                self.handler.write_dsp_data(data)
-
-    def readSMeterOutput(self):
-        while (self.doRun):
-            level = self.dsp.get_smeter_level()
-            self.handler.write_s_meter_level(level)
-
-    def readSecondaryDemod(self):
-        while (self.runSecondary):
-            data = self.dsp.read_secondary_demod(1)
-            self.handler.write_secondary_demod(data)
-
-    def readSecondaryFft(self):
-        while (self.runSecondary):
-            data = self.dsp.read_secondary_fft(int(self.dsp.get_secondary_fft_bytes_to_read()))
-            self.handler.write_secondary_fft(data)
+        threading.Thread(target=pump(read_fn, write)).start()
 
     def stop(self):
         self.doRun = False
-        self.runSecondary = False
         self.dsp.stop()
         self.sdrSource.removeClient(self)
 
@@ -433,8 +417,6 @@ class DspManager(object):
             self.doRun = True
         if self.dsp is not None:
             self.dsp.start()
-            threading.Thread(target = self.readDspOutput).start()
-            threading.Thread(target = self.readSMeterOutput).start()
 
     def onSdrUnavailable(self):
         logger.debug("received onSdrUnavailable, shutting down DspSource")

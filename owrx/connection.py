@@ -127,6 +127,8 @@ class OpenWebRxClient(object):
         self.protected_send({"type":"profiles","value":profiles})
     def write_features(self, features):
         self.protected_send({"type":"features","value":features})
+    def write_metadata(self, metadata):
+        self.protected_send({"type":"metadata","value":metadata})
 
 class WebSocketMessageHandler(object):
     def __init__(self):
