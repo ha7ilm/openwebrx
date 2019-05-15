@@ -151,6 +151,14 @@ class SdrSource(object):
         self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
         logger.info("Started rtl source: " + cmd)
 
+        def wait_for_process_to_end():
+            rc = self.process.wait()
+            logger.debug("shut down with RC={0}".format(rc))
+            self.monitor = None
+
+        self.monitor = threading.Thread(target = wait_for_process_to_end)
+        self.monitor.start()
+
         while True:
             testsock = socket.socket()
             try:
@@ -159,15 +167,6 @@ class SdrSource(object):
                 break
             except:
                 time.sleep(0.1)
-
-
-        def wait_for_process_to_end():
-            rc = self.process.wait()
-            logger.debug("shut down with RC={0}".format(rc))
-            self.monitor = None
-
-        self.monitor = threading.Thread(target = wait_for_process_to_end)
-        self.monitor.start()
 
         self.modificationLock.release()
 
@@ -254,7 +253,6 @@ class SpectrumThread(csdr.output):
         self.sdrSource = sdrSource
         super().__init__()
 
-    def start(self):
         props = self.sdrSource.props.collect(
             "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression",
             "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through"
@@ -282,11 +280,17 @@ class SpectrumThread(csdr.output):
         dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]
         dsp.csdr_through = props["csdr_through"]
         logger.debug("Spectrum thread initialized successfully.")
-        dsp.start()
-        if props["csdr_dynamic_bufsize"]:
-            dsp.read(8) #dummy read to skip bufsize & preamble
-            logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
-        logger.debug("Spectrum thread started.")
+
+    def start(self):
+        self.sdrSource.addClient(self)
+        if self.sdrSource.isAvailable():
+            self.dsp.start()
+            # TODO this does not work any more
+            '''
+            if props["csdr_dynamic_bufsize"]:
+                dsp.read(8) #dummy read to skip bufsize & preamble
+                logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
+            '''
 
     def add_output(self, type, read_fn):
         if type != "audio":
@@ -306,14 +310,17 @@ class SpectrumThread(csdr.output):
 
     def stop(self):
         self.dsp.stop()
+        self.sdrSource.removeClient(self)
+
+    def onSdrAvailable(self):
+        self.dsp.start()
+    def onSdrUnavailable(self):
+        self.dsp.stop()
 
 class DspManager(csdr.output):
     def __init__(self, handler, sdrSource):
-        self.doRun = False
         self.handler = handler
         self.sdrSource = sdrSource
-        self.dsp = None
-        self.sdrSource.addClient(self)
 
         self.localProps = self.sdrSource.getProps().collect(
             "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
@@ -371,11 +378,12 @@ class DspManager(csdr.output):
 
             self.localProps.getProperty("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq)
 
+        self.sdrSource.addClient(self)
+
         super().__init__()
 
     def start(self):
-        self.doRun = self.sdrSource.isAvailable()
-        if self.doRun:
+        if self.sdrSource.isAvailable():
             self.dsp.start()
 
     def add_output(self, t, read_fn):
@@ -404,7 +412,6 @@ class DspManager(csdr.output):
         threading.Thread(target=pump(read_fn, write)).start()
 
     def stop(self):
-        self.doRun = False
         self.dsp.stop()
         self.sdrSource.removeClient(self)
 
@@ -413,15 +420,11 @@ class DspManager(csdr.output):
 
     def onSdrAvailable(self):
         logger.debug("received onSdrAvailable, attempting DspSource restart")
-        if not self.doRun:
-            self.doRun = True
-        if self.dsp is not None:
-            self.dsp.start()
+        self.dsp.start()
 
     def onSdrUnavailable(self):
         logger.debug("received onSdrUnavailable, shutting down DspSource")
-        if self.dsp is not None:
-            self.dsp.stop()
+        self.dsp.stop()
 
 class CpuUsageThread(threading.Thread):
     sharedInstance = None
