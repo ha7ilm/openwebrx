@@ -487,18 +487,6 @@ class CpuUsageThread(threading.Thread):
         CpuUsageThread.sharedInstance = None
         self.doRun = False
 
-class ClientReportingThread(threading.Thread):
-    def __init__(self, registry):
-        self.doRun = True
-        self.registry = registry
-        super().__init__()
-    def run(self):
-        while self.doRun:
-            self.registry.broadcast()
-            time.sleep(3)
-    def stop(self):
-        self.doRun = False
-
 class TooManyClientsException(Exception):
     pass
 
@@ -512,7 +500,6 @@ class ClientRegistry(object):
 
     def __init__(self):
         self.clients = []
-        self.reporter = None
         super().__init__()
 
     def broadcast(self):
@@ -525,9 +512,7 @@ class ClientRegistry(object):
         if len(self.clients) >= pm["max_clients"]:
             raise TooManyClientsException()
         self.clients.append(client)
-        if self.reporter is None:
-            self.reporter = ClientReportingThread(self)
-            self.reporter.start()
+        self.broadcast()
 
     def clientCount(self):
         return len(self.clients)
@@ -537,6 +522,4 @@ class ClientRegistry(object):
             self.clients.remove(client)
         except ValueError:
             pass
-        if not self.clients and self.reporter is not None:
-            self.reporter.stop()
-            self.reporter = None
+        self.broadcast()

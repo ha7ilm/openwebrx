@@ -1157,6 +1157,7 @@ function audio_calculate_resampling(targetRate)
 
 debug_ws_data_received=0;
 max_clients_num=0;
+clients_num = 0;
 
 var COMPRESS_FFT_PAD_N=10; //should be the same as in csdr.c
 
@@ -1192,7 +1193,8 @@ function on_ws_recv(evt)
 						fft_compression = config.fft_compression;
 						divlog( "FFT stream is "+ ((fft_compression=="adpcm")?"compressed":"uncompressed")+"." )
 						max_clients_num = config.max_clients;
-						mathbox_waterfall_colors = config.mathbox_waterfall_colors;
+                        progressbar_set(e("openwebrx-bar-clients"), client_num / max_clients_num, "Clients [" + client_num + "]", client_num > max_clients_num*0.85);
+                        mathbox_waterfall_colors = config.mathbox_waterfall_colors;
 						mathbox_waterfall_frequency_resolution = config.mathbox_waterfall_frequency_resolution;
 						mathbox_waterfall_history_length = config.mathbox_waterfall_history_length;
 
@@ -1224,8 +1226,8 @@ function on_ws_recv(evt)
 						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage,"Server CPU [" + Math.round(server_cpu_usage * 100) + "%]",server_cpu_usage>85);
                     break;
                     case "clients":
-                        var clients = json.value;
-               			progressbar_set(e("openwebrx-bar-clients"), clients / max_clients_num, "Clients [" + clients + "]", clients > max_clients_num*0.85);
+                        client_num = json.value;
+               			progressbar_set(e("openwebrx-bar-clients"), client_num / max_clients_num, "Clients [" + client_num + "]", client_num > max_clients_num*0.85);
                     break;
                     case "profiles":
                         var listbox = e("openwebrx-sdr-profiles-listbox");
