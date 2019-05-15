@@ -1221,7 +1221,7 @@ function on_ws_recv(evt)
                     break;
                     case "cpuusage":
 						var server_cpu_usage = json.value;
-						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage/100,"Server CPU [" + server_cpu_usage + "%]",server_cpu_usage>85);
+						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage,"Server CPU [" + Math.round(server_cpu_usage * 100) + "%]",server_cpu_usage>85);
                     break;
                     case "clients":
                         var clients = json.value;

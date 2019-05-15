@@ -452,8 +452,6 @@ class CpuUsageThread(threading.Thread):
                 c.write_cpu_usage(cpu_usage)
             time.sleep(3)
         logger.debug("cpu usage thread shut down")
-        if CpuUsageThread.sharedInstance == self:
-            CpuUsageThread.sharedInstance = None
 
     def get_cpu_usage(self):
         try:
@@ -486,6 +484,7 @@ class CpuUsageThread(threading.Thread):
             self.shutdown()
 
     def shutdown(self):
+        CpuUsageThread.sharedInstance = None
         self.doRun = False
 
 class ClientReportingThread(threading.Thread):
