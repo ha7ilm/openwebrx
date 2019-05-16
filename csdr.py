@@ -106,13 +106,11 @@ class dsp(object):
                 elif which == "nxdn":
                     chain += "dsd -fi"
                 chain += " -i - -o - -u 2 -g 10 | "
-                chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --input-buffer 160 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 220"
             elif which == "dmr":
                 chain += "rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer | "
-                chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
             elif which == "ysf":
                 chain += "rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y | "
-                chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
+            chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
             chain += last_decimation_block
@@ -338,9 +336,11 @@ class dsp(object):
 
     def set_squelch_level(self, squelch_level):
         self.squelch_level=squelch_level
+        #no squelch required on digital voice modes
+        actual_squelch = 0 if self.isDigitalVoice() else self.squelch_level
         if self.running:
             self.modification_lock.acquire()
-            self.squelch_pipe_file.write( "%g\n"%(float(self.squelch_level)) )
+            self.squelch_pipe_file.write( "%g\n"%(float(actual_squelch)) )
             self.squelch_pipe_file.flush()
             self.modification_lock.release()
 
