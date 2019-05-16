@@ -619,6 +619,7 @@ function demodulator_analog_replace(subtype, for_digital)
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
+	clear_metadata();
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1309,17 +1310,13 @@ function on_ws_recv(evt)
 }
 
 function update_metadata(stringData) {
-    var metaPanels = Array.prototype.filter.call(document.getElementsByClassName('openwebrx-panel'), function(el) {
-        return el.dataset.panelName === 'metadata';
-    });
-
     var meta = {};
     stringData.split(";").forEach(function(s) {
         var item = s.split(":");
         meta[item[0]] = item[1];
     });
 
-    var update = function(el) {
+    var update = function(_, el) {
         el.innerHTML = "";
     };
     if (meta.protocol) switch (meta.protocol) {
@@ -1328,7 +1325,7 @@ function update_metadata(stringData) {
                 var html = 'Timeslot: ' + meta.slot;
                 if (meta.type) html += ' Typ: ' + meta.type;
                 if (meta.source && meta.target) html += ' Source: ' + meta.source + ' Target: ' + meta.target;
-                update = function(el) {
+                update = function(_, el) {
                     var slotEl = el.getElementsByClassName('slot-' + meta.slot);
                     if (!slotEl.length) {
                         slotEl = document.createElement('div');
@@ -1348,13 +1345,18 @@ function update_metadata(stringData) {
             if (meta.up) strings.push("Up: " + meta.up);
             if (meta.down) strings.push("Down: " + meta.down);
             var html = strings.join(' ');
-            update = function(el) {
+            update = function(_, el) {
                 el.innerHTML = html;
             }
             break;
     }
 
-    metaPanels.forEach(update);
+    $('.openwebrx-panel[data-panel-name="metadata"]').each(update);
+    toggle_panel("openwebrx-panel-metadata", true);
+}
+
+function clear_metadata() {
+    toggle_panel("openwebrx-panel-metadata", false);
 }
 
 function add_problem(what)
@@ -2301,6 +2303,7 @@ function openwebrx_init()
 	init_rx_photo();
 	open_websocket();
     secondary_demod_init();
+    clear_metadata();
 	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
