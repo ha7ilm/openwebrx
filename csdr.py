@@ -68,7 +68,7 @@ class dsp(object):
         self.secondary_process_fft = None
         self.secondary_process_demod = None
         self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "meta_pipe", "iqtee_pipe", "iqtee2_pipe"]
-        self.secondary_pipe_names=["secondary_shift_pipe"]
+        self.secondary_pipe_names=["secondary_shift_dpipe"]
         self.secondary_offset_freq = 1000
         self.modification_lock = threading.Lock()
         self.output = output
@@ -85,36 +85,42 @@ class dsp(object):
                 chain += " | csdr compress_fft_adpcm_f_u8 {fft_size}"
             return chain
         chain += "csdr shift_addition_cc --fifo {shift_pipe} | "
-        if which in ["dstar", "nxdn", "dmr", "ysf"]:
-            chain += "csdr fir_decimate_cc {digital_decimation} {ddc_transition_bw} HAMMING | "
-        else:
-            chain += "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | "
+        chain += "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | "
         chain += "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
             chain += "csdr tee {iqtee_pipe} | "
             chain += "csdr tee {iqtee2_pipe} | "
+        # safe some cpu cycles... no need to decimate if decimation factor is 1
+        last_decimation_block = "csdr old_fractional_decimator_ff {last_decimation} | " if self.last_decimation != 1.0 else ""
         if which == "nfm":
-            chain += "csdr fmdemod_quadri_cf | csdr limit_ff | csdr old_fractional_decimator_ff {last_decimation} | csdr deemphasis_nfm_ff {output_rate} | csdr convert_f_s16"
-        elif which in [ "dstar", "nxdn" ]:
-            chain += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr old_fractional_decimator_ff {digital_last_decimation} | csdr convert_f_s16"
-            if which == "dstar":
-                chain += " | dsd -fd"
-            elif which == "nxdn":
-                chain += " | dsd -fi"
-            chain += " -i - -o - -u 2 -g 10"
-            chain += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --input-buffer 160 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 220"
-        elif which == "dmr":
-            chain += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr old_fractional_decimator_ff {digital_last_decimation} | csdr convert_f_s16"
-            chain += " | rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer"
-            chain += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
-        elif which == "ysf":
-            chain += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | csdr old_fractional_decimator_ff {digital_last_decimation} | csdr convert_f_s16"
-            chain += " | rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y"
-            chain += " | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
+            chain += "csdr fmdemod_quadri_cf | csdr limit_ff | "
+            chain += last_decimation_block
+            chain += "csdr deemphasis_nfm_ff {output_rate} | csdr convert_f_s16"
+        elif self.isDigitalVoice(which):
+            chain += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | "
+            chain += last_decimation_block
+            chain += "csdr convert_f_s16 | "
+            if which in [ "dstar", "nxdn" ]:
+                if which == "dstar":
+                    chain += "dsd -fd"
+                elif which == "nxdn":
+                    chain += "dsd -fi"
+                chain += " -i - -o - -u 2 -g 10 | "
+                chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --input-buffer 160 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 220"
+            elif which == "dmr":
+                chain += "rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer | "
+                chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
+            elif which == "ysf":
+                chain += "rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y | "
+                chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - | csdr setbuf 256"
         elif which == "am":
-            chain += "csdr amdemod_cf | csdr fastdcblock_ff | csdr old_fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
+            chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
+            chain += last_decimation_block
+            chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
         elif which == "ssb":
-            chain += "csdr realpart_cf | csdr old_fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
+            chain += "csdr realpart_cf | "
+            chain += last_decimation_block
+            chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
 
         if self.audio_compression=="adpcm":
             chain += " | csdr encode_ima_adpcm_i16_u8"
@@ -252,14 +258,15 @@ class dsp(object):
         if self.running: self.restart()
 
     def calculate_decimation(self):
-        (self.decimation, self.last_decimation) = self.get_decimation(self.output_rate)
+        (self.decimation, self.last_decimation, _) = self.get_decimation(self.samp_rate, self.get_audio_rate())
 
-    def get_decimation(self, output_rate):
+    def get_decimation(self, input_rate, output_rate):
         decimation=1
-        while self.samp_rate/  (decimation+1) >= output_rate:
+        while input_rate /  (decimation+1) >= output_rate:
             decimation += 1
-        last_decimation = float(self.samp_rate / decimation) / output_rate
-        return (decimation, last_decimation)
+        fraction = float(input_rate / decimation) / output_rate
+        intermediate_rate = input_rate / decimation
+        return (decimation, fraction, intermediate_rate)
 
     def if_samp_rate(self):
         return self.samp_rate/self.decimation
@@ -270,6 +277,16 @@ class dsp(object):
     def get_output_rate(self):
         return self.output_rate
 
+    def get_audio_rate(self):
+        if self.isDigitalVoice():
+            return 48000
+        return self.get_output_rate()
+
+    def isDigitalVoice(self, demodulator = None):
+        if demodulator is None:
+            demodulator = self.get_demodulator()
+        return demodulator in ["dmr", "dstar", "nxdn", "ysf"]
+
     def set_output_rate(self,output_rate):
         self.output_rate=output_rate
         self.calculate_decimation()
@@ -277,6 +294,7 @@ class dsp(object):
     def set_demodulator(self,demodulator):
         if (self.demodulator == demodulator): return
         self.demodulator=demodulator
+        self.calculate_decimation()
         self.restart()
 
     def get_demodulator(self):
@@ -366,15 +384,13 @@ class dsp(object):
 
         self.try_create_pipes(self.pipe_names, command_base)
 
-        (digital_decimation, digital_last_decimation) = self.get_decimation(48000)
-
         #run the command
         command=command_base.format( bpf_pipe=self.bpf_pipe, shift_pipe=self.shift_pipe, decimation=self.decimation,
             last_decimation=self.last_decimation, fft_size=self.fft_size, fft_block_size=self.fft_block_size(), fft_averages=self.fft_averages,
             bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(),
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe,
-            output_rate = self.get_output_rate(), digital_decimation = digital_decimation, digital_last_decimation = digital_last_decimation)
+            output_rate = self.get_output_rate())
 
         logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()
