@@ -253,7 +253,7 @@ class SpectrumThread(csdr.output):
         self.sdrSource = sdrSource
         super().__init__()
 
-        props = self.sdrSource.props.collect(
+        self.props = props = self.sdrSource.props.collect(
             "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression",
             "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through"
         ).defaults(PropertyManager.getSharedInstance())
@@ -285,17 +285,15 @@ class SpectrumThread(csdr.output):
         self.sdrSource.addClient(self)
         if self.sdrSource.isAvailable():
             self.dsp.start()
-            # TODO this does not work any more
-            '''
-            if props["csdr_dynamic_bufsize"]:
-                dsp.read(8) #dummy read to skip bufsize & preamble
-                logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
-            '''
 
     def add_output(self, type, read_fn):
         if type != "audio":
             logger.error("unsupported output type received by FFT: %s", type)
             return
+
+        if self.props["csdr_dynamic_bufsize"]:
+            read_fn(8) #dummy read to skip bufsize & preamble
+            logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
 
         def pipe():
             run = True
