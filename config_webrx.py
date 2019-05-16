@@ -135,6 +135,14 @@ sdrs = {
                 "start_freq": 14070000,
                 "start_mod": "usb"
             },
+            "30m": {
+                "name":"30m",
+                "center_freq": 10125000,
+                "rf_gain": 40,
+                "samp_rate": 250000,
+                "start_freq": 10142000,
+                "start_mod": "usb"
+            },
             "40m": {
                 "name":"40m",
                 "center_freq": 7100000,
