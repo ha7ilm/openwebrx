@@ -68,7 +68,7 @@ class dsp(object):
         self.secondary_process_fft = None
         self.secondary_process_demod = None
         self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "meta_pipe", "iqtee_pipe", "iqtee2_pipe"]
-        self.secondary_pipe_names=["secondary_shift_dpipe"]
+        self.secondary_pipe_names=["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
         self.modification_lock = threading.Lock()
         self.output = output
