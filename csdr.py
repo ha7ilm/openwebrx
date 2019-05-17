@@ -86,7 +86,7 @@ class dsp(object):
             return chain
         chain += "csdr shift_addition_cc --fifo {shift_pipe} | "
         chain += "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | "
-        chain += "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
+        chain += "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 {smeter_report_every} | "
         if self.secondary_demodulator:
             chain += "csdr tee {iqtee_pipe} | "
             chain += "csdr tee {iqtee2_pipe} | "
@@ -390,7 +390,7 @@ class dsp(object):
             bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(),
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe,
-            output_rate = self.get_output_rate())
+            output_rate = self.get_output_rate(), smeter_report_every = int(self.if_samp_rate()/6000) )
 
         logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()
