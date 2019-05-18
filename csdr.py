@@ -450,7 +450,8 @@ class dsp(object):
                     return float(raw.rstrip("\n"))
             self.output.add_output("smeter", read_smeter)
         if self.meta_pipe != None:
-            self.meta_pipe_file=open(self.meta_pipe,"r")
+            # TODO make digiham output unicode and then change this here
+            self.meta_pipe_file=open(self.meta_pipe, "r", encoding="cp437")
             def read_meta():
                 raw = self.meta_pipe_file.readline()
                 if len(raw) == 0:
