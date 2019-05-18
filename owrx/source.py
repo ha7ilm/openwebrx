@@ -329,7 +329,7 @@ class DspManager(csdr.output):
 
         self.localProps = self.sdrSource.getProps().collect(
             "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
-            "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate"
+            "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate", "digital_voice_unvoiced_quality"
         ).defaults(PropertyManager.getSharedInstance())
 
         self.dsp = csdr.dsp(self)
