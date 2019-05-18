@@ -77,6 +77,10 @@ fft_compression="adpcm" #valid values: "adpcm", "none"
 digimodes_enable=True #Decoding digimodes come with higher CPU usage. 
 digimodes_fft_size=1024
 
+# determines the quality, and thus the cpu usage, for the ambe codec used by digital voice modes
+# if you're running on a Raspi (up to 3B+) you'll want to leave this on 1
+digital_voice_unvoiced_quality = 1
+
 """
 Note: if you experience audio underruns while CPU usage is 100%, you can: 
 - decrease `samp_rate`,

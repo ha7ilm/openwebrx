@@ -70,6 +70,7 @@ class dsp(object):
         self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "meta_pipe", "iqtee_pipe", "iqtee2_pipe"]
         self.secondary_pipe_names=["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
+        self.unvoiced_quality = 1
         self.modification_lock = threading.Lock()
         self.output = output
 
@@ -105,11 +106,11 @@ class dsp(object):
                     chain += "dsd -fd"
                 elif which == "nxdn":
                     chain += "dsd -fi"
-                chain += " -i - -o - -u 2 -g 10 | "
+                chain += " -i - -o - -u {unvoiced_quality} -g 10 | "
             elif which == "dmr":
-                chain += "rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer | "
+                chain += "rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -u {unvoiced_quality} | "
             elif which == "ysf":
-                chain += "rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y | "
+                chain += "rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -u {unvoiced_quality} | "
             chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
@@ -347,6 +348,13 @@ class dsp(object):
             self.squelch_pipe_file.flush()
             self.modification_lock.release()
 
+    def set_unvoiced_quality(self, q):
+        self.unvoiced_quality = q
+        self.restart()
+
+    def get_unvoiced_quality(self):
+        return self.unvoiced_quality
+
     def mkfifo(self,path):
         try:
             os.unlink(path)
@@ -393,7 +401,8 @@ class dsp(object):
             bpf_transition_bw=float(self.bpf_transition_bw)/self.if_samp_rate(), ddc_transition_bw=self.ddc_transition_bw(),
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe,
-            output_rate = self.get_output_rate(), smeter_report_every = int(self.if_samp_rate()/6000) )
+            output_rate = self.get_output_rate(), smeter_report_every = int(self.if_samp_rate()/6000),
+            unvoiced_quality = self.get_unvoiced_quality())
 
         logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()

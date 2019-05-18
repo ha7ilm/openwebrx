@@ -355,7 +355,8 @@ class DspManager(csdr.output):
             self.localProps.getProperty("squelch_level").wire(self.dsp.set_squelch_level),
             self.localProps.getProperty("low_cut").wire(set_low_cut),
             self.localProps.getProperty("high_cut").wire(set_high_cut),
-            self.localProps.getProperty("mod").wire(self.dsp.set_demodulator)
+            self.localProps.getProperty("mod").wire(self.dsp.set_demodulator),
+            self.localProps.getProperty("digital_voice_unvoiced_quality").wire(self.dsp.set_unvoiced_quality)
         ]
 
         self.dsp.set_offset_freq(0)
