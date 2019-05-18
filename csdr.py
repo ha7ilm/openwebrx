@@ -137,7 +137,10 @@ class dsp(object):
                     "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
 
     def set_secondary_demodulator(self, what):
+        if self.get_secondary_demodulator() == what:
+            return
         self.secondary_demodulator = what
+        self.restart()
 
     def secondary_fft_block_size(self):
         return (self.samp_rate/self.decimation)/(self.fft_fps*2) #*2 is there because we do FFT on real signal here

@@ -261,10 +261,6 @@ class SpectrumThread(csdr.output):
         self.dsp = dsp = csdr.dsp(self)
         dsp.nc_port = self.sdrSource.getPort()
         dsp.set_demodulator("fft")
-        props.getProperty("samp_rate").wire(dsp.set_samp_rate)
-        props.getProperty("fft_size").wire(dsp.set_fft_size)
-        props.getProperty("fft_fps").wire(dsp.set_fft_fps)
-        props.getProperty("fft_compression").wire(dsp.set_fft_compression)
 
         def set_fft_averages(key, value):
             samp_rate = props["samp_rate"]
@@ -273,7 +269,15 @@ class SpectrumThread(csdr.output):
             fft_voverlap_factor = props["fft_voverlap_factor"]
 
             dsp.set_fft_averages(int(round(1.0 * samp_rate / fft_size / fft_fps / (1.0 - fft_voverlap_factor))) if fft_voverlap_factor>0 else 0)
-        props.collect("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages)
+
+        self.subscriptions = [
+            props.getProperty("samp_rate").wire(dsp.set_samp_rate),
+            props.getProperty("fft_size").wire(dsp.set_fft_size),
+            props.getProperty("fft_fps").wire(dsp.set_fft_fps),
+            props.getProperty("fft_compression").wire(dsp.set_fft_compression),
+            props.collect("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages)
+        ]
+
         set_fft_averages(None, None)
 
         dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
@@ -309,6 +313,9 @@ class SpectrumThread(csdr.output):
     def stop(self):
         self.dsp.stop()
         self.sdrSource.removeClient(self)
+        for c in self.subscriptions:
+            c.cancel()
+        self.subscriptions = []
 
     def onSdrAvailable(self):
         self.dsp.start()
@@ -326,43 +333,40 @@ class DspManager(csdr.output):
         ).defaults(PropertyManager.getSharedInstance())
 
         self.dsp = csdr.dsp(self)
-        #dsp_initialized=False
-        self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression)
-        self.localProps.getProperty("fft_compression").wire(self.dsp.set_fft_compression)
-        self.dsp.set_offset_freq(0)
-        self.dsp.set_bpf(-4000,4000)
-        self.localProps.getProperty("digimodes_fft_size").wire(self.dsp.set_secondary_fft_size)
-
         self.dsp.nc_port = self.sdrSource.getPort()
-        self.dsp.csdr_dynamic_bufsize = self.localProps["csdr_dynamic_bufsize"]
-        self.dsp.csdr_print_bufsizes = self.localProps["csdr_print_bufsizes"]
-        self.dsp.csdr_through = self.localProps["csdr_through"]
-
-        self.localProps.getProperty("samp_rate").wire(self.dsp.set_samp_rate)
-
-        self.localProps.getProperty("output_rate").wire(self.dsp.set_output_rate)
-        self.localProps.getProperty("offset_freq").wire(self.dsp.set_offset_freq)
-        self.localProps.getProperty("squelch_level").wire(self.dsp.set_squelch_level)
 
         def set_low_cut(cut):
             bpf = self.dsp.get_bpf()
             bpf[0] = cut
             self.dsp.set_bpf(*bpf)
-        self.localProps.getProperty("low_cut").wire(set_low_cut)
 
         def set_high_cut(cut):
             bpf = self.dsp.get_bpf()
             bpf[1] = cut
             self.dsp.set_bpf(*bpf)
-        self.localProps.getProperty("high_cut").wire(set_high_cut)
 
-        self.localProps.getProperty("mod").wire(self.dsp.set_demodulator)
+        self.subscriptions = [
+            self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression),
+            self.localProps.getProperty("fft_compression").wire(self.dsp.set_fft_compression),
+            self.localProps.getProperty("digimodes_fft_size").wire(self.dsp.set_secondary_fft_size),
+            self.localProps.getProperty("samp_rate").wire(self.dsp.set_samp_rate),
+            self.localProps.getProperty("output_rate").wire(self.dsp.set_output_rate),
+            self.localProps.getProperty("offset_freq").wire(self.dsp.set_offset_freq),
+            self.localProps.getProperty("squelch_level").wire(self.dsp.set_squelch_level),
+            self.localProps.getProperty("low_cut").wire(set_low_cut),
+            self.localProps.getProperty("high_cut").wire(set_high_cut),
+            self.localProps.getProperty("mod").wire(self.dsp.set_demodulator)
+        ]
+
+        self.dsp.set_offset_freq(0)
+        self.dsp.set_bpf(-4000,4000)
+        self.dsp.csdr_dynamic_bufsize = self.localProps["csdr_dynamic_bufsize"]
+        self.dsp.csdr_print_bufsizes = self.localProps["csdr_print_bufsizes"]
+        self.dsp.csdr_through = self.localProps["csdr_through"]
 
         if (self.localProps["digimodes_enable"]):
             def set_secondary_mod(mod):
                 if mod == False: mod = None
-                if self.dsp.get_secondary_demodulator() == mod: return
-                self.dsp.stop()
                 self.dsp.set_secondary_demodulator(mod)
                 if mod is not None:
                     self.handler.write_secondary_dsp_config({
@@ -370,11 +374,10 @@ class DspManager(csdr.output):
                         "if_samp_rate":self.dsp.if_samp_rate(),
                         "secondary_bw":self.dsp.secondary_bw()
                     })
-                self.dsp.start()
-
-            self.localProps.getProperty("secondary_mod").wire(set_secondary_mod)
-
-            self.localProps.getProperty("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq)
+            self.subscriptions += [
+                self.localProps.getProperty("secondary_mod").wire(set_secondary_mod),
+                self.localProps.getProperty("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq)
+            ]
 
         self.sdrSource.addClient(self)
 
@@ -412,6 +415,9 @@ class DspManager(csdr.output):
     def stop(self):
         self.dsp.stop()
         self.sdrSource.removeClient(self)
+        for sub in self.subscriptions:
+            sub.cancel()
+        self.subscriptions = []
 
     def setProperty(self, prop, value):
         self.localProps.getProperty(prop).setValue(value)

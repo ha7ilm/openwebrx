@@ -19,7 +19,7 @@ class OpenWebRxClient(object):
 
         self.dsp = None
         self.sdr = None
-        self.configProps = None
+        self.configSub = None
 
         pm = PropertyManager.getSharedInstance()
 
@@ -39,11 +39,6 @@ class OpenWebRxClient(object):
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
-    def sendConfig(self, key, value):
-        config = dict((key, self.configProps[key]) for key in OpenWebRxClient.config_keys)
-        # TODO mathematical properties? hmmmm
-        config["start_offset_freq"] = self.configProps["start_freq"] - self.configProps["center_freq"]
-        self.write_config(config)
     def setSdr(self, id = None):
         next = SdrService.getSource(id)
         if (next == self.sdr):
@@ -51,16 +46,23 @@ class OpenWebRxClient(object):
 
         self.stopDsp()
 
-        if self.configProps is not None:
-            self.configProps.unwire(self.sendConfig)
+        if self.configSub is not None:
+            self.configSub.cancel()
+            self.configSub = None
 
         self.sdr = next
 
         # send initial config
-        self.configProps = self.sdr.getProps().collect(*OpenWebRxClient.config_keys).defaults(PropertyManager.getSharedInstance())
+        configProps = self.sdr.getProps().collect(*OpenWebRxClient.config_keys).defaults(PropertyManager.getSharedInstance())
 
-        self.configProps.wire(self.sendConfig)
-        self.sendConfig(None, None)
+        def sendConfig(key, value):
+            config = dict((key, configProps[key]) for key in OpenWebRxClient.config_keys)
+            # TODO mathematical properties? hmmmm
+            config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
+            self.write_config(config)
+
+        self.configSub = configProps.wire(sendConfig)
+        sendConfig(None, None)
 
         self.sdr.addSpectrumClient(self)
 
@@ -73,6 +75,9 @@ class OpenWebRxClient(object):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)
+        if self.configSub is not None:
+            self.configSub.cancel()
+            self.configSub = None
         self.conn.close()
         logger.debug("connection closed")
 

@@ -2,25 +2,49 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class Subscription(object):
+    def __init__(self, subscriptee, subscriber):
+        self.subscriptee = subscriptee
+        self.subscriber = subscriber
+
+    def call(self, *args, **kwargs):
+        self.subscriber(*args, **kwargs)
+
+    def cancel(self):
+        self.subscriptee.unwire(self)
+
+
 class Property(object):
     def __init__(self, value = None):
         self.value = value
-        self.callbacks = []
+        self.subscribers = []
+
     def getValue(self):
         return self.value
+
     def setValue(self, value):
         if (self.value == value):
             return self
         self.value = value
-        for c in self.callbacks:
+        for c in self.subscribers:
             try:
-                c(self.value)
+                c.call(self.value)
             except Exception as e:
                 logger.exception(e)
         return self
+
     def wire(self, callback):
-        self.callbacks.append(callback)
-        if not self.value is None: callback(self.value)
+        sub = Subscription(self, callback)
+        self.subscribers.append(sub)
+        if not self.value is None: sub.call(self.value)
+        return sub
+
+    def unwire(self, sub):
+        try:
+            self.subscribers.remove(sub)
+        except ValueError:
+            # happens when already removed before
+            pass
         return self
 
 class PropertyManager(object):
@@ -36,7 +60,7 @@ class PropertyManager(object):
 
     def __init__(self, properties = None):
         self.properties = {}
-        self.callbacks = []
+        self.subscribers = []
         if properties is not None:
             for (name, prop) in properties.items():
                 self.add(name, prop)
@@ -44,9 +68,9 @@ class PropertyManager(object):
     def add(self, name, prop):
         self.properties[name] = prop
         def fireCallbacks(value):
-            for c in self.callbacks:
+            for c in self.subscribers:
                 try:
-                    c(name, value)
+                    c.call(name, value)
                 except Exception as e:
                     logger.exception(e)
         prop.wire(fireCallbacks)
@@ -78,11 +102,16 @@ class PropertyManager(object):
         return self.getProperty(name).getValue()
 
     def wire(self, callback):
-        self.callbacks.append(callback)
-        return self
+        sub = Subscription(self, callback)
+        self.subscribers.append(sub)
+        return sub
 
-    def unwire(self, callback):
-        self.callbacks.remove(callback)
+    def unwire(self, sub):
+        try:
+            self.subscribers.remove(sub)
+        except ValueError:
+            # happens when already removed before
+            pass
         return self
 
     def defaults(self, other_pm):
