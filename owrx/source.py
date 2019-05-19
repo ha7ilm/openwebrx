@@ -245,7 +245,7 @@ class SdrplaySource(SdrSource):
     def getCommand(self):
         command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm}"
         gainMap = { "rf_gain" : "RFGR", "if_gain" : "IFGR"}
-        gains = [ "{0}={{{1}}}".format(gainMap[name], name) for name in self.rtlProps.collect("rf_gain", "if_gain").__dict__() ]
+        gains = [ "{0}={{{1}}}".format(gainMap[name], name) for (name, value) in self.rtlProps.collect("rf_gain", "if_gain").__dict__().items() if value is not None ]
         if gains:
             command += " -g {gains}".format(gains = ",".join(gains))
         if self.rtlProps["antenna"] is not None:
