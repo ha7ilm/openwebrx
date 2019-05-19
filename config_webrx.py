@@ -130,7 +130,8 @@ sdrs = {
             "20m": {
                 "name":"20m",
                 "center_freq": 14150000,
-                "rf_gain": 40,
+                "rf_gain": 4,
+                "if_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 14070000,
                 "start_mod": "usb",
@@ -139,7 +140,8 @@ sdrs = {
             "40m": {
                 "name":"40m",
                 "center_freq": 7100000,
-                "rf_gain": 40,
+                "rf_gain": 4,
+                "if_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 7070000,
                 "start_mod": "usb",
@@ -148,7 +150,8 @@ sdrs = {
             "80m": {
                 "name":"80m",
                 "center_freq": 3650000,
-                "rf_gain": 40,
+                "rf_gain": 4,
+                "if_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 3570000,
                 "start_mod": "usb",
@@ -157,7 +160,8 @@ sdrs = {
             "49m": {
                 "name": "49m Broadcast",
                 "center_freq": 6000000,
-                "rf_gain": 40,
+                "rf_gain": 4,
+                "if_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 6070000,
                 "start_mod": "am",

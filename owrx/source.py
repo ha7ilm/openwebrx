@@ -76,7 +76,7 @@ class SdrSource(object):
         self.props = props
         self.activateProfile()
         self.rtlProps = self.props.collect(
-            "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna"
+            "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"
         ).defaults(PropertyManager.getSharedInstance())
 
         def restart(name, value):
@@ -132,7 +132,7 @@ class SdrSource(object):
         props = self.rtlProps
 
         start_sdr_command = self.getCommand().format(
-            **props.collect("samp_rate", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna").__dict__()
+            **props.collect("samp_rate", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain").__dict__()
         )
 
         format_conversion = self.getFormatConversion()
@@ -244,7 +244,11 @@ class HackrfSource(SdrSource):
 
 class SdrplaySource(SdrSource):
     def getCommand(self):
-        command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain}"
+        command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm}"
+        gainMap = { "rf_gain" : "RFGR", "if_gain" : "IFGR"}
+        gains = [ "{0}={{{1}}}".format(gainMap[name], name) for name in self.rtlProps.collect("rf_gain", "if_gain").__dict__() ]
+        if gains:
+            command += " -g {gains}".format(gains = ",".join(gains))
         if self.rtlProps["antenna"] is not None:
             command += " -a \"{antenna}\""
         command += " -"
