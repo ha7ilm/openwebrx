@@ -92,9 +92,13 @@ class SdrSource(object):
         self.process = None
         self.modificationLock = threading.Lock()
 
-        # override these in subclasses as necessary
-        self.command = None
-        self.format_conversion = None
+    # override this in subclasses
+    def getCommand(self):
+        pass
+
+    # override this in subclasses, if necessary
+    def getFormatConversion(self):
+        return None
 
     def activateProfile(self, id = None):
         profiles = self.props["profiles"]
@@ -127,12 +131,13 @@ class SdrSource(object):
 
         props = self.rtlProps
 
-        start_sdr_command = self.command.format(
+        start_sdr_command = self.getCommand().format(
             **props.collect("samp_rate", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna").__dict__()
         )
 
-        if self.format_conversion is not None:
-            start_sdr_command += " | " + self.format_conversion
+        format_conversion = self.getFormatConversion()
+        if format_conversion is not None:
+            start_sdr_command += " | " + format_conversion
 
         nmux_bufcnt = nmux_bufsize = 0
         while nmux_bufsize < props["samp_rate"]/4: nmux_bufsize += 4096
@@ -224,22 +229,26 @@ class SdrSource(object):
 
 
 class RtlSdrSource(SdrSource):
-    def __init__(self, props, port):
-        super().__init__(props, port)
-        self.command = "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -"
-        self.format_conversion = "csdr convert_u8_f"
+    def getCommand(self):
+        return "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -"
+
+    def getFormatConversion(self):
+        return "csdr convert_u8_f"
 
 class HackrfSource(SdrSource):
-    def __init__(self, props, port):
-        super().__init__(props, port)
-        self.command = "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-"
-        self.format_conversion =  "csdr convert_s8_f"
+    def getCommand(self):
+        return "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-"
+
+    def getFormatConversion(self):
+        return "csdr convert_s8_f"
 
 class SdrplaySource(SdrSource):
-    def __init__(self, props, port):
-        super().__init__(props, port)
-        self.command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -a \"{antenna}\" -"
-        self.format_conversion = None
+    def getCommand(self):
+        command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain}"
+        if self.rtlProps["antenna"] is not None:
+            command += " -a \"{antenna}\""
+        command += " -"
+        return command
 
     def sleepOnRestart(self):
         time.sleep(1)
