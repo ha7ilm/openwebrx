@@ -137,7 +137,8 @@ sdrs = {
                 "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 14070000,
-                "start_mod": "usb"
+                "start_mod": "usb",
+                "antenna": "Antenna A"
             },
             "30m": {
                 "name":"30m",
@@ -153,7 +154,8 @@ sdrs = {
                 "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 7070000,
-                "start_mod": "usb"
+                "start_mod": "usb",
+                "antenna": "Antenna A"
             },
             "80m": {
                 "name":"80m",
@@ -161,7 +163,8 @@ sdrs = {
                 "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 3570000,
-                "start_mod": "usb"
+                "start_mod": "usb",
+                "antenna": "Antenna A"
             },
             "49m": {
                 "name": "49m Broadcast",
@@ -169,7 +172,8 @@ sdrs = {
                 "rf_gain": 40,
                 "samp_rate": 500000,
                 "start_freq": 6070000,
-                "start_mod": "am"
+                "start_mod": "am",
+                "antenna": "Antenna A"
             }
         }
     },
