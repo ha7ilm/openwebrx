@@ -90,7 +90,7 @@ class FeatureDetector(object):
         return reduce(and_,
                       map(
                           check_with_stdin,
-                          ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer"]
+                          ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer", "gfsk_demodulator"]
                       ),
                       True)
 
