@@ -76,7 +76,7 @@ class SdrSource(object):
         self.props = props
         self.activateProfile()
         self.rtlProps = self.props.collect(
-            "type", "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp"
+            "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna"
         ).defaults(PropertyManager.getSharedInstance())
 
         def restart(name, value):
@@ -128,12 +128,7 @@ class SdrSource(object):
         props = self.rtlProps
 
         start_sdr_command = self.command.format(
-            samp_rate = props["samp_rate"],
-            center_freq = props["center_freq"],
-            ppm = props["ppm"],
-            rf_gain = props["rf_gain"],
-            lna_gain = props["lna_gain"],
-            rf_amp = props["rf_amp"]
+            **props.collect("samp_rate", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna").__dict__()
         )
 
         if self.format_conversion is not None:
@@ -243,7 +238,7 @@ class HackrfSource(SdrSource):
 class SdrplaySource(SdrSource):
     def __init__(self, props, port):
         super().__init__(props, port)
-        self.command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -"
+        self.command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -a \"{antenna}\" -"
         self.format_conversion = None
 
     def sleepOnRestart(self):
