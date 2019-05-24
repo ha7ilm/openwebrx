@@ -92,13 +92,13 @@ class dsp(object):
             chain += "csdr tee {iqtee_pipe} | "
             chain += "csdr tee {iqtee2_pipe} | "
         # safe some cpu cycles... no need to decimate if decimation factor is 1
-        last_decimation_block = "csdr old_fractional_decimator_ff {last_decimation} | " if self.last_decimation != 1.0 else ""
+        last_decimation_block = "csdr fractional_decimator_ff {last_decimation} | " if self.last_decimation != 1.0 else ""
         if which == "nfm":
             chain += "csdr fmdemod_quadri_cf | csdr limit_ff | "
             chain += last_decimation_block
             chain += "csdr deemphasis_nfm_ff {output_rate} | csdr convert_f_s16"
         elif self.isDigitalVoice(which):
-            chain += "csdr fmdemod_quadri_cf | csdr fastdcblock_ff | "
+            chain += "csdr fmdemod_quadri_cf | dc_block | csdr limit_ff | "
             chain += last_decimation_block
             chain += "csdr convert_f_s16 | "
             if which in [ "dstar", "nxdn" ]:
