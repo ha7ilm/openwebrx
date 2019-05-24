@@ -1340,6 +1340,7 @@ function update_metadata(stringData) {
             break;
         case 'YSF':
             var strings = [];
+            if (meta.mode) strings.push("Mode: " + meta.mode);
             if (meta.source) strings.push("Source: " + meta.source);
             if (meta.target) strings.push("Destination: " + meta.target);
             if (meta.up) strings.push("Up: " + meta.up);
