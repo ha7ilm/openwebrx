@@ -98,20 +98,24 @@ class dsp(object):
             chain += last_decimation_block
             chain += "csdr deemphasis_nfm_ff {output_rate} | csdr convert_f_s16"
         elif self.isDigitalVoice(which):
-            chain += "csdr fmdemod_quadri_cf | dc_block | csdr limit_ff | "
+            chain += "csdr fmdemod_quadri_cf | dc_block | "
             chain += last_decimation_block
-            chain += "csdr convert_f_s16 | "
+            # dsd modes
             if which in [ "dstar", "nxdn" ]:
+                chain += "csdr limit_ff | csdr convert_f_s16 | "
                 if which == "dstar":
                     chain += "dsd -fd"
                 elif which == "nxdn":
                     chain += "dsd -fi"
                 chain += " -i - -o - -u {unvoiced_quality} -g 10 | "
-            elif which == "dmr":
-                chain += "rrc_filter | gfsk_demodulator | dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -u {unvoiced_quality} | "
-            elif which == "ysf":
-                chain += "rrc_filter | gfsk_demodulator | ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -u {unvoiced_quality} | "
-            chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+            # digiham modes
+            else:
+                chain += "rrc_filter | csdr limit_ff | csdr convert_f_s16 | gfsk_demodulator | "
+                if which == "dmr":
+                    chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -u {unvoiced_quality} | "
+                elif which == "ysf":
+                    chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -u {unvoiced_quality} | "
+            chain += "digitalvoice_filter | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
             chain += last_decimation_block
