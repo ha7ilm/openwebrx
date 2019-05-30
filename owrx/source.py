@@ -1,6 +1,7 @@
 import subprocess
 from owrx.config import PropertyManager
 from owrx.feature import FeatureDetector, UnknownFeatureException
+from owrx.meta import MetaParser
 import threading
 import csdr
 import time
@@ -334,6 +335,7 @@ class DspManager(csdr.output):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
+        self.metaParser = MetaParser(self.handler)
 
         self.localProps = self.sdrSource.getProps().collect(
             "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
@@ -403,7 +405,7 @@ class DspManager(csdr.output):
             "smeter": self.handler.write_s_meter_level,
             "secondary_fft": self.handler.write_secondary_fft,
             "secondary_demod": self.handler.write_secondary_demod,
-            "meta": self.handler.write_metadata
+            "meta": self.metaParser.parse
         }
         write = writers[t]
 

@@ -1309,13 +1309,7 @@ function on_ws_recv(evt)
     }
 }
 
-function update_metadata(stringData) {
-    var meta = {};
-    stringData.split(";").forEach(function(s) {
-        var item = s.split(":");
-        meta[item[0]] = item[1];
-    });
-
+function update_metadata(meta) {
     var update = function(_, el) {
         el.innerHTML = "";
     };
