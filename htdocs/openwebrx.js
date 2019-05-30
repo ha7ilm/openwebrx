@@ -1318,7 +1318,15 @@ function update_metadata(meta) {
             if (meta.slot) {
                 var html = 'Timeslot: ' + meta.slot;
                 if (meta.type) html += ' Typ: ' + meta.type;
-                if (meta.source && meta.target) html += ' Source: ' + meta.source + ' Target: ' + meta.target;
+                if (meta.additional && meta.additional.callsign) {
+                    html += ' Source: ' + meta.additional.callsign;
+                    if (meta.additional.fname) {
+                        html += ' (' + meta.additional.fname + ')';
+                    }
+                } else if (meta.source) {
+                    html += ' Source: ' + meta.source;
+                }
+                if (meta.target) html += ' Target: ' + meta.target;
                 update = function(_, el) {
                     var slotEl = el.getElementsByClassName('slot-' + meta.slot);
                     if (!slotEl.length) {
