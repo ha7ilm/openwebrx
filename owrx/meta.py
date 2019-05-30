@@ -7,40 +7,54 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-class DmrMetaEnricher(object):
+class DmrCache(object):
+    sharedInstance = None
+    @staticmethod
+    def getSharedInstance():
+        if DmrCache.sharedInstance is None:
+            DmrCache.sharedInstance = DmrCache()
+        return DmrCache.sharedInstance
     def __init__(self):
         self.cache = {}
-        self.threads = {}
         self.cacheTimeout = timedelta(seconds = 86400)
-    def cacheEntryValid(self, id):
-        if not id in self.cache: return False
-        entry = self.cache[id]
+    def isValid(self, key):
+        if not key in self.cache: return False
+        entry = self.cache[key]
         return entry["timestamp"] + self.cacheTimeout > datetime.now()
+    def put(self, key, value):
+        self.cache[key] = {
+            "timestamp": datetime.now(),
+            "data": value
+        }
+    def get(self, key):
+        if not self.isValid(key): return None
+        return self.cache[key]["data"]
+
+
+class DmrMetaEnricher(object):
+    def __init__(self):
+        self.threads = {}
     def downloadRadioIdData(self, id):
+        cache = DmrCache.getSharedInstance()
         try:
             logger.debug("requesting DMR metadata for id=%s", id)
             res = request.urlopen("https://www.radioid.net/api/dmr/user/?id={0}".format(id), timeout=5).read()
             data = json.loads(res.decode("utf-8"))
-            self.cache[id] = {
-                "timestamp": datetime.now(),
-                "data": data
-            }
+            cache.put(id, data)
         except json.JSONDecodeError:
-            self.cache[id] = {
-                "timestamp": datetime.now(),
-                "data": None
-            }
+            cache.put(id, None)
         del self.threads[id]
     def enrich(self, meta):
         if not PropertyManager.getSharedInstance()["digital_voice_dmr_id_lookup"]: return None
         if not "source" in meta: return None
         id = meta["source"]
-        if not self.cacheEntryValid(id):
+        cache = DmrCache.getSharedInstance()
+        if not cache.isValid(id):
             if not id in self.threads:
                 self.threads[id] = threading.Thread(target=self.downloadRadioIdData, args=[id])
                 self.threads[id].start()
             return None
-        data = self.cache[id]["data"]
+        data = cache.get(id)
         if "count" in data and data["count"] > 0 and "results" in data:
             return data["results"][0]
         return None
