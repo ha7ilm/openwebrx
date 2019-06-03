@@ -15,11 +15,11 @@ class OpenWebRxClient(object):
     def __init__(self, conn):
         self.conn = conn
 
-        ClientRegistry.getSharedInstance().addClient(self)
-
         self.dsp = None
         self.sdr = None
         self.configSub = None
+
+        ClientRegistry.getSharedInstance().addClient(self)
 
         pm = PropertyManager.getSharedInstance()
 
