@@ -108,14 +108,15 @@ class dsp(object):
                 elif which == "nxdn":
                     chain += "dsd -fi"
                 chain += " -i - -o - -u {unvoiced_quality} -g 10 | "
+                chain += "digitalvoice_filter | sox -V -v 0.95 -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
             # digiham modes
             else:
                 chain += "rrc_filter | csdr convert_f_s16 | gfsk_demodulator | "
                 if which == "dmr":
-                    chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -u {unvoiced_quality} | "
+                    chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
                 elif which == "ysf":
-                    chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -u {unvoiced_quality} | "
-            chain += "digitalvoice_filter | sox -V -v 0.95 -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+                    chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -f -u {unvoiced_quality} | "
+                chain += "digitalvoice_filter -f | csdr agc_ff 160000 0.8 1 0.0000001 0.0005 | csdr convert_f_s16 | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
             chain += last_decimation_block
