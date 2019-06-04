@@ -12,7 +12,7 @@ class UnknownFeatureException(Exception):
 
 class FeatureDetector(object):
     features = {
-        "core": [ "csdr", "nmux" ],
+        "core": [ "csdr", "nmux", "nc" ],
         "rtl_sdr": [ "rtl_sdr" ],
         "sdrplay": [ "rx_tools" ],
         "hackrf": [ "hackrf_transfer" ],
@@ -50,6 +50,9 @@ class FeatureDetector(object):
 
     def has_nmux(self):
         return self.command_is_runnable("nmux --help")
+
+    def has_nc(self):
+        return self.command_is_runnable('nc --help')
 
     def has_rtl_sdr(self):
         return self.command_is_runnable("rtl_sdr --help")
