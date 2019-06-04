@@ -38,7 +38,7 @@ class DmrMetaEnricher(object):
         cache = DmrCache.getSharedInstance()
         try:
             logger.debug("requesting DMR metadata for id=%s", id)
-            res = request.urlopen("https://www.radioid.net/api/dmr/user/?id={0}".format(id), timeout=5).read()
+            res = request.urlopen("https://www.radioid.net/api/dmr/user/?id={0}".format(id), timeout=30).read()
             data = json.loads(res.decode("utf-8"))
             cache.put(id, data)
         except json.JSONDecodeError:
