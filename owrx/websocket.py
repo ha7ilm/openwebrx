@@ -78,7 +78,9 @@ class WebSocketConnection(object):
             self.handler.wfile.write(header)
             self.handler.wfile.flush()
         except ValueError:
-            logger.exception("while writing close frame:")
+            logger.exception("ValueError while writing close frame:")
+        except OSError:
+            logger.exception("OSError while writing close frame:")
 
         try:
             self.handler.finish()
