@@ -444,6 +444,11 @@ function demodulator_default_analog(offset_frequency,subtype)
    		this.low_cut=-3250;
 		this.high_cut=3250;
     }
+    else if(subtype=="packet")
+    {
+        this.low_cut=-4000;
+        this.high_cut=4000;
+    }
 	else if(subtype=="am")
 	{
 		this.low_cut=-4000;

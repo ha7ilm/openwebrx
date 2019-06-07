@@ -17,7 +17,8 @@ class FeatureDetector(object):
         "sdrplay": [ "rx_tools" ],
         "hackrf": [ "hackrf_transfer" ],
         "digital_voice_digiham": [ "digiham", "sox" ],
-        "digital_voice_dsd": [ "dsd", "sox" ]
+        "digital_voice_dsd": [ "dsd", "sox" ],
+        "packet": [ "direwolf" ]
     }
 
     def feature_availability(self):
@@ -102,3 +103,6 @@ class FeatureDetector(object):
 
     def has_sox(self):
         return self.command_is_runnable("sox")
+
+    def has_direwolf(self):
+        return self.command_is_runnable("direwolf --help")

@@ -117,6 +117,11 @@ class dsp(object):
                 elif which == "ysf":
                     chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -f -u {unvoiced_quality} | "
                 chain += "digitalvoice_filter -f | csdr agc_ff 160000 0.8 1 0.0000001 0.0005 | csdr convert_f_s16 | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+        elif which == "packet":
+            chain += "csdr fmdemod_quadri_cf | "
+            chain += last_decimation_block
+            chain += "csdr convert_f_s16 | "
+            chain += "direwolf -r {audio_rate} - 1>&2"
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
             chain += last_decimation_block
@@ -285,7 +290,7 @@ class dsp(object):
         return self.output_rate
 
     def get_audio_rate(self):
-        if self.isDigitalVoice():
+        if self.isDigitalVoice() or self.isPacket():
             return 48000
         return self.get_output_rate()
 
@@ -293,6 +298,11 @@ class dsp(object):
         if demodulator is None:
             demodulator = self.get_demodulator()
         return demodulator in ["dmr", "dstar", "nxdn", "ysf"]
+
+    def isPacket(self, demodulator = None):
+        if demodulator is None:
+            demodulator = self.get_demodulator()
+        return demodulator == "packet"
 
     def set_output_rate(self,output_rate):
         self.output_rate=output_rate
@@ -407,7 +417,7 @@ class dsp(object):
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe,
             output_rate = self.get_output_rate(), smeter_report_every = int(self.if_samp_rate()/6000),
-            unvoiced_quality = self.get_unvoiced_quality())
+            unvoiced_quality = self.get_unvoiced_quality(), audio_rate = self.get_audio_rate())
 
         logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()
