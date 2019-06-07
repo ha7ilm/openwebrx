@@ -32,7 +32,7 @@ class PropertyManager(object):
         return PropertyManager.sharedInstance
 
     def collect(self, *props):
-        return PropertyManager(dict((name, self.getProperty(name) if self.hasProperty(name) else Property()) for name in props))
+        return PropertyManager({name: self.getProperty(name) if self.hasProperty(name) else Property() for name in props})
 
     def __init__(self, properties = None):
         self.properties = {}
