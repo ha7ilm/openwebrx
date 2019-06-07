@@ -116,7 +116,7 @@ class dsp(object):
                     chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
                 elif which == "ysf":
                     chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -f -u {unvoiced_quality} | "
-                chain += "digitalvoice_filter -f | csdr agc_ff 160000 0.8 1 0.0000001 0.0005 | csdr convert_f_s16 | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+                chain += "digitalvoice_filter -f | CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 0.0005 | CSDR_FIXED_BUFSIZE=32 csdr convert_f_s16 | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
             chain += last_decimation_block
