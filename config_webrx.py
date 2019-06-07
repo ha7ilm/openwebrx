@@ -93,7 +93,7 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # Check here: https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support #
 #################################################################################################
 
-# Currently supported types of sdr receivers: "rtl_sdr", "sdrplay", "hackrf"
+# Currently supported types of sdr receivers: "rtl_sdr", "sdrplay", "hackrf", "airspy"
 
 sdrs = {
     "rtlsdr": {

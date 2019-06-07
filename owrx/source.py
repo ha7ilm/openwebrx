@@ -130,6 +130,7 @@ class SdrSource(object):
         start_sdr_command = self.command.format(
             samp_rate = props["samp_rate"],
             center_freq = props["center_freq"],
+            center_freq_mhz = props["center_freq"]/1e6,
             ppm = props["ppm"],
             rf_gain = props["rf_gain"],
             lna_gain = props["lna_gain"],
@@ -248,6 +249,12 @@ class SdrplaySource(SdrSource):
 
     def sleepOnRestart(self):
         time.sleep(1)
+
+class AirspySource(SdrSource):
+    def __init__(self, props, port):
+        super().__init__(props, port)
+        self.command = "airspy_rx -f{center_freq_mhz} -r /dev/stdout -a{samp_rate} -g {rf_gain}"
+        self.format_conversion = "csdr convert_s16_f"
 
 class SpectrumThread(threading.Thread):
     def __init__(self, sdrSource):

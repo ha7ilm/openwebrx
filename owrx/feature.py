@@ -12,7 +12,8 @@ class FeatureDetector(object):
         "core": [ "csdr", "nmux" ],
         "rtl_sdr": [ "rtl_sdr" ],
         "sdrplay": [ "rx_tools" ],
-        "hackrf": [ "hackrf_transfer" ]
+        "hackrf": [ "hackrf_transfer" ],
+        "airspy": [ "airspy_rx" ]
     }
 
     def is_available(self, feature):
@@ -63,3 +64,6 @@ class FeatureDetector(object):
         # TODO i don't have a hackrf, so somebody doublecheck this.
         # TODO also check if it has the stdout feature
         return os.system("hackrf_transfer --help 2> /dev/null") != 32512
+
+    def has_airspy_rx(self):
+        return os.system("airspy_rx --help 2> /dev/null") != 32512
