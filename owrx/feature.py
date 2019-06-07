@@ -16,6 +16,7 @@ class FeatureDetector(object):
         "rtl_sdr": [ "rtl_sdr" ],
         "sdrplay": [ "rx_tools" ],
         "hackrf": [ "hackrf_transfer" ],
+        "airspy": [ "airspy_rx" ],
         "digital_voice_digiham": [ "digiham", "sox" ],
         "digital_voice_dsd": [ "dsd", "sox" ]
     }
@@ -102,3 +103,6 @@ class FeatureDetector(object):
 
     def has_sox(self):
         return self.command_is_runnable("sox")
+
+    def has_airspy_rx(self):
+        return self.command_is_runnable("airspy_rx --help 2> /dev/null")
