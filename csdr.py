@@ -111,7 +111,7 @@ class dsp(object):
                 max_gain = 5
             # digiham modes
             else:
-                chain += "rrc_filter | csdr convert_f_s16 | gfsk_demodulator | "
+                chain += "rrc_filter | gfsk_demodulator | "
                 if which == "dmr":
                     chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
                 elif which == "ysf":
