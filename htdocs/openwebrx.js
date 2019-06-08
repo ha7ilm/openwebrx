@@ -1812,7 +1812,12 @@ String.prototype.startswith=function(str){ return this.indexOf(str) == 0; }; //h
 
 function open_websocket()
 {
-    ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/"; //guess automatically -> now default behaviour
+	var protocol = 'ws';
+	if (window.location.toString().startsWith('https://')) {
+		protocol = 'wss';
+	}
+
+	ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/"; //guess automatically -> now default behaviour
 	if (!("WebSocket" in window))
 		divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
 	ws = new WebSocket(ws_url);
