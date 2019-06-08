@@ -107,8 +107,8 @@ class dsp(object):
                     chain += "dsd -fd"
                 elif which == "nxdn":
                     chain += "dsd -fi"
-                chain += " -i - -o - -u {unvoiced_quality} -g 10 | "
-                chain += "digitalvoice_filter | sox -V -v 0.95 -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+                chain += " -i - -o - -u {unvoiced_quality} -g -1 | CSDR_FIXED_BUFSIZE=32 csdr convert_s16_f | "
+                max_gain = 5
             # digiham modes
             else:
                 chain += "rrc_filter | csdr convert_f_s16 | gfsk_demodulator | "
@@ -116,7 +116,11 @@ class dsp(object):
                     chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
                 elif which == "ysf":
                     chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -f -u {unvoiced_quality} | "
-                chain += "digitalvoice_filter -f | CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 0.0005 | CSDR_FIXED_BUFSIZE=32 csdr convert_f_s16 | sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+                max_gain = 0.0005
+            chain += "digitalvoice_filter -f | "
+            chain += "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 {max_gain} | ".format(max_gain=max_gain)
+            chain += "CSDR_FIXED_BUFSIZE=32 csdr convert_f_s16 | "
+            chain += "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
         elif which == "am":
             chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
             chain += last_decimation_block
