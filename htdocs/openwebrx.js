@@ -620,9 +620,7 @@ function demodulator_analog_replace(subtype, for_digital)
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
 	clear_metadata();
-	if (subtype == "dmr") {
-	    toggle_panel("openwebrx-panel-metadata-dmr", true);
-	}
+    toggle_panel("openwebrx-panel-metadata-" + subtype, true);
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1313,51 +1311,62 @@ function on_ws_recv(evt)
 }
 
 function update_metadata(meta) {
-    var update = function(_, el) {
-        el.innerHTML = "";
-    };
     if (meta.protocol) switch (meta.protocol) {
         case 'DMR':
             if (meta.slot) {
-                el = $(".openwebrx-dmr-panel .openwebrx-dmr-timeslot-panel").get(meta.slot);
+                var el = $("#openwebrx-panel-metadata-dmr .openwebrx-dmr-timeslot-panel").get(meta.slot);
                 var id = "";
                 var name = "";
-                var talkgroup = "";
+                var target = "";
                 if (meta.type && meta.type != "data") {
                     id = (meta.additional && meta.additional.callsign) || meta.source || "";
                     name = (meta.additional && meta.additional.fname) || "";
-                    talkgroup = meta.target || "";
+                    if (meta.type == "group") target = "Talkgroup: ";
+                    if (meta.type == "direct") tareget = "Direct: ";
+                    target += meta.target || "";
                     $(el).addClass("active");
                 } else {
                     $(el).removeClass("active");
                 }
                 $(el).find(".openwebrx-dmr-id").text(id);
                 $(el).find(".openwebrx-dmr-name").text(name);
-                $(el).find(".openwebrx-dmr-talkgroup").text(talkgroup);
+                $(el).find(".openwebrx-dmr-target").text(target);
 
             }
             break;
         case 'YSF':
-            var strings = [];
-            if (meta.mode) strings.push("Mode: " + meta.mode);
-            if (meta.source) strings.push("Source: " + meta.source);
-            if (meta.target) strings.push("Destination: " + meta.target);
-            if (meta.up) strings.push("Up: " + meta.up);
-            if (meta.down) strings.push("Down: " + meta.down);
-            var html = strings.join(' ');
-            update = function(_, el) {
-                el.innerHTML = html;
+            var el = $("#openwebrx-panel-metadata-ysf");
+
+            var mode = " "
+            var source = "";
+            var up = "";
+            var down = "";
+            if (meta.mode && meta.mode != "") {
+                mode = "Mode: " + meta.mode;
+                source = meta.source || "";
+                up = meta.up ? "Up: " + meta.up : "";
+                down = meta.down ? "Down: " + meta.down : "";
+                $(el).find(".openwebrx-meta-slot").addClass("active");
+            } else {
+                $(el).find(".openwebrx-meta-slot").removeClass("active");
             }
-            $('.openwebrx-panel[data-panel-name="metadata"]').each(update);
-            toggle_panel("openwebrx-panel-metadata", true);
+            $(el).find(".openwebrx-ysf-mode").text(mode);
+            $(el).find(".openwebrx-ysf-source").text(source);
+            $(el).find(".openwebrx-ysf-up").text(up);
+            $(el).find(".openwebrx-ysf-down").text(down);
+
             break;
+
     }
 
 }
 
 function clear_metadata() {
-    toggle_panel("openwebrx-panel-metadata", false);
-    toggle_panel("openwebrx-panel-metadata-dmr", false);
+    $(".openwebrx-meta-panel").each(function(_, p){
+        toggle_panel(p.id, false);
+    });
+    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
+    $(".openwebrx-meta-panel .active").removeClass("active");
 }
 
 function add_problem(what)
@@ -2407,6 +2416,7 @@ function pop_bottommost_panel(from)
 function toggle_panel(what, on)
 {
     var item=e(what);
+    if (!item) return;
     if(typeof on !== "undefined") 
     {
         if(item.openwebrxHidden && !on) return;
@@ -2470,7 +2480,7 @@ function place_panels(function_apply)
 	for(i=0;i<plist.length;i++)
 	{
 		c=plist[i];
-		if(c.className=="openwebrx-panel")
+		if(c.className.indexOf("openwebrx-panel") >= 0)
 		{
 			if(c.openwebrxHidden)
 			{

@@ -928,12 +928,12 @@ img.openwebrx-mirror-img
     border-color: Red;
 }
 
-#openwebrx-panel-metadata-dmr {
+.openwebrx-meta-panel {
     background: none;
     padding: 0;
 }
 
-.openwebrx-dmr-panel {
+.openwebrx-meta-frame {
     height: 200px;
 
     outline: 1px solid #111;
@@ -942,7 +942,7 @@ img.openwebrx-mirror-img
     background: #333;
 }
 
-.openwebrx-dmr-timeslot-panel {
+.openwebrx-meta-slot {
     width: 133px;
     height: 194px;
     float: left;
@@ -959,20 +959,20 @@ img.openwebrx-mirror-img
     border-radius: 2px;
 }
 
-.openwebrx-dmr-timeslot-panel.active {
+.openwebrx-meta-slot.active {
     background-color: #95bbdf;
 }
 
-.openwebrx-dmr-timeslot-panel:last-child {
+.openwebrx-meta-slot:last-child {
     margin-right: 0;
 }
 
-.openwebrx-dmr-timeslot-panel.active .openwebrx-dmr-user-image {
+.openwebrx-meta-slot.active .openwebrx-meta-user-image {
     background-image: url("gfx/openwebrx-user.png");
     width:133px;
     height:133px;
 }
 
-.openwebrx-dmr-timeslot-panel {
+.openwebrx-meta-slot {
     text-align: center;
 }
