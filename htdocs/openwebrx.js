@@ -1356,7 +1356,8 @@ function update_metadata(meta) {
             $(el).find(".openwebrx-ysf-down").text(down);
 
             break;
-
+    } else {
+        $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
     }
 
 }

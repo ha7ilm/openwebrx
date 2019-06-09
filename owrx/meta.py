@@ -64,11 +64,13 @@ class MetaParser(object):
     enrichers = {
         "DMR": DmrMetaEnricher()
     }
+
     def __init__(self, handler):
         self.handler = handler
+
     def parse(self, meta):
         fields = meta.split(";")
-        meta = {v[0] : "".join(v[1:]) for v in map(lambda x: x.split(":"), fields)}
+        meta = {v[0]: "".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
 
         if "protocol" in meta:
             protocol = meta["protocol"]
