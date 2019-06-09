@@ -620,6 +620,9 @@ function demodulator_analog_replace(subtype, for_digital)
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
 	clear_metadata();
+	if (subtype == "dmr") {
+	    toggle_panel("openwebrx-panel-metadata-dmr", true);
+	}
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1316,28 +1319,22 @@ function update_metadata(meta) {
     if (meta.protocol) switch (meta.protocol) {
         case 'DMR':
             if (meta.slot) {
-                var html = 'Timeslot: ' + meta.slot;
-                if (meta.type) html += ' Typ: ' + meta.type;
-                if (meta.additional && meta.additional.callsign) {
-                    html += ' Source: ' + meta.additional.callsign;
-                    if (meta.additional.fname) {
-                        html += ' (' + meta.additional.fname + ')';
-                    }
-                } else if (meta.source) {
-                    html += ' Source: ' + meta.source;
+                el = $(".openwebrx-dmr-panel .openwebrx-dmr-timeslot-panel").get(meta.slot);
+                var id = "";
+                var name = "";
+                var talkgroup = "";
+                if (meta.type && meta.type != "data") {
+                    id = (meta.additional && meta.additional.callsign) || meta.source || "";
+                    name = (meta.additional && meta.additional.fname) || "";
+                    talkgroup = meta.target || "";
+                    $(el).addClass("active");
+                } else {
+                    $(el).removeClass("active");
                 }
-                if (meta.target) html += ' Target: ' + meta.target;
-                update = function(_, el) {
-                    var slotEl = el.getElementsByClassName('slot-' + meta.slot);
-                    if (!slotEl.length) {
-                        slotEl = document.createElement('div');
-                        slotEl.className = 'slot-' + meta.slot;
-                        el.appendChild(slotEl);
-                    } else {
-                        slotEl = slotEl[0];
-                    }
-                    slotEl.innerHTML = html;
-                };
+                $(el).find(".openwebrx-dmr-id").text(id);
+                $(el).find(".openwebrx-dmr-name").text(name);
+                $(el).find(".openwebrx-dmr-talkgroup").text(talkgroup);
+
             }
             break;
         case 'YSF':
@@ -1351,15 +1348,16 @@ function update_metadata(meta) {
             update = function(_, el) {
                 el.innerHTML = html;
             }
+            $('.openwebrx-panel[data-panel-name="metadata"]').each(update);
+            toggle_panel("openwebrx-panel-metadata", true);
             break;
     }
 
-    $('.openwebrx-panel[data-panel-name="metadata"]').each(update);
-    toggle_panel("openwebrx-panel-metadata", true);
 }
 
 function clear_metadata() {
     toggle_panel("openwebrx-panel-metadata", false);
+    toggle_panel("openwebrx-panel-metadata-dmr", false);
 }
 
 function add_problem(what)

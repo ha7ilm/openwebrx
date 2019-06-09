@@ -928,3 +928,51 @@ img.openwebrx-mirror-img
     border-color: Red;
 }
 
+#openwebrx-panel-metadata-dmr {
+    background: none;
+    padding: 0;
+}
+
+.openwebrx-dmr-panel {
+    height: 200px;
+
+    outline: 1px solid #111;
+    border-top: 1px solid #555;
+    padding: 10px;
+    background: #333;
+}
+
+.openwebrx-dmr-timeslot-panel {
+    width: 133px;
+    height: 194px;
+    float: left;
+    margin-right: 10px;
+
+    padding:2px 0;
+    color: #333;
+    background: #575757;
+    border: 1px solid #000;
+    border-right: 1px solid #353535;
+    border-bottom: 1px solid #353535;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 2px;
+}
+
+.openwebrx-dmr-timeslot-panel.active {
+    background-color: #95bbdf;
+}
+
+.openwebrx-dmr-timeslot-panel:last-child {
+    margin-right: 0;
+}
+
+.openwebrx-dmr-timeslot-panel.active .openwebrx-dmr-user-image {
+    background-image: url("gfx/openwebrx-user.png");
+    width:133px;
+    height:133px;
+}
+
+.openwebrx-dmr-timeslot-panel {
+    text-align: center;
+}
