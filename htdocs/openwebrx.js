@@ -1322,7 +1322,7 @@ function update_metadata(meta) {
                     id = (meta.additional && meta.additional.callsign) || meta.source || "";
                     name = (meta.additional && meta.additional.fname) || "";
                     if (meta.type == "group") target = "Talkgroup: ";
-                    if (meta.type == "direct") tareget = "Direct: ";
+                    if (meta.type == "direct") target = "Direct: ";
                     target += meta.target || "";
                     $(el).addClass("active");
                 } else {
