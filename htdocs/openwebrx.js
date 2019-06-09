@@ -1318,10 +1318,14 @@ function update_metadata(meta) {
                 var id = "";
                 var name = "";
                 var target = "";
+                var group = false;
                 if (meta.type && meta.type != "data") {
                     id = (meta.additional && meta.additional.callsign) || meta.source || "";
                     name = (meta.additional && meta.additional.fname) || "";
-                    if (meta.type == "group") target = "Talkgroup: ";
+                    if (meta.type == "group") {
+                        target = "Talkgroup: ";
+                        group = true;
+                    }
                     if (meta.type == "direct") target = "Direct: ";
                     target += meta.target || "";
                     $(el).addClass("active");
@@ -1331,7 +1335,7 @@ function update_metadata(meta) {
                 $(el).find(".openwebrx-dmr-id").text(id);
                 $(el).find(".openwebrx-dmr-name").text(name);
                 $(el).find(".openwebrx-dmr-target").text(target);
-
+                $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
             }
             break;
         case 'YSF':

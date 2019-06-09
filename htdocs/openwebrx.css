@@ -968,9 +968,13 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image {
-    background-image: url("gfx/openwebrx-user.png");
+    background-image: url("gfx/openwebrx-directcall.png");
     width:133px;
     height:133px;
+}
+
+.openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
+    background-image: url("gfx/openwebrx-groupcall.png");
 }
 
 .openwebrx-meta-slot {
