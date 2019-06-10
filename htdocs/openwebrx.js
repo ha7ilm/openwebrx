@@ -1336,6 +1336,9 @@ function update_metadata(meta) {
                 $(el).find(".openwebrx-dmr-name").text(name);
                 $(el).find(".openwebrx-dmr-target").text(target);
                 $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
+            } else {
+                $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
+                $(".openwebrx-meta-panel").removeClass("active");
             }
             break;
         case 'YSF':
@@ -1362,6 +1365,7 @@ function update_metadata(meta) {
             break;
     } else {
         $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
+        $(".openwebrx-meta-panel").removeClass("active");
     }
 
 }
@@ -1371,7 +1375,7 @@ function clear_metadata() {
         toggle_panel(p.id, false);
     });
     $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-    $(".openwebrx-meta-panel .active").removeClass("active");
+    $(".openwebrx-meta-panel").removeClass("active");
 }
 
 function add_problem(what)
