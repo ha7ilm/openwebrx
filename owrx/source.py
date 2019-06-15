@@ -349,7 +349,8 @@ class DspManager(csdr.output):
 
         self.localProps = self.sdrSource.getProps().collect(
             "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
-            "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate", "digital_voice_unvoiced_quality"
+            "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate", "digital_voice_unvoiced_quality",
+            "dmr_filter"
         ).defaults(PropertyManager.getSharedInstance())
 
         self.dsp = csdr.dsp(self)
@@ -376,7 +377,8 @@ class DspManager(csdr.output):
             self.localProps.getProperty("low_cut").wire(set_low_cut),
             self.localProps.getProperty("high_cut").wire(set_high_cut),
             self.localProps.getProperty("mod").wire(self.dsp.set_demodulator),
-            self.localProps.getProperty("digital_voice_unvoiced_quality").wire(self.dsp.set_unvoiced_quality)
+            self.localProps.getProperty("digital_voice_unvoiced_quality").wire(self.dsp.set_unvoiced_quality),
+            self.localProps.getProperty("dmr_filter").wire(self.dsp.set_dmr_filter)
         ]
 
         self.dsp.set_offset_freq(0)
