@@ -99,7 +99,7 @@ class FeatureDetector(object):
         def check_digiham_version(command):
             try:
                 process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
-                version = LooseVersion(digiham_version_regex.match(process.stdout.readline().decode())[1])
+                version = LooseVersion(digiham_version_regex.match(process.stdout.readline().decode()).group(1))
                 process.wait(1)
                 return version >= required_version
             except FileNotFoundError:
