@@ -937,11 +937,32 @@ img.openwebrx-mirror-img
     background-color: #676767;
     padding: 2px 0;
     color: #333;
+
+    text-align: center;
+    position: relative;
+}
+
+.openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
+}
 
-    text-align: center;
+.openwebrx-meta-slot.muted:before {
+    display: block;
+    content: "";
+    background-image: url("gfx/openwebrx-mute.png");
+    width:100%;
+    height:133px;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,.3);
 }
 
 .openwebrx-meta-slot.active {
@@ -976,4 +997,8 @@ img.openwebrx-mirror-img
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
     background-image: url("gfx/openwebrx-groupcall.png");
+}
+
+.openwebrx-dmr-timeslot-panel * {
+    cursor: pointer;
 }

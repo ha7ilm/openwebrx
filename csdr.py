@@ -67,7 +67,8 @@ class dsp(object):
         self.secondary_fft_size = 1024
         self.secondary_process_fft = None
         self.secondary_process_demod = None
-        self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "meta_pipe", "iqtee_pipe", "iqtee2_pipe"]
+        self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "meta_pipe", "iqtee_pipe",
+                         "iqtee2_pipe", "dmr_control_pipe"]
         self.secondary_pipe_names=["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
         self.unvoiced_quality = 1
@@ -113,7 +114,7 @@ class dsp(object):
             else:
                 chain += "rrc_filter | gfsk_demodulator | "
                 if which == "dmr":
-                    chain += "dmr_decoder --fifo {meta_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
+                    chain += "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
                 elif which == "ysf":
                     chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -f -u {unvoiced_quality} | "
                 max_gain = 0.0005
@@ -352,7 +353,7 @@ class dsp(object):
         actual_squelch = 0 if self.isDigitalVoice() else self.squelch_level
         if self.running:
             self.modification_lock.acquire()
-            self.squelch_pipe_file.write( "%g\n"%(float(actual_squelch)) )
+            self.squelch_pipe_file.write("%g\n"%(float(actual_squelch)))
             self.squelch_pipe_file.flush()
             self.modification_lock.release()
 
@@ -362,6 +363,11 @@ class dsp(object):
 
     def get_unvoiced_quality(self):
         return self.unvoiced_quality
+
+    def set_dmr_filter(self, filter):
+        if self.dmr_control_pipe_file:
+            self.dmr_control_pipe_file.write("{0}\n".format(filter))
+            self.dmr_control_pipe_file.flush()
 
     def mkfifo(self,path):
         try:
@@ -410,7 +416,7 @@ class dsp(object):
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe,
             output_rate = self.get_output_rate(), smeter_report_every = int(self.if_samp_rate()/6000),
-            unvoiced_quality = self.get_unvoiced_quality())
+            unvoiced_quality = self.get_unvoiced_quality(), dmr_control_pipe = self.dmr_control_pipe)
 
         logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()
@@ -430,13 +436,12 @@ class dsp(object):
         self.output.add_output("audio", partial(self.process.stdout.read, int(self.get_fft_bytes_to_read()) if self.demodulator == "fft" else 256))
 
         # open control pipes for csdr
-        if self.bpf_pipe != None:
-            self.bpf_pipe_file=open(self.bpf_pipe,"w")
+        if self.bpf_pipe:
+            self.bpf_pipe_file = open(self.bpf_pipe, "w")
         if self.shift_pipe:
-            self.shift_pipe_file=open(self.shift_pipe,"w")
+            self.shift_pipe_file = open(self.shift_pipe, "w")
         if self.squelch_pipe:
-            self.squelch_pipe_file=open(self.squelch_pipe,"w")
-
+            self.squelch_pipe_file = open(self.squelch_pipe, "w")
         self.start_secondary_demodulator()
 
         self.modification_lock.release()
@@ -467,6 +472,9 @@ class dsp(object):
                 else:
                     return raw.rstrip("\n")
             self.output.add_output("meta", read_meta)
+
+        if self.dmr_control_pipe:
+            self.dmr_control_pipe_file = open(self.dmr_control_pipe, "w")
 
     def stop(self):
         self.modification_lock.acquire()

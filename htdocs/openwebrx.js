@@ -619,7 +619,7 @@ function demodulator_analog_replace(subtype, for_digital)
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
-	clear_metadata();
+	hide_digitalvoice_panels();
     toggle_panel("openwebrx-panel-metadata-" + subtype, true);
 }
 
@@ -1338,8 +1338,7 @@ function update_metadata(meta) {
                 $(el).find(".openwebrx-dmr-target").text(target);
                 $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
             } else {
-                $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-                $(".openwebrx-meta-panel").removeClass("active").removeClass("sync");
+                clear_metadata();
             }
             break;
         case 'YSF':
@@ -1365,17 +1364,22 @@ function update_metadata(meta) {
 
             break;
     } else {
-        $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-        $(".openwebrx-meta-panel").removeClass("active").removeClass("sync");
+        clear_metadata();
     }
 
 }
 
-function clear_metadata() {
+function hide_digitalvoice_panels() {
     $(".openwebrx-meta-panel").each(function(_, p){
         toggle_panel(p.id, false);
     });
-    update_metadata({});
+    clear_metadata();
+}
+
+function clear_metadata() {
+    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
+    $(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
+    $(".openwebrx-dmr-timeslot-panel").removeClass("muted");
 }
 
 function add_problem(what)
@@ -2327,7 +2331,7 @@ function openwebrx_init()
 	init_rx_photo();
 	open_websocket();
     secondary_demod_init();
-    clear_metadata();
+    digimodes_init();
 	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
@@ -2336,6 +2340,25 @@ function openwebrx_init()
 	//Synchronise volume with slider
 	updateVolume();
 
+}
+
+function digimodes_init() {
+    hide_digitalvoice_panels();
+
+    // initialze DMR timeslot muting
+    $('.openwebrx-dmr-timeslot-panel').click(function(e) {
+        $(e.currentTarget).toggleClass("muted");
+        update_dmr_timeslot_filtering();
+    });
+}
+
+function update_dmr_timeslot_filtering() {
+    var filter = $('.openwebrx-dmr-timeslot-panel').map(function(index, el){
+        return (!$(el).hasClass("muted")) << index;
+    }).toArray().reduce(function(acc, v){
+        return acc | v;
+    }, 0);
+    webrx_set_param("dmr_filter", filter);
 }
 
 function iosPlayButtonClick()
