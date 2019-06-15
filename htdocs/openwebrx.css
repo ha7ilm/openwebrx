@@ -928,35 +928,20 @@ img.openwebrx-mirror-img
     border-color: Red;
 }
 
-.openwebrx-meta-panel {
-    background: none;
-    padding: 0;
-}
-
-.openwebrx-meta-frame {
-    height: 200px;
-
-    outline: 1px solid #111;
-    border-top: 1px solid #555;
-    padding: 10px;
-    background: #333;
-}
-
 .openwebrx-meta-slot {
-    width: 133px;
-    height: 194px;
+    width: 145px;
+    height: 196px;
     float: left;
     margin-right: 10px;
 
-    padding:2px 0;
+    background-color: #676767;
+    padding: 2px 0;
     color: #333;
-    background: #575757;
-    border: 1px solid #000;
-    border-right: 1px solid #353535;
-    border-bottom: 1px solid #353535;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
-    border-radius: 2px;
+    border-radius: 5px;
+
+    text-align: center;
 }
 
 .openwebrx-meta-slot.active {
@@ -978,16 +963,17 @@ img.openwebrx-mirror-img
     margin-right: 0;
 }
 
+.openwebrx-meta-slot .openwebrx-meta-user-image {
+    width:100%;
+    height:133px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
 .openwebrx-meta-slot.active .openwebrx-meta-user-image {
     background-image: url("gfx/openwebrx-directcall.png");
-    width:133px;
-    height:133px;
 }
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
     background-image: url("gfx/openwebrx-groupcall.png");
-}
-
-.openwebrx-meta-slot {
-    text-align: center;
 }
