@@ -1319,7 +1319,8 @@ function update_metadata(meta) {
                 var name = "";
                 var target = "";
                 var group = false;
-                if (meta.type && meta.type != "data") {
+                $(el)[meta.sync ? "addClass" : "removeClass"]("sync");
+                if (meta.sync && meta.sync == "voice") {
                     id = (meta.additional && meta.additional.callsign) || meta.source || "";
                     name = (meta.additional && meta.additional.fname) || "";
                     if (meta.type == "group") {
@@ -1338,7 +1339,7 @@ function update_metadata(meta) {
                 $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
             } else {
                 $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-                $(".openwebrx-meta-panel").removeClass("active");
+                $(".openwebrx-meta-panel").removeClass("active").removeClass("sync");
             }
             break;
         case 'YSF':
@@ -1365,7 +1366,7 @@ function update_metadata(meta) {
             break;
     } else {
         $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-        $(".openwebrx-meta-panel").removeClass("active");
+        $(".openwebrx-meta-panel").removeClass("active").removeClass("sync");
     }
 
 }
@@ -1374,8 +1375,7 @@ function clear_metadata() {
     $(".openwebrx-meta-panel").each(function(_, p){
         toggle_panel(p.id, false);
     });
-    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-    $(".openwebrx-meta-panel").removeClass("active");
+    update_metadata({});
 }
 
 function add_problem(what)

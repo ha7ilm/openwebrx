@@ -963,6 +963,17 @@ img.openwebrx-mirror-img
     background-color: #95bbdf;
 }
 
+.openwebrx-meta-slot.sync .openwebrx-dmr-slot:before {
+    content:"";
+    display: inline-block;
+    margin: 0 5px;
+    width: 12px;
+    height: 12px;
+    background-color: #ABFF00;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+}
+
 .openwebrx-meta-slot:last-child {
     margin-right: 0;
 }
