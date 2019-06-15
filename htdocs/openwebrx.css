@@ -956,6 +956,7 @@ img.openwebrx-mirror-img
     height:133px;
     background-position: center;
     background-repeat: no-repeat;
+    cursor: pointer;
 
     position: absolute;
     width: 100%;
