@@ -1351,6 +1351,9 @@ function update_metadata(meta) {
             if (meta.mode && meta.mode != "") {
                 mode = "Mode: " + meta.mode;
                 source = meta.source || "";
+                if (meta.lat && meta.lon) {
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"https://www.google.com/maps/search/?api=1&query=" + meta.lat + "," + meta.lon + "\" target=\"_blank\"></a>" + source;
+                }
                 up = meta.up ? "Up: " + meta.up : "";
                 down = meta.down ? "Down: " + meta.down : "";
                 $(el).find(".openwebrx-meta-slot").addClass("active");
@@ -1358,7 +1361,7 @@ function update_metadata(meta) {
                 $(el).find(".openwebrx-meta-slot").removeClass("active");
             }
             $(el).find(".openwebrx-ysf-mode").text(mode);
-            $(el).find(".openwebrx-ysf-source").text(source);
+            $(el).find(".openwebrx-ysf-source").html(source);
             $(el).find(".openwebrx-ysf-up").text(up);
             $(el).find(".openwebrx-ysf-down").text(down);
 

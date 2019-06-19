@@ -1003,3 +1003,13 @@ img.openwebrx-mirror-img
 .openwebrx-dmr-timeslot-panel * {
     cursor: pointer;
 }
+
+.openwebrx-maps-pin {
+    background-image: url("gfx/google_maps_pin.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 15px;
+    height: 15px;
+    background-size: contain;
+    display: inline-block;
+}
