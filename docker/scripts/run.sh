@@ -16,7 +16,7 @@ _term() {
     
 trap _term SIGTERM SIGINT
 
-python2.7 openwebrx.py $@ &
+python3 openwebrx.py $@ &
 
 child=$! 
 wait "$child"

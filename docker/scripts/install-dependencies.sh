@@ -14,7 +14,7 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="sox fftw python2 netcat-openbsd libsndfile lapack"
+STATIC_PACKAGES="sox fftw python3 netcat-openbsd libsndfile lapack"
 BUILD_PACKAGES="git libsndfile-dev fftw-dev cmake ca-certificates make gcc musl-dev g++ lapack-dev linux-headers"
 
 apk add --no-cache $STATIC_PACKAGES
