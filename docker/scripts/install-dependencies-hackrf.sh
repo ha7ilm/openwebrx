@@ -26,7 +26,4 @@ cmakebuild host
 cd ..
 rm -rf hackrf
 
-git clone https://github.com/pothosware/SoapyHackRF.git
-cmakebuild SoapyHackRF
-
 apk del .build-deps
