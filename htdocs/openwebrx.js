@@ -52,6 +52,7 @@ var waterfall_setup_done=0;
 var waterfall_queue = [];
 var waterfall_timer;
 var secondary_fft_size;
+var audio_allowed;
 
 /*function fade(something,from,to,time_ms,fps)
 {
@@ -79,7 +80,9 @@ is_chrome = /Chrome/.test(navigator.userAgent);
 
 function init_rx_photo()
 {
-	e("webrx-top-photo-clip").style.maxHeight=rx_photo_height.toString()+"px";
+    var clip = e("webrx-top-photo-clip");
+    rx_photo_height = clip.clientHeight
+	clip.style.maxHeight=rx_photo_height+"px";
 	window.setTimeout(function() { animate(e("webrx-rx-photo-title"),"opacity","",1,0,1,500,30); },1000);
 	window.setTimeout(function() { animate(e("webrx-rx-photo-desc"),"opacity","",1,0,1,500,30); },1500);
 	window.setTimeout(function() { close_rx_photo() },2500);
@@ -133,14 +136,14 @@ function toggleMute()
 	if (mute) {
 		mute = false;
 		e("openwebrx-mute-on").id="openwebrx-mute-off";
-		e("openwebrx-mute-img").src="gfx/openwebrx-speaker.png";
+		e("openwebrx-mute-img").src="static/gfx/openwebrx-speaker.png";
 		e("openwebrx-panel-volume").disabled=false;
 		e("openwebrx-panel-volume").style.opacity=1.0;
 		e("openwebrx-panel-volume").value = volumeBeforeMute;
 	} else {
 		mute = true;
 		e("openwebrx-mute-off").id="openwebrx-mute-on";
-		e("openwebrx-mute-img").src="gfx/openwebrx-speaker-muted.png";
+		e("openwebrx-mute-img").src="static/gfx/openwebrx-speaker-muted.png";
 		e("openwebrx-panel-volume").disabled=true;
 		e("openwebrx-panel-volume").style.opacity=0.5;
 		volumeBeforeMute = e("openwebrx-panel-volume").value;
@@ -160,7 +163,7 @@ function updateSquelch()
 {
 	var sliderValue=parseInt(e("openwebrx-panel-squelch").value);
 	var outputValue=(sliderValue==parseInt(e("openwebrx-panel-squelch").min))?0:getLinearSmeterValue(sliderValue);
-	ws.send("SET squelch_level="+outputValue.toString());
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"squelch_level":outputValue}}));
 }
 
 function updateWaterfallColors(which)
@@ -433,8 +436,8 @@ function demodulator_default_analog(offset_frequency,subtype)
 	}
 	else if(subtype=="dmr" || subtype=="ysf")
 	{
-		this.low_cut=-6500;
-		this.high_cut=6500;
+		this.low_cut=-4000;
+		this.high_cut=4000;
 	}
     else if(subtype=="dstar" || subtype=="nxdn")
     {
@@ -470,9 +473,13 @@ function demodulator_default_analog(offset_frequency,subtype)
 
 	this.doset=function(first_time)
 	{  //this function sends demodulator parameters to the server
-		ws.send("SET"+((first_time)?" mod="+this.server_mod:"")+
-			" low_cut="+this.low_cut.toString()+" high_cut="+this.high_cut.toString()+
-			" offset_freq="+this.offset_frequency.toString());
+	    params = {
+	        "low_cut": this.low_cut,
+	        "high_cut": this.high_cut,
+	        "offset_freq": this.offset_frequency
+	    };
+	    if (first_time) params.mod = this.server_mod;
+	    ws.send(JSON.stringify({"type":"dspcontrol","params":params}));
 	}
 	this.doset(true); //we set parameters on object creation
 
@@ -612,6 +619,8 @@ function demodulator_analog_replace(subtype, for_digital)
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
+	hide_digitalvoice_panels();
+    toggle_panel("openwebrx-panel-metadata-" + subtype, true);
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1150,174 +1159,230 @@ function audio_calculate_resampling(targetRate)
 
 debug_ws_data_received=0;
 max_clients_num=0;
+clients_num = 0;
 
 var COMPRESS_FFT_PAD_N=10; //should be the same as in csdr.c
 
 function on_ws_recv(evt)
 {
-	if(!(evt.data instanceof ArrayBuffer)) { divlog("on_ws_recv(): Not ArrayBuffer received...",1); return; }
-	//
-	debug_ws_data_received+=evt.data.byteLength/1000;
-	first4Chars=getFirstChars(evt.data,4);
-    first3Chars=first4Chars.slice(0,3);
-	if(first3Chars=="CLI")
-	{
-		var stringData=arrayBufferToString(evt.data);
-		if(stringData.substring(0,16)=="CLIENT DE SERVER") divlog("Server acknowledged WebSocket connection.");
+    if (typeof evt.data == 'string') {
+        // text messages
+        debug_ws_data_received += evt.data.length / 1000;
 
-	}
-	if(first3Chars=="AUD")
-	{
-		var audio_data;
-		if(audio_compression=="adpcm") audio_data=new Uint8Array(evt.data,4)
-		else audio_data=new Int16Array(evt.data,4);
-		audio_prepare(audio_data);
-		audio_buffer_current_size_debug+=audio_data.length;
-		audio_buffer_all_size_debug+=audio_data.length;
-		if(!(ios||is_chrome) && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
-	}
-	else if(first3Chars=="FFT")
-	{
-		//alert("Yupee! Doing FFT");
-        //if(first4Chars=="FFTS") console.log("FFTS"); 
-		if(fft_compression=="none") waterfall_add_queue(new Float32Array(evt.data,4));
-		else if(fft_compression="adpcm")
-		{
-			fft_codec.reset();
+		if (evt.data.substr(0, 16) == "CLIENT DE SERVER") {
+		    divlog("Server acknowledged WebSocket connection.");
+		} else {
+		    try {
+		        json = JSON.parse(evt.data)
+		        switch (json.type) {
+                    case "config":
+                        config = json.value;
+                        window.waterfall_colors = config.waterfall_colors;
+                        window.waterfall_min_level_default = config.waterfall_min_level;
+                        window.waterfall_max_level_default = config.waterfall_max_level;
+                        window.waterfall_auto_level_margin = config.waterfall_auto_level_margin;
+                        waterfallColorsDefault();
 
-			var waterfall_i16=fft_codec.decode(new Uint8Array(evt.data,4));
-			var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
-			for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-            if(first4Chars=="FFTS") secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
-            else waterfall_add_queue(waterfall_f32);
-		}
-	} 
-    else if(first3Chars=="DAT")
-    {
-        //secondary_demod_push_binary_data(new Uint8Array(evt.data,4));
-        secondary_demod_push_data(arrayBufferToString(evt.data).substring(4));
-        //console.log("DAT");
-	} 
-    else if(first3Chars=="MSG")
-	{
-		/*try
-		{*/
-			var stringData=arrayBufferToString(evt.data);
-			params=stringData.substring(4).split(" ");
-			for(i=0;i<params.length;i++)
-			{
-				param=params[i].split("=");
-				switch(param[0])
-				{
-					case "setup":
+			            window.starting_mod = config.start_mod
+                        window.starting_offset_frequency = config.start_offset_frequency;
+                        window.audio_buffering_fill_to = config.client_audio_buffer_size;
+                        bandwidth = config.samp_rate;
+                        center_freq = config.center_freq + config.lfo_offset;
+                        fft_size = config.fft_size;
+						fft_fps = config.fft_fps;
+						audio_compression = config.audio_compression;
+						divlog( "Audio stream is "+ ((audio_compression=="adpcm")?"compressed":"uncompressed")+"." )
+						fft_compression = config.fft_compression;
+						divlog( "FFT stream is "+ ((fft_compression=="adpcm")?"compressed":"uncompressed")+"." )
+						max_clients_num = config.max_clients;
+                        progressbar_set(e("openwebrx-bar-clients"), client_num / max_clients_num, "Clients [" + client_num + "]", client_num > max_clients_num*0.85);
+                        mathbox_waterfall_colors = config.mathbox_waterfall_colors;
+						mathbox_waterfall_frequency_resolution = config.mathbox_waterfall_frequency_resolution;
+						mathbox_waterfall_history_length = config.mathbox_waterfall_history_length;
+
 						waterfall_init();
 						audio_preinit();
-						break;
-					case "bandwidth":
-						bandwidth=parseInt(param[1]);
-						break;
-					case "center_freq":
-						center_freq=parseInt(param[1]); //there was no ; and it was no problem... why?
-						break;
-					case "fft_size":
-						fft_size=parseInt(param[1]);
-						break;
-					case "secondary_fft_size":
-						secondary_fft_size=parseInt(param[1]);
-						break;
-                    case "secondary_setup":
+
+						if (audio_allowed && !audio_initialized) audio_init();
+						waterfall_clear();
+                    break;
+                    case "secondary_config":
+                        window.secondary_fft_size = json.value.secondary_fft_size;
+                        window.secondary_bw = json.value.secondary_bw;
+                        window.if_samp_rate = json.value.if_samp_rate;
                         secondary_demod_init_canvases();
-                        break;
-                    case "if_samp_rate":
-                        if_samp_rate=parseInt(param[1]);
-                        break;
-                    case "secondary_bw":
-                        secondary_bw=parseFloat(param[1]);
-                        break;
-					case "fft_fps":
-						fft_fps=parseInt(param[1]);
-						break;
-					case "audio_compression":
-						audio_compression=param[1];
-						divlog( "Audio stream is "+ ((audio_compression=="adpcm")?"compressed":"uncompressed")+"." )
-						break;
-					case "fft_compression":
-						fft_compression=param[1];
-						divlog( "FFT stream is "+ ((fft_compression=="adpcm")?"compressed":"uncompressed")+"." )
-						break;
-					case "cpu_usage":
-						var server_cpu_usage=parseInt(param[1]);
-						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage/100,"Server CPU ["+param[1]+"%]",server_cpu_usage>85);
-						break;
-					case "clients":
-						var clients_num=parseInt(param[1]);
-						progressbar_set(e("openwebrx-bar-clients"),clients_num/max_clients_num,"Clients ["+param[1]+"]",clients_num>max_clients_num*0.85);
-						break;
-					case "max_clients":
-						max_clients_num=parseInt(param[1]);
-						break;
-					case "s":
-						smeter_level=parseFloat(param[1]);
-						setSmeterAbsoluteValue(smeter_level);
-						break;
-				}
-			}
-		/*}
-		catch(err)
-		{
-			divlog("Received invalid message over WebSocket.");
-		}*/
-	} else if (first3Chars=='MET')
-    {
-        var stringData=arrayBufferToString(evt.data);
-        var metaPanels = Array.prototype.filter.call(document.getElementsByClassName('openwebrx-panel'), function(el) {
-            return el.dataset.panelName == 'metadata';
-        });
+                    break;
+                    case "receiver_details":
+                        var r = json.value;
+                        e('webrx-rx-title').innerHTML = r.receiver_name;
+                        e('webrx-rx-desc').innerHTML = r.receiver_location + ' | Loc: ' + r.receiver_qra + ', ASL: ' + r.receiver_asl + ' m, <a href="https://www.google.hu/maps/place/' + r.receiver_gps[0] + ',' + r.receiver_gps[1] + '" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a>';
+                        e('webrx-rx-photo-title').innerHTML = r.photo_title;
+                        e('webrx-rx-photo-desc').innerHTML = r.photo_desc;
+                    break;
+                    case "smeter":
+                        smeter_level = json.value;
+                        setSmeterAbsoluteValue(smeter_level);
+                    break;
+                    case "cpuusage":
+						var server_cpu_usage = json.value;
+						progressbar_set(e("openwebrx-bar-server-cpu"),server_cpu_usage,"Server CPU [" + Math.round(server_cpu_usage * 100) + "%]",server_cpu_usage>85);
+                    break;
+                    case "clients":
+                        client_num = json.value;
+               			progressbar_set(e("openwebrx-bar-clients"), client_num / max_clients_num, "Clients [" + client_num + "]", client_num > max_clients_num*0.85);
+                    break;
+                    case "profiles":
+                        var listbox = e("openwebrx-sdr-profiles-listbox");
+                        listbox.innerHTML = json.value.map(function(profile){
+                            return '<option value="' + profile.id + '">' + profile.name + "</option>";
+                        }).join("");
+                    break;
+					case "features":
+						for (var feature in json.value) {
+							$('[data-feature="' + feature + '"')[json.value[feature] ? "show" : "hide"]();
+						}
+					break;
+					case "metadata":
+						update_metadata(json.value);
+					break;
+                    default:
+                        console.warn('received message of unknown type: ' + json.type);
+		        }
+		    } catch (e) {
+		        // don't lose exception
+		        console.error(e)
+		    }
+		}
+    } else if (evt.data instanceof ArrayBuffer) {
+        // binary messages
+        debug_ws_data_received += evt.data.byteLength / 1000;
 
-        var meta = {};
-        stringData.substr(4).split(";").forEach(function(s) {
-            var item = s.split(":");
-            meta[item[0]] = item[1];
-        });
+        type = new Uint8Array(evt.data, 0, 1)[0]
+        data = evt.data.slice(1)
 
-        var update = function(el) {
-            el.innerHTML = "";
-        }
-        if (meta.protocol) switch (meta.protocol) {
-            case 'DMR':
-                if (meta.slot) {
-                    var html = 'Timeslot: ' + meta.slot;
-                    if (meta.type) html += ' Typ: ' + meta.type;
-                    if (meta.source && meta.target) html += ' Source: ' + meta.source + ' Target: ' + meta.target;
-                    update = function(el) {
-                        var slotEl = el.getElementsByClassName('slot-' + meta.slot);
-                        if (!slotEl.length) {
-                            slotEl = document.createElement('div');
-                            slotEl.className = 'slot-' + meta.slot;
-                            el.appendChild(slotEl);
-                        } else {
-                            slotEl = slotEl[0];
-                        }
-                        slotEl.innerHTML = html;
-                    };
+        switch (type) {
+            case 1:
+                // FFT data
+                if (fft_compression=="none") {
+                    waterfall_add_queue(new Float32Array(data));
+                } else if (fft_compression == "adpcm") {
+                    fft_codec.reset();
+
+                    var waterfall_i16=fft_codec.decode(new Uint8Array(data));
+                    var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
+                    for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
+                    waterfall_add_queue(waterfall_f32);
                 }
-                break;
-            case 'YSF':
-                var strings = [];
-                if (meta.source) strings.push("Source: " + meta.source);
-                if (meta.target) strings.push("Destination: " + meta.target);
-                if (meta.up) strings.push("Up: " + meta.up);
-                if (meta.down) strings.push("Down: " + meta.down);
-                var html = strings.join(' ');
-                update = function(el) {
-                    el.innerHTML = html;
+            break;
+            case 2:
+                // audio data
+                var audio_data;
+                if (audio_compression=="adpcm") {
+                    audio_data = new Uint8Array(data);
+                } else {
+                    audio_data = new Int16Array(data);
                 }
-                break;
-        }
+                audio_prepare(audio_data);
+                audio_buffer_current_size_debug += audio_data.length;
+                audio_buffer_all_size_debug += audio_data.length;
+                if (!(ios||is_chrome) && (audio_initialized==0 && audio_prepared_buffers.length>audio_buffering_fill_to)) audio_init()
+            break;
+            case 3:
+                // secondary FFT
+                if (fft_compression == "none") {
+                    secondary_demod_waterfall_add_queue(new Float32Array(data));
+                } else if (fft_compression == "adpcm") {
+                    fft_codec.reset();
 
-        metaPanels.forEach(update);
+                    var waterfall_i16=fft_codec.decode(new Uint8Array(data));
+                    var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
+                    for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
+                    secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
+                }
+            break;
+            case 4:
+                // secondary demod
+                secondary_demod_push_data(arrayBufferToString(data));
+            break;
+            default:
+                console.warn('unknown type of binary message: ' + type)
+        }
+    }
+}
+
+function update_metadata(meta) {
+    if (meta.protocol) switch (meta.protocol) {
+        case 'DMR':
+            if (meta.slot) {
+                var el = $("#openwebrx-panel-metadata-dmr .openwebrx-dmr-timeslot-panel").get(meta.slot);
+                var id = "";
+                var name = "";
+                var target = "";
+                var group = false;
+                $(el)[meta.sync ? "addClass" : "removeClass"]("sync");
+                if (meta.sync && meta.sync == "voice") {
+                    id = (meta.additional && meta.additional.callsign) || meta.source || "";
+                    name = (meta.additional && meta.additional.fname) || "";
+                    if (meta.type == "group") {
+                        target = "Talkgroup: ";
+                        group = true;
+                    }
+                    if (meta.type == "direct") target = "Direct: ";
+                    target += meta.target || "";
+                    $(el).addClass("active");
+                } else {
+                    $(el).removeClass("active");
+                }
+                $(el).find(".openwebrx-dmr-id").text(id);
+                $(el).find(".openwebrx-dmr-name").text(name);
+                $(el).find(".openwebrx-dmr-target").text(target);
+                $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
+            } else {
+                clear_metadata();
+            }
+            break;
+        case 'YSF':
+            var el = $("#openwebrx-panel-metadata-ysf");
+
+            var mode = " "
+            var source = "";
+            var up = "";
+            var down = "";
+            if (meta.mode && meta.mode != "") {
+                mode = "Mode: " + meta.mode;
+                source = meta.source || "";
+                if (meta.lat && meta.lon) {
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"https://www.google.com/maps/search/?api=1&query=" + meta.lat + "," + meta.lon + "\" target=\"_blank\"></a>" + source;
+                }
+                up = meta.up ? "Up: " + meta.up : "";
+                down = meta.down ? "Down: " + meta.down : "";
+                $(el).find(".openwebrx-meta-slot").addClass("active");
+            } else {
+                $(el).find(".openwebrx-meta-slot").removeClass("active");
+            }
+            $(el).find(".openwebrx-ysf-mode").text(mode);
+            $(el).find(".openwebrx-ysf-source").html(source);
+            $(el).find(".openwebrx-ysf-up").text(up);
+            $(el).find(".openwebrx-ysf-down").text(down);
+
+            break;
+    } else {
+        clear_metadata();
     }
 
+}
+
+function hide_digitalvoice_panels() {
+    $(".openwebrx-meta-panel").each(function(_, p){
+        toggle_panel(p.id, false);
+    });
+    clear_metadata();
+}
+
+function clear_metadata() {
+    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
+    $(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
+    $(".openwebrx-dmr-timeslot-panel").removeClass("muted");
 }
 
 function add_problem(what)
@@ -1630,7 +1695,9 @@ function audio_flush_notused()
 
 function webrx_set_param(what, value)
 {
-	ws.send("SET "+what+"="+value.toString());
+    params = {};
+    params[what] = value;
+	ws.send(JSON.stringify({"type":"dspcontrol","params":params}));
 }
 
 var starting_mute = false;
@@ -1645,7 +1712,7 @@ function parsehash()
 			if(harr[0]=="mute") toggleMute();
 			else if(harr[0]=="mod") starting_mod = harr[1];
 			else if(harr[0]=="sql") 
-			{ 
+			{
 				e("openwebrx-panel-squelch").value=harr[1]; 
 				updateSquelch(); 
 			}
@@ -1680,16 +1747,18 @@ function audio_preinit()
 	else if(audio_context.sampleRate>44100*4)
 		audio_buffer_size = 4096 * 4;
 
-	audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
-	audio_last_output_buffer = new Float32Array(audio_buffer_size);
+    if (!audio_rebuffer) {
+        audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size,sdrjs.REBUFFER_FIXED);
+        audio_last_output_buffer = new Float32Array(audio_buffer_size);
 
-	//we send our setup packet
-	parsehash();
+        //we send our setup packet
+        parsehash();
 
-	audio_calculate_resampling(audio_context.sampleRate);
-	audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
-	ws.send("SET output_rate="+audio_server_output_rate.toString()+" action=start"); //now we'll get AUD packets as well
+        audio_calculate_resampling(audio_context.sampleRate);
+        audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor,1);
+    }
 
+	ws.send(JSON.stringify({"type":"dspcontrol","action":"start","params":{"output_rate":audio_server_output_rate}}));
 }
 
 function audio_init()
@@ -1751,7 +1820,10 @@ function on_ws_closed()
 		audio_node.disconnect();
 	}
 	catch (dont_care) {}
-	divlog("WebSocket has closed unexpectedly. Please reload the page.", 1);
+	audio_initialized = 0;
+	divlog("WebSocket has closed unexpectedly. Attempting to reconnect in 5 seconds...", 1);
+
+	setTimeout(open_websocket, 5000);
 }
 
 function on_ws_error(event)
@@ -1763,14 +1835,15 @@ String.prototype.startswith=function(str){ return this.indexOf(str) == 0; }; //h
 
 function open_websocket()
 {
-	//if(ws_url.startswith("ws://localhost:")&&window.location.hostname!="127.0.0.1"&&window.location.hostname!="localhost")
-	//{
-		//divlog("Server administrator should set <em>server_hostname</em> correctly, because it is left as <em>\"localhost\"</em>. Now guessing hostname from page URL.",1);
-		ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/"; //guess automatically -> now default behaviour
-	//}
+	var protocol = 'ws';
+	if (window.location.toString().startsWith('https://')) {
+		protocol = 'wss';
+	}
+
+	ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/"; //guess automatically -> now default behaviour
 	if (!("WebSocket" in window))
 		divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
-	ws = new WebSocket(ws_url+client_id);
+	ws = new WebSocket(ws_url);
 	ws.onopen = on_ws_opened;
 	ws.onmessage = on_ws_recv;
 	ws.onclose = on_ws_closed;
@@ -2023,27 +2096,23 @@ function waterfall_add(data)
 			waterfall_image.data[base+x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
 	}*/
 
-	if(mathbox_mode==MATHBOX_MODES.WATERFALL)
-	{
+	if (mathbox_mode==MATHBOX_MODES.WATERFALL) {
 		//Handle mathbox
 		for(var i=0;i<fft_size;i++) mathbox_data[i+mathbox_data_index*fft_size]=data[i];
 		mathbox_shift();
-	}
-	else
-	{
-	//Add line to waterfall image
-	oneline_image = canvas_context.createImageData(w,1);
-	for(x=0;x<w;x++)
-	{
-		color=waterfall_mkcolor(data[x]);
-		for(i=0;i<4;i++)
-			oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
-	}
+	} else {
+        //Add line to waterfall image
+        oneline_image = canvas_context.createImageData(w,1);
+        for (x=0;x<w;x++) {
+            color=waterfall_mkcolor(data[x]);
+            for(i=0;i<4;i++)
+                oneline_image.data[x*4+i] = ((color>>>0)>>((3-i)*8))&0xff;
+        }
 
-	//Draw image
-	canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
-	shift_canvases();
-	if(canvas_actual_line<0) add_canvas();
+        //Draw image
+        canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
+        shift_canvases();
+        if(canvas_actual_line<0) add_canvas();
 	}
 
 
@@ -2265,6 +2334,7 @@ function openwebrx_init()
 	init_rx_photo();
 	open_websocket();
     secondary_demod_init();
+    digimodes_init();
 	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
@@ -2272,7 +2342,26 @@ function openwebrx_init()
 
 	//Synchronise volume with slider
 	updateVolume();
-	waterfallColorsDefault();
+
+}
+
+function digimodes_init() {
+    hide_digitalvoice_panels();
+
+    // initialze DMR timeslot muting
+    $('.openwebrx-dmr-timeslot-panel').click(function(e) {
+        $(e.currentTarget).toggleClass("muted");
+        update_dmr_timeslot_filtering();
+    });
+}
+
+function update_dmr_timeslot_filtering() {
+    var filter = $('.openwebrx-dmr-timeslot-panel').map(function(index, el){
+        return (!$(el).hasClass("muted")) << index;
+    }).toArray().reduce(function(acc, v){
+        return acc | v;
+    }, 0);
+    webrx_set_param("dmr_filter", filter);
 }
 
 function iosPlayButtonClick()
@@ -2281,6 +2370,7 @@ function iosPlayButtonClick()
 	audio_init();
 	e("openwebrx-big-grey").style.opacity=0;
 	window.setTimeout(function(){ e("openwebrx-big-grey").style.display="none"; },1100);
+	audio_allowed = 1;
 }
 
 /*
@@ -2361,6 +2451,7 @@ function pop_bottommost_panel(from)
 function toggle_panel(what, on)
 {
     var item=e(what);
+    if (!item) return;
     if(typeof on !== "undefined") 
     {
         if(item.openwebrxHidden && !on) return;
@@ -2424,7 +2515,7 @@ function place_panels(function_apply)
 	for(i=0;i<plist.length;i++)
 	{
 		c=plist[i];
-		if(c.className=="openwebrx-panel")
+		if(c.className.indexOf("openwebrx-panel") >= 0)
 		{
 			if(c.openwebrxHidden)
 			{
@@ -2491,29 +2582,27 @@ function progressbar_set(obj,val,text,over)
 function demodulator_buttons_update()
 {
 	$(".openwebrx-demodulator-button").removeClass("highlighted");
-    if(secondary_demod) $("#openwebrx-button-dig").addClass("highlighted");
-    else switch(demodulators[0].subtype)
-	{
-	case "nfm":
-		$("#openwebrx-button-nfm").addClass("highlighted");
-		break;
-	case "am":
-		$("#openwebrx-button-am").addClass("highlighted");
-		break;
-	case "lsb":
-	case "usb":
-	case "cw":
-		if(demodulators[0].high_cut-demodulators[0].low_cut<300)
-			$("#openwebrx-button-cw").addClass("highlighted");
-		else
-		{
-			if(demodulators[0].high_cut<0) 
-				$("#openwebrx-button-lsb").addClass("highlighted");
-			else if(demodulators[0].low_cut>0) 
-				$("#openwebrx-button-usb").addClass("highlighted");
-			else $("#openwebrx-button-lsb, #openwebrx-button-usb").addClass("highlighted");
-		}
-		break;
+    if(secondary_demod) {
+    	$("#openwebrx-button-dig").addClass("highlighted");
+    } else switch(demodulators[0].subtype) {
+		case "lsb":
+		case "usb":
+		case "cw":
+			if(demodulators[0].high_cut-demodulators[0].low_cut<300)
+				$("#openwebrx-button-cw").addClass("highlighted");
+			else
+			{
+				if(demodulators[0].high_cut<0)
+					$("#openwebrx-button-lsb").addClass("highlighted");
+				else if(demodulators[0].low_cut>0)
+					$("#openwebrx-button-usb").addClass("highlighted");
+				else $("#openwebrx-button-lsb, #openwebrx-button-usb").addClass("highlighted");
+			}
+			break;
+		default:
+            var mod = demodulators[0].subtype;
+            $("#openwebrx-button-" + mod).addClass("highlighted");
+            break;
 	}
 }
 function demodulator_analog_replace_last() { demodulator_analog_replace(last_analog_demodulator_subtype); }
@@ -2616,19 +2705,19 @@ function secondary_demod_init()
 function secondary_demod_start(subtype) 
 { 
     secondary_demod_canvases_initialized = false;
-    ws.send("SET secondary_mod="+subtype); 
-    secondary_demod = subtype; 
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_mod":subtype}}));
+    secondary_demod = subtype;
 }
 
 function secondary_demod_set()
 {
-    ws.send("SET secondary_offset_freq="+secondary_demod_offset_freq.toString());
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_offset_freq":secondary_demod_offset_freq}}));
 }
 
 function secondary_demod_stop()
 {
-    ws.send("SET secondary_mod=off");
-    secondary_demod = false; 
+	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_mod":false}}));
+    secondary_demod = false;
     secondary_demod_waterfall_queue = [];
 }
 
@@ -2755,7 +2844,7 @@ function secondary_demod_update_channel_freq_from_event(evt)
     {
         secondary_demod_waiting_for_set = true;
         window.setTimeout(()=>{
-            ws.send("SET secondary_offset_freq="+Math.floor(secondary_demod_channel_freq));
+            ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_offset_freq":Math.floor(secondary_demod_channel_freq)}}));
             //console.log("doneset:", secondary_demod_channel_freq);
             secondary_demod_waiting_for_set = false;
         }, 50);
@@ -2814,4 +2903,9 @@ function secondary_demod_waterfall_set_zoom(low_cut, high_cut)
     //console.log("setzoom", secondary_demod_canvas_width, secondary_demod_canvas_left, low_cut, high_cut);
     secondary_demod_canvases.map((x)=>{$(x).css("left",secondary_demod_canvas_left+"px").css("width",secondary_demod_canvas_width+"px");});
     secondary_demod_update_channel_freq_from_event();
+}
+
+function sdr_profile_changed() {
+    value = $('#openwebrx-sdr-profiles-listbox').val();
+    ws.send(JSON.stringify({ type:"selectprofile", params:{ profile:value }}));
 }
