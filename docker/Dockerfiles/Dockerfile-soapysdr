@@ -1,0 +1,6 @@
+ARG ARCH
+FROM openwebrx-base:$ARCH
+
+ADD docker/scripts/install-dependencies-soapysdr.sh /
+RUN /install-dependencies-soapysdr.sh
+

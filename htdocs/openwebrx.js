@@ -624,7 +624,8 @@ function demodulator_analog_replace(subtype, for_digital)
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
-	clear_metadata();
+	hide_digitalvoice_panels();
+    toggle_panel("openwebrx-panel-metadata-" + subtype, true);
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1315,56 +1316,78 @@ function on_ws_recv(evt)
 }
 
 function update_metadata(meta) {
-    var update = function(_, el) {
-        el.innerHTML = "";
-    };
     if (meta.protocol) switch (meta.protocol) {
         case 'DMR':
             if (meta.slot) {
-                var html = 'Timeslot: ' + meta.slot;
-                if (meta.type) html += ' Typ: ' + meta.type;
-                if (meta.additional && meta.additional.callsign) {
-                    html += ' Source: ' + meta.additional.callsign;
-                    if (meta.additional.fname) {
-                        html += ' (' + meta.additional.fname + ')';
+                var el = $("#openwebrx-panel-metadata-dmr .openwebrx-dmr-timeslot-panel").get(meta.slot);
+                var id = "";
+                var name = "";
+                var target = "";
+                var group = false;
+                $(el)[meta.sync ? "addClass" : "removeClass"]("sync");
+                if (meta.sync && meta.sync == "voice") {
+                    id = (meta.additional && meta.additional.callsign) || meta.source || "";
+                    name = (meta.additional && meta.additional.fname) || "";
+                    if (meta.type == "group") {
+                        target = "Talkgroup: ";
+                        group = true;
                     }
-                } else if (meta.source) {
-                    html += ' Source: ' + meta.source;
+                    if (meta.type == "direct") target = "Direct: ";
+                    target += meta.target || "";
+                    $(el).addClass("active");
+                } else {
+                    $(el).removeClass("active");
                 }
-                if (meta.target) html += ' Target: ' + meta.target;
-                update = function(_, el) {
-                    var slotEl = el.getElementsByClassName('slot-' + meta.slot);
-                    if (!slotEl.length) {
-                        slotEl = document.createElement('div');
-                        slotEl.className = 'slot-' + meta.slot;
-                        el.appendChild(slotEl);
-                    } else {
-                        slotEl = slotEl[0];
-                    }
-                    slotEl.innerHTML = html;
-                };
+                $(el).find(".openwebrx-dmr-id").text(id);
+                $(el).find(".openwebrx-dmr-name").text(name);
+                $(el).find(".openwebrx-dmr-target").text(target);
+                $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
+            } else {
+                clear_metadata();
             }
             break;
         case 'YSF':
-            var strings = [];
-            if (meta.mode) strings.push("Mode: " + meta.mode);
-            if (meta.source) strings.push("Source: " + meta.source);
-            if (meta.target) strings.push("Destination: " + meta.target);
-            if (meta.up) strings.push("Up: " + meta.up);
-            if (meta.down) strings.push("Down: " + meta.down);
-            var html = strings.join(' ');
-            update = function(_, el) {
-                el.innerHTML = html;
+            var el = $("#openwebrx-panel-metadata-ysf");
+
+            var mode = " "
+            var source = "";
+            var up = "";
+            var down = "";
+            if (meta.mode && meta.mode != "") {
+                mode = "Mode: " + meta.mode;
+                source = meta.source || "";
+                if (meta.lat && meta.lon) {
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"https://www.google.com/maps/search/?api=1&query=" + meta.lat + "," + meta.lon + "\" target=\"_blank\"></a>" + source;
+                }
+                up = meta.up ? "Up: " + meta.up : "";
+                down = meta.down ? "Down: " + meta.down : "";
+                $(el).find(".openwebrx-meta-slot").addClass("active");
+            } else {
+                $(el).find(".openwebrx-meta-slot").removeClass("active");
             }
+            $(el).find(".openwebrx-ysf-mode").text(mode);
+            $(el).find(".openwebrx-ysf-source").html(source);
+            $(el).find(".openwebrx-ysf-up").text(up);
+            $(el).find(".openwebrx-ysf-down").text(down);
+
             break;
+    } else {
+        clear_metadata();
     }
 
-    $('.openwebrx-panel[data-panel-name="metadata"]').each(update);
-    toggle_panel("openwebrx-panel-metadata", true);
+}
+
+function hide_digitalvoice_panels() {
+    $(".openwebrx-meta-panel").each(function(_, p){
+        toggle_panel(p.id, false);
+    });
+    clear_metadata();
 }
 
 function clear_metadata() {
-    toggle_panel("openwebrx-panel-metadata", false);
+    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
+    $(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
+    $(".openwebrx-dmr-timeslot-panel").removeClass("muted");
 }
 
 function add_problem(what)
@@ -1817,7 +1840,12 @@ String.prototype.startswith=function(str){ return this.indexOf(str) == 0; }; //h
 
 function open_websocket()
 {
-    ws_url="ws://"+(window.location.origin.split("://")[1])+"/ws/"; //guess automatically -> now default behaviour
+	var protocol = 'ws';
+	if (window.location.toString().startsWith('https://')) {
+		protocol = 'wss';
+	}
+
+	ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/"; //guess automatically -> now default behaviour
 	if (!("WebSocket" in window))
 		divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
 	ws = new WebSocket(ws_url);
@@ -2311,7 +2339,7 @@ function openwebrx_init()
 	init_rx_photo();
 	open_websocket();
     secondary_demod_init();
-    clear_metadata();
+    digimodes_init();
 	place_panels(first_show_panel);
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
@@ -2320,6 +2348,25 @@ function openwebrx_init()
 	//Synchronise volume with slider
 	updateVolume();
 
+}
+
+function digimodes_init() {
+    hide_digitalvoice_panels();
+
+    // initialze DMR timeslot muting
+    $('.openwebrx-dmr-timeslot-panel').click(function(e) {
+        $(e.currentTarget).toggleClass("muted");
+        update_dmr_timeslot_filtering();
+    });
+}
+
+function update_dmr_timeslot_filtering() {
+    var filter = $('.openwebrx-dmr-timeslot-panel').map(function(index, el){
+        return (!$(el).hasClass("muted")) << index;
+    }).toArray().reduce(function(acc, v){
+        return acc | v;
+    }, 0);
+    webrx_set_param("dmr_filter", filter);
 }
 
 function iosPlayButtonClick()
@@ -2409,6 +2456,7 @@ function pop_bottommost_panel(from)
 function toggle_panel(what, on)
 {
     var item=e(what);
+    if (!item) return;
     if(typeof on !== "undefined") 
     {
         if(item.openwebrxHidden && !on) return;
@@ -2472,7 +2520,7 @@ function place_panels(function_apply)
 	for(i=0;i<plist.length;i++)
 	{
 		c=plist[i];
-		if(c.className=="openwebrx-panel")
+		if(c.className.indexOf("openwebrx-panel") >= 0)
 		{
 			if(c.openwebrxHidden)
 			{

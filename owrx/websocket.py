@@ -38,12 +38,16 @@ class WebSocketConnection(object):
         # string-type messages are sent as text frames
         if (type(data) == str):
             header = self.get_header(len(data), 1)
-            self.handler.wfile.write(header + data.encode('utf-8'))
-            self.handler.wfile.flush()
+            data_to_send = header + data.encode('utf-8')
         # anything else as binary
         else:
             header = self.get_header(len(data), 2)
-            self.handler.wfile.write(header + data)
+            data_to_send = header + data
+        written = self.handler.wfile.write(data_to_send)
+        if (written != len(data_to_send)):
+            logger.error("incomplete write! closing socket!")
+            self.close()
+        else:
             self.handler.wfile.flush()
 
     def read_loop(self):
@@ -78,7 +82,9 @@ class WebSocketConnection(object):
             self.handler.wfile.write(header)
             self.handler.wfile.flush()
         except ValueError:
-            logger.exception("while writing close frame:")
+            logger.exception("ValueError while writing close frame:")
+        except OSError:
+            logger.exception("OSError while writing close frame:")
 
         try:
             self.handler.finish()

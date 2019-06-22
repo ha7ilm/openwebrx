@@ -928,3 +928,88 @@ img.openwebrx-mirror-img
     border-color: Red;
 }
 
+.openwebrx-meta-slot {
+    width: 145px;
+    height: 196px;
+    float: left;
+    margin-right: 10px;
+
+    background-color: #676767;
+    padding: 2px 0;
+    color: #333;
+
+    text-align: center;
+    position: relative;
+}
+
+.openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.openwebrx-meta-slot.muted:before {
+    display: block;
+    content: "";
+    background-image: url("gfx/openwebrx-mute.png");
+    width:100%;
+    height:133px;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,.3);
+}
+
+.openwebrx-meta-slot.active {
+    background-color: #95bbdf;
+}
+
+.openwebrx-meta-slot.sync .openwebrx-dmr-slot:before {
+    content:"";
+    display: inline-block;
+    margin: 0 5px;
+    width: 12px;
+    height: 12px;
+    background-color: #ABFF00;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+}
+
+.openwebrx-meta-slot:last-child {
+    margin-right: 0;
+}
+
+.openwebrx-meta-slot .openwebrx-meta-user-image {
+    width:100%;
+    height:133px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.openwebrx-meta-slot.active .openwebrx-meta-user-image {
+    background-image: url("gfx/openwebrx-directcall.png");
+}
+
+.openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
+    background-image: url("gfx/openwebrx-groupcall.png");
+}
+
+.openwebrx-dmr-timeslot-panel * {
+    cursor: pointer;
+}
+
+.openwebrx-maps-pin {
+    background-image: url("gfx/google_maps_pin.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 15px;
+    height: 15px;
+    background-size: contain;
+    display: inline-block;
+}

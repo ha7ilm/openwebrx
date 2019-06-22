@@ -1,0 +1,7 @@
+ARG ARCH
+FROM openwebrx-soapysdr-base:$ARCH
+
+ADD docker/scripts/install-dependencies-sdrplay.sh /
+ADD docker/scripts/install-lib.*.patch /
+RUN /install-dependencies-sdrplay.sh
+

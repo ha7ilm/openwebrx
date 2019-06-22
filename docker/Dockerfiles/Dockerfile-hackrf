@@ -1,0 +1,6 @@
+ARG ARCH
+FROM openwebrx-base:$ARCH
+
+ADD docker/scripts/install-dependencies-hackrf.sh /
+RUN /install-dependencies-hackrf.sh
+

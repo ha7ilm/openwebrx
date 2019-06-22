@@ -18,7 +18,9 @@ class Router(object):
         {"route": "/status", "controller": StatusController},
         {"regex": "/static/(.+)", "controller": AssetsController},
         {"route": "/ws/", "controller": WebSocketController},
-        {"regex": "(/favicon.ico)", "controller": AssetsController}
+        {"regex": "(/favicon.ico)", "controller": AssetsController},
+        # backwards compatibility for the sdr.hu portal
+        {"regex": "/(gfx/openwebrx-avatar.png)", "controller": AssetsController}
     ]
     def find_controller(self, path):
         for m in Router.mappings:

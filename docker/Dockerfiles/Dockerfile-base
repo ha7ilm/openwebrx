@@ -1,0 +1,16 @@
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
+
+RUN apk add --no-cache bash
+
+ADD docker/scripts/install-dependencies.sh /
+RUN /install-dependencies.sh
+
+ADD . /openwebrx
+
+WORKDIR /openwebrx
+
+VOLUME /config
+
+ENTRYPOINT [ "/openwebrx/docker/scripts/run.sh" ]
+EXPOSE 8073

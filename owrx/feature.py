@@ -2,6 +2,8 @@ import os
 import subprocess
 from functools import reduce
 from operator import and_
+import re
+from distutils.version import LooseVersion
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,8 +18,9 @@ class FeatureDetector(object):
         "rtl_sdr": [ "rtl_sdr" ],
         "sdrplay": [ "rx_tools" ],
         "hackrf": [ "hackrf_transfer" ],
+        "airspy": [ "airspy_rx" ],
         "digital_voice_digiham": [ "digiham", "sox" ],
-        "digital_voice_dsd": [ "dsd", "sox" ],
+        "digital_voice_dsd": [ "dsd", "sox", "digiham" ],
         "packet": [ "direwolf" ]
     }
 
@@ -82,19 +85,31 @@ class FeatureDetector(object):
     def command_exists(self, command):
         return os.system("which {0}".format(command)) == 0
 
+    """
+    To use DMR and YSF, the digiham package is required. You can find the package and installation instructions here:
+    https://github.com/jketterl/digiham
+    
+    Please note: there is close interaction between digiham and openwebrx, so older versions will probably not work.
+    If you have an older verison of digiham installed, please update it along with openwebrx.
+    As of now, we require version 0.2 of digiham.
+    """
     def has_digiham(self):
-        # the digiham tools expect to be fed via stdin, they will block until their stdin is closed.
-        def check_with_stdin(command):
+        required_version = LooseVersion("0.2")
+
+        digiham_version_regex = re.compile('^digiham version (.*)$')
+        def check_digiham_version(command):
             try:
-                process = subprocess.Popen(command, stdin=subprocess.PIPE)
-                process.communicate("")
-                return process.wait() == 0
+                process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
+                version = LooseVersion(digiham_version_regex.match(process.stdout.readline().decode()).group(1))
+                process.wait(1)
+                return version >= required_version
             except FileNotFoundError:
                 return False
         return reduce(and_,
                       map(
-                          check_with_stdin,
-                          ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer", "gfsk_demodulator"]
+                          check_digiham_version,
+                          ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer", "gfsk_demodulator",
+                           "digitalvoice_filter"]
                       ),
                       True)
 
@@ -106,3 +121,6 @@ class FeatureDetector(object):
 
     def has_direwolf(self):
         return self.command_is_runnable("direwolf --help")
+
+    def has_airspy_rx(self):
+        return self.command_is_runnable("airspy_rx --help 2> /dev/null")
