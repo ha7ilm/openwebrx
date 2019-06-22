@@ -360,7 +360,7 @@ class dsp(object):
     def set_squelch_level(self, squelch_level):
         self.squelch_level=squelch_level
         #no squelch required on digital voice modes
-        actual_squelch = 0 if self.isDigitalVoice() else self.squelch_level
+        actual_squelch = 0 if self.isDigitalVoice() or self.isPacket() else self.squelch_level
         if self.running:
             self.modification_lock.acquire()
             self.squelch_pipe_file.write("%g\n"%(float(actual_squelch)))
