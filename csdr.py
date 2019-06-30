@@ -76,62 +76,103 @@ class dsp(object):
         self.output = output
 
     def chain(self,which):
-        chain ="nc -v 127.0.0.1 {nc_port} | "
-        if self.csdr_dynamic_bufsize: chain += "csdr setbuf {start_bufsize} | "
-        if self.csdr_through: chain +="csdr through | "
+        chain = ["nc -v 127.0.0.1 {nc_port}"]
+        if self.csdr_dynamic_bufsize: chain += ["csdr setbuf {start_bufsize}"]
+        if self.csdr_through: chain += ["csdr through"]
         if which == "fft":
-            chain += "csdr fft_cc {fft_size} {fft_block_size} | " + \
-                ("csdr logpower_cf -70 | " if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages} | ") + \
+            chain += [
+                "csdr fft_cc {fft_size} {fft_block_size}",
+                "csdr logpower_cf -70" if self.fft_averages == 0 else "csdr logaveragepower_cf -70 {fft_size} {fft_averages}",
                 "csdr fft_exchange_sides_ff {fft_size}"
-            if self.fft_compression=="adpcm":
-                chain += " | csdr compress_fft_adpcm_f_u8 {fft_size}"
+            ]
+            if self.fft_compression == "adpcm":
+                chain += ["csdr compress_fft_adpcm_f_u8 {fft_size}"]
             return chain
-        chain += "csdr shift_addition_cc --fifo {shift_pipe} | "
-        chain += "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | "
-        chain += "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 {smeter_report_every} | "
+        chain += [
+            "csdr shift_addition_cc --fifo {shift_pipe}",
+            "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING",
+            "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING",
+            "csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 {smeter_report_every}"
+        ]
         if self.secondary_demodulator:
-            chain += "csdr tee {iqtee_pipe} | "
-            chain += "csdr tee {iqtee2_pipe} | "
+            chain += [
+                "csdr tee {iqtee_pipe}",
+                "csdr tee {iqtee2_pipe}"
+            ]
         # safe some cpu cycles... no need to decimate if decimation factor is 1
-        last_decimation_block = "csdr fractional_decimator_ff {last_decimation} | " if self.last_decimation != 1.0 else ""
+        last_decimation_block = ["csdr fractional_decimator_ff {last_decimation}"] if self.last_decimation != 1.0 else []
         if which == "nfm":
-            chain += "csdr fmdemod_quadri_cf | csdr limit_ff | "
+            chain += [
+                "csdr fmdemod_quadri_cf",
+                "csdr limit_ff"
+            ]
             chain += last_decimation_block
-            chain += "csdr deemphasis_nfm_ff {output_rate} | csdr convert_f_s16"
+            chain += [
+                "csdr deemphasis_nfm_ff {output_rate}",
+                "csdr convert_f_s16"
+            ]
         elif self.isDigitalVoice(which):
-            chain += "csdr fmdemod_quadri_cf | dc_block | "
+            chain += [
+                "csdr fmdemod_quadri_cf",
+                "dc_block "
+            ]
             chain += last_decimation_block
             # dsd modes
             if which in [ "dstar", "nxdn" ]:
-                chain += "csdr limit_ff | csdr convert_f_s16 | "
+                chain += [
+                    "csdr limit_ff",
+                    "csdr convert_f_s16"
+                ]
                 if which == "dstar":
-                    chain += "dsd -fd"
+                    chain += ["dsd -fd -i - -o - -u {unvoiced_quality} -g -1 "]
                 elif which == "nxdn":
-                    chain += "dsd -fi"
-                chain += " -i - -o - -u {unvoiced_quality} -g -1 | CSDR_FIXED_BUFSIZE=32 csdr convert_s16_f | "
+                    chain += ["dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
+                chain += ["CSDR_FIXED_BUFSIZE=32 csdr convert_s16_f"]
                 max_gain = 5
             # digiham modes
             else:
-                chain += "rrc_filter | gfsk_demodulator | "
+                chain += [
+                    "rrc_filter",
+                    "gfsk_demodulator"
+                ]
                 if which == "dmr":
-                    chain += "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe} | mbe_synthesizer -f -u {unvoiced_quality} | "
+                    chain += [
+                        "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe}",
+                        "mbe_synthesizer -f -u {unvoiced_quality}"
+                    ]
                 elif which == "ysf":
-                    chain += "ysf_decoder --fifo {meta_pipe} | mbe_synthesizer -y -f -u {unvoiced_quality} | "
+                    chain += [
+                        "ysf_decoder --fifo {meta_pipe}",
+                        "mbe_synthesizer -y -f -u {unvoiced_quality}"
+                    ]
                 max_gain = 0.0005
-            chain += "digitalvoice_filter -f | "
-            chain += "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 {max_gain} | ".format(max_gain=max_gain)
-            chain += "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+            chain += [
+                "digitalvoice_filter -f",
+                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 {max_gain}".format(max_gain=max_gain),
+                "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+            ]
         elif which == "am":
-            chain += "csdr amdemod_cf | csdr fastdcblock_ff | "
+            chain += [
+                "csdr amdemod_cf",
+                "csdr fastdcblock_ff"
+            ]
             chain += last_decimation_block
-            chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
+            chain += [
+                "csdr agc_ff",
+                "csdr limit_ff",
+                "csdr convert_f_s16"
+            ]
         elif which == "ssb":
-            chain += "csdr realpart_cf | "
+            chain += ["csdr realpart_cf"]
             chain += last_decimation_block
-            chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
+            chain += [
+                "csdr agc_ff",
+                "csdr limit_ff",
+                "csdr convert_f_s16"
+            ]
 
         if self.audio_compression=="adpcm":
-            chain += " | csdr encode_ima_adpcm_i16_u8"
+            chain += ["csdr encode_ima_adpcm_i16_u8"]
         return chain
 
     def secondary_chain(self, which):
@@ -402,7 +443,8 @@ class dsp(object):
             return
         self.running = True
 
-        command_base=self.chain(self.demodulator)
+        command_base = " | ".join(self.chain(self.demodulator))
+        logger.debug(command_base)
 
         #create control pipes for csdr
         self.pipe_base_path="/tmp/openwebrx_pipe_{myid}_".format(myid=id(self))
