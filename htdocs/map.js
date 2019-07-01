@@ -26,10 +26,8 @@
             if (update.location.type != 'latlon') return;
             var pos = new google.maps.LatLng(update.location.lat, update.location.lon)
             if (markers[update.callsign]) {
-                console.info("updating");
                 markers[update.callsign].setPosition(pos);
             } else {
-                console.info("initializing");
                 markers[update.callsign] = new google.maps.Marker({
                     position: pos,
                     map: map,
