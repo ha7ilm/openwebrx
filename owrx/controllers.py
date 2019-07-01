@@ -79,6 +79,10 @@ class IndexController(AssetsController):
     def handle_request(self):
         self.serve_file("index.html", content_type = "text/html")
 
+class MapController(AssetsController):
+    def handle_request(self):
+        self.serve_file("map.html", content_type = "text/html")
+
 class WebSocketController(Controller):
     def handle_request(self):
         conn = WebSocketConnection(self.handler, WebSocketMessageHandler())
