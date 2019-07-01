@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 import logging
 import threading
+from owrx.map import Map, LatLngLocation
 
 logger = logging.getLogger(__name__)
 
@@ -14,18 +15,22 @@ class DmrCache(object):
         if DmrCache.sharedInstance is None:
             DmrCache.sharedInstance = DmrCache()
         return DmrCache.sharedInstance
+
     def __init__(self):
         self.cache = {}
         self.cacheTimeout = timedelta(seconds = 86400)
+
     def isValid(self, key):
         if not key in self.cache: return False
         entry = self.cache[key]
         return entry["timestamp"] + self.cacheTimeout > datetime.now()
+
     def put(self, key, value):
         self.cache[key] = {
             "timestamp": datetime.now(),
             "data": value
         }
+
     def get(self, key):
         if not self.isValid(key): return None
         return self.cache[key]["data"]
@@ -34,6 +39,7 @@ class DmrCache(object):
 class DmrMetaEnricher(object):
     def __init__(self):
         self.threads = {}
+
     def downloadRadioIdData(self, id):
         cache = DmrCache.getSharedInstance()
         try:
@@ -44,6 +50,7 @@ class DmrMetaEnricher(object):
         except json.JSONDecodeError:
             cache.put(id, None)
         del self.threads[id]
+
     def enrich(self, meta):
         if not PropertyManager.getSharedInstance()["digital_voice_dmr_id_lookup"]: return None
         if not "source" in meta: return None
@@ -60,9 +67,18 @@ class DmrMetaEnricher(object):
         return None
 
 
+class YsfMetaEnricher(object):
+    def enrich(self, meta):
+        if "source" in meta and "lat" in meta and "lon" in meta:
+            # TODO parsing the float values should probably happen earlier
+            Map.getSharedInstance().updateLocation(meta["source"], LatLngLocation(float(meta["lat"]), float(meta["lon"])))
+        return None
+
+
 class MetaParser(object):
     enrichers = {
-        "DMR": DmrMetaEnricher()
+        "DMR": DmrMetaEnricher(),
+        "YSF": YsfMetaEnricher()
     }
 
     def __init__(self, handler):

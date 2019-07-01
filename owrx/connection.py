@@ -3,9 +3,11 @@ from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
 import json
+from owrx.map import Map
 
 import logging
 logger = logging.getLogger(__name__)
+
 
 class Client(object):
     def __init__(self, conn):
@@ -165,9 +167,17 @@ class MapConnection(Client):
         pm = PropertyManager.getSharedInstance()
         self.write_config(pm.collect("google_maps_api_key", "receiver_gps").__dict__())
 
+        Map.getSharedInstance().addClient(self)
+
+    def close(self):
+        Map.getSharedInstance().removeClient(self)
+        super().close()
+
     def write_config(self, cfg):
         self.protected_send({"type":"config","value":cfg})
 
+    def write_update(self, update):
+        self.protected_send({"type":"update","value":update})
 
 class WebSocketMessageHandler(object):
     def __init__(self):
