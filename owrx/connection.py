@@ -1,12 +1,13 @@
 from owrx.config import PropertyManager
 from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
 from owrx.feature import FeatureDetector
+from owrx.version import openwebrx_version
 import json
 
 import logging
 logger = logging.getLogger(__name__)
 
-class OpenWebRxClient(object):
+class OpenWebRxReceiverClient(object):
     config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
                    "waterfall_auto_level_margin", "lfo_offset", "samp_rate", "fft_size", "fft_fps",
                    "audio_compression", "fft_compression", "max_clients", "start_mod",
@@ -53,10 +54,10 @@ class OpenWebRxClient(object):
         self.sdr = next
 
         # send initial config
-        configProps = self.sdr.getProps().collect(*OpenWebRxClient.config_keys).defaults(PropertyManager.getSharedInstance())
+        configProps = self.sdr.getProps().collect(*OpenWebRxReceiverClient.config_keys).defaults(PropertyManager.getSharedInstance())
 
         def sendConfig(key, value):
-            config = dict((key, configProps[key]) for key in OpenWebRxClient.config_keys)
+            config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
             # TODO mathematical properties? hmmmm
             config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
             self.write_config(config)
@@ -143,11 +144,18 @@ class WebSocketMessageHandler(object):
 
     def handleTextMessage(self, conn, message):
         if (message[:16] == "SERVER DE CLIENT"):
-            # maybe put some more info in there? nothing to store yet.
-            self.handshake = "completed"
+            meta = message[17:].split(" ")
+            self.handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
+
+            conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version = openwebrx_version))
             logger.debug("client connection intitialized")
 
-            self.client = OpenWebRxClient(conn)
+            if "type" in self.handshake:
+                if self.handshake["type"] == "receiver":
+                    self.client = OpenWebRxReceiverClient(conn)
+            # backwards compatibility
+            else:
+                self.client = OpenWebRxReceiverClient(conn)
 
             return
 

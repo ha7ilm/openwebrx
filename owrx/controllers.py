@@ -82,6 +82,5 @@ class IndexController(AssetsController):
 class WebSocketController(Controller):
     def handle_request(self):
         conn = WebSocketConnection(self.handler, WebSocketMessageHandler())
-        conn.send("CLIENT DE SERVER openwebrx.py")
         # enter read loop
         conn.read_loop()

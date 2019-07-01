@@ -1431,7 +1431,7 @@ function waterfall_dequeue()
 
 function on_ws_opened()
 {
-	ws.send("SERVER DE CLIENT openwebrx.js");
+	ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
 	divlog("WebSocket opened to "+ws_url);
 }
 
