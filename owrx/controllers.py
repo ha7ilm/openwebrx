@@ -81,6 +81,7 @@ class IndexController(AssetsController):
 
 class MapController(AssetsController):
     def handle_request(self):
+        #TODO check if we have a google maps api key first?
         self.serve_file("map.html", content_type = "text/html")
 
 class WebSocketController(Controller):

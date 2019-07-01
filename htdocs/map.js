@@ -9,11 +9,38 @@
 
     var ws = new WebSocket(ws_url);
     ws.onopen = function(){
-        console.info("onopen");
         ws.send("SERVER DE CLIENT client=map.js type=map");
     };
-    ws.onmessage = function(){
-        console.info("onmessage");
+
+    ws.onmessage = function(e){
+        if (typeof e.data != 'string') {
+            console.error("unsupported binary data on websocket; ignoring");
+            return
+        }
+		if (e.data.substr(0, 16) == "CLIENT DE SERVER") {
+		    console.log("Server acknowledged WebSocket connection.");
+		    return
+		}
+        try {
+            json = JSON.parse(e.data);
+            switch (json.type) {
+                case "config":
+                    var config = json.value;
+                    $.getScript("https://maps.googleapis.com/maps/api/js?key=" + config.google_maps_api_key).done(function(){
+                        var map = new google.maps.Map($('body')[0], {
+                            center: {
+                                lat: config.receiver_gps[0],
+                                lng: config.receiver_gps[1]
+                            },
+                            zoom: 8
+                        });
+                    })
+                break
+            }
+        } catch (e) {
+            // don't lose exception
+            console.error(e);
+        }
     };
     ws.onclose = function(){
         console.info("onclose");

@@ -7,14 +7,33 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 
-class OpenWebRxReceiverClient(object):
+class Client(object):
+    def __init__(self, conn):
+        self.conn = conn
+
+    def protected_send(self, data):
+        try:
+            self.conn.send(data)
+        # these exception happen when the socket is closed
+        except OSError:
+            self.close()
+        except ValueError:
+            self.close()
+
+    def close(self):
+        self.conn.close()
+        logger.debug("connection closed")
+
+
+class OpenWebRxReceiverClient(Client):
     config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
                    "waterfall_auto_level_margin", "lfo_offset", "samp_rate", "fft_size", "fft_fps",
                    "audio_compression", "fft_compression", "max_clients", "start_mod",
                    "client_audio_buffer_size", "start_freq", "center_freq", "mathbox_waterfall_colors",
                    "mathbox_waterfall_history_length", "mathbox_waterfall_frequency_resolution"]
+
     def __init__(self, conn):
-        self.conn = conn
+        super().__init__(conn)
 
         self.dsp = None
         self.sdr = None
@@ -79,8 +98,7 @@ class OpenWebRxReceiverClient(object):
         if self.configSub is not None:
             self.configSub.cancel()
             self.configSub = None
-        self.conn.close()
-        logger.debug("connection closed")
+        super().close()
 
     def stopDsp(self):
         if self.dsp is not None:
@@ -100,41 +118,56 @@ class OpenWebRxReceiverClient(object):
         for key, value in params.items():
             self.dsp.setProperty(key, value)
 
-    def protected_send(self, data):
-        try:
-            self.conn.send(data)
-        # these exception happen when the socket is closed
-        except OSError:
-            self.close()
-        except ValueError:
-            self.close()
-
     def write_spectrum_data(self, data):
         self.protected_send(bytes([0x01]) + data)
+
     def write_dsp_data(self, data):
         self.protected_send(bytes([0x02]) + data)
+
     def write_s_meter_level(self, level):
         self.protected_send({"type":"smeter","value":level})
+
     def write_cpu_usage(self, usage):
         self.protected_send({"type":"cpuusage","value":usage})
+
     def write_clients(self, clients):
         self.protected_send({"type":"clients","value":clients})
+
     def write_secondary_fft(self, data):
         self.protected_send(bytes([0x03]) + data)
+
     def write_secondary_demod(self, data):
         self.protected_send(bytes([0x04]) + data)
+
     def write_secondary_dsp_config(self, cfg):
         self.protected_send({"type":"secondary_config", "value":cfg})
+
     def write_config(self, cfg):
         self.protected_send({"type":"config","value":cfg})
+
     def write_receiver_details(self, details):
         self.protected_send({"type":"receiver_details","value":details})
+
     def write_profiles(self, profiles):
         self.protected_send({"type":"profiles","value":profiles})
+
     def write_features(self, features):
         self.protected_send({"type":"features","value":features})
+
     def write_metadata(self, metadata):
         self.protected_send({"type":"metadata","value":metadata})
+
+
+class MapConnection(Client):
+    def __init__(self, conn):
+        super().__init__(conn)
+
+        pm = PropertyManager.getSharedInstance()
+        self.write_config(pm.collect("google_maps_api_key", "receiver_gps").__dict__())
+
+    def write_config(self, cfg):
+        self.protected_send({"type":"config","value":cfg})
+
 
 class WebSocketMessageHandler(object):
     def __init__(self):
@@ -153,6 +186,8 @@ class WebSocketMessageHandler(object):
             if "type" in self.handshake:
                 if self.handshake["type"] == "receiver":
                     self.client = OpenWebRxReceiverClient(conn)
+                if self.handshake["type"] == "map":
+                    self.client = MapConnection(conn)
             # backwards compatibility
             else:
                 self.client = OpenWebRxReceiverClient(conn)
