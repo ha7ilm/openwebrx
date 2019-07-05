@@ -1,4 +1,4 @@
-from owrx.controllers import StatusController, IndexController, AssetsController, WebSocketController, MapController
+from owrx.controllers import StatusController, IndexController, AssetsController, WebSocketController, MapController, FeatureController, ApiController
 from http.server import BaseHTTPRequestHandler
 import re
 
@@ -21,7 +21,9 @@ class Router(object):
         {"regex": "(/favicon.ico)", "controller": AssetsController},
         # backwards compatibility for the sdr.hu portal
         {"regex": "/(gfx/openwebrx-avatar.png)", "controller": AssetsController},
-        {"route": "/map", "controller": MapController}
+        {"route": "/map", "controller": MapController},
+        {"route": "/features", "controller": FeatureController},
+        {"route": "/api/features", "controller": ApiController}
     ]
     def find_controller(self, path):
         for m in Router.mappings:

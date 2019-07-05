@@ -1,11 +1,13 @@
 import os
 import mimetypes
+import json
 from datetime import datetime
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
 from owrx.source import ClientRegistry
 from owrx.connection import WebSocketMessageHandler
 from owrx.version import openwebrx_version
+from owrx.feature import FeatureDetector
 
 import logging
 logger = logging.getLogger(__name__)
@@ -26,12 +28,7 @@ class Controller(object):
         if (type(content) == str):
             content = content.encode()
         self.handler.wfile.write(content)
-    def render_template(self, template, **variables):
-        f = open('htdocs/' + template)
-        data = f.read()
-        f.close()
 
-        self.send_response(data)
 
 class StatusController(Controller):
     def handle_request(self):
@@ -77,12 +74,21 @@ class AssetsController(Controller):
 
 class IndexController(AssetsController):
     def handle_request(self):
-        self.serve_file("index.html", content_type = "text/html")
+        self.serve_file("index.html")
 
 class MapController(AssetsController):
     def handle_request(self):
         #TODO check if we have a google maps api key first?
-        self.serve_file("map.html", content_type = "text/html")
+        self.serve_file("map.html")
+
+class FeatureController(AssetsController):
+    def handle_request(self):
+        self.serve_file("features.html")
+
+class ApiController(Controller):
+    def handle_request(self):
+        data = json.dumps(FeatureDetector().feature_report())
+        self.send_response(data, content_type = "application/json")
 
 class WebSocketController(Controller):
     def handle_request(self):

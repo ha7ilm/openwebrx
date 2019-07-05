@@ -26,6 +26,11 @@ class FeatureDetector(object):
     def feature_availability(self):
         return {name: self.is_available(name) for name in FeatureDetector.features}
 
+    def feature_report(self):
+        def feature_details(name):
+            return self.get_requirements(name)
+        return {name: feature_details(name) for name in FeatureDetector.features}
+
     def is_available(self, feature):
         return self.has_requirements(self.get_requirements(feature))
 
