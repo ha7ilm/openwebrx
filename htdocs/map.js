@@ -58,7 +58,7 @@
                 case 'locator':
                     var loc = update.location.locator;
                     var lat = (loc.charCodeAt(1) - 65 - 9) * 10 + Number(loc[3]);
-                    var lon = (loc.charCodeAt(0) - 65 - 9) * 20 + Number(loc[2]);
+                    var lon = (loc.charCodeAt(0) - 65 - 9) * 20 + Number(loc[2]) * 2;
                     var rectangle;
                     if (rectangles[update.callsign]) {
                         rectangle = rectangles[update.callsign];
@@ -77,7 +77,7 @@
                             north: lat,
                             south: lat + 1,
                             west: lon,
-                            east: lon + 1
+                            east: lon + 2
                         }
                     });
                 break;
