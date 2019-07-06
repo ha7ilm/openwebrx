@@ -263,6 +263,7 @@ class dsp(object):
         if self.get_secondary_demodulator() == "ft8":
             chopper = Ft8Chopper(self.secondary_process_demod.stdout)
             chopper.start()
+            self.output.add_output("wsjt_demod", chopper.read)
         else:
             self.output.add_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
 

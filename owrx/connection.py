@@ -159,6 +159,9 @@ class OpenWebRxReceiverClient(Client):
     def write_metadata(self, metadata):
         self.protected_send({"type":"metadata","value":metadata})
 
+    def write_wsjt_message(self, message):
+        self.protected_send({"type": "wsjt_message", "value": message})
+
 
 class MapConnection(Client):
     def __init__(self, conn):
