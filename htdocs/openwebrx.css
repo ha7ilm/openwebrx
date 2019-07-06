@@ -656,6 +656,11 @@ img.openwebrx-mirror-img
 	cursor:pointer;
 }
 
+#openwebrx-main-buttons a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
 #openwebrx-main-buttons li:hover
 {
 	background-color: rgba(255, 255, 255, 0.3);
