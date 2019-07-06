@@ -1352,7 +1352,7 @@ function update_metadata(meta) {
                 mode = "Mode: " + meta.mode;
                 source = meta.source || "";
                 if (meta.lat && meta.lon) {
-                    source = "<a class=\"openwebrx-maps-pin\" href=\"https://www.google.com/maps/search/?api=1&query=" + meta.lat + "," + meta.lon + "\" target=\"_blank\"></a>" + source;
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"/map\"></a>" + source;
                 }
                 up = meta.up ? "Up: " + meta.up : "";
                 down = meta.down ? "Down: " + meta.down : "";
