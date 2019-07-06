@@ -1351,8 +1351,8 @@ function update_metadata(meta) {
             if (meta.mode && meta.mode != "") {
                 mode = "Mode: " + meta.mode;
                 source = meta.source || "";
-                if (meta.lat && meta.lon) {
-                    source = "<a class=\"openwebrx-maps-pin\" href=\"/map\"></a>" + source;
+                if (meta.lat && meta.lon && meta.source) {
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"/map?callsign=" + meta.source + "\" target=\"_blank\"></a>" + source;
                 }
                 up = meta.up ? "Up: " + meta.up : "";
                 down = meta.down ? "Down: " + meta.down : "";

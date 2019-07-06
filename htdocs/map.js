@@ -4,6 +4,18 @@
         protocol = 'wss';
     }
 
+    var query = window.location.search.replace(/^\?/, '').split('&').map(function(v){
+        var s = v.split('=');
+        r = {}
+        r[s[0]] = s.slice(1).join('=')
+        return r;
+    }).reduce(function(a, b){
+        return a.assign(b);
+    });
+
+    var expectedCallsign;
+    if (query.callsign) expectedCallsign = query.callsign;
+
     var ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/";
     if (!("WebSocket" in window)) return;
 
@@ -33,6 +45,12 @@
                     map: map,
                     title: update.callsign
                 });
+            }
+
+            // TODO the trim should happen on the server side
+            if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
+                map.panTo(pos);
+                delete(expectedCallsign);
             }
         });
     }
