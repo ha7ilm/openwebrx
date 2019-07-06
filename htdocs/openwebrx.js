@@ -1245,6 +1245,22 @@ function on_ws_recv(evt)
 					case "metadata":
 						update_metadata(json.value);
 					break;
+					case "wsjt_message":
+					    var msg = json.value;
+					    var $b = $('#openwebrx-panel-wsjt-message tbody');
+					    var t = new Date(msg['timestamp'] * 1000);
+					    var pad = function(i) { return ('' + i).padStart(2, "0"); }
+					    $b.append($(
+					        '<tr>' +
+					            '<td>' + pad(t.getHours()) + pad(t.getMinutes()) + pad(t.getSeconds()) + '</td>' +
+					            '<td>' + msg['db'] + '</td>' +
+					            '<td>' + msg['dt'] + '</td>' +
+					            '<td>' + msg['freq'] + '</td>' +
+					            '<td class="message">' + msg['msg'] + '</td>' +
+					        '</tr>'
+                        ));
+                        $b.scrollTop($b[0].scrollHeight);
+					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }

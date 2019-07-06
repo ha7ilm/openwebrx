@@ -1018,3 +1018,30 @@ img.openwebrx-mirror-img
     background-size: contain;
     display: inline-block;
 }
+
+#openwebrx-panel-wsjt-message {
+    height: 180px;
+}
+
+#openwebrx-panel-wsjt-message tbody  {
+    display: block;
+    overflow: auto;
+    height: 150px;
+    width: 100%;
+}
+
+#openwebrx-panel-wsjt-message thead tr {
+    display: block;
+}
+
+#openwebrx-panel-wsjt-message th,
+#openwebrx-panel-wsjt-message td {
+    width: 50px;
+    text-align: left;
+}
+
+#openwebrx-panel-wsjt-message .message {
+    width: 400px;
+}
+
+
