@@ -26,6 +26,7 @@
 
     var map;
     var markers = {};
+    var rectangles = {};
     var updateQueue = [];
 
     var processUpdates = function(updates) {
@@ -34,23 +35,52 @@
             return;
         }
         updates.forEach(function(update){
-            // TODO maidenhead locator implementation
-            if (update.location.type != 'latlon') return;
-            var pos = new google.maps.LatLng(update.location.lat, update.location.lon)
-            if (markers[update.callsign]) {
-                markers[update.callsign].setPosition(pos);
-            } else {
-                markers[update.callsign] = new google.maps.Marker({
-                    position: pos,
-                    map: map,
-                    title: update.callsign
-                });
-            }
 
-            // TODO the trim should happen on the server side
-            if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
-                map.panTo(pos);
-                delete(expectedCallsign);
+            switch (update.location.type) {
+                case 'latlon':
+                    var pos = new google.maps.LatLng(update.location.lat, update.location.lon)
+                    if (markers[update.callsign]) {
+                        markers[update.callsign].setPosition(pos);
+                    } else {
+                        markers[update.callsign] = new google.maps.Marker({
+                            position: pos,
+                            map: map,
+                            title: update.callsign
+                        });
+                    }
+
+                    // TODO the trim should happen on the server side
+                    if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
+                        map.panTo(pos);
+                        delete(expectedCallsign);
+                    }
+                break;
+                case 'locator':
+                    var loc = update.location.locator;
+                    var lat = (loc.charCodeAt(1) - 65 - 9) * 10 + Number(loc[3]);
+                    var lon = (loc.charCodeAt(0) - 65 - 9) * 20 + Number(loc[2]);
+                    var rectangle;
+                    if (rectangles[update.callsign]) {
+                        rectangle = rectangles[update.callsign];
+                    } else {
+                        rectangle = new google.maps.Rectangle();
+                        rectangles[update.callsign] = rectangle;
+                    }
+                    rectangle.setOptions({
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#FF0000',
+                        fillOpacity: 0.35,
+                        map: map,
+                        bounds:{
+                            north: lat,
+                            south: lat + 1,
+                            west: lon,
+                            east: lon + 1
+                        }
+                    });
+                break;
             }
         });
     }
