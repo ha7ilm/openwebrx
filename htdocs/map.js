@@ -108,6 +108,10 @@
                             zoom: 8
                         });
                         processUpdates(updateQueue);
+                        $.getScript("/static/nite-overlay.js").done(function(){
+                            nite.init(map);
+                            setInterval(function() { nite.refresh() }, 10000); // every 10s
+                        });
                     })
                 break
                 case "update":
