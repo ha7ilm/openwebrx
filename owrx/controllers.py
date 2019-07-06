@@ -13,9 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Controller(object):
-    def __init__(self, handler, matches):
+    def __init__(self, handler, request):
         self.handler = handler
-        self.matches = matches
+        self.request = request
     def send_response(self, content, code = 200, content_type = "text/html", last_modified: datetime = None, max_age = None):
         self.handler.send_response(code)
         if content_type is not None:
@@ -69,7 +69,7 @@ class AssetsController(Controller):
         except FileNotFoundError:
             self.send_response("file not found", code = 404)
     def handle_request(self):
-        filename = self.matches.group(1)
+        filename = self.request.matches.group(1)
         self.serve_file(filename)
 
 class IndexController(AssetsController):
