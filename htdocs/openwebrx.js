@@ -1252,7 +1252,7 @@ function on_ws_recv(evt)
 					    var pad = function(i) { return ('' + i).padStart(2, "0"); }
 					    $b.append($(
 					        '<tr>' +
-					            '<td>' + pad(t.getHours()) + pad(t.getMinutes()) + pad(t.getSeconds()) + '</td>' +
+					            '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
 					            '<td>' + msg['db'] + '</td>' +
 					            '<td>' + msg['dt'] + '</td>' +
 					            '<td>' + msg['freq'] + '</td>' +
