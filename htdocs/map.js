@@ -105,7 +105,7 @@
                                 lat: config.receiver_gps[0],
                                 lng: config.receiver_gps[1]
                             },
-                            zoom: 8
+                            zoom: 5
                         });
                         processUpdates(updateQueue);
                         $.getScript("/static/nite-overlay.js").done(function(){
