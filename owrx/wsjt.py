@@ -6,6 +6,8 @@ import sched
 import subprocess
 import os
 from multiprocessing.connection import Pipe
+from owrx.map import Map, LocatorLocation
+import re
 
 import logging
 logger = logging.getLogger(__name__)
@@ -106,6 +108,7 @@ class Ft8Chopper(threading.Thread):
 class WsjtParser(object):
     def __init__(self, handler):
         self.handler = handler
+        self.locator_pattern = re.compile(".*\s([A-Z0-9]+)\s([A-R]{2}[0-9]{2})$")
 
     def parse(self, data):
         try:
@@ -122,8 +125,20 @@ class WsjtParser(object):
             out["db"] = float(msg[7:10])
             out["dt"] = float(msg[11:15])
             out["freq"] = int(msg[16:20])
-            out["msg"] = msg[24:]
+            wsjt_msg = msg[24:]
+            self.getLocator(wsjt_msg)
+            out["msg"] = wsjt_msg
 
             self.handler.write_wsjt_message(out)
         except ValueError:
             logger.exception("error while parsing wsjt message")
+
+    def getLocator(self, msg):
+        m = self.locator_pattern.match(msg)
+        if m is None:
+            return
+        # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
+        # likely this just means roger roger goodbye.
+        if m.group(2) == "RR73":
+            return
+        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)))
