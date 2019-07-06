@@ -21,11 +21,11 @@ OpenWebRX csdr plugin: do the signal processing with csdr
 """
 
 import subprocess
-import time
 import os
 import signal
 import threading
 from functools import partial
+from owrx.wsjt import Ft8Chopper
 
 import logging
 logger = logging.getLogger(__name__)
@@ -186,6 +186,12 @@ class dsp(object):
                     "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
+        elif which == "ft8":
+            chain =  secondary_chain_base + "csdr realpart_cf | "
+            if self.last_decimation != 1.0 :
+                chain += "csdr fractional_decimator_ff {last_decimation} | "
+            chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
+            return chain
 
     def set_secondary_demodulator(self, what):
         if self.get_secondary_demodulator() == what:
@@ -238,7 +244,8 @@ class dsp(object):
             secondary_samples_per_bits=self.secondary_samples_per_bits(),
             secondary_bpf_cutoff=self.secondary_bpf_cutoff(),
             secondary_bpf_transition_bw=self.secondary_bpf_transition_bw(),
-            if_samp_rate=self.if_samp_rate()
+            if_samp_rate=self.if_samp_rate(),
+            last_decimation=self.last_decimation
             )
 
         logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (fft) = %s", secondary_command_fft)
@@ -253,7 +260,11 @@ class dsp(object):
         self.secondary_processes_running = True
 
         self.output.add_output("secondary_fft", partial(self.secondary_process_fft.stdout.read, int(self.get_secondary_fft_bytes_to_read())))
-        self.output.add_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
+        if self.get_secondary_demodulator() == "ft8":
+            chopper = Ft8Chopper(self.secondary_process_demod.stdout)
+            chopper.start()
+        else:
+            self.output.add_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
 
         #open control pipes for csdr and send initialization data
         if self.secondary_shift_pipe != None: #TODO digimodes
@@ -262,7 +273,7 @@ class dsp(object):
 
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq=value
-        if self.secondary_processes_running:
+        if self.secondary_processes_running and hasattr(self, "secondary_shift_pipe_file"):
             self.secondary_shift_pipe_file.write("%g\n"%(-float(self.secondary_offset_freq)/self.if_samp_rate()))
             self.secondary_shift_pipe_file.flush()
 
@@ -332,6 +343,8 @@ class dsp(object):
     def get_audio_rate(self):
         if self.isDigitalVoice():
             return 48000
+        elif self.secondary_demodulator == "ft8":
+            return 12000
         return self.get_output_rate()
 
     def isDigitalVoice(self, demodulator = None):

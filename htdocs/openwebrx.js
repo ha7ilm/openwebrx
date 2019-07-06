@@ -2633,6 +2633,7 @@ function demodulator_digital_replace(subtype)
     {
     case "bpsk31":
     case "rtty":
+    case "ft8":
         secondary_demod_start(subtype);
         demodulator_analog_replace('usb', true);
         demodulator_buttons_update();
@@ -2808,6 +2809,9 @@ function secondary_demod_listbox_changed()
             break;
         case "rtty":
             demodulator_digital_replace('rtty');
+            break;
+        case "ft8":
+            demodulator_digital_replace('ft8');
             break;
     }
 }
