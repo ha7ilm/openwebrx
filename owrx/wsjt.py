@@ -125,7 +125,7 @@ class WsjtParser(object):
             out["db"] = float(msg[7:10])
             out["dt"] = float(msg[11:15])
             out["freq"] = int(msg[16:20])
-            wsjt_msg = msg[24:61].strip()
+            wsjt_msg = msg[24:60].strip()
             self.getLocator(wsjt_msg)
             out["msg"] = wsjt_msg
 
