@@ -230,3 +230,10 @@ csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr proces
 csdr_through = False # Setting this True will print out how much data is going into the DSP chains.
 
 nmux_memory = 50 #in megabytes. This sets the approximate size of the circular buffer used by nmux.
+
+google_maps_api_key = ""
+
+# how long should positions be visible on the map?
+# they will start fading out after half of that
+# in seconds; default: 2 hours
+map_position_retention_time = 2 * 60 * 60

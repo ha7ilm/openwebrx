@@ -1,4 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import threading, time
+from owrx.config import PropertyManager
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Location(object):
@@ -17,6 +22,16 @@ class Map(object):
     def __init__(self):
         self.clients = []
         self.positions = {}
+
+        def removeLoop():
+            while True:
+                try:
+                    self.removeOldPositions()
+                except Exception:
+                    logger.exception("error while removing old map positions")
+                time.sleep(60)
+
+        threading.Thread(target=removeLoop, daemon=True).start()
         super().__init__()
 
     def broadcast(self, update):
@@ -25,7 +40,14 @@ class Map(object):
 
     def addClient(self, client):
         self.clients.append(client)
-        client.write_update([{"callsign": callsign, "location": record["loc"].__dict__()} for (callsign, record) in self.positions.items()])
+        client.write_update([
+            {
+                "callsign": callsign,
+                "location": record["location"].__dict__(),
+                "lastseen": record["updated"].timestamp() * 1000
+            }
+            for (callsign, record) in self.positions.items()
+        ])
 
     def removeClient(self, client):
         try:
@@ -34,9 +56,28 @@ class Map(object):
             pass
 
     def updateLocation(self, callsign, loc: Location):
-        self.positions[callsign] = {"loc": loc, "updated": datetime.now()}
-        self.broadcast([{"callsign": callsign, "location": loc.__dict__()}])
+        ts = datetime.now()
+        self.positions[callsign] = {"location": loc, "updated": ts}
+        self.broadcast([
+            {
+                "callsign": callsign,
+                "location": loc.__dict__(),
+                "lastseen": ts.timestamp() * 1000
+            }
+        ])
 
+    def removeLocation(self, callsign):
+        self.positions.pop(callsign, None)
+        # TODO broadcast removal to clients
+
+    def removeOldPositions(self):
+        pm = PropertyManager.getSharedInstance()
+        retention = timedelta(seconds=pm["map_position_retention_time"])
+        cutoff = datetime.now() - retention
+
+        to_be_removed = [callsign for (callsign, pos) in self.positions.items() if pos["updated"] < cutoff]
+        for callsign in to_be_removed:
+            self.removeLocation(callsign)
 
 class LatLngLocation(Location):
     def __init__(self, lat: float, lon: float):
