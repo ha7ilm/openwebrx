@@ -1379,13 +1379,14 @@ function update_wsjt_panel(msg) {
     var $b = $('#openwebrx-panel-wsjt-message tbody');
     var t = new Date(msg['timestamp']);
     var pad = function(i) { return ('' + i).padStart(2, "0"); }
+    var linkedmsg = msg['msg'].replace(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/, '$1<a href="/map?locator=$2" target="_blank">$2</a>');
     $b.append($(
         '<tr data-timestamp="' + msg['timestamp'] + '">' +
             '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
             '<td>' + msg['db'] + '</td>' +
             '<td>' + msg['dt'] + '</td>' +
             '<td>' + msg['freq'] + '</td>' +
-            '<td class="message">' + msg['msg'] + '</td>' +
+            '<td class="message">' + linkedmsg + '</td>' +
         '</tr>'
     ));
     $b.scrollTop($b[0].scrollHeight);
