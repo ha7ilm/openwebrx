@@ -1246,20 +1246,7 @@ function on_ws_recv(evt)
 						update_metadata(json.value);
 					break;
 					case "wsjt_message":
-					    var msg = json.value;
-					    var $b = $('#openwebrx-panel-wsjt-message tbody');
-					    var t = new Date(msg['timestamp']);
-					    var pad = function(i) { return ('' + i).padStart(2, "0"); }
-					    $b.append($(
-					        '<tr>' +
-					            '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
-					            '<td>' + msg['db'] + '</td>' +
-					            '<td>' + msg['dt'] + '</td>' +
-					            '<td>' + msg['freq'] + '</td>' +
-					            '<td class="message">' + msg['msg'] + '</td>' +
-					        '</tr>'
-                        ));
-                        $b.scrollTop($b[0].scrollHeight);
+					    update_wsjt_panel(json.value);
 					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
@@ -1386,6 +1373,36 @@ function update_metadata(meta) {
         clear_metadata();
     }
 
+}
+
+function update_wsjt_panel(msg) {
+    var $b = $('#openwebrx-panel-wsjt-message tbody');
+    var t = new Date(msg['timestamp']);
+    var pad = function(i) { return ('' + i).padStart(2, "0"); }
+    $b.append($(
+        '<tr data-timestamp="' + msg['timestamp'] + '">' +
+            '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
+            '<td>' + msg['db'] + '</td>' +
+            '<td>' + msg['dt'] + '</td>' +
+            '<td>' + msg['freq'] + '</td>' +
+            '<td class="message">' + msg['msg'] + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
+}
+
+var wsjt_removal_interval;
+
+// remove old wsjt messages in fixed intervals
+function init_wsjt_removal_timer() {
+    if (wsjt_removal_interval) clearInterval(wsjt_removal_interval);
+    setInterval(function(){
+        // let's keep 2 hours that should be plenty for most users
+        var cutoff = new Date().getTime()- 2 * 60 * 60 * 1000;
+        $('#openwebrx-panel-wsjt-message tbody tr').filter(function(_, e){
+            return $(e).data('timestamp') < cutoff;
+        }).remove();
+    }, 15000);
 }
 
 function hide_digitalvoice_panels() {
@@ -2717,6 +2734,7 @@ function secondary_demod_init()
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseout);
+    init_wsjt_removal_timer();
 }
 
 function secondary_demod_start(subtype) 
