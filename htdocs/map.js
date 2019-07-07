@@ -29,6 +29,11 @@
     var rectangles = {};
     var updateQueue = [];
 
+    // reasonable default; will be overriden by server
+    var retention_time = 2 * 60 * 60 * 1000;
+    strokeOpacity = 0.8;
+    fillOpacity = 0.35;
+
     var processUpdates = function(updates) {
         if (!map) {
             updateQueue = updateQueue.concat(updates);
@@ -39,15 +44,19 @@
             switch (update.location.type) {
                 case 'latlon':
                     var pos = new google.maps.LatLng(update.location.lat, update.location.lon)
+                    var marker;
                     if (markers[update.callsign]) {
-                        markers[update.callsign].setPosition(pos);
+                        marker = markers[update.callsign];
                     } else {
-                        markers[update.callsign] = new google.maps.Marker({
-                            position: pos,
-                            map: map,
-                            title: update.callsign
-                        });
+                        marker = new google.maps.Marker();
+                        markers[update.callsign] = marker;
                     }
+                    marker.setOptions($.extend({
+                        position: pos,
+                        map: map,
+                        title: update.callsign
+                    }, getMarkerOpacityOptions(update.lastseen) ));
+                    marker.lastseen = update.lastseen;
 
                     // TODO the trim should happen on the server side
                     if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
@@ -66,12 +75,10 @@
                         rectangle = new google.maps.Rectangle();
                         rectangles[update.callsign] = rectangle;
                     }
-                    rectangle.setOptions({
+                    rectangle.setOptions($.extend({
                         strokeColor: '#FF0000',
-                        strokeOpacity: 0.8,
                         strokeWeight: 2,
                         fillColor: '#FF0000',
-                        fillOpacity: 0.35,
                         map: map,
                         bounds:{
                             north: lat,
@@ -79,7 +86,8 @@
                             west: lon,
                             east: lon + 2
                         }
-                    });
+                    }, getRectangleOpacityOptions(update.lastseen) ));
+                    rectangle.lastseen = update.lastseen;
                 break;
             }
         });
@@ -112,7 +120,8 @@
                             nite.init(map);
                             setInterval(function() { nite.refresh() }, 10000); // every 10s
                         });
-                    })
+                    });
+                    retention_time = config.map_position_retention_time * 1000;
                 break
                 case "update":
                     processUpdates(json.value);
@@ -134,5 +143,52 @@
     ws.onerror = function(){
         console.info("onerror");
     };
+
+    var getScale = function(lastseen) {
+        var age = new Date().getTime() - lastseen;
+        var scale = 1;
+        if (age >= retention_time / 2) {
+            scale = (retention_time - age) / (retention_time / 2);
+        }
+        return Math.max(0, Math.min(1, scale));
+    }
+
+    var getRectangleOpacityOptions = function(lastseen) {
+        var scale = getScale(lastseen);
+        return {
+            strokeOpacity: strokeOpacity * scale,
+            fillOpacity: fillOpacity * scale
+        };
+    }
+
+    var getMarkerOpacityOptions = function(lastseen) {
+        var scale = getScale(lastseen);
+        return {
+            opacity: scale
+        };
+    }
+
+    // fade out / remove positions after time
+    setInterval(function(){
+        var now = new Date().getTime();
+        $.each(rectangles, function(callsign, m) {
+            var age = now - m.lastseen;
+            if (age > retention_time) {
+                delete rectangles[callsign];
+                m.setMap();
+                return;
+            }
+            m.setOptions(getRectangleOpacityOptions(m.lastseen));
+        });
+        $.each(markers, function(callsign, m) {
+            var age = now - m.lastseen;
+            if (age > retention_time) {
+                delete markers[callsign];
+                m.setMap();
+                return;
+            }
+            m.setOptions(getMarkerOpacityOptions(m.lastseen));
+        });
+    }, 1000);
 
 })();

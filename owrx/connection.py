@@ -168,7 +168,7 @@ class MapConnection(Client):
         super().__init__(conn)
 
         pm = PropertyManager.getSharedInstance()
-        self.write_config(pm.collect("google_maps_api_key", "receiver_gps").__dict__())
+        self.write_config(pm.collect("google_maps_api_key", "receiver_gps", "map_position_retention_time").__dict__())
 
         Map.getSharedInstance().addClient(self)
 
