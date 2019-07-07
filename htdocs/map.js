@@ -15,6 +15,8 @@
 
     var expectedCallsign;
     if (query.callsign) expectedCallsign = query.callsign;
+    var expectedLocator;
+    if (query.locator) expectedLocator = query.locator;
 
     var ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/";
     if (!("WebSocket" in window)) return;
@@ -68,13 +70,15 @@
                     var loc = update.location.locator;
                     var lat = (loc.charCodeAt(1) - 65 - 9) * 10 + Number(loc[3]);
                     var lon = (loc.charCodeAt(0) - 65 - 9) * 20 + Number(loc[2]) * 2;
+                    var center = new google.maps.LatLng({lat: lat + .5, lng: lon + 1});
                     var rectangle;
                     if (rectangles[update.callsign]) {
                         rectangle = rectangles[update.callsign];
                     } else {
                         rectangle = new google.maps.Rectangle();
-                        var center = new google.maps.LatLng({lat: lat + .5, lng: lon + 1});
-                        rectangle.addListener('click', buildRectangleClick(update.location.locator, center));
+                        rectangle.addListener('click', function(){
+                            showInfoWindow(update.location.locator, center);
+                        });
                         rectangles[update.callsign] = rectangle;
                     }
                     rectangle.setOptions($.extend({
@@ -91,6 +95,12 @@
                     }, getRectangleOpacityOptions(update.lastseen) ));
                     rectangle.lastseen = update.lastseen;
                     rectangle.locator = update.location.locator;
+
+                    if (expectedLocator && expectedLocator == update.location.locator) {
+                        map.panTo(center);
+                        showInfoWindow(expectedLocator, center);
+                        delete(expectedLocator);
+                    }
                 break;
             }
         });
@@ -148,25 +158,22 @@
     };
 
     var infowindow;
-
-    var buildRectangleClick = function(locator, pos) {
+    var showInfoWindow = function(locator, pos) {
         if (!infowindow) infowindow = new google.maps.InfoWindow();
-        return function() {
-            var inLocator = $.map(rectangles, function(r, callsign) {
-                return {callsign: callsign, locator: r.locator}
-            }).filter(function(d) {
-                return d.locator == locator;
-            });
-            infowindow.setContent(
-                '<h3>Locator: ' + locator + '</h3>' +
-                '<div>Active Callsigns:</div>' +
-                '<ul>' +
-                    inLocator.map(function(i){ return '<li>' + i.callsign + '</li>' }).join("") +
-                '</ul>'
-            );
-            infowindow.setPosition(pos);
-            infowindow.open(map);
-        };
+        var inLocator = $.map(rectangles, function(r, callsign) {
+            return {callsign: callsign, locator: r.locator}
+        }).filter(function(d) {
+            return d.locator == locator;
+        });
+        infowindow.setContent(
+            '<h3>Locator: ' + locator + '</h3>' +
+            '<div>Active Callsigns:</div>' +
+            '<ul>' +
+                inLocator.map(function(i){ return '<li>' + i.callsign + '</li>' }).join("") +
+            '</ul>'
+        );
+        infowindow.setPosition(pos);
+        infowindow.open(map);
     }
 
     var getScale = function(lastseen) {
