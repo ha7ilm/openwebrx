@@ -121,7 +121,7 @@ class WsjtParser(object):
 
             out = {}
             ts = datetime.strptime(msg[0:6], "%H%M%S")
-            out["timestamp"] = datetime.combine(date.today(), ts.time(), datetime.now().tzinfo).timestamp()
+            out["timestamp"] = int(datetime.combine(date.today(), ts.time(), datetime.now().tzinfo).timestamp() * 1000)
             out["db"] = float(msg[7:10])
             out["dt"] = float(msg[11:15])
             out["freq"] = int(msg[16:20])

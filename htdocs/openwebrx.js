@@ -1248,7 +1248,7 @@ function on_ws_recv(evt)
 					case "wsjt_message":
 					    var msg = json.value;
 					    var $b = $('#openwebrx-panel-wsjt-message tbody');
-					    var t = new Date(msg['timestamp'] * 1000);
+					    var t = new Date(msg['timestamp']);
 					    var pad = function(i) { return ('' + i).padStart(2, "0"); }
 					    $b.append($(
 					        '<tr>' +
