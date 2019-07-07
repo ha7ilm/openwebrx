@@ -73,6 +73,8 @@
                         rectangle = rectangles[update.callsign];
                     } else {
                         rectangle = new google.maps.Rectangle();
+                        var center = new google.maps.LatLng({lat: lat + .5, lng: lon + 1});
+                        rectangle.addListener('click', buildRectangleClick(update.location.locator, center));
                         rectangles[update.callsign] = rectangle;
                     }
                     rectangle.setOptions($.extend({
@@ -88,6 +90,7 @@
                         }
                     }, getRectangleOpacityOptions(update.lastseen) ));
                     rectangle.lastseen = update.lastseen;
+                    rectangle.locator = update.location.locator;
                 break;
             }
         });
@@ -143,6 +146,28 @@
     ws.onerror = function(){
         console.info("onerror");
     };
+
+    var infowindow;
+
+    var buildRectangleClick = function(locator, pos) {
+        if (!infowindow) infowindow = new google.maps.InfoWindow();
+        return function() {
+            var inLocator = $.map(rectangles, function(r, callsign) {
+                return {callsign: callsign, locator: r.locator}
+            }).filter(function(d) {
+                return d.locator == locator;
+            });
+            infowindow.setContent(
+                '<h3>Locator: ' + locator + '</h3>' +
+                '<div>Active Callsigns:</div>' +
+                '<ul>' +
+                    inLocator.map(function(i){ return '<li>' + i.callsign + '</li>' }).join("") +
+                '</ul>'
+            );
+            infowindow.setPosition(pos);
+            infowindow.open(map);
+        };
+    }
 
     var getScale = function(lastseen) {
         var age = new Date().getTime() - lastseen;
