@@ -1058,3 +1058,7 @@ img.openwebrx-mirror-img
     height: 200px;
     margin: -10px;
 }
+
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-select-channel {
+    display: none;
+}
