@@ -129,7 +129,7 @@
                             zoom: 5
                         });
                         processUpdates(updateQueue);
-                        $.getScript("/static/nite-overlay.js").done(function(){
+                        $.getScript("/static/lib/nite-overlay.js").done(function(){
                             nite.init(map);
                             setInterval(function() { nite.refresh() }, 10000); // every 10s
                         });
@@ -161,7 +161,7 @@
     var showInfoWindow = function(locator, pos) {
         if (!infowindow) infowindow = new google.maps.InfoWindow();
         var inLocator = $.map(rectangles, function(r, callsign) {
-            return {callsign: callsign, locator: r.locator}
+            return {callsign: callsign, locator: r.locator, lastseen: r.lastseen}
         }).filter(function(d) {
             return d.locator == locator;
         });
@@ -169,7 +169,10 @@
             '<h3>Locator: ' + locator + '</h3>' +
             '<div>Active Callsigns:</div>' +
             '<ul>' +
-                inLocator.map(function(i){ return '<li>' + i.callsign + '</li>' }).join("") +
+                inLocator.map(function(i){
+                    var timestring = moment(i.lastseen).fromNow();
+                    return '<li>' + i.callsign + ' (' + timestring + ')</li>'
+                }).join("") +
             '</ul>'
         );
         infowindow.setPosition(pos);
