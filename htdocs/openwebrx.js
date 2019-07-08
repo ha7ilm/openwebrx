@@ -2384,7 +2384,9 @@ function openwebrx_init()
 }
 
 function digimodes_init() {
-    hide_digitalvoice_panels();
+    $(".openwebrx-meta-panel").each(function(_, p){
+        p.openwebrxHidden = true;
+    });
 
     // initialze DMR timeslot muting
     $('.openwebrx-dmr-timeslot-panel').click(function(e) {
@@ -2678,6 +2680,7 @@ function demodulator_digital_replace(subtype)
         break;
     }
     toggle_panel("openwebrx-panel-digimodes", true);
+    if (subtype == 'ft8') toggle_panel("openwebrx-panel-wsjt-message", true);
 }
 
 function secondary_demod_create_canvas()
@@ -2732,6 +2735,7 @@ function secondary_demod_swap_canvases()
 function secondary_demod_init()
 {
     $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
+    $("#openwebrx-panel-wsjt-message")[0].openwebrxHidden = true;
     secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
     $(secondary_demod_canvas_container)
         .mousemove(secondary_demod_canvas_container_mousemove)
@@ -2797,6 +2801,7 @@ function secondary_demod_close_window()
 {
     secondary_demod_stop();
     toggle_panel("openwebrx-panel-digimodes", false);
+    toggle_panel("openwebrx-panel-wsjt-message", false);
 }
 
 secondary_demod_fft_offset_db=30; //need to calculate that later
