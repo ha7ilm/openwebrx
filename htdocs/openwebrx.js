@@ -1387,9 +1387,9 @@ function update_wsjt_panel(msg) {
     $b.append($(
         '<tr data-timestamp="' + msg['timestamp'] + '">' +
             '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
-            '<td>' + msg['db'] + '</td>' +
-            '<td>' + msg['dt'] + '</td>' +
-            '<td>' + msg['freq'] + '</td>' +
+            '<td class="decimal">' + msg['db'] + '</td>' +
+            '<td class="decimal">' + msg['dt'] + '</td>' +
+            '<td class="decimal">' + msg['freq'] + '</td>' +
             '<td class="message">' + linkedmsg + '</td>' +
         '</tr>'
     ));
@@ -2679,8 +2679,9 @@ function demodulator_digital_replace(subtype)
         demodulator_buttons_update();
         break;
     }
+    $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
-    if (subtype == 'ft8') toggle_panel("openwebrx-panel-wsjt-message", true);
+    toggle_panel("openwebrx-panel-wsjt-message", subtype == 'ft8');
 }
 
 function secondary_demod_create_canvas()

@@ -1038,10 +1038,23 @@ img.openwebrx-mirror-img
 #openwebrx-panel-wsjt-message td {
     width: 50px;
     text-align: left;
+    padding: 1px 3px;
 }
 
 #openwebrx-panel-wsjt-message .message {
     width: 400px;
 }
 
+#openwebrx-panel-wsjt-message .decimal {
+    text-align: right;
+    width: 35px;
+}
 
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container {
+    display: none;
+}
+
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-canvas-container {
+    height: 200px;
+    margin: -10px;
+}
