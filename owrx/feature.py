@@ -22,7 +22,8 @@ class FeatureDetector(object):
         "hackrf": [ "hackrf_transfer" ],
         "airspy": [ "airspy_rx" ],
         "digital_voice_digiham": [ "digiham", "sox" ],
-        "digital_voice_dsd": [ "dsd", "sox", "digiham" ]
+        "digital_voice_dsd": [ "dsd", "sox", "digiham" ],
+        "wsjt-x": [ "wsjtx" ]
     }
 
     def feature_availability(self):
@@ -193,3 +194,11 @@ class FeatureDetector(object):
         In order to use an Airspy Receiver, you need to install the airspy_rx receiver software.
         """
         return self.command_is_runnable("airspy_rx --help 2> /dev/null")
+
+    def has_wsjtx(self):
+        """
+        To decode FT8 and other digimodes, you need to install the WSJT-X software suite. Please check the
+        [WSJT-X homepage](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) for ready-made packages or instructions
+        on how to build from source.
+        """
+        return self.command_is_runnable("jt9")
