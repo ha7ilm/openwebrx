@@ -1,9 +1,9 @@
 $(function(){
     var converter = new showdown.Converter();
     $.ajax('/api/features').done(function(data){
-        $table = $('table.features');
+        var $table = $('table.features');
         $.each(data, function(name, details) {
-            requirements = $.map(details.requirements, function(r, name){
+            var requirements = $.map(details.requirements, function(r, name){
                 return '<tr>' +
                            '<td></td>' +
                            '<td>' + name + '</td>' +
