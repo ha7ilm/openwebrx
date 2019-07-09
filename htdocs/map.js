@@ -6,8 +6,8 @@
 
     var query = window.location.search.replace(/^\?/, '').split('&').map(function(v){
         var s = v.split('=');
-        r = {}
-        r[s[0]] = s.slice(1).join('=')
+        var r = {};
+        r[s[0]] = s.slice(1).join('=');
         return r;
     }).reduce(function(a, b){
         return a.assign(b);
@@ -33,8 +33,8 @@
 
     // reasonable default; will be overriden by server
     var retention_time = 2 * 60 * 60 * 1000;
-    strokeOpacity = 0.8;
-    fillOpacity = 0.35;
+    var strokeOpacity = 0.8;
+    var fillOpacity = 0.35;
 
     var processUpdates = function(updates) {
         if (!map) {
@@ -45,7 +45,7 @@
 
             switch (update.location.type) {
                 case 'latlon':
-                    var pos = new google.maps.LatLng(update.location.lat, update.location.lon)
+                    var pos = new google.maps.LatLng(update.location.lat, update.location.lon);
                     var marker;
                     if (markers[update.callsign]) {
                         marker = markers[update.callsign];
@@ -104,7 +104,7 @@
                 break;
             }
         });
-    }
+    };
 
     ws.onmessage = function(e){
         if (typeof e.data != 'string') {
@@ -116,7 +116,7 @@
 		    return
 		}
         try {
-            json = JSON.parse(e.data);
+            var json = JSON.parse(e.data);
             switch (json.type) {
                 case "config":
                     var config = json.value;
@@ -135,10 +135,10 @@
                         });
                     });
                     retention_time = config.map_position_retention_time * 1000;
-                break
+                break;
                 case "update":
                     processUpdates(json.value);
-                break
+                break;
             }
         } catch (e) {
             // don't lose exception
@@ -177,7 +177,7 @@
         );
         infowindow.setPosition(pos);
         infowindow.open(map);
-    }
+    };
 
     var getScale = function(lastseen) {
         var age = new Date().getTime() - lastseen;
@@ -186,7 +186,7 @@
             scale = (retention_time - age) / (retention_time / 2);
         }
         return Math.max(0, Math.min(1, scale));
-    }
+    };
 
     var getRectangleOpacityOptions = function(lastseen) {
         var scale = getScale(lastseen);
@@ -194,14 +194,14 @@
             strokeOpacity: strokeOpacity * scale,
             fillOpacity: fillOpacity * scale
         };
-    }
+    };
 
     var getMarkerOpacityOptions = function(lastseen) {
         var scale = getScale(lastseen);
         return {
             opacity: scale
         };
-    }
+    };
 
     // fade out / remove positions after time
     setInterval(function(){
