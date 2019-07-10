@@ -1,6 +1,7 @@
-html, body {
+html, body, .openwebrx-map {
     width: 100%;
     height: 100%;
+    margin: 0;
 }
 
 h3 {

@@ -121,7 +121,7 @@
                 case "config":
                     var config = json.value;
                     $.getScript("https://maps.googleapis.com/maps/api/js?key=" + config.google_maps_api_key).done(function(){
-                        map = new google.maps.Map($('body')[0], {
+                        map = new google.maps.Map($('.openwebrx-map')[0], {
                             center: {
                                 lat: config.receiver_gps[0],
                                 lng: config.receiver_gps[1]
