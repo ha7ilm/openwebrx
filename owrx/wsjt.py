@@ -17,6 +17,7 @@ class Ft8Chopper(threading.Thread):
     def __init__(self, source):
         self.source = source
         (self.wavefilename, self.wavefile) = self.getWaveFile()
+        self.switchingLock = threading.Lock()
         self.scheduler = sched.scheduler(time.time, time.sleep)
         self.fileQueue = []
         (self.outputReader, self.outputWriter) = Pipe()
@@ -53,9 +54,11 @@ class Ft8Chopper(threading.Thread):
         self.scheduler.enterabs(self.getNextDecodingTime(), 1, self.switchFiles)
 
     def switchFiles(self):
+        self.switchingLock.acquire()
         file = self.wavefile
         filename = self.wavefilename
         (self.wavefilename, self.wavefile) = self.getWaveFile()
+        self.switchingLock.release()
 
         file.close()
         self.fileQueue.append(filename)
@@ -90,7 +93,9 @@ class Ft8Chopper(threading.Thread):
                 logger.warning("zero read on ft8 chopper")
                 self.doRun = False
             else:
+                self.switchingLock.acquire()
                 self.wavefile.writeframes(data)
+                self.switchingLock.release()
 
             self.decode()
         logger.debug("FT8 chopper shutting down")
