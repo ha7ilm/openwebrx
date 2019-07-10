@@ -167,9 +167,15 @@ class dsp(object):
             chain += last_decimation_block
             chain += [
                 "csdr agc_ff",
-                "csdr limit_ff",
-                "csdr convert_f_s16"
+                "csdr limit_ff"
             ]
+            # fixed sample rate necessary for the wsjt-x tools. fix with sox...
+            if self.get_secondary_demodulator() == "ft8" and self.get_audio_rate() != self.get_output_rate():
+                chain += [
+                    "sox -t raw -r {audio_rate} -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+                ]
+            else:
+                chain += ["csdr convert_f_s16"]
 
         if self.audio_compression=="adpcm":
             chain += ["csdr encode_ima_adpcm_i16_u8"]
@@ -472,7 +478,8 @@ class dsp(object):
             flowcontrol=int(self.samp_rate*2), start_bufsize=self.base_bufsize*self.decimation, nc_port=self.nc_port,
             squelch_pipe=self.squelch_pipe, smeter_pipe=self.smeter_pipe, meta_pipe=self.meta_pipe, iqtee_pipe=self.iqtee_pipe, iqtee2_pipe=self.iqtee2_pipe,
             output_rate = self.get_output_rate(), smeter_report_every = int(self.if_samp_rate()/6000),
-            unvoiced_quality = self.get_unvoiced_quality(), dmr_control_pipe = self.dmr_control_pipe)
+            unvoiced_quality = self.get_unvoiced_quality(), dmr_control_pipe = self.dmr_control_pipe,
+            audio_rate = self.get_audio_rate())
 
         logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
         my_env=os.environ.copy()

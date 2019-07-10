@@ -23,7 +23,7 @@ class FeatureDetector(object):
         "airspy": [ "airspy_rx" ],
         "digital_voice_digiham": [ "digiham", "sox" ],
         "digital_voice_dsd": [ "dsd", "sox", "digiham" ],
-        "wsjt-x": [ "wsjtx" ]
+        "wsjt-x": [ "wsjtx", "sox" ]
     }
 
     def feature_availability(self):
