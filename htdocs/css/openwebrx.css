@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-@import url("css/openwebrx-header.css");
-@import url("css/openwebrx-globals.css");
+@import url("openwebrx-header.css");
+@import url("openwebrx-globals.css");
 
 select
 {
@@ -149,7 +149,7 @@ input[type=range]:focus::-ms-fill-upper
 #openwebrx-scale-container
 {
 	height: 47px;
-	background-image: url("gfx/openwebrx-scale-background.png");
+	background-image: url("../gfx/openwebrx-scale-background.png");
 	background-repeat: repeat-x;
 	overflow: hidden;
 	z-index:1000;
@@ -158,14 +158,14 @@ input[type=range]:focus::-ms-fill-upper
 
 #webrx-canvas-container
 {
-	/*background-image:url('gfx/openwebrx-blank-background-1.jpg');*/
+	/*background-image:url('../gfx/openwebrx-blank-background-1.jpg');*/
 	position: relative;
 	height: 2000px;
 	overflow-y: scroll;
 	overflow-x: hidden;
 	/*background-color: #646464;*/
 	/*background-image: -webkit-linear-gradient(top, rgba(247,247,247,1) 0%, rgba(0,0,0,1) 100%);*/
-	background-image: url('gfx/openwebrx-background-cool-blue.png');
+	background-image: url('../gfx/openwebrx-background-cool-blue.png');
 	background-repeat: no-repeat;
 	background-color: #1e5f7f;
 	cursor: crosshair;
@@ -255,15 +255,15 @@ input[type=range]:focus::-ms-fill-upper
 /* removed non-free fonts like that: */
 /*@font-face {
     font-family: 'unibody_8_pro_regregular';
-    src: url('gfx/unibody8pro-regular-webfont.eot');
-    src: url('gfx/unibody8pro-regular-webfont.ttf');
+    src: url('../gfx/unibody8pro-regular-webfont.eot');
+    src: url('../gfx/unibody8pro-regular-webfont.ttf');
     font-weight: normal;
     font-style: normal;
 }*/
 
 @font-face {
     font-family: 'expletus-sans-medium';
-    src: url('gfx/font-expletus-sans/ExpletusSans-Medium.ttf');
+    src: url('../gfx/font-expletus-sans/ExpletusSans-Medium.ttf');
     font-weight: normal;
     font-style: normal;
 }
@@ -737,7 +737,7 @@ img.openwebrx-mirror-img
 .openwebrx-meta-slot.muted:before {
     display: block;
     content: "";
-    background-image: url("gfx/openwebrx-mute.png");
+    background-image: url("../gfx/openwebrx-mute.png");
     width:100%;
     height:133px;
     background-position: center;
@@ -779,11 +779,11 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image {
-    background-image: url("gfx/openwebrx-directcall.png");
+    background-image: url("../gfx/openwebrx-directcall.png");
 }
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
-    background-image: url("gfx/openwebrx-groupcall.png");
+    background-image: url("../gfx/openwebrx-groupcall.png");
 }
 
 .openwebrx-dmr-timeslot-panel * {
@@ -791,7 +791,7 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-maps-pin {
-    background-image: url("gfx/google_maps_pin.svg");
+    background-image: url("../gfx/google_maps_pin.svg");
     background-position: center;
     background-repeat: no-repeat;
     width: 15px;
