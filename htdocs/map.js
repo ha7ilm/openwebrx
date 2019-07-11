@@ -57,6 +57,7 @@
                         title: update.callsign
                     }, getMarkerOpacityOptions(update.lastseen) ));
                     marker.lastseen = update.lastseen;
+                    marker.mode = update.mode;
 
                     // TODO the trim should happen on the server side
                     if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
@@ -94,6 +95,7 @@
                     }, getRectangleOpacityOptions(update.lastseen) ));
                     rectangle.lastseen = update.lastseen;
                     rectangle.locator = update.location.locator;
+                    rectangle.mode = update.mode;
 
                     if (expectedLocator && expectedLocator == update.location.locator) {
                         map.panTo(center);
@@ -182,7 +184,7 @@
     var showLocatorInfoWindow = function(locator, pos) {
         if (!infowindow) infowindow = new google.maps.InfoWindow();
         var inLocator = $.map(rectangles, function(r, callsign) {
-            return {callsign: callsign, locator: r.locator, lastseen: r.lastseen}
+            return {callsign: callsign, locator: r.locator, lastseen: r.lastseen, mode: r.mode}
         }).filter(function(d) {
             return d.locator == locator;
         }).sort(function(a, b){
@@ -194,7 +196,7 @@
             '<ul>' +
                 inLocator.map(function(i){
                     var timestring = moment(i.lastseen).fromNow();
-                    return '<li>' + i.callsign + ' (' + timestring + ')</li>'
+                    return '<li>' + i.callsign + ' (' + timestring + ' via ' + i.mode + ')</li>'
                 }).join("") +
             '</ul>'
         );
@@ -208,7 +210,7 @@
         var timestring = moment(marker.lastseen).fromNow();
         infowindow.setContent(
             '<h3>' + callsign + '</h3>' +
-            '<div>' + timestring + '</div>'
+            '<div>' + timestring + ' via ' + marker.mode + '</div>'
         );
         infowindow.open(map, marker);
     }

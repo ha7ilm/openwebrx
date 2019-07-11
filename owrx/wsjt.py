@@ -118,9 +118,15 @@ class WsjtParser(object):
         self.handler = handler
         self.locator_pattern = re.compile(".*\s([A-Z0-9]+)\s([A-R]{2}[0-9]{2})$")
 
+    modes = {
+        "~": "FT8"
+    }
+
     def parse(self, data):
         try:
             msg = data.decode().rstrip()
+            # sample
+            # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
             # known debug messages we know to skip
             if msg.startswith("<DecodeFinished>"):
                 return
@@ -133,15 +139,17 @@ class WsjtParser(object):
             out["db"] = float(msg[7:10])
             out["dt"] = float(msg[11:15])
             out["freq"] = int(msg[16:20])
+            modeChar = msg[21:22]
+            out["mode"] = mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
             wsjt_msg = msg[24:60].strip()
-            self.getLocator(wsjt_msg)
+            self.parseLocator(wsjt_msg, mode)
             out["msg"] = wsjt_msg
 
             self.handler.write_wsjt_message(out)
         except ValueError:
             logger.exception("error while parsing wsjt message")
 
-    def getLocator(self, msg):
+    def parseLocator(self, msg, mode):
         m = self.locator_pattern.match(msg)
         if m is None:
             return
@@ -149,4 +157,4 @@ class WsjtParser(object):
         # likely this just means roger roger goodbye.
         if m.group(2) == "RR73":
             return
-        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)))
+        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), mode)

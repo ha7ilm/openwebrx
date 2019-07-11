@@ -71,7 +71,8 @@ class YsfMetaEnricher(object):
     def enrich(self, meta):
         if "source" in meta and "lat" in meta and "lon" in meta:
             # TODO parsing the float values should probably happen earlier
-            Map.getSharedInstance().updateLocation(meta["source"], LatLngLocation(float(meta["lat"]), float(meta["lon"])))
+            loc = LatLngLocation(float(meta["lat"]), float(meta["lon"]))
+            Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF")
         return None
 
 

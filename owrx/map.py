@@ -44,7 +44,8 @@ class Map(object):
             {
                 "callsign": callsign,
                 "location": record["location"].__dict__(),
-                "lastseen": record["updated"].timestamp() * 1000
+                "lastseen": record["updated"].timestamp() * 1000,
+                "mode"    : record["mode"]
             }
             for (callsign, record) in self.positions.items()
         ])
@@ -55,14 +56,15 @@ class Map(object):
         except ValueError:
             pass
 
-    def updateLocation(self, callsign, loc: Location):
+    def updateLocation(self, callsign, loc: Location, mode: str):
         ts = datetime.now()
-        self.positions[callsign] = {"location": loc, "updated": ts}
+        self.positions[callsign] = {"location": loc, "updated": ts, "mode": mode}
         self.broadcast([
             {
                 "callsign": callsign,
                 "location": loc.__dict__(),
-                "lastseen": ts.timestamp() * 1000
+                "lastseen": ts.timestamp() * 1000,
+                "mode"    : mode
             }
         ])
 
