@@ -181,6 +181,8 @@
             return {callsign: callsign, locator: r.locator, lastseen: r.lastseen}
         }).filter(function(d) {
             return d.locator == locator;
+        }).sort(function(a, b){
+            return b.lastseen - a.lastseen;
         });
         infowindow.setContent(
             '<h3>Locator: ' + locator + '</h3>' +
