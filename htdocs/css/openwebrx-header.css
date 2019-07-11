@@ -63,6 +63,7 @@
     width: 54px;
     height: 54px;
     padding: 7px;
+    box-sizing: content-box;
 }
 
 #webrx-rx-avatar
@@ -72,6 +73,7 @@
     height: 46px;
     padding: 4px;
     border-radius: 8px;
+    box-sizing: content-box;
 }
 
 #webrx-rx-texts {

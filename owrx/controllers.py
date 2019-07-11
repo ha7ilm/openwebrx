@@ -104,9 +104,9 @@ class MapController(WebpageController):
         #TODO check if we have a google maps api key first?
         self.serve_template("map.html", **self.template_variables())
 
-class FeatureController(AssetsController):
+class FeatureController(WebpageController):
     def handle_request(self):
-        self.serve_file("features.html")
+        self.serve_template("features.html", **self.template_variables())
 
 class ApiController(Controller):
     def handle_request(self):
