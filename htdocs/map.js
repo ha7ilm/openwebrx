@@ -46,6 +46,9 @@
                         marker = markers[update.callsign];
                     } else {
                         marker = new google.maps.Marker();
+                        marker.addListener('click', function(){
+                            showMarkerInfoWindow(update.callsign, pos);
+                        });
                         markers[update.callsign] = marker;
                     }
                     marker.setOptions($.extend({
@@ -58,6 +61,7 @@
                     // TODO the trim should happen on the server side
                     if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
                         map.panTo(pos);
+                        showMarkerInfoWindow(update.callsign, pos);
                         delete(expectedCallsign);
                     }
                 break;
@@ -72,7 +76,7 @@
                     } else {
                         rectangle = new google.maps.Rectangle();
                         rectangle.addListener('click', function(){
-                            showInfoWindow(update.location.locator, center);
+                            showLocatorInfoWindow(update.location.locator, center);
                         });
                         rectangles[update.callsign] = rectangle;
                     }
@@ -93,7 +97,7 @@
 
                     if (expectedLocator && expectedLocator == update.location.locator) {
                         map.panTo(center);
-                        showInfoWindow(expectedLocator, center);
+                        showLocatorInfoWindow(expectedLocator, center);
                         delete(expectedLocator);
                     }
                 break;
@@ -175,7 +179,7 @@
     connect();
 
     var infowindow;
-    var showInfoWindow = function(locator, pos) {
+    var showLocatorInfoWindow = function(locator, pos) {
         if (!infowindow) infowindow = new google.maps.InfoWindow();
         var inLocator = $.map(rectangles, function(r, callsign) {
             return {callsign: callsign, locator: r.locator, lastseen: r.lastseen}
@@ -197,6 +201,17 @@
         infowindow.setPosition(pos);
         infowindow.open(map);
     };
+
+    var showMarkerInfoWindow = function(callsign, pos) {
+        if (!infowindow) infowindow = new google.maps.InfoWindow();
+        var marker = markers[callsign];
+        var timestring = moment(marker.lastseen).fromNow();
+        infowindow.setContent(
+            '<h3>' + callsign + '</h3>' +
+            '<div>' + timestring + '</div>'
+        );
+        infowindow.open(map, marker);
+    }
 
     var getScale = function(lastseen) {
         var age = new Date().getTime() - lastseen;
