@@ -1,0 +1,201 @@
+#webrx-top-container
+{
+    position: relative;
+    z-index:1000;
+}
+
+#webrx-top-photo
+{
+    width: 100%;
+    display: block;
+}
+
+#webrx-top-photo-clip
+{
+    min-height: 67px;
+    max-height: 350px;
+    overflow: hidden;
+    position: relative;
+}
+
+.webrx-top-bar-parts
+{
+    height:67px;
+}
+
+#webrx-top-bar
+{
+    background: rgba(128, 128, 128, 0.15);
+    margin:0;
+    padding:0;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+}
+
+#webrx-top-logo
+{
+    padding: 12px;
+    float: left;
+}
+
+#webrx-ha5kfu-top-logo
+{
+    float: right;
+    padding: 15px;
+}
+
+#webrx-rx-avatar-background
+{
+    cursor:pointer;
+    background-image: url(../gfx/openwebrx-avatar-background.png);
+    background-origin: content-box;
+    background-repeat: no-repeat;
+    float: left;
+    width: 54px;
+    height: 54px;
+    padding: 7px;
+}
+
+#webrx-rx-avatar
+{
+    cursor:pointer;
+    width: 46px;
+    height: 46px;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+#webrx-rx-texts {
+    float: left;
+    padding: 10px;
+}
+
+#webrx-rx-texts div {
+    padding: 3px;
+}
+
+#webrx-rx-title
+{
+    white-space:nowrap;
+    overflow: hidden;
+    cursor:pointer;
+    font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
+    color: #909090;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+#webrx-rx-desc
+{
+    white-space:nowrap;
+    overflow: hidden;
+    cursor:pointer;
+    font-size: 10pt;
+    color: #909090;
+}
+
+#webrx-rx-desc a
+{
+    color: #909090;
+}
+
+#openwebrx-rx-details-arrow
+{
+    cursor:pointer;
+    position: absolute;
+    left: 470px;
+    top: 51px;
+}
+
+#openwebrx-rx-details-arrow a
+{
+    margin: 0;
+    padding: 0;
+}
+
+#openwebrx-rx-details-arrow-down
+{
+    display:none;
+}
+
+#openwebrx-main-buttons ul
+{
+    display: table;
+    margin:0;
+}
+
+
+#openwebrx-main-buttons ul li
+{
+    display: table-cell;
+    padding-left: 5px;
+    padding-right: 5px;
+    cursor:pointer;
+}
+
+#openwebrx-main-buttons a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+#openwebrx-main-buttons li:hover
+{
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+#openwebrx-main-buttons li:active
+{
+    background-color: rgba(255, 255, 255, 0.55);
+}
+
+
+#openwebrx-main-buttons
+{
+    float: right;
+    margin:0;
+    color: white;
+    text-shadow: 0px 0px 4px #000000;
+    text-align: center;
+    font-size: 9pt;
+    font-weight: bold;
+}
+
+#webrx-rx-photo-title
+{
+    position: absolute;
+    left: 15px;
+    top: 78px;
+    color: White;
+    font-size: 16pt;
+    text-shadow: 1px 1px 4px #444;
+    opacity: 1;
+}
+
+#webrx-rx-photo-desc
+{
+    position: absolute;
+    left: 15px;
+    top: 109px;
+    color: White;
+    font-size: 10pt;
+    font-weight: bold;
+    text-shadow: 0px 0px 6px #444;
+    opacity: 1;
+    line-height: 1.5em;
+}
+
+#webrx-rx-photo-desc a
+{
+    color: #5ca8ff;
+    text-shadow: none;
+}
+
