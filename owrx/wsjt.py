@@ -25,7 +25,10 @@ class Ft8Chopper(threading.Thread):
         super().__init__()
 
     def getWaveFile(self):
-        filename = "/tmp/openwebrx-ft8chopper-{0}.wav".format(datetime.now().strftime("%Y%m%d-%H%M%S"))
+        filename = "/tmp/openwebrx-ft8chopper-{id}-{timestamp}.wav".format(
+            id = id(self),
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        )
         wavefile = wave.open(filename, "wb")
         wavefile.setnchannels(1)
         wavefile.setsampwidth(2)
