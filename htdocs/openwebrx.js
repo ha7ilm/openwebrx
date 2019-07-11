@@ -86,6 +86,7 @@ function init_rx_photo()
 	window.setTimeout(function() { animate(e("webrx-rx-photo-title"),"opacity","",1,0,1,500,30); },1000);
 	window.setTimeout(function() { animate(e("webrx-rx-photo-desc"),"opacity","",1,0,1,500,30); },1500);
 	window.setTimeout(function() { close_rx_photo() },2500);
+	$('#webrx-top-container .openwebrx-photo-trigger').click(toggle_rx_photo);
 }
 
 dont_toggle_rx_photo_flag=0;
@@ -2365,6 +2366,13 @@ function openwebrx_resize()
 	check_top_bar_congestion();
 }
 
+function init_header()
+{
+    $('#openwebrx-main-buttons li[data-toggle-panel]').click(function() {
+        toggle_panel($(this).data('toggle-panel'));
+    });
+}
+
 function openwebrx_init()
 {
 	if(ios||is_chrome) e("openwebrx-big-grey").style.display="table-cell";
@@ -2377,6 +2385,7 @@ function openwebrx_init()
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
 	check_top_bar_congestion();
+	init_header();
 
 	//Synchronise volume with slider
 	updateVolume();
