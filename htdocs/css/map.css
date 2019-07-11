@@ -6,10 +6,17 @@
     max-height: 67px;
 }
 
-html, body, .openwebrx-map {
-    width: 100%;
-    height: 100%;
-    margin: 0;
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#webrx-top-container {
+    flex: none;
+}
+
+.openwebrx-map {
+    flex: 1 1 auto;
 }
 
 h3 {
