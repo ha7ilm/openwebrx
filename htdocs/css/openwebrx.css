@@ -21,6 +21,10 @@
 @import url("openwebrx-header.css");
 @import url("openwebrx-globals.css");
 
+html, body {
+	overflow: hidden;
+}
+
 select
 {
 	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
