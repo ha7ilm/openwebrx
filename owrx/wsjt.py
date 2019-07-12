@@ -105,6 +105,10 @@ class Ft8Chopper(threading.Thread):
         self.outputReader.close()
         self.outputWriter.close()
         self.emptyScheduler()
+        try:
+            os.unlink(self.wavefilename)
+        except Exception:
+            logger.exception("error removing undecoded file")
 
     def read(self):
         try:
