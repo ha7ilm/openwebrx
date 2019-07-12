@@ -203,6 +203,7 @@ class dsp(object):
         if self.get_secondary_demodulator() == what:
             return
         self.secondary_demodulator = what
+        self.calculate_decimation()
         self.restart()
 
     def secondary_fft_block_size(self):
