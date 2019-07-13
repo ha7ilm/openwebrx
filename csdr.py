@@ -25,7 +25,7 @@ import os
 import signal
 import threading
 from functools import partial
-from owrx.wsjt import Ft8Chopper
+from owrx.wsjt import Ft8Chopper, WsprChopper
 
 import logging
 logger = logging.getLogger(__name__)
@@ -174,7 +174,7 @@ class dsp(object):
                 "csdr limit_ff"
             ]
             # fixed sample rate necessary for the wsjt-x tools. fix with sox...
-            if self.get_secondary_demodulator() == "ft8" and self.get_audio_rate() != self.get_output_rate():
+            if self.isWsjtMode() and self.get_audio_rate() != self.get_output_rate():
                 chain += [
                     "sox -t raw -r {audio_rate} -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
                 ]
@@ -196,8 +196,8 @@ class dsp(object):
                     "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | " + \
                     "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
-        elif which == "ft8":
-            chain =  secondary_chain_base + "csdr realpart_cf | "
+        elif self.isWsjtMode(which):
+            chain = secondary_chain_base + "csdr realpart_cf | "
             if self.last_decimation != 1.0 :
                 chain += "csdr fractional_decimator_ff {last_decimation} | "
             chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
@@ -271,8 +271,12 @@ class dsp(object):
         self.secondary_processes_running = True
 
         self.output.add_output("secondary_fft", partial(self.secondary_process_fft.stdout.read, int(self.get_secondary_fft_bytes_to_read())))
-        if self.get_secondary_demodulator() == "ft8":
-            chopper = Ft8Chopper(self.secondary_process_demod.stdout)
+        if self.isWsjtMode():
+            smd = self.get_secondary_demodulator()
+            if smd == "ft8":
+                chopper = Ft8Chopper(self.secondary_process_demod.stdout)
+            elif smd == "wspr":
+                chopper = WsprChopper(self.secondary_process_demod.stdout)
             chopper.start()
             self.output.add_output("wsjt_demod", chopper.read)
         else:
@@ -355,7 +359,7 @@ class dsp(object):
     def get_audio_rate(self):
         if self.isDigitalVoice():
             return 48000
-        elif self.secondary_demodulator == "ft8":
+        elif self.isWsjtMode():
             return 12000
         return self.get_output_rate()
 
@@ -363,6 +367,11 @@ class dsp(object):
         if demodulator is None:
             demodulator = self.get_demodulator()
         return demodulator in ["dmr", "dstar", "nxdn", "ysf"]
+
+    def isWsjtMode(self, demodulator = None):
+        if demodulator is None:
+            demodulator = self.get_secondary_demodulator()
+        return demodulator in ["ft8", "wspr"]
 
     def set_output_rate(self,output_rate):
         self.output_rate=output_rate

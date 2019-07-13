@@ -835,15 +835,21 @@ img.openwebrx-mirror-img
     width: 35px;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container {
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-content-container
+{
     display: none;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-canvas-container {
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-canvas-container
+{
     height: 200px;
     margin: -10px;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-select-channel {
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-select-channel
+{
     display: none;
 }
