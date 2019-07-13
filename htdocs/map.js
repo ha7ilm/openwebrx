@@ -196,7 +196,7 @@
             '<ul>' +
                 inLocator.map(function(i){
                     var timestring = moment(i.lastseen).fromNow();
-                    return '<li>' + i.callsign + ' (' + timestring + ' via ' + i.mode + ')</li>'
+                    return '<li>' + i.callsign + ' (' + timestring + ' using ' + i.mode + ')</li>'
                 }).join("") +
             '</ul>'
         );
@@ -210,7 +210,7 @@
         var timestring = moment(marker.lastseen).fromNow();
         infowindow.setContent(
             '<h3>' + callsign + '</h3>' +
-            '<div>' + timestring + ' via ' + marker.mode + '</div>'
+            '<div>' + timestring + ' using ' + marker.mode + '</div>'
         );
         infowindow.open(map, marker);
     }
