@@ -8,6 +8,7 @@ import os
 from multiprocessing.connection import Pipe
 from owrx.map import Map, LocatorLocation
 import re
+from owrx.config import PropertyManager
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 class Ft8Chopper(threading.Thread):
     def __init__(self, source):
         self.source = source
+        self.tmp_dir = PropertyManager.getSharedInstance()["temporary_directory"]
         (self.wavefilename, self.wavefile) = self.getWaveFile()
         self.switchingLock = threading.Lock()
         self.scheduler = sched.scheduler(time.time, time.sleep)
@@ -25,7 +27,8 @@ class Ft8Chopper(threading.Thread):
         super().__init__()
 
     def getWaveFile(self):
-        filename = "/tmp/openwebrx-ft8chopper-{id}-{timestamp}.wav".format(
+        filename = "{tmp_dir}/openwebrx-ft8chopper-{id}-{timestamp}.wav".format(
+            tmp_dir = self.tmp_dir,
             id = id(self),
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         )
@@ -70,7 +73,7 @@ class Ft8Chopper(threading.Thread):
     def decode(self):
         def decode_and_unlink(file):
             #TODO expose decoding quality parameters through config
-            decoder = subprocess.Popen(["jt9", "--ft8", "-d", "3", file], stdout=subprocess.PIPE)
+            decoder = subprocess.Popen(["jt9", "--ft8", "-d", "3", file], stdout=subprocess.PIPE, cwd=self.tmp_dir)
             while True:
                 line = decoder.stdout.readline()
                 if line is None or (isinstance(line, bytes) and len(line) == 0):

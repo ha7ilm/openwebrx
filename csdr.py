@@ -74,6 +74,10 @@ class dsp(object):
         self.unvoiced_quality = 1
         self.modification_lock = threading.Lock()
         self.output = output
+        self.temporary_directory = "/tmp"
+
+    def set_temporary_directory(self, what):
+        self.temporary_directory = what
 
     def chain(self,which):
         chain = ["nc -v 127.0.0.1 {nc_port}"]
@@ -468,7 +472,7 @@ class dsp(object):
         logger.debug(command_base)
 
         #create control pipes for csdr
-        self.pipe_base_path="/tmp/openwebrx_pipe_{myid}_".format(myid=id(self))
+        self.pipe_base_path = "{tmp_dir}/openwebrx_pipe_{myid}_".format(tmp_dir=self.temporary_directory, myid=id(self))
 
         self.try_create_pipes(self.pipe_names, command_base)
 

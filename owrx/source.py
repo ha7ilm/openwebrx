@@ -275,7 +275,7 @@ class SpectrumThread(csdr.output):
 
         self.props = props = self.sdrSource.props.collect(
             "samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor", "fft_compression",
-            "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through"
+            "csdr_dynamic_bufsize", "csdr_print_bufsizes", "csdr_through", "temporary_directory"
         ).defaults(PropertyManager.getSharedInstance())
 
         self.dsp = dsp = csdr.dsp(self)
@@ -295,6 +295,7 @@ class SpectrumThread(csdr.output):
             props.getProperty("fft_size").wire(dsp.set_fft_size),
             props.getProperty("fft_fps").wire(dsp.set_fft_fps),
             props.getProperty("fft_compression").wire(dsp.set_fft_compression),
+            props.getProperty("temporary_directory").wire(dsp.set_temporary_directory),
             props.collect("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages)
         ]
 
@@ -352,7 +353,7 @@ class DspManager(csdr.output):
         self.localProps = self.sdrSource.getProps().collect(
             "audio_compression", "fft_compression", "digimodes_fft_size", "csdr_dynamic_bufsize",
             "csdr_print_bufsizes", "csdr_through", "digimodes_enable", "samp_rate", "digital_voice_unvoiced_quality",
-            "dmr_filter"
+            "dmr_filter", "temporary_directory"
         ).defaults(PropertyManager.getSharedInstance())
 
         self.dsp = csdr.dsp(self)
@@ -380,7 +381,8 @@ class DspManager(csdr.output):
             self.localProps.getProperty("high_cut").wire(set_high_cut),
             self.localProps.getProperty("mod").wire(self.dsp.set_demodulator),
             self.localProps.getProperty("digital_voice_unvoiced_quality").wire(self.dsp.set_unvoiced_quality),
-            self.localProps.getProperty("dmr_filter").wire(self.dsp.set_dmr_filter)
+            self.localProps.getProperty("dmr_filter").wire(self.dsp.set_dmr_filter),
+            self.localProps.getProperty("temporary_directory").wire(self.dsp.set_temporary_directory)
         ]
 
         self.dsp.set_offset_freq(0)

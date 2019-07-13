@@ -237,3 +237,5 @@ google_maps_api_key = ""
 # they will start fading out after half of that
 # in seconds; default: 2 hours
 map_position_retention_time = 2 * 60 * 60
+
+temporary_directory = "/tmp"
