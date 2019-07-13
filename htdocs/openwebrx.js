@@ -1472,6 +1472,7 @@ function on_ws_opened()
 {
 	ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
 	divlog("WebSocket opened to "+ws_url);
+	reconnect_timeout = false;
 }
 
 var was_error=0;
@@ -1852,6 +1853,8 @@ function audio_init()
 
 }
 
+var reconnect_timeout = false;
+
 function on_ws_closed()
 {
 	try
@@ -1860,9 +1863,16 @@ function on_ws_closed()
 	}
 	catch (dont_care) {}
 	audio_initialized = 0;
-	divlog("WebSocket has closed unexpectedly. Attempting to reconnect in 5 seconds...", 1);
+	if (reconnect_timeout) {
+	    // max value: roundabout 8 and a half minutes
+    	reconnect_timeout = Math.min(reconnect_timeout * 2, 512000);
+	} else {
+	    // initial value: 1s
+	    reconnect_timeout = 1000;
+	}
+	divlog("WebSocket has closed unexpectedly. Attempting to reconnect in " + reconnect_timeout / 1000 + " seconds...", 1);
 
-	setTimeout(open_websocket, 5000);
+	setTimeout(open_websocket, reconnect_timeout);
 }
 
 function on_ws_error(event)
