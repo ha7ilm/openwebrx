@@ -68,8 +68,10 @@ rm -rf csdr
 
 git clone https://github.com/szechyjs/mbelib.git
 cmakebuild mbelib
-# no idea why it's put into there now. alpine does not handle it correctly, so move it.
-mv /usr/local/lib64/libmbe* /usr/local/lib
+if [ -d "/usr/local/lib64" ]; then
+    # no idea why it's put into there now. alpine does not handle it correctly, so move it.
+    mv /usr/local/lib64/libmbe* /usr/local/lib
+fi
 
 git clone https://github.com/jketterl/digiham.git
 cmakebuild digiham
