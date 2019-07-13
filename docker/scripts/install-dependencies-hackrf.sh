@@ -14,8 +14,8 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb fftw"
-BUILD_PACKAGES="git cmake make patch wget sudo udev gcc g++ libusb-dev fftw-dev"
+STATIC_PACKAGES="libusb fftw udev"
+BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-dev fftw-dev"
 
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
