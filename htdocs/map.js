@@ -115,10 +115,13 @@
         rectangles = {};
     };
 
+    var reconnect_timeout = false;
+
     var connect = function(){
         var ws = new WebSocket(ws_url);
         ws.onopen = function(){
             ws.send("SERVER DE CLIENT client=map.js type=map");
+            reconnect_timeout = false
         };
 
         ws.onmessage = function(e){
@@ -163,7 +166,14 @@
         };
         ws.onclose = function(){
             clearMap();
-            setTimeout(connect, 5000);
+            if (reconnect_timeout) {
+                // max value: roundabout 8 and a half minutes
+                reconnect_timeout = Math.min(reconnect_timeout * 2, 512000);
+            } else {
+                // initial value: 1s
+                reconnect_timeout = 1000;
+            }
+            setTimeout(connect, reconnect_timeout);
         };
 
         window.onbeforeunload = function() { //http://stackoverflow.com/questions/4812686/closing-websocket-correctly-html5-javascript
