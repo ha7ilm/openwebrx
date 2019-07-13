@@ -18,6 +18,13 @@ It has the following features:
 - [digiham](https://github.com/jketterl/digiham) based demodularors (DMR, YSF)
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 
+**News (2019-07-13 by DD5JFK)**
+- Latest Features:
+  - FT8 Integration (using wsjt-x demodulators)
+  - New Map Feature that shows both decoded grid squares from FT8 and Locations decoded from YSF digital voice
+  - New Feature report that will show what functionality is available
+- There's a new Raspbian SD Card image available (see below)
+
 **News (2019-06-30 by DD5JFK)**
 - I have done some major rework on the openwebrx core, and I am planning to continue adding more features in the near future. Please check this place for updates.
 - My work has not been accepted into the upstream repository, so you will need to chose between my fork and the official version.
@@ -42,7 +49,7 @@ It has the following features:
 
 ### Raspberry Pi SD Card Images
 
-Probably the quickest way to get started is to download the [latest Raspberry Pi SD Card Image](https://s3.eu-central-1.amazonaws.com/de.dd5jfk.openwebrx/2019-06-21-OpenWebRX-full.zip). It contains all the depencencies out of the box, and should work on all Raspberries  up to the 3B+.
+Probably the quickest way to get started is to download the [latest Raspberry Pi SD Card Image](https://s3.eu-central-1.amazonaws.com/de.dd5jfk.openwebrx/2019-07-13-OpenWebRX-full.zip). It contains all the depencencies out of the box, and should work on all Raspberries up to the 3B+.
 
 This is based off the Raspbian Lite distribution, so [their installation instructions](https://www.raspberrypi.org/documentation/installation/installing-images/) apply.
 
