@@ -1405,7 +1405,7 @@ function update_wsjt_panel(msg) {
             '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
             '<td class="decimal">' + msg['db'] + '</td>' +
             '<td class="decimal">' + msg['dt'] + '</td>' +
-            '<td class="decimal">' + msg['freq'] + '</td>' +
+            '<td class="decimal freq">' + msg['freq'] + '</td>' +
             '<td class="message">' + linkedmsg + '</td>' +
         '</tr>'
     ));

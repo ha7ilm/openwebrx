@@ -827,12 +827,16 @@ img.openwebrx-mirror-img
 }
 
 #openwebrx-panel-wsjt-message .message {
-    width: 400px;
+    width: 380px;
 }
 
 #openwebrx-panel-wsjt-message .decimal {
     text-align: right;
     width: 35px;
+}
+
+#openwebrx-panel-wsjt-message .decimal.freq {
+    width: 70px;
 }
 
 #openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container,
