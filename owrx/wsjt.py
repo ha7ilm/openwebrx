@@ -148,7 +148,7 @@ class WsjtParser(object):
     locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
     jt9_pattern = re.compile("^[0-9]{6} .*")
     wspr_pattern = re.compile("^[0-9]{4} .*")
-    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-90]+)")
+    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
 
     def __init__(self, handler):
         self.handler = handler
@@ -213,8 +213,8 @@ class WsjtParser(object):
         out["dt"] = float(msg[9:13])
         out["freq"] = float(msg[14:24])
         out["drift"] = int(msg[25:28])
-        out["mode"] = "wspr"
-        wsjt_msg = msg[29:60].strip()
+        out["mode"] = "WSPR"
+        wsjt_msg = msg[29:].strip()
         out["msg"] = wsjt_msg
         self.parseWsprMessage(wsjt_msg)
         return out
