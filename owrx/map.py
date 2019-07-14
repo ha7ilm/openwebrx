@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import threading, time
 from owrx.config import PropertyManager
+from owrx.bands import Band
 
 import logging
 logger = logging.getLogger(__name__)
@@ -45,7 +46,8 @@ class Map(object):
                 "callsign": callsign,
                 "location": record["location"].__dict__(),
                 "lastseen": record["updated"].timestamp() * 1000,
-                "mode"    : record["mode"]
+                "mode"    : record["mode"],
+                "band"    : record["band"].getName() if record["band"] is not None else None
             }
             for (callsign, record) in self.positions.items()
         ])
@@ -56,15 +58,16 @@ class Map(object):
         except ValueError:
             pass
 
-    def updateLocation(self, callsign, loc: Location, mode: str):
+    def updateLocation(self, callsign, loc: Location, mode: str, band: Band = None):
         ts = datetime.now()
-        self.positions[callsign] = {"location": loc, "updated": ts, "mode": mode}
+        self.positions[callsign] = {"location": loc, "updated": ts, "mode": mode, "band": band}
         self.broadcast([
             {
                 "callsign": callsign,
                 "location": loc.__dict__(),
                 "lastseen": ts.timestamp() * 1000,
-                "mode"    : mode
+                "mode"    : mode,
+                "band"    : band.getName() if band is not None else None
             }
         ])
 

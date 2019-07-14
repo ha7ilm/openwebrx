@@ -58,6 +58,7 @@
                     }, getMarkerOpacityOptions(update.lastseen) ));
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
+                    marker.band = update.band;
 
                     // TODO the trim should happen on the server side
                     if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
@@ -96,6 +97,7 @@
                     rectangle.lastseen = update.lastseen;
                     rectangle.locator = update.location.locator;
                     rectangle.mode = update.mode;
+                    rectangle.band = update.band;
 
                     if (expectedLocator && expectedLocator == update.location.locator) {
                         map.panTo(center);
@@ -194,7 +196,7 @@
     var showLocatorInfoWindow = function(locator, pos) {
         if (!infowindow) infowindow = new google.maps.InfoWindow();
         var inLocator = $.map(rectangles, function(r, callsign) {
-            return {callsign: callsign, locator: r.locator, lastseen: r.lastseen, mode: r.mode}
+            return {callsign: callsign, locator: r.locator, lastseen: r.lastseen, mode: r.mode, band: r.band}
         }).filter(function(d) {
             return d.locator == locator;
         }).sort(function(a, b){
@@ -206,7 +208,10 @@
             '<ul>' +
                 inLocator.map(function(i){
                     var timestring = moment(i.lastseen).fromNow();
-                    return '<li>' + i.callsign + ' (' + timestring + ' using ' + i.mode + ')</li>'
+                    var message = i.callsign + ' (' + timestring + ' using ' + i.mode;
+                    if (i.band) message += ' on ' + i.band;
+                    message += ')';
+                    return '<li>' + message + '</li>'
                 }).join("") +
             '</ul>'
         );

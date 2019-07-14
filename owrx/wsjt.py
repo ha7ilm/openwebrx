@@ -9,6 +9,7 @@ from multiprocessing.connection import Pipe
 from owrx.map import Map, LocatorLocation
 import re
 from owrx.config import PropertyManager
+from owrx.bands import Bandplan
 
 import logging
 logger = logging.getLogger(__name__)
@@ -172,6 +173,8 @@ class WsjtParser(object):
 
     def __init__(self, handler):
         self.handler = handler
+        self.dial_freq = None
+        self.band = None
 
     modes = {
         "~": "FT8",
@@ -229,7 +232,7 @@ class WsjtParser(object):
         # likely this just means roger roger goodbye.
         if m.group(2) == "RR73":
             return
-        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), mode)
+        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), mode, self.band)
 
     def parse_from_wsprd(self, msg):
         # wspr sample
@@ -252,4 +255,8 @@ class WsjtParser(object):
         m = WsjtParser.wspr_splitter_pattern.match(msg)
         if m is None:
             return
-        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), "WSPR")
+        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), "WSPR", self.band)
+
+    def setDialFrequency(self, freq):
+        self.dial_freq = freq
+        self.band = Bandplan.getSharedInstance().findBand(freq)
