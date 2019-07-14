@@ -165,13 +165,15 @@ class FeatureDetector(object):
                 return version >= required_version
             except FileNotFoundError:
                 return False
-        return reduce(and_,
-                      map(
-                          check_digiham_version,
-                          ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer", "gfsk_demodulator",
-                           "digitalvoice_filter"]
-                      ),
-                      True)
+        return reduce(
+            and_,
+            map(
+                check_digiham_version,
+                ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer", "gfsk_demodulator",
+                 "digitalvoice_filter"]
+            ),
+            True
+        )
 
     def has_dsd(self):
         """
@@ -201,4 +203,11 @@ class FeatureDetector(object):
         [WSJT-X homepage](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) for ready-made packages or instructions
         on how to build from source.
         """
-        return self.command_is_runnable("jt9")
+        return reduce(
+            and_,
+            map(
+                self.command_is_runnable,
+                ["jt9", "wsprd"]
+            ),
+            True
+        )

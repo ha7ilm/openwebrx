@@ -1376,21 +1376,36 @@ function update_metadata(meta) {
 
 }
 
+function html_escape(input) {
+    return $('<div/>').text(input).html()
+}
+
 function update_wsjt_panel(msg) {
     var $b = $('#openwebrx-panel-wsjt-message tbody');
     var t = new Date(msg['timestamp']);
     var pad = function(i) { return ('' + i).padStart(2, "0"); }
     var linkedmsg = msg['msg'];
-    var matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
-    if (matches && matches[2] != 'RR73') {
-        linkedmsg = matches[1] + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
+    if (msg['mode'] == 'FT8') {
+        var matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
+        if (matches && matches[2] != 'RR73') {
+            linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
+        } else {
+            linkedmsg = html_escape(linkedmsg);
+        }
+    } else if (msg['mode'] == 'WSPR') {
+        var matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
+        if (matches) {
+            linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>' + html_escape(matches[3]);
+        } else {
+            linkedmsg = html_escape(linkedmsg);
+        }
     }
     $b.append($(
         '<tr data-timestamp="' + msg['timestamp'] + '">' +
             '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
             '<td class="decimal">' + msg['db'] + '</td>' +
             '<td class="decimal">' + msg['dt'] + '</td>' +
-            '<td class="decimal">' + msg['freq'] + '</td>' +
+            '<td class="decimal freq">' + msg['freq'] + '</td>' +
             '<td class="message">' + linkedmsg + '</td>' +
         '</tr>'
     ));
@@ -2693,6 +2708,7 @@ function demodulator_digital_replace(subtype)
     case "bpsk31":
     case "rtty":
     case "ft8":
+    case "wspr":
         secondary_demod_start(subtype);
         demodulator_analog_replace('usb', true);
         demodulator_buttons_update();
@@ -2700,7 +2716,7 @@ function demodulator_digital_replace(subtype)
     }
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
-    toggle_panel("openwebrx-panel-wsjt-message", subtype == 'ft8');
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr'].indexOf(subtype) >= 0);
 }
 
 function secondary_demod_create_canvas()
@@ -2862,20 +2878,17 @@ function secondary_demod_waterfall_dequeue()
 secondary_demod_listbox_updating = false;
 function secondary_demod_listbox_changed()
 {
-    if(secondary_demod_listbox_updating) return;
-    switch ($("#openwebrx-secondary-demod-listbox")[0].value)
-    {
+    if (secondary_demod_listbox_updating) return;
+    var sdm = $("#openwebrx-secondary-demod-listbox")[0].value;
+    switch (sdm) {
         case "none":
             demodulator_analog_replace_last();
             break;
         case "bpsk31":
-            demodulator_digital_replace('bpsk31');
-            break;
         case "rtty":
-            demodulator_digital_replace('rtty');
-            break;
         case "ft8":
-            demodulator_digital_replace('ft8');
+        case "wspr":
+            demodulator_digital_replace(sdm);
             break;
     }
 }

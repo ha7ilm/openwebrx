@@ -827,7 +827,7 @@ img.openwebrx-mirror-img
 }
 
 #openwebrx-panel-wsjt-message .message {
-    width: 400px;
+    width: 380px;
 }
 
 #openwebrx-panel-wsjt-message .decimal {
@@ -835,15 +835,25 @@ img.openwebrx-mirror-img
     width: 35px;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container {
+#openwebrx-panel-wsjt-message .decimal.freq {
+    width: 70px;
+}
+
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-content-container
+{
     display: none;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-canvas-container {
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-canvas-container
+{
     height: 200px;
     margin: -10px;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-select-channel {
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-select-channel
+{
     display: none;
 }

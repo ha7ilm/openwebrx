@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Ft8Chopper(threading.Thread):
+class WsjtChopper(threading.Thread):
     def __init__(self, source):
         self.source = source
         self.tmp_dir = PropertyManager.getSharedInstance()["temporary_directory"]
@@ -27,7 +27,7 @@ class Ft8Chopper(threading.Thread):
         super().__init__()
 
     def getWaveFile(self):
-        filename = "{tmp_dir}/openwebrx-ft8chopper-{id}-{timestamp}.wav".format(
+        filename = "{tmp_dir}/openwebrx-wsjtchopper-{id}-{timestamp}.wav".format(
             tmp_dir = self.tmp_dir,
             id = id(self),
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -40,11 +40,10 @@ class Ft8Chopper(threading.Thread):
 
     def getNextDecodingTime(self):
         t = datetime.now()
-        seconds = (int(t.second / 15) + 1) * 15
-        if seconds >= 60:
-            t = t + timedelta(minutes = 1)
-            seconds = 0
-        t = t.replace(second = seconds, microsecond = 0)
+        zeroed = t.replace(minute=0, second=0, microsecond=0)
+        delta = t - zeroed
+        seconds = (int(delta.total_seconds() / self.interval) + 1) * self.interval
+        t = zeroed + timedelta(seconds = seconds)
         logger.debug("scheduling: {0}".format(t))
         return t.timestamp()
 
@@ -70,10 +69,15 @@ class Ft8Chopper(threading.Thread):
         self.fileQueue.append(filename)
         self._scheduleNextSwitch()
 
+    def decoder_commandline(self, file):
+        '''
+        must be overridden in child classes
+        '''
+        return []
+
     def decode(self):
         def decode_and_unlink(file):
-            #TODO expose decoding quality parameters through config
-            decoder = subprocess.Popen(["jt9", "--ft8", "-d", "3", file], stdout=subprocess.PIPE, cwd=self.tmp_dir)
+            decoder = subprocess.Popen(self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir)
             while True:
                 line = decoder.stdout.readline()
                 if line is None or (isinstance(line, bytes) and len(line) == 0):
@@ -91,12 +95,12 @@ class Ft8Chopper(threading.Thread):
             threading.Thread(target=decode_and_unlink, args=[file]).start()
 
     def run(self) -> None:
-        logger.debug("FT8 chopper starting up")
+        logger.debug("WSJT chopper starting up")
         self.startScheduler()
         while self.doRun:
             data = self.source.read(256)
             if data is None or (isinstance(data, bytes) and len(data) == 0):
-                logger.warning("zero read on ft8 chopper")
+                logger.warning("zero read on WSJT chopper")
                 self.doRun = False
             else:
                 self.switchingLock.acquire()
@@ -104,7 +108,7 @@ class Ft8Chopper(threading.Thread):
                 self.switchingLock.release()
 
             self.decode()
-        logger.debug("FT8 chopper shutting down")
+        logger.debug("WSJT chopper shutting down")
         self.outputReader.close()
         self.outputWriter.close()
         self.emptyScheduler()
@@ -120,10 +124,34 @@ class Ft8Chopper(threading.Thread):
             return None
 
 
+class Ft8Chopper(WsjtChopper):
+    def __init__(self, source):
+        self.interval = 15
+        super().__init__(source)
+
+    def decoder_commandline(self, file):
+        #TODO expose decoding quality parameters through config
+        return ["jt9", "--ft8", "-d", "3", file]
+
+
+class WsprChopper(WsjtChopper):
+    def __init__(self, source):
+        self.interval = 120
+        super().__init__(source)
+
+    def decoder_commandline(self, file):
+        #TODO expose decoding quality parameters through config
+        return ["wsprd", "-d", file]
+
+
 class WsjtParser(object):
+    locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
+    jt9_pattern = re.compile("^[0-9]{6} .*")
+    wspr_pattern = re.compile("^[0-9]{4} .*")
+    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
+
     def __init__(self, handler):
         self.handler = handler
-        self.locator_pattern = re.compile(".*\s([A-Z0-9]+)\s([A-R]{2}[0-9]{2})$")
 
     modes = {
         "~": "FT8"
@@ -132,8 +160,6 @@ class WsjtParser(object):
     def parse(self, data):
         try:
             msg = data.decode().rstrip()
-            # sample
-            # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
             # known debug messages we know to skip
             if msg.startswith("<DecodeFinished>"):
                 return
@@ -141,23 +167,33 @@ class WsjtParser(object):
                 return
 
             out = {}
-            ts = datetime.strptime(msg[0:6], "%H%M%S")
-            out["timestamp"] = int(datetime.combine(date.today(), ts.time(), datetime.now().tzinfo).timestamp() * 1000)
-            out["db"] = float(msg[7:10])
-            out["dt"] = float(msg[11:15])
-            out["freq"] = int(msg[16:20])
-            modeChar = msg[21:22]
-            out["mode"] = mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
-            wsjt_msg = msg[24:60].strip()
-            self.parseLocator(wsjt_msg, mode)
-            out["msg"] = wsjt_msg
+            if WsjtParser.jt9_pattern.match(msg):
+                out = self.parse_from_jt9(msg)
+            elif WsjtParser.wspr_pattern.match(msg):
+                out = self.parse_from_wsprd(msg)
 
             self.handler.write_wsjt_message(out)
         except ValueError:
             logger.exception("error while parsing wsjt message")
 
+    def parse_from_jt9(self, msg):
+        # ft8 sample
+        # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
+        out = {}
+        ts = datetime.strptime(msg[0:6], "%H%M%S")
+        out["timestamp"] = int(datetime.combine(date.today(), ts.time(), datetime.now().tzinfo).timestamp() * 1000)
+        out["db"] = float(msg[7:10])
+        out["dt"] = float(msg[11:15])
+        out["freq"] = int(msg[16:20])
+        modeChar = msg[21:22]
+        out["mode"] = mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
+        wsjt_msg = msg[24:60].strip()
+        self.parseLocator(wsjt_msg, mode)
+        out["msg"] = wsjt_msg
+        return out
+
     def parseLocator(self, msg, mode):
-        m = self.locator_pattern.match(msg)
+        m = WsjtParser.locator_pattern.match(msg)
         if m is None:
             return
         # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
@@ -165,3 +201,26 @@ class WsjtParser(object):
         if m.group(2) == "RR73":
             return
         Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), mode)
+
+    def parse_from_wsprd(self, msg):
+        # wspr sample
+        # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
+        out = {}
+        now = datetime.now()
+        ts = datetime.strptime(msg[0:4], "%M%S").replace(hour=now.hour)
+        out["timestamp"] = int(datetime.combine(date.today(), ts.time(), now.tzinfo).timestamp() * 1000)
+        out["db"] = float(msg[5:8])
+        out["dt"] = float(msg[9:13])
+        out["freq"] = float(msg[14:24])
+        out["drift"] = int(msg[25:28])
+        out["mode"] = "WSPR"
+        wsjt_msg = msg[29:].strip()
+        out["msg"] = wsjt_msg
+        self.parseWsprMessage(wsjt_msg)
+        return out
+
+    def parseWsprMessage(self, msg):
+        m = WsjtParser.wspr_splitter_pattern.match(msg)
+        if m is None:
+            return
+        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), "WSPR")
