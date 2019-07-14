@@ -25,7 +25,7 @@ import os
 import signal
 import threading
 from functools import partial
-from owrx.wsjt import Ft8Chopper, WsprChopper
+from owrx.wsjt import Ft8Chopper, WsprChopper, Jt9Chopper, Jt65Chopper
 
 import logging
 logger = logging.getLogger(__name__)
@@ -277,6 +277,10 @@ class dsp(object):
                 chopper = Ft8Chopper(self.secondary_process_demod.stdout)
             elif smd == "wspr":
                 chopper = WsprChopper(self.secondary_process_demod.stdout)
+            elif smd == "jt65":
+                chopper = Jt65Chopper(self.secondary_process_demod.stdout)
+            elif smd == "jt9":
+                chopper = Jt9Chopper(self.secondary_process_demod.stdout)
             chopper.start()
             self.output.add_output("wsjt_demod", chopper.read)
         else:
@@ -371,7 +375,7 @@ class dsp(object):
     def isWsjtMode(self, demodulator = None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
-        return demodulator in ["ft8", "wspr"]
+        return demodulator in ["ft8", "wspr", "jt65", "jt9"]
 
     def set_output_rate(self,output_rate):
         self.output_rate=output_rate

@@ -144,9 +144,29 @@ class WsprChopper(WsjtChopper):
         return ["wsprd", "-d", file]
 
 
+class Jt65Chopper(WsjtChopper):
+    def __init__(self, source):
+        self.interval = 60
+        super().__init__(source)
+
+    def decoder_commandline(self, file):
+        #TODO expose decoding quality parameters through config
+        return ["jt9", "--jt65", "-d", "3", file]
+
+
+class Jt9Chopper(WsjtChopper):
+    def __init__(self, source):
+        self.interval = 60
+        super().__init__(source)
+
+    def decoder_commandline(self, file):
+        #TODO expose decoding quality parameters through config
+        return ["jt9", "--jt9", "-d", "3", file]
+
+
 class WsjtParser(object):
     locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
-    jt9_pattern = re.compile("^[0-9]{6} .*")
+    jt9_pattern = re.compile("^([0-9]{6}|\\*{4}) .*")
     wspr_pattern = re.compile("^[0-9]{4} .*")
     wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
 
@@ -154,7 +174,9 @@ class WsjtParser(object):
         self.handler = handler
 
     modes = {
-        "~": "FT8"
+        "~": "FT8",
+        "#": "JT65",
+        "@": "JT9"
     }
 
     def parse(self, data):
@@ -179,15 +201,22 @@ class WsjtParser(object):
     def parse_from_jt9(self, msg):
         # ft8 sample
         # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
+        # jt65 sample
+        # '**** -10  0.4 1556 #  CQ RN6AM KN95'
         out = {}
-        ts = datetime.strptime(msg[0:6], "%H%M%S")
-        out["timestamp"] = int(datetime.combine(date.today(), ts.time(), datetime.now().tzinfo).timestamp() * 1000)
-        out["db"] = float(msg[7:10])
-        out["dt"] = float(msg[11:15])
-        out["freq"] = int(msg[16:20])
-        modeChar = msg[21:22]
+        if msg.startswith("****"):
+            out["timestamp"] = int(datetime.now().timestamp() * 1000)
+            msg = msg[5:]
+        else:
+            ts = datetime.strptime(msg[0:6], "%H%M%S")
+            out["timestamp"] = int(datetime.combine(date.today(), ts.time(), datetime.now().tzinfo).timestamp() * 1000)
+            msg = msg[7:]
+        out["db"] = float(msg[0:3])
+        out["dt"] = float(msg[4:8])
+        out["freq"] = int(msg[9:13])
+        modeChar = msg[14:15]
         out["mode"] = mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
-        wsjt_msg = msg[24:60].strip()
+        wsjt_msg = msg[17:53].strip()
         self.parseLocator(wsjt_msg, mode)
         out["msg"] = wsjt_msg
         return out
