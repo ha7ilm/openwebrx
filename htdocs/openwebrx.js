@@ -1418,11 +1418,11 @@ var wsjt_removal_interval;
 function init_wsjt_removal_timer() {
     if (wsjt_removal_interval) clearInterval(wsjt_removal_interval);
     setInterval(function(){
-        // let's keep 2 hours that should be plenty for most users
-        var cutoff = new Date().getTime()- 2 * 60 * 60 * 1000;
-        $('#openwebrx-panel-wsjt-message tbody tr').filter(function(_, e){
-            return $(e).data('timestamp') < cutoff;
-        }).remove();
+        var $elements = $('#openwebrx-panel-wsjt-message tbody tr');
+        // limit to 1000 entries in the list since browsers get laggy at some point
+        var toRemove = $elements.length - 1000;
+        if (toRemove <= 0) return;
+        $elements.slice(0, toRemove).remove();
     }, 15000);
 }
 
