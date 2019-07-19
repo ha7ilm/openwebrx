@@ -1,11 +1,24 @@
 import json
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Band(object):
     def __init__(self, dict):
         self.name = dict["name"]
         self.lower_bound = dict["lower_bound"]
         self.upper_bound = dict["upper_bound"]
+        self.frequencies = []
+        if "frequencies" in dict:
+            for (mode, freqs) in dict["frequencies"].items():
+                if not isinstance(freqs, list):
+                    freqs = [freqs]
+                for f in freqs:
+                    if not self.inBand(f):
+                        logger.warning("Frequency for {mode} on {band} is not within band limits: {frequency}".format(mode = mode, frequency = f, band = self.name))
+                    else:
+                        self.frequencies.append([{"mode": mode, "frequency": f}])
 
     def inBand(self, freq):
         return self.lower_bound <= freq <= self.upper_bound

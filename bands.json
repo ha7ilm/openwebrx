@@ -26,7 +26,7 @@
   {
     "name": "60m",
     "lower_bound": 5351500,
-    "upper_bound": 3566500,
+    "upper_bound": 5366500,
     "frequencies": {
       "ft8": 5357000,
       "wspr": 5287200
