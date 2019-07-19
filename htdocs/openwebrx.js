@@ -1417,7 +1417,7 @@ var wsjt_removal_interval;
 // remove old wsjt messages in fixed intervals
 function init_wsjt_removal_timer() {
     if (wsjt_removal_interval) clearInterval(wsjt_removal_interval);
-    setInterval(function(){
+    wsjt_removal_interval = setInterval(function(){
         var $elements = $('#openwebrx-panel-wsjt-message tbody tr');
         // limit to 1000 entries in the list since browsers get laggy at some point
         var toRemove = $elements.length - 1000;
