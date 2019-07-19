@@ -23,10 +23,31 @@ class WebSocketConnection(object):
 
     def get_header(self, size, opcode):
         ws_first_byte = 0b10000000 | (opcode & 0x0F)
-        if (size > 125):
-            return bytes([ws_first_byte, 126, (size>>8) & 0xff, size & 0xff])
+        if (size > 2**16 - 1):
+            # frame size can be increased up to 2^64 by setting the size to 127
+            # anything beyond that would need to be segmented into frames. i don't really think we'll need more.
+            return bytes([
+                ws_first_byte,
+                127,
+                (size >> 56) & 0xff,
+                (size >> 48) & 0xff,
+                (size >> 40) & 0xff,
+                (size >> 32) & 0xff,
+                (size >> 24) & 0xff,
+                (size >> 16) & 0xff,
+                (size >> 8) & 0xff,
+                size & 0xff
+            ])
+        elif (size > 125):
+            # up to 2^16 can be sent using the extended payload size field by putting the size to 126
+            return bytes([
+                ws_first_byte,
+                126,
+                (size >> 8) & 0xff,
+                size & 0xff
+            ])
         else:
-            # 256 bytes binary message in a single unmasked frame
+            # 125 bytes binary message in a single unmasked frame
             return bytes([ws_first_byte, size])
 
     def send(self, data):
