@@ -2,6 +2,7 @@ from owrx.config import PropertyManager
 from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
+from owrx.bands import Bandplan
 import json
 from owrx.map import Map
 
@@ -83,6 +84,12 @@ class OpenWebRxReceiverClient(Client):
             config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
             self.write_config(config)
 
+            cf = configProps["center_freq"]
+            srh = configProps["samp_rate"] / 2
+            frequencyRange = (cf - srh, cf + srh)
+            self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencis(frequencyRange))
+
+
         self.configSub = configProps.wire(sendConfig)
         sendConfig(None, None)
 
@@ -161,6 +168,9 @@ class OpenWebRxReceiverClient(Client):
 
     def write_wsjt_message(self, message):
         self.protected_send({"type": "wsjt_message", "value": message})
+
+    def write_dial_frequendies(self, frequencies):
+        self.protected_send({"type": "dial_frequencies", "value": frequencies})
 
 
 class MapConnection(Client):

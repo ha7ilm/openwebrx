@@ -18,13 +18,17 @@ class Band(object):
                     if not self.inBand(f):
                         logger.warning("Frequency for {mode} on {band} is not within band limits: {frequency}".format(mode = mode, frequency = f, band = self.name))
                     else:
-                        self.frequencies.append([{"mode": mode, "frequency": f}])
+                        self.frequencies.append({"mode": mode, "frequency": f})
 
     def inBand(self, freq):
         return self.lower_bound <= freq <= self.upper_bound
 
     def getName(self):
         return self.name
+
+    def getDialFrequencies(self, range):
+        (low, hi) = range
+        return [e for e in self.frequencies if low <= e["frequency"] <= hi]
 
 
 class Bandplan(object):
@@ -43,3 +47,6 @@ class Bandplan(object):
 
     def findBand(self, freq):
         return next(band for band in self.bands if band.inBand(freq))
+
+    def collectDialFrequencis(self, range):
+        return [e for b in self.bands for e in b.getDialFrequencies(range)]
