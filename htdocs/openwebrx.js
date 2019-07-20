@@ -1385,7 +1385,7 @@ function update_wsjt_panel(msg) {
     var t = new Date(msg['timestamp']);
     var pad = function(i) { return ('' + i).padStart(2, "0"); }
     var linkedmsg = msg['msg'];
-    if (['FT8', 'JT65', 'JT9'].indexOf(msg['mode']) >= 0) {
+    if (['FT8', 'JT65', 'JT9', 'FT4'].indexOf(msg['mode']) >= 0) {
         var matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] != 'RR73') {
             linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
@@ -2711,6 +2711,7 @@ function demodulator_digital_replace(subtype)
     case "wspr":
     case "jt65":
     case "jt9":
+    case "ft4":
         secondary_demod_start(subtype);
         demodulator_analog_replace('usb', true);
         demodulator_buttons_update();
@@ -2718,7 +2719,7 @@ function demodulator_digital_replace(subtype)
     }
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
-    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9'].indexOf(subtype) >= 0);
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
 }
 
 function secondary_demod_create_canvas()
@@ -2892,6 +2893,7 @@ function secondary_demod_listbox_changed()
         case "wspr":
         case "jt65":
         case "jt9":
+        case "ft4":
             demodulator_digital_replace(sdm);
             break;
     }

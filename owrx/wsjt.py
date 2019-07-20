@@ -169,6 +169,17 @@ class Jt9Chopper(WsjtChopper):
         return ["jt9", "--jt9", "-d", "3", file]
 
 
+class Ft4Chopper(WsjtChopper):
+    def __init__(self, source):
+        self.interval = 7.5
+        self.fileTimestampFormat = "%y%m%d_%H%M%S"
+        super().__init__(source)
+
+    def decoder_commandline(self, file):
+        #TODO expose decoding quality parameters through config
+        return ["jt9", "--ft4", "-d", "3", file]
+
+
 class WsjtParser(object):
     locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
     wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
@@ -181,7 +192,8 @@ class WsjtParser(object):
     modes = {
         "~": "FT8",
         "#": "JT65",
-        "@": "JT9"
+        "@": "JT9",
+        "+": "FT4"
     }
 
     def parse(self, data):
