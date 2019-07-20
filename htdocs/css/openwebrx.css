@@ -364,6 +364,20 @@ input[type=range]:focus::-ms-fill-upper
 	text-align: center;
 }
 
+.openwebrx-dial-button svg {
+    width: 19px;
+    height: 19px;
+    vertical-align: bottom;
+}
+
+.openwebrx-dial-button #ph_dial {
+    fill: #888;
+}
+
+.openwebrx-dial-button.available #ph_dial {
+    fill: #FFF;
+}
+
 .openwebrx-square-button img
 {
 	height: 27px;
@@ -602,7 +616,7 @@ img.openwebrx-mirror-img
 
 #openwebrx-secondary-demod-listbox
 {
-	width: 201px;
+	width: 174px;
 	height: 27px;
 	padding-left:3px;
 }
