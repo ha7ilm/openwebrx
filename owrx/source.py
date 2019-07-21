@@ -121,12 +121,12 @@ class SdrSource(object):
     def getFormatConversion(self):
         return None
 
-    def activateProfile(self, id=None):
+    def activateProfile(self, profile_id=None):
         profiles = self.props["profiles"]
-        if id is None:
-            id = list(profiles.keys())[0]
-        logger.debug("activating profile {0}".format(id))
-        profile = profiles[id]
+        if profile_id is None:
+            profile_id = list(profiles.keys())[0]
+        logger.debug("activating profile {0}".format(profile_id))
+        profile = profiles[profile_id]
         for (key, value) in profile.items():
             # skip the name, that would overwrite the source name.
             if key == "name":
