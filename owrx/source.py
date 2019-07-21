@@ -91,6 +91,10 @@ class SdrService(object):
         return SdrService.sources
 
 
+class SdrSourceException(Exception):
+    pass
+
+
 class SdrSource(object):
     def __init__(self, props, port):
         self.props = props
@@ -183,6 +187,8 @@ class SdrSource(object):
         self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
         logger.info("Started rtl source: " + cmd)
 
+        available = False
+
         def wait_for_process_to_end():
             rc = self.process.wait()
             logger.debug("shut down with RC={0}".format(rc))
@@ -191,16 +197,24 @@ class SdrSource(object):
         self.monitor = threading.Thread(target=wait_for_process_to_end)
         self.monitor.start()
 
-        while True:
+        retries = 100
+        while retries > 0:
+            retries -= 1
+            if self.monitor is None:
+                break
             testsock = socket.socket()
             try:
                 testsock.connect(("127.0.0.1", self.getPort()))
                 testsock.close()
+                available = True
                 break
             except:
                 time.sleep(0.1)
 
         self.modificationLock.release()
+
+        if not available:
+            raise SdrSourceException("rtl source failed to start up")
 
         for c in self.clients:
             c.onSdrAvailable()
