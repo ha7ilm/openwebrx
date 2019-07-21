@@ -216,8 +216,8 @@ class WsjtParser(object):
             logger.exception("error while parsing wsjt message")
 
     def parse_timestamp(self, instring, dateformat):
-        ts = datetime.strptime(instring, dateformat).replace(tzinfo=timezone.utc)
-        return int(datetime.combine(date.today(), ts.time(), timezone.utc).timestamp() * 1000)
+        ts = datetime.strptime(instring, dateformat)
+        return int(datetime.combine(date.today(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000)
 
     def parse_from_jt9(self, msg):
         # ft8 sample
