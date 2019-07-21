@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import PropertyManager
