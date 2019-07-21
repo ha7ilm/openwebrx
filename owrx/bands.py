@@ -1,6 +1,7 @@
 import json
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +17,11 @@ class Band(object):
                     freqs = [freqs]
                 for f in freqs:
                     if not self.inBand(f):
-                        logger.warning("Frequency for {mode} on {band} is not within band limits: {frequency}".format(mode = mode, frequency = f, band = self.name))
+                        logger.warning(
+                            "Frequency for {mode} on {band} is not within band limits: {frequency}".format(
+                                mode=mode, frequency=f, band=self.name
+                            )
+                        )
                     else:
                         self.frequencies.append({"mode": mode, "frequency": f})
 
@@ -33,6 +38,7 @@ class Band(object):
 
 class Bandplan(object):
     sharedInstance = None
+
     @staticmethod
     def getSharedInstance():
         if Bandplan.sharedInstance is None:

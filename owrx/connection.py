@@ -7,6 +7,7 @@ import json
 from owrx.map import Map
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,11 +30,26 @@ class Client(object):
 
 
 class OpenWebRxReceiverClient(Client):
-    config_keys = ["waterfall_colors", "waterfall_min_level", "waterfall_max_level",
-                   "waterfall_auto_level_margin", "lfo_offset", "samp_rate", "fft_size", "fft_fps",
-                   "audio_compression", "fft_compression", "max_clients", "start_mod",
-                   "client_audio_buffer_size", "start_freq", "center_freq", "mathbox_waterfall_colors",
-                   "mathbox_waterfall_history_length", "mathbox_waterfall_frequency_resolution"]
+    config_keys = [
+        "waterfall_colors",
+        "waterfall_min_level",
+        "waterfall_max_level",
+        "waterfall_auto_level_margin",
+        "lfo_offset",
+        "samp_rate",
+        "fft_size",
+        "fft_fps",
+        "audio_compression",
+        "fft_compression",
+        "max_clients",
+        "start_mod",
+        "client_audio_buffer_size",
+        "start_freq",
+        "center_freq",
+        "mathbox_waterfall_colors",
+        "mathbox_waterfall_history_length",
+        "mathbox_waterfall_frequency_resolution",
+    ]
 
     def __init__(self, conn):
         super().__init__(conn)
@@ -49,12 +65,23 @@ class OpenWebRxReceiverClient(Client):
         self.setSdr()
 
         # send receiver info
-        receiver_keys = ["receiver_name", "receiver_location", "receiver_qra", "receiver_asl",  "receiver_gps",
-                         "photo_title", "photo_desc"]
+        receiver_keys = [
+            "receiver_name",
+            "receiver_location",
+            "receiver_qra",
+            "receiver_asl",
+            "receiver_gps",
+            "photo_title",
+            "photo_desc",
+        ]
         receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
         self.write_receiver_details(receiver_details)
 
-        profiles = [{"name": s.getName() + " " + p["name"], "id":sid + "|" + pid} for (sid, s) in SdrService.getSources().items() for (pid, p) in s.getProfiles().items()]
+        profiles = [
+            {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
+            for (sid, s) in SdrService.getSources().items()
+            for (pid, p) in s.getProfiles().items()
+        ]
         self.write_profiles(profiles)
 
         features = FeatureDetector().feature_availability()
@@ -62,9 +89,9 @@ class OpenWebRxReceiverClient(Client):
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
-    def setSdr(self, id = None):
+    def setSdr(self, id=None):
         next = SdrService.getSource(id)
-        if (next == self.sdr):
+        if next == self.sdr:
             return
 
         self.stopDsp()
@@ -76,7 +103,11 @@ class OpenWebRxReceiverClient(Client):
         self.sdr = next
 
         # send initial config
-        configProps = self.sdr.getProps().collect(*OpenWebRxReceiverClient.config_keys).defaults(PropertyManager.getSharedInstance())
+        configProps = (
+            self.sdr.getProps()
+            .collect(*OpenWebRxReceiverClient.config_keys)
+            .defaults(PropertyManager.getSharedInstance())
+        )
 
         def sendConfig(key, value):
             config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
@@ -88,7 +119,6 @@ class OpenWebRxReceiverClient(Client):
             srh = configProps["samp_rate"] / 2
             frequencyRange = (cf - srh, cf + srh)
             self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencis(frequencyRange))
-
 
         self.configSub = configProps.wire(sendConfig)
         sendConfig(None, None)
@@ -118,8 +148,11 @@ class OpenWebRxReceiverClient(Client):
 
     def setParams(self, params):
         # only the keys in the protected property manager can be overridden from the web
-        protected = self.sdr.getProps().collect("samp_rate", "center_freq", "rf_gain", "type", "if_gain") \
+        protected = (
+            self.sdr.getProps()
+            .collect("samp_rate", "center_freq", "rf_gain", "type", "if_gain")
             .defaults(PropertyManager.getSharedInstance())
+        )
         for key, value in params.items():
             protected[key] = value
 
@@ -134,13 +167,13 @@ class OpenWebRxReceiverClient(Client):
         self.protected_send(bytes([0x02]) + data)
 
     def write_s_meter_level(self, level):
-        self.protected_send({"type":"smeter","value":level})
+        self.protected_send({"type": "smeter", "value": level})
 
     def write_cpu_usage(self, usage):
-        self.protected_send({"type":"cpuusage","value":usage})
+        self.protected_send({"type": "cpuusage", "value": usage})
 
     def write_clients(self, clients):
-        self.protected_send({"type":"clients","value":clients})
+        self.protected_send({"type": "clients", "value": clients})
 
     def write_secondary_fft(self, data):
         self.protected_send(bytes([0x03]) + data)
@@ -149,22 +182,22 @@ class OpenWebRxReceiverClient(Client):
         self.protected_send(bytes([0x04]) + data)
 
     def write_secondary_dsp_config(self, cfg):
-        self.protected_send({"type":"secondary_config", "value":cfg})
+        self.protected_send({"type": "secondary_config", "value": cfg})
 
     def write_config(self, cfg):
-        self.protected_send({"type":"config","value":cfg})
+        self.protected_send({"type": "config", "value": cfg})
 
     def write_receiver_details(self, details):
-        self.protected_send({"type":"receiver_details","value":details})
+        self.protected_send({"type": "receiver_details", "value": details})
 
     def write_profiles(self, profiles):
-        self.protected_send({"type":"profiles","value":profiles})
+        self.protected_send({"type": "profiles", "value": profiles})
 
     def write_features(self, features):
-        self.protected_send({"type":"features","value":features})
+        self.protected_send({"type": "features", "value": features})
 
     def write_metadata(self, metadata):
-        self.protected_send({"type":"metadata","value":metadata})
+        self.protected_send({"type": "metadata", "value": metadata})
 
     def write_wsjt_message(self, message):
         self.protected_send({"type": "wsjt_message", "value": message})
@@ -187,10 +220,11 @@ class MapConnection(Client):
         super().close()
 
     def write_config(self, cfg):
-        self.protected_send({"type":"config","value":cfg})
+        self.protected_send({"type": "config", "value": cfg})
 
     def write_update(self, update):
-        self.protected_send({"type":"update","value":update})
+        self.protected_send({"type": "update", "value": update})
+
 
 class WebSocketMessageHandler(object):
     def __init__(self):
@@ -199,11 +233,11 @@ class WebSocketMessageHandler(object):
         self.dsp = None
 
     def handleTextMessage(self, conn, message):
-        if (message[:16] == "SERVER DE CLIENT"):
+        if message[:16] == "SERVER DE CLIENT":
             meta = message[17:].split(" ")
             self.handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
 
-            conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version = openwebrx_version))
+            conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
             logger.debug("client connection intitialized")
 
             if "type" in self.handshake:
