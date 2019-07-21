@@ -90,12 +90,8 @@ Optional Dependency if you want to decode WSJT-X modes:
 
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 
-	python openwebrx.py
+	./openwebrx.py
 	
-You may need to specify the Python version explicitly if your distribution still defaults to Python 2:
-
-    python3 openwebrx.py
-
 You can now open the GUI at <a href="http://localhost:8073">http://localhost:8073</a>.
 
 Please note that the server is also listening on the following ports (on localhost only):
