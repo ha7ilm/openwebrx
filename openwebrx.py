@@ -7,6 +7,7 @@ from owrx.feature import FeatureDetector
 from owrx.source import SdrService, ClientRegistry
 from socketserver import ThreadingMixIn
 from owrx.sdrhu import SdrHuUpdater
+from owrx.service import ServiceManager
 
 import logging
 
@@ -46,6 +47,8 @@ Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>
     if "sdrhu_key" in pm and pm["sdrhu_public_listing"]:
         updater = SdrHuUpdater()
         updater.start()
+
+    ServiceManager.getSharedInstance().start()
 
     server = ThreadedHttpServer(("0.0.0.0", pm.getPropertyValue("web_port")), RequestHandler)
     server.serve_forever()

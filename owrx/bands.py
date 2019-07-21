@@ -54,5 +54,5 @@ class Bandplan(object):
     def findBand(self, freq):
         return next(band for band in self.bands if band.inBand(freq))
 
-    def collectDialFrequencis(self, range):
+    def collectDialFrequencies(self, range):
         return [e for b in self.bands for e in b.getDialFrequencies(range)]

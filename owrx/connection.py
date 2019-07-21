@@ -118,7 +118,7 @@ class OpenWebRxReceiverClient(Client):
             cf = configProps["center_freq"]
             srh = configProps["samp_rate"] / 2
             frequencyRange = (cf - srh, cf + srh)
-            self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencis(frequencyRange))
+            self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
 
         self.configSub = configProps.wire(sendConfig)
         sendConfig(None, None)
