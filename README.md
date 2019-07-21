@@ -17,6 +17,13 @@ It has the following features:
 - Multiple SDR devices can be used simultaneously
 - [digiham](https://github.com/jketterl/digiham) based demodularors (DMR, YSF)
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
+- [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
+
+**News (2019-07-21 by DD5JFK)**
+- Latest Features:
+  - More WSJT-X have been added, including the new FT4 mode
+  - I started adding a bandplan feature, the first thing visible is the "dial" indicator that brings you right to the dial frequency for digital modes
+  - fixed some bugs in the websocket communication which broke the map
 
 **News (2019-07-13 by DD5JFK)**
 - Latest Features:
@@ -77,9 +84,17 @@ Optional Dependencies if you want to be able to listen do digital voice:
 - [digiham](https://github.com/jketterl/digiham)
 - [dsd](https://github.com/f4exb/dsdcc)
 
+Optional Dependency if you want to decode WSJT-X modes:
+
+- [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html)
+
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 
 	python openwebrx.py
+	
+You may need to specify the Python version explicitly if your distribution still defaults to Python 2:
+
+    python3 openwebrx.py
 
 You can now open the GUI at <a href="http://localhost:8073">http://localhost:8073</a>.
 
