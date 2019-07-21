@@ -21,7 +21,7 @@ It has the following features:
 
 **News (2019-07-21 by DD5JFK)**
 - Latest Features:
-  - More WSJT-X have been added, including the new FT4 mode
+  - More WSJT-X modes have been added, including the new FT4 mode
   - I started adding a bandplan feature, the first thing visible is the "dial" indicator that brings you right to the dial frequency for digital modes
   - fixed some bugs in the websocket communication which broke the map
 
