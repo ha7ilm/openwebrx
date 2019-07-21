@@ -1,22 +1,35 @@
-from owrx.controllers import StatusController, IndexController, AssetsController, WebSocketController, MapController, FeatureController, ApiController
+from owrx.controllers import (
+    StatusController,
+    IndexController,
+    AssetsController,
+    WebSocketController,
+    MapController,
+    FeatureController,
+    ApiController,
+)
 from http.server import BaseHTTPRequestHandler
 import re
 from urllib.parse import urlparse, parse_qs
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class RequestHandler(BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         self.router = Router()
         super().__init__(request, client_address, server)
+
     def do_GET(self):
         self.router.route(self)
 
+
 class Request(object):
-    def __init__(self, query = None, matches = None):
+    def __init__(self, query=None, matches=None):
         self.query = query
         self.matches = matches
+
 
 class Router(object):
     mappings = [
@@ -29,8 +42,9 @@ class Router(object):
         {"regex": "/(gfx/openwebrx-avatar.png)", "controller": AssetsController},
         {"route": "/map", "controller": MapController},
         {"route": "/features", "controller": FeatureController},
-        {"route": "/api/features", "controller": ApiController}
+        {"route": "/api/features", "controller": ApiController},
     ]
+
     def find_controller(self, path):
         for m in Router.mappings:
             if "route" in m:
@@ -41,13 +55,16 @@ class Router(object):
                 matches = regex.match(path)
                 if matches:
                     return (m["controller"], matches)
+
     def route(self, handler):
         url = urlparse(handler.path)
         res = self.find_controller(url.path)
         if res is not None:
             (controller, matches) = res
             query = parse_qs(url.query)
-            logger.debug("path: {0}, controller: {1}, query: {2}, matches: {3}".format(handler.path, controller, query, matches))
+            logger.debug(
+                "path: {0}, controller: {1}, query: {2}, matches: {3}".format(handler.path, controller, query, matches)
+            )
             request = Request(query, matches)
             controller(handler, request).handle_request()
         else:

@@ -12,6 +12,7 @@ from owrx.config import PropertyManager
 from owrx.bands import Bandplan
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,9 +30,7 @@ class WsjtChopper(threading.Thread):
 
     def getWaveFile(self):
         filename = "{tmp_dir}/openwebrx-wsjtchopper-{id}-{timestamp}.wav".format(
-            tmp_dir = self.tmp_dir,
-            id = id(self),
-            timestamp = datetime.utcnow().strftime(self.fileTimestampFormat)
+            tmp_dir=self.tmp_dir, id=id(self), timestamp=datetime.utcnow().strftime(self.fileTimestampFormat)
         )
         wavefile = wave.open(filename, "wb")
         wavefile.setnchannels(1)
@@ -44,13 +43,13 @@ class WsjtChopper(threading.Thread):
         zeroed = t.replace(minute=0, second=0, microsecond=0)
         delta = t - zeroed
         seconds = (int(delta.total_seconds() / self.interval) + 1) * self.interval
-        t = zeroed + timedelta(seconds = seconds)
+        t = zeroed + timedelta(seconds=seconds)
         logger.debug("scheduling: {0}".format(t))
         return t.timestamp()
 
     def startScheduler(self):
         self._scheduleNextSwitch()
-        threading.Thread(target = self.scheduler.run).start()
+        threading.Thread(target=self.scheduler.run).start()
 
     def emptyScheduler(self):
         for event in self.scheduler.queue:
@@ -132,7 +131,7 @@ class Ft8Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        #TODO expose decoding quality parameters through config
+        # TODO expose decoding quality parameters through config
         return ["jt9", "--ft8", "-d", "3", file]
 
 
@@ -143,7 +142,7 @@ class WsprChopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        #TODO expose decoding quality parameters through config
+        # TODO expose decoding quality parameters through config
         return ["wsprd", "-d", file]
 
 
@@ -154,7 +153,7 @@ class Jt65Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        #TODO expose decoding quality parameters through config
+        # TODO expose decoding quality parameters through config
         return ["jt9", "--jt65", "-d", "3", file]
 
 
@@ -165,7 +164,7 @@ class Jt9Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        #TODO expose decoding quality parameters through config
+        # TODO expose decoding quality parameters through config
         return ["jt9", "--jt9", "-d", "3", file]
 
 
@@ -176,7 +175,7 @@ class Ft4Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        #TODO expose decoding quality parameters through config
+        # TODO expose decoding quality parameters through config
         return ["jt9", "--ft4", "-d", "3", file]
 
 
@@ -189,12 +188,7 @@ class WsjtParser(object):
         self.dial_freq = None
         self.band = None
 
-    modes = {
-        "~": "FT8",
-        "#": "JT65",
-        "@": "JT9",
-        "+": "FT4"
-    }
+    modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4"}
 
     def parse(self, data):
         try:
@@ -230,8 +224,8 @@ class WsjtParser(object):
             dateformat = "%H%M"
         else:
             dateformat = "%H%M%S"
-        timestamp = self.parse_timestamp(msg[0:len(dateformat)], dateformat)
-        msg = msg[len(dateformat) + 1:]
+        timestamp = self.parse_timestamp(msg[0 : len(dateformat)], dateformat)
+        msg = msg[len(dateformat) + 1 :]
         modeChar = msg[14:15]
         mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
         wsjt_msg = msg[17:53].strip()
@@ -242,7 +236,7 @@ class WsjtParser(object):
             "dt": float(msg[4:8]),
             "freq": int(msg[9:13]),
             "mode": mode,
-            "msg": wsjt_msg
+            "msg": wsjt_msg,
         }
 
     def parseLocator(self, msg, mode):
@@ -268,7 +262,7 @@ class WsjtParser(object):
             "freq": float(msg[14:24]),
             "drift": int(msg[25:28]),
             "mode": "WSPR",
-            "msg": wsjt_msg
+            "msg": wsjt_msg,
         }
 
     def parseWsprMessage(self, msg):

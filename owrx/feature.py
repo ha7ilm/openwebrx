@@ -7,6 +7,7 @@ from distutils.version import LooseVersion
 import inspect
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,14 +17,14 @@ class UnknownFeatureException(Exception):
 
 class FeatureDetector(object):
     features = {
-        "core": [ "csdr", "nmux", "nc" ],
-        "rtl_sdr": [ "rtl_sdr" ],
-        "sdrplay": [ "rx_tools" ],
-        "hackrf": [ "hackrf_transfer" ],
-        "airspy": [ "airspy_rx" ],
-        "digital_voice_digiham": [ "digiham", "sox" ],
-        "digital_voice_dsd": [ "dsd", "sox", "digiham" ],
-        "wsjt-x": [ "wsjtx", "sox" ]
+        "core": ["csdr", "nmux", "nc"],
+        "rtl_sdr": ["rtl_sdr"],
+        "sdrplay": ["rx_tools"],
+        "hackrf": ["hackrf_transfer"],
+        "airspy": ["airspy_rx"],
+        "digital_voice_digiham": ["digiham", "sox"],
+        "digital_voice_dsd": ["dsd", "sox", "digiham"],
+        "wsjt-x": ["wsjtx", "sox"],
     }
 
     def feature_availability(self):
@@ -36,14 +37,14 @@ class FeatureDetector(object):
                 "available": available,
                 # as of now, features are always enabled as soon as they are available. this may change in the future.
                 "enabled": available,
-                "description": self.get_requirement_description(name)
+                "description": self.get_requirement_description(name),
             }
 
         def feature_details(name):
             return {
                 "description": "",
                 "available": self.is_available(name),
-                "requirements": {name: requirement_details(name) for name in self.get_requirements(name)}
+                "requirements": {name: requirement_details(name) for name in self.get_requirements(name)},
             }
 
         return {name: feature_details(name) for name in FeatureDetector.features}
@@ -55,7 +56,7 @@ class FeatureDetector(object):
         try:
             return FeatureDetector.features[feature]
         except KeyError:
-            raise UnknownFeatureException("Feature \"{0}\" is not known.".format(feature))
+            raise UnknownFeatureException('Feature "{0}" is not known.'.format(feature))
 
     def has_requirements(self, requirements):
         passed = True
@@ -102,7 +103,7 @@ class FeatureDetector(object):
         Nc is the client used to connect to the nmux multiplexer. It is provided by either the BSD netcat (recommended
         for better performance) or GNU netcat packages. Please check your distribution package manager for options.
         """
-        return self.command_is_runnable('nc --help')
+        return self.command_is_runnable("nc --help")
 
     def has_rtl_sdr(self):
         """
@@ -156,7 +157,8 @@ class FeatureDetector(object):
         """
         required_version = LooseVersion("0.2")
 
-        digiham_version_regex = re.compile('^digiham version (.*)$')
+        digiham_version_regex = re.compile("^digiham version (.*)$")
+
         def check_digiham_version(command):
             try:
                 process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
@@ -165,14 +167,21 @@ class FeatureDetector(object):
                 return version >= required_version
             except FileNotFoundError:
                 return False
+
         return reduce(
             and_,
             map(
                 check_digiham_version,
-                ["rrc_filter", "ysf_decoder", "dmr_decoder", "mbe_synthesizer", "gfsk_demodulator",
-                 "digitalvoice_filter"]
+                [
+                    "rrc_filter",
+                    "ysf_decoder",
+                    "dmr_decoder",
+                    "mbe_synthesizer",
+                    "gfsk_demodulator",
+                    "digitalvoice_filter",
+                ],
             ),
-            True
+            True,
         )
 
     def has_dsd(self):
@@ -203,11 +212,4 @@ class FeatureDetector(object):
         [WSJT-X homepage](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) for ready-made packages or instructions
         on how to build from source.
         """
-        return reduce(
-            and_,
-            map(
-                self.command_is_runnable,
-                ["jt9", "wsprd"]
-            ),
-            True
-        )
+        return reduce(and_, map(self.command_is_runnable, ["jt9", "wsprd"]), True)

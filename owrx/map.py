@@ -4,6 +4,7 @@ from owrx.config import PropertyManager
 from owrx.bands import Band
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,6 +15,7 @@ class Location(object):
 
 class Map(object):
     sharedInstance = None
+
     @staticmethod
     def getSharedInstance():
         if Map.sharedInstance is None:
@@ -41,16 +43,18 @@ class Map(object):
 
     def addClient(self, client):
         self.clients.append(client)
-        client.write_update([
-            {
-                "callsign": callsign,
-                "location": record["location"].__dict__(),
-                "lastseen": record["updated"].timestamp() * 1000,
-                "mode"    : record["mode"],
-                "band"    : record["band"].getName() if record["band"] is not None else None
-            }
-            for (callsign, record) in self.positions.items()
-        ])
+        client.write_update(
+            [
+                {
+                    "callsign": callsign,
+                    "location": record["location"].__dict__(),
+                    "lastseen": record["updated"].timestamp() * 1000,
+                    "mode": record["mode"],
+                    "band": record["band"].getName() if record["band"] is not None else None,
+                }
+                for (callsign, record) in self.positions.items()
+            ]
+        )
 
     def removeClient(self, client):
         try:
@@ -61,15 +65,17 @@ class Map(object):
     def updateLocation(self, callsign, loc: Location, mode: str, band: Band = None):
         ts = datetime.now()
         self.positions[callsign] = {"location": loc, "updated": ts, "mode": mode, "band": band}
-        self.broadcast([
-            {
-                "callsign": callsign,
-                "location": loc.__dict__(),
-                "lastseen": ts.timestamp() * 1000,
-                "mode"    : mode,
-                "band"    : band.getName() if band is not None else None
-            }
-        ])
+        self.broadcast(
+            [
+                {
+                    "callsign": callsign,
+                    "location": loc.__dict__(),
+                    "lastseen": ts.timestamp() * 1000,
+                    "mode": mode,
+                    "band": band.getName() if band is not None else None,
+                }
+            ]
+        )
 
     def removeLocation(self, callsign):
         self.positions.pop(callsign, None)
@@ -84,17 +90,14 @@ class Map(object):
         for callsign in to_be_removed:
             self.removeLocation(callsign)
 
+
 class LatLngLocation(Location):
     def __init__(self, lat: float, lon: float):
         self.lat = lat
         self.lon = lon
 
     def __dict__(self):
-        return {
-            "type":"latlon",
-            "lat":self.lat,
-            "lon":self.lon
-        }
+        return {"type": "latlon", "lat": self.lat, "lon": self.lon}
 
 
 class LocatorLocation(Location):
@@ -102,7 +105,4 @@ class LocatorLocation(Location):
         self.locator = locator
 
     def __dict__(self):
-        return {
-            "type":"locator",
-            "locator":self.locator
-        }
+        return {"type": "locator", "locator": self.locator}
