@@ -197,7 +197,7 @@ class SdrSource(object):
         self.monitor = threading.Thread(target=wait_for_process_to_end)
         self.monitor.start()
 
-        retries = 100
+        retries = 1000
         while retries > 0:
             retries -= 1
             if self.monitor is None:
