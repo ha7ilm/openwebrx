@@ -81,6 +81,7 @@ class ServiceHandler(object):
     def setupService(self, mode, frequency):
         logger.debug("setting up service {0} on frequency {1}".format(mode, frequency))
         d = dsp(ServiceOutput(frequency))
+        d.nc_port = self.source.getPort()
         d.set_offset_freq(frequency - self.source.getProps()["center_freq"])
         d.set_demodulator("usb")
         d.set_bpf(0, 3000)
