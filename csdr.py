@@ -499,6 +499,9 @@ class dsp(object):
             if pipe_path:
                 try:
                     os.unlink(pipe_path)
+                except FileNotFoundError:
+                    # it seems like we keep calling this twice. no idea why, but we don't need the resulting error.
+                    pass
                 except Exception:
                     logger.exception("try_delete_pipes()")
 

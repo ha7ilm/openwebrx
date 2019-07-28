@@ -14,8 +14,6 @@ class ServiceOutput(output):
         self.frequency = frequency
 
     def add_output(self, t, read_fn):
-        logger.debug("got output of type {0}".format(t))
-
         if t == "wsjt_demod":
             parser = WsjtParser(WsjtHandler())
             parser.setDialFrequency(self.frequency)
@@ -33,17 +31,16 @@ class ServiceHandler(object):
         self.source = source
         self.source.addClient(self)
         self.source.getProps().collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
-        self.onFrequencyChange("", "")
+        self.updateServices()
 
     def onSdrAvailable(self):
-        logger.debug("sdr {0} is available".format(self.source.getName()))
-        self.onFrequencyChange("", "")
+        self.updateServices()
 
     def onSdrUnavailable(self):
-        logger.debug("sdr {0} is unavailable".format(self.source.getName()))
         self.stopServices()
 
     def isSupported(self, mode):
+        # TODO make configurable
         return mode in ["ft8", "ft4", "wspr"]
 
     def stopServices(self):
@@ -58,7 +55,10 @@ class ServiceHandler(object):
     def onFrequencyChange(self, key, value):
         if not self.source.isAvailable():
             return
-        logger.debug("sdr {0} is changing frequency".format(self.source.getName()))
+        self.updateServices()
+
+    def updateServices(self):
+        logger.debug("re-scheduling services due to sdr changes")
         self.stopServices()
         cf = self.source.getProps()["center_freq"]
         srh = self.source.getProps()["samp_rate"] / 2

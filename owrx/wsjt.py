@@ -84,10 +84,9 @@ class WsjtChopper(threading.Thread):
                     break
                 self.outputWriter.send(line)
             rc = decoder.wait()
-            logger.debug("decoder return code: %i", rc)
+            if rc != 0:
+                logger.warning("decoder return code: %i", rc)
             os.unlink(file)
-
-            self.decoder = decoder
 
         if self.fileQueue:
             file = self.fileQueue.pop()
@@ -100,7 +99,6 @@ class WsjtChopper(threading.Thread):
         while self.doRun:
             data = self.source.read(256)
             if data is None or (isinstance(data, bytes) and len(data) == 0):
-                logger.warning("zero read on WSJT chopper")
                 self.doRun = False
             else:
                 self.switchingLock.acquire()
