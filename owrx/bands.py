@@ -51,8 +51,15 @@ class Bandplan(object):
         f.close()
         self.bands = [Band(d) for d in bands_json]
 
+    def findBands(self, freq):
+        return [band for band in self.bands if band.inBand(freq)]
+
     def findBand(self, freq):
-        return next(band for band in self.bands if band.inBand(freq))
+        bands = self.findBands(freq)
+        if bands:
+            return bands[0]
+        else:
+            return None
 
     def collectDialFrequencis(self, range):
         return [e for b in self.bands for e in b.getDialFrequencies(range)]
