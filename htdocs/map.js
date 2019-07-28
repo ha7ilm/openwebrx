@@ -136,7 +136,7 @@
                     } else {
                         rectangle = new google.maps.Rectangle();
                         rectangle.addListener('click', function(){
-                            showLocatorInfoWindow(update.location.locator, center);
+                            showLocatorInfoWindow(this.locator, this.center);
                         });
                         rectangles[update.callsign] = rectangle;
                     }
@@ -156,6 +156,7 @@
                     rectangle.locator = update.location.locator;
                     rectangle.mode = update.mode;
                     rectangle.band = update.band;
+                    rectangle.center = center;
 
                     if (expectedLocator && expectedLocator == update.location.locator) {
                         map.panTo(center);
