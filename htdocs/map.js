@@ -32,13 +32,14 @@
     var fillOpacity = 0.35;
 
     var colorKeys = {};
+    var colorScale = chroma.bezier(['red', 'blue', 'green']).scale();
     var getColor = function(id){
         if (!id) return "#000000";
         if (!colorKeys[id]) {
             var keys = Object.keys(colorKeys);
             keys.push(id);
             keys.sort();
-            var colors = chroma.scale(['#FF0000', '#0000FF']).colors(keys.length);
+            var colors = colorScale.colors(keys.length);
             colorKeys = {};
             keys.forEach(function(key, index) {
                 colorKeys[key] = colors[index];
