@@ -44,6 +44,7 @@
                 colorKeys[key] = colors[index];
             });
             reColor();
+            updateLegend();
         }
         return colorKeys[id];
     }
@@ -57,6 +58,13 @@
                 fillColor: color
             });
         });
+    }
+
+    var updateLegend = function() {
+        var lis = $.map(colorKeys, function(value, key) {
+            return '<li class="square"><span class="illustration" style="background-color:' + value + ';"></span>' + key + '</li>';
+        });
+        $(".openwebrx-map-legend .content").html('<ul>' + lis.join('') + '</ul>');
     }
 
     var processUpdates = function(updates) {
@@ -183,6 +191,7 @@
                                 nite.init(map);
                                 setInterval(function() { nite.refresh() }, 10000); // every 10s
                             });
+                            map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($(".openwebrx-map-legend")[0]);
                         });
                         retention_time = config.map_position_retention_time * 1000;
                     break;

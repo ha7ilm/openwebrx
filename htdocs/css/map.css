@@ -29,3 +29,20 @@ ul {
     margin-block-end: 5px;
     padding-inline-start: 25px;
 }
+
+.openwebrx-map-legend {
+    background-color: #fff;
+    padding: 10px;
+}
+
+.openwebrx-map-legend ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.openwebrx-map-legend li.square .illustration {
+    display: inline-block;
+    width: 30px;
+    height: 20px;
+    margin-right: 10px;
+}
