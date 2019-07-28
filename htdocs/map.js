@@ -52,13 +52,32 @@
     // when the color palette changes, update all grid squares with new color
     var reColor = function() {
         $.each(rectangles, function(_, r) {
-            var color = getColor(r.band);
+            var color = getColor(colorAccessor(r));
             r.setOptions({
                 strokeColor: color,
                 fillColor: color
             });
         });
     }
+
+    var colorMode = 'byband';
+    var colorAccessor = function(r) {
+        switch (colorMode) {
+            case 'byband':
+                return r.band;
+            case 'bymode':
+                return r.mode;
+        }
+    };
+
+    $(function(){
+        $('#openwebrx-map-colormode').on('change', function(){
+            colorMode = $(this).val();
+            colorKeys = {};
+            reColor();
+            updateLegend();
+        });
+    });
 
     var updateLegend = function() {
         var lis = $.map(colorKeys, function(value, key) {
@@ -109,7 +128,8 @@
                     var lon = (loc.charCodeAt(0) - 65 - 9) * 20 + Number(loc[2]) * 2;
                     var center = new google.maps.LatLng({lat: lat + .5, lng: lon + 1});
                     var rectangle;
-                    var color = getColor(update.band);
+                    // the accessor is designed to work on the rectangle... but it should work on the update object, too
+                    var color = getColor(colorAccessor(update));
                     if (rectangles[update.callsign]) {
                         rectangle = rectangles[update.callsign];
                     } else {

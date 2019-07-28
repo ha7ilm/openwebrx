@@ -47,3 +47,9 @@ ul {
     height: 20px;
     margin-right: 10px;
 }
+
+.openwebrx-map-legend select {
+    background-color: #FFF;
+    border-color: #DDD;
+    padding: 5px;
+}
