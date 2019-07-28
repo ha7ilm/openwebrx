@@ -515,20 +515,7 @@ class DspManager(csdr.output):
         }
         write = writers[t]
 
-        def pump(read, write):
-            def copy():
-                run = True
-                while run:
-                    data = read()
-                    if data is None or (isinstance(data, bytes) and len(data) == 0):
-                        logger.warning("zero read on {0}".format(t))
-                        run = False
-                    else:
-                        write(data)
-
-            return copy
-
-        threading.Thread(target=pump(read_fn, write)).start()
+        threading.Thread(target=self.pump(read_fn, write)).start()
 
     def stop(self):
         self.dsp.stop()

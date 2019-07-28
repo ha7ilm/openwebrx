@@ -16,27 +16,14 @@ class ServiceOutput(output):
     def add_output(self, t, read_fn):
         logger.debug("got output of type {0}".format(t))
 
-        def pump(read, write):
-            def copy():
-                run = True
-                while run:
-                    data = read()
-                    if data is None or (isinstance(data, bytes) and len(data) == 0):
-                        logger.warning("zero read on {0}".format(t))
-                        run = False
-                    else:
-                        write(data)
-
-            return copy
-
         if t == "wsjt_demod":
             parser = WsjtParser(WsjtHandler())
             parser.setDialFrequency(self.frequency)
-            target = pump(read_fn, parser.parse)
+            target = self.pump(read_fn, parser.parse)
         else:
             # dump everything else
             # TODO rewrite the output mechanism in a way that avoids producing unnecessary data
-            target = pump(read_fn, lambda x: None)
+            target = self.pump(read_fn, lambda x: None)
         threading.Thread(target=target).start()
 
 

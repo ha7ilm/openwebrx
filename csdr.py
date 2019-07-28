@@ -39,6 +39,18 @@ class output(object):
     def reset(self):
         pass
 
+    def pump(self, read, write):
+        def copy():
+            run = True
+            while run:
+                data = read()
+                if data is None or (isinstance(data, bytes) and len(data) == 0):
+                    run = False
+                else:
+                    write(data)
+
+        return copy
+
 
 class dsp(object):
     def __init__(self, output):
@@ -233,7 +245,7 @@ class dsp(object):
     def start_secondary_demodulator(self):
         if not self.secondary_demodulator:
             return
-        logger.debug("[openwebrx] starting secondary demodulator from IF input sampled at %d" % self.if_samp_rate())
+        logger.debug("starting secondary demodulator from IF input sampled at %d" % self.if_samp_rate())
         secondary_command_fft = self.secondary_chain("fft")
         secondary_command_demod = self.secondary_chain(self.secondary_demodulator)
         self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod + secondary_command_fft)
@@ -255,8 +267,8 @@ class dsp(object):
             last_decimation=self.last_decimation,
         )
 
-        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (fft) = %s", secondary_command_fft)
-        logger.debug("[openwebrx-dsp-plugin:csdr] secondary command (demod) = %s", secondary_command_demod)
+        logger.debug("secondary command (fft) = %s", secondary_command_fft)
+        logger.debug("secondary command (demod) = %s", secondary_command_demod)
         my_env = os.environ.copy()
         # if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes:
@@ -264,11 +276,9 @@ class dsp(object):
         self.secondary_process_fft = subprocess.Popen(
             secondary_command_fft, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env
         )
-        logger.debug("[openwebrx-dsp-plugin:csdr] Popen on secondary command (fft)")
         self.secondary_process_demod = subprocess.Popen(
             secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env
-        )  # TODO digimodes
-        logger.debug("[openwebrx-dsp-plugin:csdr] Popen on secondary command (demod)")  # TODO digimodes
+        )
         self.secondary_processes_running = True
 
         self.output.add_output(
@@ -500,7 +510,6 @@ class dsp(object):
         self.running = True
 
         command_base = " | ".join(self.chain(self.demodulator))
-        logger.debug(command_base)
 
         # create control pipes for csdr
         self.pipe_base_path = "{tmp_dir}/openwebrx_pipe_{myid}_".format(tmp_dir=self.temporary_directory, myid=id(self))
@@ -533,7 +542,7 @@ class dsp(object):
             audio_rate=self.get_audio_rate(),
         )
 
-        logger.debug("[openwebrx-dsp-plugin:csdr] Command = %s", command)
+        logger.debug("Command = %s", command)
         my_env = os.environ.copy()
         if self.csdr_dynamic_bufsize:
             my_env["CSDR_DYNAMIC_BUFSIZE_ON"] = "1"
