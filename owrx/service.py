@@ -3,6 +3,7 @@ from owrx.source import SdrService
 from owrx.bands import Bandplan
 from csdr import dsp, output
 from owrx.wsjt import WsjtParser
+from owrx.config import PropertyManager
 
 import logging
 
@@ -41,7 +42,7 @@ class ServiceHandler(object):
 
     def isSupported(self, mode):
         # TODO make configurable
-        return mode in ["ft8", "ft4", "wspr"]
+        return mode in PropertyManager.getSharedInstance()["services_decoders"]
 
     def stopServices(self):
         for service in self.services:
@@ -93,6 +94,8 @@ class ServiceManager(object):
         return ServiceManager.sharedInstance
 
     def start(self):
+        if not PropertyManager.getSharedInstance()["services_enabled"]:
+            return
         for source in SdrService.getSources().values():
             ServiceHandler(source)
 

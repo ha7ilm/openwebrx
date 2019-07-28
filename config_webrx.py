@@ -251,3 +251,6 @@ google_maps_api_key = ""
 map_position_retention_time = 2 * 60 * 60
 
 temporary_directory = "/tmp"
+
+services_enabled = True
+services_decoders = ["ft8", "ft4", "wspr"]
