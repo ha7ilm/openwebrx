@@ -82,7 +82,7 @@
 
     var updateLegend = function() {
         var lis = $.map(colorKeys, function(value, key) {
-            return '<li class="square"><span class="illustration" style="background-color:' + value + ';"></span>' + key + '</li>';
+            return '<li class="square"><span class="illustration" style="background-color:' + chroma(value).alpha(fillOpacity) + ';border-color:' + chroma(value).alpha(strokeOpacity) + ';"></span>' + key + '</li>';
         });
         $(".openwebrx-map-legend .content").html('<ul>' + lis.join('') + '</ul>');
     }
