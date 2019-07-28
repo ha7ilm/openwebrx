@@ -31,6 +31,34 @@
     var strokeOpacity = 0.8;
     var fillOpacity = 0.35;
 
+    var colorKeys = {};
+    var getColor = function(id){
+        if (!id) return "#000000";
+        if (!colorKeys[id]) {
+            var keys = Object.keys(colorKeys);
+            keys.push(id);
+            keys.sort();
+            var colors = chroma.scale(['#FF0000', '#0000FF']).colors(keys.length);
+            colorKeys = {};
+            keys.forEach(function(key, index) {
+                colorKeys[key] = colors[index];
+            });
+            reColor();
+        }
+        return colorKeys[id];
+    }
+
+    // when the color palette changes, update all grid squares with new color
+    var reColor = function() {
+        $.each(rectangles, function(_, r) {
+            var color = getColor(r.band);
+            r.setOptions({
+                strokeColor: color,
+                fillColor: color
+            });
+        });
+    }
+
     var processUpdates = function(updates) {
         if (!map) {
             updateQueue = updateQueue.concat(updates);
@@ -73,6 +101,7 @@
                     var lon = (loc.charCodeAt(0) - 65 - 9) * 20 + Number(loc[2]) * 2;
                     var center = new google.maps.LatLng({lat: lat + .5, lng: lon + 1});
                     var rectangle;
+                    var color = getColor(update.band);
                     if (rectangles[update.callsign]) {
                         rectangle = rectangles[update.callsign];
                     } else {
@@ -83,9 +112,9 @@
                         rectangles[update.callsign] = rectangle;
                     }
                     rectangle.setOptions($.extend({
-                        strokeColor: '#FF0000',
+                        strokeColor: color,
                         strokeWeight: 2,
-                        fillColor: '#FF0000',
+                        fillColor: color,
                         map: map,
                         bounds:{
                             north: lat,
