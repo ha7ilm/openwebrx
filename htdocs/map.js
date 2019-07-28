@@ -32,7 +32,7 @@
     var fillOpacity = 0.35;
 
     var colorKeys = {};
-    var colorScale = chroma.bezier(['red', 'blue', 'green']).scale();
+    var colorScale = chroma.scale(['red', 'blue', 'green']).mode('hsl');
     var getColor = function(id){
         if (!id) return "#000000";
         if (!colorKeys[id]) {
