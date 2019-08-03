@@ -30,12 +30,13 @@ class ServiceHandler(object):
     def __init__(self, source):
         self.services = []
         self.source = source
+        self.startupTimer = None
         self.source.addClient(self)
         self.source.getProps().collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
-        self.updateServices()
+        self.scheduleServiceStartup()
 
     def onSdrAvailable(self):
-        self.updateServices()
+        self.scheduleServiceStartup()
 
     def onSdrUnavailable(self):
         self.stopServices()
@@ -54,9 +55,16 @@ class ServiceHandler(object):
             service.start()
 
     def onFrequencyChange(self, key, value):
+        self.stopServices()
         if not self.source.isAvailable():
             return
-        self.updateServices()
+        self.scheduleServiceStartup()
+
+    def scheduleServiceStartup(self):
+        if self.startupTimer:
+            self.startupTimer.cancel()
+        self.startupTimer = threading.Timer(10, self.updateServices)
+        self.startupTimer.start()
 
     def updateServices(self):
         logger.debug("re-scheduling services due to sdr changes")
