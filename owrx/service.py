@@ -40,7 +40,6 @@ class ServiceHandler(object):
         self.stopServices()
 
     def isSupported(self, mode):
-        # TODO make configurable
         return mode in PropertyManager.getSharedInstance()["services_decoders"]
 
     def stopServices(self):
