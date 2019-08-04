@@ -10,6 +10,7 @@ from owrx.map import Map, LocatorLocation
 import re
 from owrx.config import PropertyManager
 from owrx.bands import Bandplan
+from owrx.metrics import Metrics
 
 import logging
 
@@ -228,6 +229,7 @@ class WsjtParser(object):
         mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
         wsjt_msg = msg[17:53].strip()
         self.parseLocator(wsjt_msg, mode)
+        Metrics.getSharedInstance().pushDecodes(self.band, mode)
         return {
             "timestamp": timestamp,
             "db": float(msg[0:3]),
@@ -253,6 +255,7 @@ class WsjtParser(object):
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
         wsjt_msg = msg[29:].strip()
         self.parseWsprMessage(wsjt_msg)
+        Metrics.getSharedInstance().pushDecodes(self.band, 'WSPR')
         return {
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),

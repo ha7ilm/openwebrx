@@ -6,6 +6,7 @@ from owrx.controllers import (
     MapController,
     FeatureController,
     ApiController,
+    MetricsController,
 )
 from http.server import BaseHTTPRequestHandler
 import re
@@ -43,6 +44,7 @@ class Router(object):
         {"route": "/map", "controller": MapController},
         {"route": "/features", "controller": FeatureController},
         {"route": "/api/features", "controller": ApiController},
+        {"route": "/metrics", "controller": MetricsController},
     ]
 
     def find_controller(self, path):

@@ -9,6 +9,7 @@ from owrx.source import ClientRegistry
 from owrx.connection import WebSocketMessageHandler
 from owrx.version import openwebrx_version
 from owrx.feature import FeatureDetector
+from owrx.metrics import Metrics
 
 import logging
 
@@ -121,6 +122,12 @@ class FeatureController(WebpageController):
 class ApiController(Controller):
     def handle_request(self):
         data = json.dumps(FeatureDetector().feature_report())
+        self.send_response(data, content_type="application/json")
+
+
+class MetricsController(Controller):
+    def handle_request(self):
+        data = json.dumps(Metrics.getSharedInstance().getMetrics())
         self.send_response(data, content_type="application/json")
 
 
