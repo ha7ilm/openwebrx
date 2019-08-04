@@ -376,25 +376,15 @@ class SpectrumThread(csdr.output):
         if self.sdrSource.isAvailable():
             self.dsp.start()
 
-    def receive_output(self, type, read_fn):
-        if type != "audio":
-            logger.error("unsupported output type received by FFT: %s", type)
-            return
+    def supports_type(self, t):
+        return t == 'audio'
 
+    def receive_output(self, type, read_fn):
         if self.props["csdr_dynamic_bufsize"]:
             read_fn(8)  # dummy read to skip bufsize & preamble
             logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
 
-        def pipe():
-            run = True
-            while run:
-                data = read_fn()
-                if len(data) == 0:
-                    run = False
-                else:
-                    self.sdrSource.writeSpectrumData(data)
-
-        threading.Thread(target=pipe).start()
+        threading.Thread(target=self.pump(read_fn, self.sdrSource.writeSpectrumData)).start()
 
     def stop(self):
         self.dsp.stop()
