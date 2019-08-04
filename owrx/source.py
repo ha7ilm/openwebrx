@@ -376,7 +376,7 @@ class SpectrumThread(csdr.output):
         if self.sdrSource.isAvailable():
             self.dsp.start()
 
-    def add_output(self, type, read_fn):
+    def receive_output(self, type, read_fn):
         if type != "audio":
             logger.error("unsupported output type received by FFT: %s", type)
             return
@@ -503,7 +503,7 @@ class DspManager(csdr.output):
         if self.sdrSource.isAvailable():
             self.dsp.start()
 
-    def add_output(self, t, read_fn):
+    def receive_output(self, t, read_fn):
         logger.debug("adding new output of type %s", t)
         writers = {
             "audio": self.handler.write_dsp_data,

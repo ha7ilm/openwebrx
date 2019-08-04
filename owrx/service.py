@@ -14,16 +14,14 @@ class ServiceOutput(output):
     def __init__(self, frequency):
         self.frequency = frequency
 
-    def add_output(self, t, read_fn):
-        if t == "wsjt_demod":
-            parser = WsjtParser(WsjtHandler())
-            parser.setDialFrequency(self.frequency)
-            target = self.pump(read_fn, parser.parse)
-        else:
-            # dump everything else
-            # TODO rewrite the output mechanism in a way that avoids producing unnecessary data
-            target = self.pump(read_fn, lambda x: None)
+    def receive_output(self, t, read_fn):
+        parser = WsjtParser(WsjtHandler())
+        parser.setDialFrequency(self.frequency)
+        target = self.pump(read_fn, parser.parse)
         threading.Thread(target=target).start()
+
+    def supports_type(self, t):
+        return t == 'wsjt_demod'
 
 
 class ServiceHandler(object):
