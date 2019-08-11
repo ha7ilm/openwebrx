@@ -4,36 +4,43 @@ import json
 from datetime import datetime, timedelta
 import logging
 import threading
+from owrx.map import Map, LatLngLocation
 
 logger = logging.getLogger(__name__)
 
+
 class DmrCache(object):
     sharedInstance = None
+
     @staticmethod
     def getSharedInstance():
         if DmrCache.sharedInstance is None:
             DmrCache.sharedInstance = DmrCache()
         return DmrCache.sharedInstance
+
     def __init__(self):
         self.cache = {}
-        self.cacheTimeout = timedelta(seconds = 86400)
+        self.cacheTimeout = timedelta(seconds=86400)
+
     def isValid(self, key):
-        if not key in self.cache: return False
+        if not key in self.cache:
+            return False
         entry = self.cache[key]
         return entry["timestamp"] + self.cacheTimeout > datetime.now()
+
     def put(self, key, value):
-        self.cache[key] = {
-            "timestamp": datetime.now(),
-            "data": value
-        }
+        self.cache[key] = {"timestamp": datetime.now(), "data": value}
+
     def get(self, key):
-        if not self.isValid(key): return None
+        if not self.isValid(key):
+            return None
         return self.cache[key]["data"]
 
 
 class DmrMetaEnricher(object):
     def __init__(self):
         self.threads = {}
+
     def downloadRadioIdData(self, id):
         cache = DmrCache.getSharedInstance()
         try:
@@ -44,9 +51,12 @@ class DmrMetaEnricher(object):
         except json.JSONDecodeError:
             cache.put(id, None)
         del self.threads[id]
+
     def enrich(self, meta):
-        if not PropertyManager.getSharedInstance()["digital_voice_dmr_id_lookup"]: return None
-        if not "source" in meta: return None
+        if not PropertyManager.getSharedInstance()["digital_voice_dmr_id_lookup"]:
+            return None
+        if not "source" in meta:
+            return None
         id = meta["source"]
         cache = DmrCache.getSharedInstance()
         if not cache.isValid(id):
@@ -60,10 +70,17 @@ class DmrMetaEnricher(object):
         return None
 
 
+class YsfMetaEnricher(object):
+    def enrich(self, meta):
+        if "source" in meta and "lat" in meta and "lon" in meta:
+            # TODO parsing the float values should probably happen earlier
+            loc = LatLngLocation(float(meta["lat"]), float(meta["lon"]))
+            Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF")
+        return None
+
+
 class MetaParser(object):
-    enrichers = {
-        "DMR": DmrMetaEnricher()
-    }
+    enrichers = {"DMR": DmrMetaEnricher(), "YSF": YsfMetaEnricher()}
 
     def __init__(self, handler):
         self.handler = handler
@@ -76,6 +93,6 @@ class MetaParser(object):
             protocol = meta["protocol"]
             if protocol in MetaParser.enrichers:
                 additional_data = MetaParser.enrichers[protocol].enrich(meta)
-                if additional_data is not None: meta["additional"] = additional_data
+                if additional_data is not None:
+                    meta["additional"] = additional_data
         self.handler.write_metadata(meta)
-

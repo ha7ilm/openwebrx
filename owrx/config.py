@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,7 +16,7 @@ class Subscription(object):
 
 
 class Property(object):
-    def __init__(self, value = None):
+    def __init__(self, value=None):
         self.value = value
         self.subscribers = []
 
@@ -23,7 +24,7 @@ class Property(object):
         return self.value
 
     def setValue(self, value):
-        if (self.value == value):
+        if self.value == value:
             return self
         self.value = value
         for c in self.subscribers:
@@ -36,7 +37,8 @@ class Property(object):
     def wire(self, callback):
         sub = Subscription(self, callback)
         self.subscribers.append(sub)
-        if not self.value is None: sub.call(self.value)
+        if not self.value is None:
+            sub.call(self.value)
         return sub
 
     def unwire(self, sub):
@@ -47,8 +49,10 @@ class Property(object):
             pass
         return self
 
+
 class PropertyManager(object):
     sharedInstance = None
+
     @staticmethod
     def getSharedInstance():
         if PropertyManager.sharedInstance is None:
@@ -56,9 +60,11 @@ class PropertyManager(object):
         return PropertyManager.sharedInstance
 
     def collect(self, *props):
-        return PropertyManager({name: self.getProperty(name) if self.hasProperty(name) else Property() for name in props})
+        return PropertyManager(
+            {name: self.getProperty(name) if self.hasProperty(name) else Property() for name in props}
+        )
 
-    def __init__(self, properties = None):
+    def __init__(self, properties=None):
         self.properties = {}
         self.subscribers = []
         if properties is not None:
@@ -67,12 +73,14 @@ class PropertyManager(object):
 
     def add(self, name, prop):
         self.properties[name] = prop
+
         def fireCallbacks(value):
             for c in self.subscribers:
                 try:
                     c.call(name, value)
                 except Exception as e:
                     logger.exception(e)
+
         prop.wire(fireCallbacks)
         return self
 
@@ -88,7 +96,7 @@ class PropertyManager(object):
         self.getProperty(name).setValue(value)
 
     def __dict__(self):
-        return {k:v.getValue() for k, v in self.properties.items()}
+        return {k: v.getValue() for k, v in self.properties.items()}
 
     def hasProperty(self, name):
         return name in self.properties

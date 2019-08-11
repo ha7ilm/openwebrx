@@ -18,13 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+@import url("openwebrx-header.css");
+@import url("openwebrx-globals.css");
 
-html, body
-{
-	margin: 0;
-	padding: 0;
-	height: 100%;
-	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
+html, body {
 	overflow: hidden;
 }
 
@@ -147,182 +144,16 @@ input[type=range]:focus::-ms-fill-upper
 	background: #B6B6B6;
 }
 
-#webrx-top-container
-{
-	position: relative;
-	z-index:1000;
-}
-
-.webrx-top-bar-parts
-{
-	height:67px;
-}
-
-#webrx-top-bar
-{
-	background: rgba(128, 128, 128, 0.15);
-	margin:0;
-	padding:0;
-	user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    overflow: hidden;
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-}
-
-#webrx-top-logo
-{
-    padding: 12px;
-    float: left;
-}
-
-#webrx-ha5kfu-top-logo
-{
-    float: right;
-    padding: 15px;
-}
-
-#webrx-top-photo
-{
-	width: 100%;
-	display: block;
-}
-
-#webrx-rx-avatar-background
-{
-	cursor:pointer;
-    background-image: url(gfx/openwebrx-avatar-background.png);
-    background-origin: content-box;
-    background-repeat: no-repeat;
-    float: left;
-    width: 54px;
-    height: 54px;
-    padding: 7px;
-}
-
-#webrx-rx-avatar
-{
-	cursor:pointer;
-	width: 46px;
-	height: 46px;
-	padding: 4px;
-}
-
-#webrx-top-photo-clip
-{
-    min-height: 67px;
-	max-height: 350px;
-	overflow: hidden;
-	position: relative;
-}
-
 #webrx-page-container
 {
    min-height:100%;
    position:relative;
 }
 
-#webrx-rx-photo-title
-{
-	position: absolute;
-	left: 15px;
-	top: 78px;
-	color: White;
-	font-size: 16pt;
-	text-shadow: 1px 1px 4px #444;
-	opacity: 1;
-}
-
-#webrx-rx-photo-desc
-{
-	position: absolute;
-	left: 15px;
-	top: 109px;
-	color: White;
-	font-size: 10pt;
-	font-weight: bold;
-	text-shadow: 0px 0px 6px #444;
-	opacity: 1;
-	line-height: 1.5em;
-}
-
-#webrx-rx-photo-desc a
-{
-	color: #5ca8ff;
-	text-shadow: none;
-}
-
-#webrx-rx-texts {
-    float: left;
-    padding: 10px;
-}
-
-#webrx-rx-texts div {
-    padding: 3px;
-}
-
-#webrx-rx-title
-{
-	white-space:nowrap;
-	overflow: hidden;
-	cursor:pointer;
-	font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
-	color: #909090;
-	font-size: 11pt;
-	font-weight: bold;
-}
-
-#webrx-rx-desc
-{
-	white-space:nowrap;
-	overflow: hidden;
-	cursor:pointer;
-	font-size: 10pt;
-	color: #909090;
-}
-
-#webrx-rx-desc a
-{
-	color: #909090;
-}
-
-#openwebrx-rx-details-arrow
-{
-	cursor:pointer;
-	position: absolute;
-	left: 470px;
-	top: 51px;
-}
-
-#openwebrx-rx-details-arrow a
-{
-	margin: 0;
-	padding: 0;
-}
-
-#openwebrx-rx-details-arrow-down
-{
-	display:none;
-}
-
-/*canvas#waterfall-canvas
-{
-	border-style: none;
-	border-width: 1px;
-	height: 150px;
-	width: 100%;
-}*/
-
 #openwebrx-scale-container
 {
 	height: 47px;
-	background-image: url("gfx/openwebrx-scale-background.png");
+	background-image: url("../gfx/openwebrx-scale-background.png");
 	background-repeat: repeat-x;
 	overflow: hidden;
 	z-index:1000;
@@ -331,14 +162,14 @@ input[type=range]:focus::-ms-fill-upper
 
 #webrx-canvas-container
 {
-	/*background-image:url('gfx/openwebrx-blank-background-1.jpg');*/
+	/*background-image:url('../gfx/openwebrx-blank-background-1.jpg');*/
 	position: relative;
 	height: 2000px;
 	overflow-y: scroll;
 	overflow-x: hidden;
 	/*background-color: #646464;*/
 	/*background-image: -webkit-linear-gradient(top, rgba(247,247,247,1) 0%, rgba(0,0,0,1) 100%);*/
-	background-image: url('gfx/openwebrx-background-cool-blue.png');
+	background-image: url('../gfx/openwebrx-background-cool-blue.png');
 	background-repeat: no-repeat;
 	background-color: #1e5f7f;
 	cursor: crosshair;
@@ -428,15 +259,15 @@ input[type=range]:focus::-ms-fill-upper
 /* removed non-free fonts like that: */
 /*@font-face {
     font-family: 'unibody_8_pro_regregular';
-    src: url('gfx/unibody8pro-regular-webfont.eot');
-    src: url('gfx/unibody8pro-regular-webfont.ttf');
+    src: url('../gfx/unibody8pro-regular-webfont.eot');
+    src: url('../gfx/unibody8pro-regular-webfont.ttf');
     font-weight: normal;
     font-style: normal;
 }*/
 
 @font-face {
     font-family: 'expletus-sans-medium';
-    src: url('gfx/font-expletus-sans/ExpletusSans-Medium.ttf');
+    src: url('../gfx/font-expletus-sans/ExpletusSans-Medium.ttf');
     font-weight: normal;
     font-style: normal;
 }
@@ -531,6 +362,20 @@ input[type=range]:focus::-ms-fill-upper
 	height: 19px;
 	font-size: 12pt;
 	text-align: center;
+}
+
+.openwebrx-dial-button svg {
+    width: 19px;
+    height: 19px;
+    vertical-align: bottom;
+}
+
+.openwebrx-dial-button #ph_dial {
+    fill: #888;
+}
+
+.openwebrx-dial-button.available #ph_dial {
+    fill: #FFF;
 }
 
 .openwebrx-square-button img
@@ -635,47 +480,6 @@ img.openwebrx-mirror-img
 {
 	width: 200px;
 	height: 20px;
-}
-
-#openwebrx-main-buttons img
-{
-}
-
-#openwebrx-main-buttons ul
-{
-	display: table;
-	margin:0;
-}
-
-
-#openwebrx-main-buttons ul li
-{
-	display: table-cell;
-	padding-left: 5px;
-	padding-right: 5px;
-	cursor:pointer;
-}
-
-#openwebrx-main-buttons li:hover
-{
-	background-color: rgba(255, 255, 255, 0.3);
-}
-
-#openwebrx-main-buttons li:active
-{
-	background-color: rgba(255, 255, 255, 0.55);
-}
-
-
-#openwebrx-main-buttons
-{
-    float: right;
-	margin:0;
-	color: white;
-	text-shadow: 0px 0px 4px #000000;
-	text-align: center;
-	font-size: 9pt;
-	font-weight: bold;
 }
 
 #openwebrx-panel-receiver
@@ -812,7 +616,7 @@ img.openwebrx-mirror-img
 
 #openwebrx-secondary-demod-listbox
 {
-	width: 201px;
+	width: 174px;
 	height: 27px;
 	padding-left:3px;
 }
@@ -951,7 +755,7 @@ img.openwebrx-mirror-img
 .openwebrx-meta-slot.muted:before {
     display: block;
     content: "";
-    background-image: url("gfx/openwebrx-mute.png");
+    background-image: url("../gfx/openwebrx-mute.png");
     width:100%;
     height:133px;
     background-position: center;
@@ -993,11 +797,11 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image {
-    background-image: url("gfx/openwebrx-directcall.png");
+    background-image: url("../gfx/openwebrx-directcall.png");
 }
 
 .openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
-    background-image: url("gfx/openwebrx-groupcall.png");
+    background-image: url("../gfx/openwebrx-groupcall.png");
 }
 
 .openwebrx-dmr-timeslot-panel * {
@@ -1005,11 +809,70 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-maps-pin {
-    background-image: url("gfx/google_maps_pin.svg");
+    background-image: url("../gfx/google_maps_pin.svg");
     background-position: center;
     background-repeat: no-repeat;
     width: 15px;
     height: 15px;
     background-size: contain;
     display: inline-block;
+}
+
+#openwebrx-panel-wsjt-message {
+    height: 180px;
+}
+
+#openwebrx-panel-wsjt-message tbody  {
+    display: block;
+    overflow: auto;
+    height: 150px;
+    width: 100%;
+}
+
+#openwebrx-panel-wsjt-message thead tr {
+    display: block;
+}
+
+#openwebrx-panel-wsjt-message th,
+#openwebrx-panel-wsjt-message td {
+    width: 50px;
+    text-align: left;
+    padding: 1px 3px;
+}
+
+#openwebrx-panel-wsjt-message .message {
+    width: 380px;
+}
+
+#openwebrx-panel-wsjt-message .decimal {
+    text-align: right;
+    width: 35px;
+}
+
+#openwebrx-panel-wsjt-message .decimal.freq {
+    width: 70px;
+}
+
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="jt65"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="jt9"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="ft4"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="jt65"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="jt9"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="ft4"] #openwebrx-digimode-select-channel
+{
+    display: none;
+}
+
+#openwebrx-panel-digimodes[data-mode="ft8"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="wspr"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="jt65"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="jt9"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="ft4"] #openwebrx-digimode-canvas-container
+{
+    height: 200px;
+    margin: -10px;
 }

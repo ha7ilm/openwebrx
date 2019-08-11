@@ -14,8 +14,8 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="sox fftw python3 netcat-openbsd libsndfile lapack"
-BUILD_PACKAGES="git libsndfile-dev fftw-dev cmake ca-certificates make gcc musl-dev g++ lapack-dev linux-headers"
+STATIC_PACKAGES="sox fftw python3 netcat-openbsd libsndfile lapack libusb qt5-qtbase qt5-qtmultimedia qt5-qtserialport"
+BUILD_PACKAGES="git libsndfile-dev fftw-dev cmake ca-certificates make gcc musl-dev g++ lapack-dev linux-headers autoconf automake libtool texinfo gfortran libusb-dev qt5-qtbase-dev qt5-qtmultimedia-dev qt5-qtserialport-dev asciidoctor asciidoc"
 
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
@@ -23,7 +23,7 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 git clone https://git.code.sf.net/p/itpp/git itpp
 cmakebuild itpp
 
-git clone https://github.com/simonyiszk/csdr.git
+git clone https://github.com/jketterl/csdr.git -b 48khz_filter
 cd csdr
 patch -Np1 <<'EOF'
 --- a/csdr.c
@@ -68,11 +68,21 @@ rm -rf csdr
 
 git clone https://github.com/szechyjs/mbelib.git
 cmakebuild mbelib
+if [ -d "/usr/local/lib64" ]; then
+    # no idea why it's put into there now. alpine does not handle it correctly, so move it.
+    mv /usr/local/lib64/libmbe* /usr/local/lib
+fi
 
 git clone https://github.com/jketterl/digiham.git
 cmakebuild digiham
 
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd
+
+WSJT_DIR=wsjtx-2.0.1
+WSJT_TGZ=${WSJT_DIR}.tgz
+wget http://physics.princeton.edu/pulsar/k1jt/$WSJT_TGZ
+tar xvfz $WSJT_TGZ
+cmakebuild $WSJT_DIR
 
 apk del .build-deps

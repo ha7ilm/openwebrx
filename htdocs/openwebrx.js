@@ -86,6 +86,7 @@ function init_rx_photo()
 	window.setTimeout(function() { animate(e("webrx-rx-photo-title"),"opacity","",1,0,1,500,30); },1000);
 	window.setTimeout(function() { animate(e("webrx-rx-photo-desc"),"opacity","",1,0,1,500,30); },1500);
 	window.setTimeout(function() { close_rx_photo() },2500);
+	$('#webrx-top-container .openwebrx-photo-trigger').click(toggle_rx_photo);
 }
 
 dont_toggle_rx_photo_flag=0;
@@ -1250,6 +1251,13 @@ function on_ws_recv(evt)
 					case "metadata":
 						update_metadata(json.value);
 					break;
+					case "wsjt_message":
+					    update_wsjt_panel(json.value);
+					    break;
+					case "dial_frequencies":
+					    dial_frequencies = json.value;
+					    update_dial_button();
+					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
@@ -1315,6 +1323,29 @@ function on_ws_recv(evt)
     }
 }
 
+var dial_frequencies = [];
+
+function find_dial_frequencies() {
+    var sdm = $("#openwebrx-secondary-demod-listbox")[0].value;
+    return dial_frequencies.filter(function(d){
+        return d.mode == sdm;
+    });
+}
+
+function update_dial_button() {
+    var available = find_dial_frequencies();
+    $("#openwebrx-secondary-demod-dial-button")[available.length ? "addClass" : "removeClass"]("available");
+}
+
+function dial_button_click() {
+    var available = find_dial_frequencies();
+    if (!available.length) return;
+    var frequency = available[0].frequency;
+    console.info(frequency);
+    demodulator_set_offset_frequency(0, frequency - center_freq);
+    $("#webrx-actual-freq").html(format_frequency("{x} MHz", frequency, 1e6, 4));
+}
+
 function update_metadata(meta) {
     if (meta.protocol) switch (meta.protocol) {
         case 'DMR':
@@ -1356,8 +1387,8 @@ function update_metadata(meta) {
             if (meta.mode && meta.mode != "") {
                 mode = "Mode: " + meta.mode;
                 source = meta.source || "";
-                if (meta.lat && meta.lon) {
-                    source = "<a class=\"openwebrx-maps-pin\" href=\"https://www.google.com/maps/search/?api=1&query=" + meta.lat + "," + meta.lon + "\" target=\"_blank\"></a>" + source;
+                if (meta.lat && meta.lon && meta.source) {
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"/map?callsign=" + meta.source + "\" target=\"_blank\"></a>" + source;
                 }
                 up = meta.up ? "Up: " + meta.up : "";
                 down = meta.down ? "Down: " + meta.down : "";
@@ -1375,6 +1406,56 @@ function update_metadata(meta) {
         clear_metadata();
     }
 
+}
+
+function html_escape(input) {
+    return $('<div/>').text(input).html()
+}
+
+function update_wsjt_panel(msg) {
+    var $b = $('#openwebrx-panel-wsjt-message tbody');
+    var t = new Date(msg['timestamp']);
+    var pad = function(i) { return ('' + i).padStart(2, "0"); }
+    var linkedmsg = msg['msg'];
+    if (['FT8', 'JT65', 'JT9', 'FT4'].indexOf(msg['mode']) >= 0) {
+        var matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
+        if (matches && matches[2] != 'RR73') {
+            linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
+        } else {
+            linkedmsg = html_escape(linkedmsg);
+        }
+    } else if (msg['mode'] == 'WSPR') {
+        var matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
+        if (matches) {
+            linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>' + html_escape(matches[3]);
+        } else {
+            linkedmsg = html_escape(linkedmsg);
+        }
+    }
+    $b.append($(
+        '<tr data-timestamp="' + msg['timestamp'] + '">' +
+            '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
+            '<td class="decimal">' + msg['db'] + '</td>' +
+            '<td class="decimal">' + msg['dt'] + '</td>' +
+            '<td class="decimal freq">' + msg['freq'] + '</td>' +
+            '<td class="message">' + linkedmsg + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
+}
+
+var wsjt_removal_interval;
+
+// remove old wsjt messages in fixed intervals
+function init_wsjt_removal_timer() {
+    if (wsjt_removal_interval) clearInterval(wsjt_removal_interval);
+    wsjt_removal_interval = setInterval(function(){
+        var $elements = $('#openwebrx-panel-wsjt-message tbody tr');
+        // limit to 1000 entries in the list since browsers get laggy at some point
+        var toRemove = $elements.length - 1000;
+        if (toRemove <= 0) return;
+        $elements.slice(0, toRemove).remove();
+    }, 15000);
 }
 
 function hide_digitalvoice_panels() {
@@ -1436,8 +1517,9 @@ function waterfall_dequeue()
 
 function on_ws_opened()
 {
-	ws.send("SERVER DE CLIENT openwebrx.js");
+	ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
 	divlog("WebSocket opened to "+ws_url);
+	reconnect_timeout = false;
 }
 
 var was_error=0;
@@ -1818,6 +1900,8 @@ function audio_init()
 
 }
 
+var reconnect_timeout = false;
+
 function on_ws_closed()
 {
 	try
@@ -1826,9 +1910,16 @@ function on_ws_closed()
 	}
 	catch (dont_care) {}
 	audio_initialized = 0;
-	divlog("WebSocket has closed unexpectedly. Attempting to reconnect in 5 seconds...", 1);
+	if (reconnect_timeout) {
+	    // max value: roundabout 8 and a half minutes
+    	reconnect_timeout = Math.min(reconnect_timeout * 2, 512000);
+	} else {
+	    // initial value: 1s
+	    reconnect_timeout = 1000;
+	}
+	divlog("WebSocket has closed unexpectedly. Attempting to reconnect in " + reconnect_timeout / 1000 + " seconds...", 1);
 
-	setTimeout(open_websocket, 5000);
+	setTimeout(open_websocket, reconnect_timeout);
 }
 
 function on_ws_error(event)
@@ -2332,6 +2423,13 @@ function openwebrx_resize()
 	check_top_bar_congestion();
 }
 
+function init_header()
+{
+    $('#openwebrx-main-buttons li[data-toggle-panel]').click(function() {
+        toggle_panel($(this).data('toggle-panel'));
+    });
+}
+
 function openwebrx_init()
 {
 	if(ios||is_chrome) e("openwebrx-big-grey").style.display="table-cell";
@@ -2344,6 +2442,7 @@ function openwebrx_init()
 	window.setTimeout(function(){window.setInterval(debug_audio,1000);},1000);
 	window.addEventListener("resize",openwebrx_resize);
 	check_top_bar_congestion();
+	init_header();
 
 	//Synchronise volume with slider
 	updateVolume();
@@ -2351,7 +2450,9 @@ function openwebrx_init()
 }
 
 function digimodes_init() {
-    hide_digitalvoice_panels();
+    $(".openwebrx-meta-panel").each(function(_, p){
+        p.openwebrxHidden = true;
+    });
 
     // initialze DMR timeslot muting
     $('.openwebrx-dmr-timeslot-panel').click(function(e) {
@@ -2638,12 +2739,19 @@ function demodulator_digital_replace(subtype)
     {
     case "bpsk31":
     case "rtty":
+    case "ft8":
+    case "wspr":
+    case "jt65":
+    case "jt9":
+    case "ft4":
         secondary_demod_start(subtype);
         demodulator_analog_replace('usb', true);
         demodulator_buttons_update();
         break;
     }
+    $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
 }
 
 function secondary_demod_create_canvas()
@@ -2698,6 +2806,7 @@ function secondary_demod_swap_canvases()
 function secondary_demod_init()
 {
     $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
+    $("#openwebrx-panel-wsjt-message")[0].openwebrxHidden = true;
     secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
     $(secondary_demod_canvas_container)
         .mousemove(secondary_demod_canvas_container_mousemove)
@@ -2705,6 +2814,7 @@ function secondary_demod_init()
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseout);
+    init_wsjt_removal_timer();
 }
 
 function secondary_demod_start(subtype) 
@@ -2762,6 +2872,7 @@ function secondary_demod_close_window()
 {
     secondary_demod_stop();
     toggle_panel("openwebrx-panel-digimodes", false);
+    toggle_panel("openwebrx-panel-wsjt-message", false);
 }
 
 secondary_demod_fft_offset_db=30; //need to calculate that later
@@ -2802,19 +2913,23 @@ function secondary_demod_waterfall_dequeue()
 secondary_demod_listbox_updating = false;
 function secondary_demod_listbox_changed()
 {
-    if(secondary_demod_listbox_updating) return;
-    switch ($("#openwebrx-secondary-demod-listbox")[0].value)
-    {
+    if (secondary_demod_listbox_updating) return;
+    var sdm = $("#openwebrx-secondary-demod-listbox")[0].value;
+    switch (sdm) {
         case "none":
             demodulator_analog_replace_last();
             break;
         case "bpsk31":
-            demodulator_digital_replace('bpsk31');
-            break;
         case "rtty":
-            demodulator_digital_replace('rtty');
+        case "ft8":
+        case "wspr":
+        case "jt65":
+        case "jt9":
+        case "ft4":
+            demodulator_digital_replace(sdm);
             break;
     }
+    update_dial_button();
 }
 
 function secondary_demod_listbox_update()
