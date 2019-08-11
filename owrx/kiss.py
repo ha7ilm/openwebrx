@@ -55,7 +55,11 @@ class KissClient(object):
             elif input[0] == FEND:
                 logger.debug("decoded frame: " + str(buf))
                 if len(buf) > 0:
-                    return self.parseFrame(buf)
+                    try:
+                        return self.parseFrame(buf)
+                    except Exception:
+                        logger.exception("failed to decode packet data")
+                        return {}
             else:
                 buf += input
 
@@ -74,18 +78,45 @@ class KissClient(object):
                 yield l[i:i + n]
 
         information = ax25frame[control_pid+2:]
-        self.parseAprsData(information)
+        aprsData = self.parseAprsData(information)
 
         data = {
             "destination": self.extractCallsign(ax25frame[0:7]),
             "source": self.extractCallsign(ax25frame[7:14]),
             "path": [self.extractCallsign(c) for c in chunks(ax25frame[14:control_pid], 7)]
         }
+        data.update(aprsData)
         logger.debug(data)
         return data
 
     def parseAprsData(self, data):
         hexdump(data)
+        data = data.decode()
+
+        def parseCoordinates(raw):
+            return {
+                "lat": int(raw[0:2]) + float(raw[2:7]) / 60,
+                "lon": int(raw[9:12]) + float(raw[12:17]) / 60
+            }
+
+        if data[0] == "!":
+            # fixed
+            coords = parseCoordinates(data[1:19])
+            coords["comment"] = data[20:]
+            return coords
+        elif data[0] == "/":
+            # APRS TNC
+            coords = parseCoordinates(data[8:26])
+            coords["comment"] = data[27:]
+            return coords
+        elif data[0] == "@":
+            # TODO CSE, SPD, BRG, 90Q, comments
+            if data[26] == "$":
+                # MOBILE
+                return parseCoordinates(data[8:26])
+            elif data[26] == "\\":
+                # DF
+                return parseCoordinates(data[8:26])
         return {}
 
     def extractCallsign(self, input):
