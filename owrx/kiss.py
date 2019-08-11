@@ -1,5 +1,6 @@
 import socket
 import time
+from owrx.map import Map, LatLngLocation
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ class KissClient(object):
                 yield l[i:i + n]
 
         information = ax25frame[control_pid+2:]
+        # TODO how can we tell if this is an APRS frame at all?
         aprsData = self.parseAprsData(information)
 
         data = {
@@ -86,12 +88,19 @@ class KissClient(object):
             "path": [self.extractCallsign(c) for c in chunks(ax25frame[14:control_pid], 7)]
         }
         data.update(aprsData)
+
         logger.debug(data)
+        if "lat" in data and "lon" in data:
+            Map.getSharedInstance().updateLocation(data["source"], LatLngLocation(data["lat"], data["lon"]), "APRS")
         return data
 
     def parseAprsData(self, data):
-        hexdump(data)
+        #hexdump(data)
+
+        # TODO detect MIC-E frame and decode accordingly
+
         data = data.decode()
+        logger.debug(data)
 
         def parseCoordinates(raw):
             return {
