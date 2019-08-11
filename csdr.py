@@ -150,7 +150,13 @@ class dsp(object):
         if which == "nfm":
             chain += ["csdr fmdemod_quadri_cf", "csdr limit_ff"]
             chain += last_decimation_block
-            chain += ["csdr deemphasis_nfm_ff {output_rate}", "csdr convert_f_s16"]
+            chain += ["csdr deemphasis_nfm_ff {output_rate}"]
+            if self.get_audio_rate() != self.get_output_rate():
+                chain += [
+                    "sox -t raw -r {audio_rate} -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
+                ]
+            else:
+                chain += ["csdr convert_f_s16"]
         elif self.isDigitalVoice(which):
             chain += ["csdr fmdemod_quadri_cf", "dc_block "]
             chain += last_decimation_block
@@ -179,13 +185,6 @@ class dsp(object):
                 "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 {max_gain}".format(max_gain=max_gain),
                 "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
-        elif which == "packet":
-            chain += ["csdr fmdemod_quadri_cf"]
-            chain += last_decimation_block
-            chain += [
-                "csdr convert_f_s16",
-                "direwolf -r {audio_rate} -t 0 - 1>&2"
-            ]
         elif which == "am":
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
@@ -195,7 +194,7 @@ class dsp(object):
             chain += last_decimation_block
             chain += ["csdr agc_ff", "csdr limit_ff"]
             # fixed sample rate necessary for the wsjt-x tools. fix with sox...
-            if self.isWsjtMode() and self.get_audio_rate() != self.get_output_rate():
+            if self.get_audio_rate() != self.get_output_rate():
                 chain += [
                     "sox -t raw -r {audio_rate} -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
                 ]
@@ -229,6 +228,12 @@ class dsp(object):
             if self.last_decimation != 1.0:
                 chain += "csdr fractional_decimator_ff {last_decimation} | "
             chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
+            return chain
+        elif which == "packet":
+            chain = secondary_chain_base + "csdr fmdemod_quadri_cf | "
+            if self.last_decimation != 1.0:
+                chain += "csdr fractional_decimator_ff {last_decimation} | "
+            chain += "csdr convert_f_s16 | direwolf -r {audio_rate} -t 0 -"
             return chain
 
     def set_secondary_demodulator(self, what):
@@ -281,6 +286,7 @@ class dsp(object):
             secondary_bpf_transition_bw=self.secondary_bpf_transition_bw(),
             if_samp_rate=self.if_samp_rate(),
             last_decimation=self.last_decimation,
+            audio_rate=self.get_audio_rate(),
         )
 
         logger.debug("secondary command (demod) = %s", secondary_command_demod)

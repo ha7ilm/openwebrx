@@ -445,11 +445,6 @@ function demodulator_default_analog(offset_frequency,subtype)
    		this.low_cut=-3250;
 		this.high_cut=3250;
     }
-    else if(subtype=="packet")
-    {
-        this.low_cut=-4000;
-        this.high_cut=4000;
-    }
 	else if(subtype=="am")
 	{
 		this.low_cut=-4000;
@@ -2748,6 +2743,11 @@ function demodulator_digital_replace(subtype)
         demodulator_analog_replace('usb', true);
         demodulator_buttons_update();
         break;
+    case "packet":
+        secondary_demod_start(subtype);
+        demodulator_analog_replace('nfm', true);
+        demodulator_buttons_update();
+        break;
     }
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
@@ -2848,19 +2848,20 @@ function secondary_demod_push_binary_data(x)
 
 function secondary_demod_push_data(x)
 {
-    x=Array.from(x).map((y)=>{
+    x=Array.from(x).filter((y) => {
         var c=y.charCodeAt(0);
-        if(y=="\r") return "&nbsp;";
-        if(y=="\n") return "&nbsp;";
-        //if(y=="\n") return "<br />";
-        if(c<32||c>126) return "";
+        return (c == 10 || (c >= 32 && c <= 126));
+    }).map((y) => {
         if(y=="&") return "&amp;";
         if(y=="<") return "&lt;";
         if(y==">") return "&gt;";
         if(y==" ") return "&nbsp;";
         return y;
+    }).map((y) => {
+        if (y == "\n") return "<br />";
+        return "<span class=\"part\">"+y+"</span>";
     }).join("");
-    $("#openwebrx-cursor-blink").before("<span class=\"part\"><span class=\"subpart\">"+x+"</span></span>");
+    $("#openwebrx-cursor-blink").before(x);
 }
 
 function secondary_demod_data_clear()
@@ -2915,19 +2916,10 @@ function secondary_demod_listbox_changed()
 {
     if (secondary_demod_listbox_updating) return;
     var sdm = $("#openwebrx-secondary-demod-listbox")[0].value;
-    switch (sdm) {
-        case "none":
-            demodulator_analog_replace_last();
-            break;
-        case "bpsk31":
-        case "rtty":
-        case "ft8":
-        case "wspr":
-        case "jt65":
-        case "jt9":
-        case "ft4":
-            demodulator_digital_replace(sdm);
-            break;
+    if (sdm == "none") {
+        demodulator_analog_replace_last();
+    } else {
+        demodulator_digital_replace(sdm);
     }
     update_dial_button();
 }
