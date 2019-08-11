@@ -377,7 +377,7 @@ class SpectrumThread(csdr.output):
             self.dsp.start()
 
     def supports_type(self, t):
-        return t == 'audio'
+        return t == "audio"
 
     def receive_output(self, type, read_fn):
         if self.props["csdr_dynamic_bufsize"]:

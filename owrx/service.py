@@ -21,7 +21,7 @@ class ServiceOutput(output):
         threading.Thread(target=target).start()
 
     def supports_type(self, t):
-        return t == 'wsjt_demod'
+        return t == "wsjt_demod"
 
 
 class ServiceHandler(object):
@@ -69,7 +69,11 @@ class ServiceHandler(object):
         cf = self.source.getProps()["center_freq"]
         srh = self.source.getProps()["samp_rate"] / 2
         frequency_range = (cf - srh, cf + srh)
-        self.services = [self.setupService(dial["mode"], dial["frequency"]) for dial in Bandplan.getSharedInstance().collectDialFrequencies(frequency_range) if self.isSupported(dial["mode"])]
+        self.services = [
+            self.setupService(dial["mode"], dial["frequency"])
+            for dial in Bandplan.getSharedInstance().collectDialFrequencies(frequency_range)
+            if self.isSupported(dial["mode"])
+        ]
 
     def setupService(self, mode, frequency):
         logger.debug("setting up service {0} on frequency {1}".format(mode, frequency))
@@ -92,6 +96,7 @@ class WsjtHandler(object):
 
 class ServiceManager(object):
     sharedInstance = None
+
     @staticmethod
     def getSharedInstance():
         if ServiceManager.sharedInstance is None:

@@ -36,7 +36,7 @@ class output(object):
     def send_output(self, t, read_fn):
         if not self.supports_type(t):
             # TODO rewrite the output mechanism in a way that avoids producing unnecessary data
-            logger.warning('dumping output of type %s since it is not supported.', t)
+            logger.warning("dumping output of type %s since it is not supported.", t)
             threading.Thread(target=self.pump(read_fn, lambda x: None)).start()
             return
         self.receive_output(t, read_fn)
@@ -131,18 +131,17 @@ class dsp(object):
             "csdr shift_addition_cc --fifo {shift_pipe}",
             "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING",
             "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING",
-
         ]
-        if self.output.supports_type('smeter'):
+        if self.output.supports_type("smeter"):
             chain += [
-                "csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 {smeter_report_every}",
+                "csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 {smeter_report_every}"
             ]
         if self.secondary_demodulator:
-            if self.output.supports_type('secondary_fft'):
+            if self.output.supports_type("secondary_fft"):
                 chain += ["csdr tee {iqtee_pipe}"]
             chain += ["csdr tee {iqtee2_pipe}"]
             # early exit if we don't want audio
-            if not self.output.supports_type('audio'):
+            if not self.output.supports_type("audio"):
                 return chain
         # safe some cpu cycles... no need to decimate if decimation factor is 1
         last_decimation_block = (
@@ -282,7 +281,7 @@ class dsp(object):
         # if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
         if self.csdr_print_bufsizes:
             my_env["CSDR_PRINT_BUFSIZES"] = "1"
-        if self.output.supports_type('secondary_fft'):
+        if self.output.supports_type("secondary_fft"):
             secondary_command_fft = self.secondary_chain("fft")
             secondary_command_fft = secondary_command_fft.format(
                 input_pipe=self.iqtee_pipe,
@@ -572,7 +571,7 @@ class dsp(object):
         if self.csdr_print_bufsizes:
             my_env["CSDR_PRINT_BUFSIZES"] = "1"
 
-        out = subprocess.PIPE if self.output.supports_type('audio') else subprocess.DEVNULL
+        out = subprocess.PIPE if self.output.supports_type("audio") else subprocess.DEVNULL
         self.process = subprocess.Popen(command, stdout=out, shell=True, preexec_fn=os.setpgrp, env=my_env)
 
         def watch_thread():
@@ -584,10 +583,12 @@ class dsp(object):
 
         threading.Thread(target=watch_thread).start()
 
-        if self.output.supports_type('audio'):
+        if self.output.supports_type("audio"):
             self.output.send_output(
                 "audio",
-                partial(self.process.stdout.read, int(self.get_fft_bytes_to_read()) if self.demodulator == "fft" else 256),
+                partial(
+                    self.process.stdout.read, int(self.get_fft_bytes_to_read()) if self.demodulator == "fft" else 256
+                ),
             )
 
         # open control pipes for csdr

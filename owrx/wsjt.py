@@ -255,7 +255,7 @@ class WsjtParser(object):
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
         wsjt_msg = msg[29:].strip()
         self.parseWsprMessage(wsjt_msg)
-        Metrics.getSharedInstance().pushDecodes(self.band, 'WSPR')
+        Metrics.getSharedInstance().pushDecodes(self.band, "WSPR")
         return {
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),

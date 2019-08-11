@@ -10,21 +10,19 @@ class Metrics(object):
     def __init__(self):
         self.metrics = {}
 
-    def pushDecodes(self, band, mode, count = 1):
+    def pushDecodes(self, band, mode, count=1):
         if band is None:
-            band = 'unknown'
+            band = "unknown"
         else:
             band = band.getName()
 
         if mode is None:
-            mode = 'unknown'
+            mode = "unknown"
 
         if not band in self.metrics:
             self.metrics[band] = {}
         if not mode in self.metrics[band]:
-            self.metrics[band][mode] = {
-                "count": 0
-            }
+            self.metrics[band][mode] = {"count": 0}
 
         self.metrics[band][mode]["count"] += count
 
