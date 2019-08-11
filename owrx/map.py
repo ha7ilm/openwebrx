@@ -92,12 +92,15 @@ class Map(object):
 
 
 class LatLngLocation(Location):
-    def __init__(self, lat: float, lon: float):
+    def __init__(self, lat: float, lon: float, comment = None):
         self.lat = lat
         self.lon = lon
+        self.comment = comment
 
     def __dict__(self):
-        return {"type": "latlon", "lat": self.lat, "lon": self.lon}
+        res = {"type": "latlon", "lat": self.lat, "lon": self.lon}
+        if self.comment is not None: res["comment"] = self.comment
+        return res
 
 
 class LocatorLocation(Location):

@@ -91,7 +91,8 @@ class KissClient(object):
 
         logger.debug(data)
         if "lat" in data and "lon" in data:
-            Map.getSharedInstance().updateLocation(data["source"], LatLngLocation(data["lat"], data["lon"]), "APRS")
+            loc = LatLngLocation(data["lat"], data["lon"], data["comment"] if "comment" in data else None)
+            Map.getSharedInstance().updateLocation(data["source"], loc, "APRS")
         return data
 
     def parseAprsData(self, data):

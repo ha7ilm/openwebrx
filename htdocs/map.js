@@ -115,6 +115,7 @@
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
                     marker.band = update.band;
+                    marker.comment = update.location.comment;
 
                     // TODO the trim should happen on the server side
                     if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
@@ -283,9 +284,14 @@
         if (!infowindow) infowindow = new google.maps.InfoWindow();
         var marker = markers[callsign];
         var timestring = moment(marker.lastseen).fromNow();
+        var commentString = "";
+        if (marker.comment) {
+            commentString = '<div>' + marker.comment + '</div>';
+        }
         infowindow.setContent(
             '<h3>' + callsign + '</h3>' +
-            '<div>' + timestring + ' using ' + marker.mode + '</div>'
+            '<div>' + timestring + ' using ' + marker.mode + '</div>' +
+            commentString
         );
         infowindow.open(map, marker);
     }
