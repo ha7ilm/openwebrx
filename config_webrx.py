@@ -253,4 +253,4 @@ map_position_retention_time = 2 * 60 * 60
 temporary_directory = "/tmp"
 
 services_enabled = False
-services_decoders = ["ft8", "ft4", "wspr"]
+services_decoders = ["ft8", "ft4", "wspr", "packet"]

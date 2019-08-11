@@ -80,8 +80,12 @@ class ServiceHandler(object):
         d = dsp(ServiceOutput(frequency))
         d.nc_port = self.source.getPort()
         d.set_offset_freq(frequency - self.source.getProps()["center_freq"])
-        d.set_demodulator("usb")
-        d.set_bpf(0, 3000)
+        if mode == "packet":
+            d.set_demodulator("nfm")
+            d.set_bpf(-4000, 4000)
+        else:
+            d.set_demodulator("usb")
+            d.set_bpf(0, 3000)
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(self.source.getProps()["samp_rate"])
