@@ -103,6 +103,7 @@ class KissClient(object):
         logger.debug(data)
 
         def parseCoordinates(raw):
+            # TODO parse N/S and E/W
             return {
                 "lat": int(raw[0:2]) + float(raw[2:7]) / 60,
                 "lon": int(raw[9:12]) + float(raw[12:17]) / 60
@@ -119,13 +120,15 @@ class KissClient(object):
             coords["comment"] = data[27:]
             return coords
         elif data[0] == "@":
+            # MOBILE
             # TODO CSE, SPD, BRG, 90Q, comments
-            if data[26] == "$":
-                # MOBILE
-                return parseCoordinates(data[8:26])
-            elif data[26] == "\\":
+            if data[26] == "\\":
                 # DF
                 return parseCoordinates(data[8:26])
+            coords = parseCoordinates(data[8:26])
+            coords["symbol"] = data[26]
+            coords["comment"] = data[27:]
+            return coords
         return {}
 
     def extractCallsign(self, input):
