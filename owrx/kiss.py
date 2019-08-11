@@ -99,20 +99,29 @@ class KissClient(object):
         return raw[0] == "/" or raw[0] == "\\"
 
     def parseUncompressedCoordinates(self, raw):
-        # TODO parse N/S and E/W
+        lat = int(raw[0:2]) + float(raw[2:7]) / 60
+        if raw[7] == "S":
+            lat *= -1
+        lon = int(raw[9:12]) + float(raw[12:17]) / 60
+        if raw[17] == "W":
+            lon *= -1
         return {
-            "lat": int(raw[0:2]) + float(raw[2:7]) / 60,
-            "lon": int(raw[9:12]) + float(raw[12:17]) / 60,
+            "lat": lat,
+            "lon": lon,
             "symbol": raw[18]
         }
 
     def parseCompressedCoordinates(self, raw):
-        # TODO parse compressed coordinate formats
-        return {}
+        def decodeBase91(input):
+            base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
+            return base + (ord(input[-1]) - 33)
+        return {
+            "lat": 90 - decodeBase91(raw[1:5]) / 380926,
+            "lon": -180 + decodeBase91(raw[5:9]) / 190463,
+            "symbol": raw[9]
+        }
 
     def parseMicEFrame(self, destination, information):
-        # TODO decode MIC-E Frame
-
         def extractNumber(input):
             n = ord(input)
             if n >= ord("P"):
@@ -176,8 +185,8 @@ class KissClient(object):
             return {}
 
         if self.hasCompressedCoordinatesx(information):
-            coords = self.parseCompressedCoordinates(information[0:9])
-            coords["comment"] = information[9:]
+            coords = self.parseCompressedCoordinates(information[0:10])
+            coords["comment"] = information[10:]
         else:
             coords = self.parseUncompressedCoordinates(information[0:19])
             coords["comment"] = information[19:]
