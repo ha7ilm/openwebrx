@@ -205,6 +205,9 @@ class OpenWebRxReceiverClient(Client):
     def write_dial_frequendies(self, frequencies):
         self.protected_send({"type": "dial_frequencies", "value": frequencies})
 
+    def write_packet_data(self, data):
+        self.protected_send({"type": "packet_data", "value": data})
+
 
 class MapConnection(Client):
     def __init__(self, conn):

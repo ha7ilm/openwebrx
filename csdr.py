@@ -25,6 +25,8 @@ import os
 import signal
 import threading
 from functools import partial
+
+from owrx.kiss import KissClient
 from owrx.wsjt import Ft8Chopper, WsprChopper, Jt9Chopper, Jt65Chopper, Ft4Chopper
 
 import logging
@@ -333,6 +335,10 @@ class dsp(object):
             self.output.send_output("wsjt_demod", chopper.read)
         else:
             self.output.send_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
+
+        if self.isPacket():
+            kiss = KissClient(8001)
+            self.output.send_output("packet_demod", kiss.read)
 
         # open control pipes for csdr and send initialization data
         if self.secondary_shift_pipe != None:  # TODO digimodes

@@ -502,6 +502,7 @@ class DspManager(csdr.output):
             "secondary_demod": self.handler.write_secondary_demod,
             "meta": self.metaParser.parse,
             "wsjt_demod": self.wsjtParser.parse,
+            "packet_demod": self.handler.write_packet_data,
         }
         write = writers[t]
 
