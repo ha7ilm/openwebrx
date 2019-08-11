@@ -184,7 +184,7 @@ class dsp(object):
             chain += last_decimation_block
             chain += [
                 "csdr convert_f_s16",
-                "direwolf -r {audio_rate} - 1>&2"
+                "direwolf -r {audio_rate} -t 0 - 1>&2"
             ]
         elif which == "am":
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
