@@ -150,54 +150,56 @@ class MicEParser(object):
         return comment[4:], decodeBase91(comment[:3]) - 10000
 
     def extractDevice(self, comment):
-        if comment[0] == ">":
-            if comment[-1] == "=":
-                return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D72"}
-            if comment[-1] == "^":
-                return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D74"}
-            return comment[1:], {"manufacturer": "Kenwood", "device": "TH-D7A"}
-        if comment[0] == "]":
-            if comment[-1] == "=":
-                return comment[1:-1], {"manufacturer": "Kenwood", "device": "TM-D710"}
-            return comment[1:], {"manufacturer": "Kenwood", "device": "TM-D700"}
-        if comment[0] == "`" or comment[0] == "'":
-            if comment[-2] == "_":
-                devices = {
-                    "b":  "VX-8",
-                    "\"": "FTM-350",
-                    "#":  "VX-8G",
-                    "$":  "FT1D",
-                    "%":  "FTM-400DR",
-                    ")":  "FTM-100D",
-                    "(":  "FT2D",
-                    "0":  "FT3D",
-                }
-                return comment[1:-2], {"manufacturer": "Yaesu", "device": devices.get(comment[-1], "Unknown")}
-            if comment[-2:] == " X":
-                return comment[1:-2], {"manufacturer": "SainSonic", "device": "AP510"}
-            if comment[-2] == "(":
-                devices = {
-                    "5": "D578UV",
-                    "8": "D878UV"
-                }
-                return comment[1:-2], {"manufacturer": "Anytone", "device": devices.get(comment[-1], "Unknown")}
-            if comment[-2] == "|":
-                devices = {
-                    "3": "TinyTrack3",
-                    "4": "TinyTrack4"
-                }
-                return comment[1:-2], {"manufacturer": "Byonics", "device": devices.get(comment[-1], "Unknown")}
-            if comment[-2:] == "^v":
-                return comment[1:-2], {"manufacturer": "HinzTec", "device": "anyfrog"}
-            if comment[-2] == ":":
-                devices = {
-                    "4": "P4dragon DR-7400 modem",
-                    "8": "P4dragon DR-7800 modem"
-                }
-                return comment[1:-2], {"manufacturer": "SCS GmbH & Co.", "device": devices.get(comment[-1], "Unknown")}
-            if comment[-2:] == "~v":
-                return comment[1:-2], {"manufacturer": "Other", "device": "Other"}
-            return comment[1:-2], None
+        if len(comment) > 0:
+            if comment[0] == ">":
+                if len(comment) > 1:
+                    if comment[-1] == "=":
+                        return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D72"}
+                    if comment[-1] == "^":
+                        return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D74"}
+                return comment[1:], {"manufacturer": "Kenwood", "device": "TH-D7A"}
+            if comment[0] == "]":
+                if len(comment) > 1 and comment[-1] == "=":
+                    return comment[1:-1], {"manufacturer": "Kenwood", "device": "TM-D710"}
+                return comment[1:], {"manufacturer": "Kenwood", "device": "TM-D700"}
+            if len(comment) > 2 and (comment[0] == "`" or comment[0] == "'"):
+                if comment[-2] == "_":
+                    devices = {
+                        "b":  "VX-8",
+                        "\"": "FTM-350",
+                        "#":  "VX-8G",
+                        "$":  "FT1D",
+                        "%":  "FTM-400DR",
+                        ")":  "FTM-100D",
+                        "(":  "FT2D",
+                        "0":  "FT3D",
+                    }
+                    return comment[1:-2], {"manufacturer": "Yaesu", "device": devices.get(comment[-1], "Unknown")}
+                if comment[-2:] == " X":
+                    return comment[1:-2], {"manufacturer": "SainSonic", "device": "AP510"}
+                if comment[-2] == "(":
+                    devices = {
+                        "5": "D578UV",
+                        "8": "D878UV"
+                    }
+                    return comment[1:-2], {"manufacturer": "Anytone", "device": devices.get(comment[-1], "Unknown")}
+                if comment[-2] == "|":
+                    devices = {
+                        "3": "TinyTrack3",
+                        "4": "TinyTrack4"
+                    }
+                    return comment[1:-2], {"manufacturer": "Byonics", "device": devices.get(comment[-1], "Unknown")}
+                if comment[-2:] == "^v":
+                    return comment[1:-2], {"manufacturer": "HinzTec", "device": "anyfrog"}
+                if comment[-2] == ":":
+                    devices = {
+                        "4": "P4dragon DR-7400 modem",
+                        "8": "P4dragon DR-7800 modem"
+                    }
+                    return comment[1:-2], {"manufacturer": "SCS GmbH & Co.", "device": devices.get(comment[-1], "Unknown")}
+                if comment[-2:] == "~v":
+                    return comment[1:-2], {"manufacturer": "Other", "device": "Other"}
+                return comment[1:-2], None
         return comment, None
 
     def parse(self, data):
