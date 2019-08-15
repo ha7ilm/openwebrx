@@ -95,7 +95,7 @@ class AprsParser(object):
         # forward some of the ax25 data
         aprsData = {"source": data["source"], "destination": data["destination"], "path": data["path"]}
 
-        if information[0] == 0x1C or information[0] == 0x60:
+        if information[0] == 0x1C or information[0] == ord("`") or information[0] == ord("'"):
             aprsData.update(MicEParser().parse(data))
             return aprsData
 
@@ -224,8 +224,8 @@ class MicEParser(object):
             lat *= -1
 
         logger.debug(lat)
-
         logger.debug(information)
+
         lon = information[1] - 28
         if ord(destination[4]) >= ord("P"):
             lon += 100
@@ -243,6 +243,16 @@ class MicEParser(object):
         if ord(destination[5]) >= ord("P"):
             lon *= -1
 
+        speed = (information[4] - 28) * 10
+        dc28 = information[5] - 28
+        speed += int(dc28 / 10)
+        course = (dc28 % 10) * 100
+        course += information[6] - 28
+        if speed >= 800:
+            speed -= 800
+        if course >= 400:
+            course -= 400
+
         comment = information[9:].decode("us-ascii").strip()
         (comment, altitude) = self.extractAltitude(comment)
 
@@ -253,10 +263,13 @@ class MicEParser(object):
         altitude = next((a for a in [altitude, insideAltitude] if a is not None), None)
 
         return {
+            "fix": information[0] == ord("`") or information[0] == 0x1c,
             "lat": lat,
             "lon": lon,
             "comment": comment,
             "altitude": altitude,
+            "speed": speed,
+            "course": course,
             "device": device,
             "type": "Mic-E",
             "symboltable": chr(information[8]),
