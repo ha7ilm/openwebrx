@@ -79,12 +79,13 @@ class AprsParser(object):
         lon = int(raw[9:12]) + float(raw[12:17]) / 60
         if raw[17] == "W":
             lon *= -1
-        return {"lat": lat, "lon": lon, "symbol": raw[18]}
+        return {"lat": lat, "lon": lon, "symboltable": raw[8], "symbol": raw[18]}
 
     def parseCompressedCoordinates(self, raw):
         return {
             "lat": 90 - decodeBase91(raw[1:5]) / 380926,
             "lon": -180 + decodeBase91(raw[5:9]) / 190463,
+            "symboltable": raw[0],
             "symbol": raw[9],
         }
 
@@ -228,4 +229,13 @@ class MicEParser(object):
         (comment, insideAltitude) = self.extractAltitude(comment)
         altitude = next((a for a in [altitude, insideAltitude] if a is not None), None)
 
-        return {"lat": lat, "lon": lon, "comment": comment, "altitude": altitude, "device": device, "type": "Mic-E"}
+        return {
+            "lat": lat,
+            "lon": lon,
+            "comment": comment,
+            "altitude": altitude,
+            "device": device,
+            "type": "Mic-E",
+            "symboltable": chr(information[8]),
+            "symbol": chr(information[7]),
+        }
