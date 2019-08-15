@@ -103,8 +103,7 @@ class AprsParser(object):
         }
 
         if information[0] == 0x1c or information[0] == 0x60:
-            parser = MicEParser()
-            aprsData.update(parser.parse(data))
+            aprsData.update(MicEParser().parse(data))
             return aprsData
 
         information = information.decode('us-ascii')
@@ -123,9 +122,11 @@ class AprsParser(object):
     def parseRegularAprsData(self, information):
         if self.hasCompressedCoordinatesx(information):
             aprsData = self.parseCompressedCoordinates(information[0:10])
+            aprsData["type"] = "compressed"
             aprsData["comment"] = information[10:]
         else:
             aprsData = self.parseUncompressedCoordinates(information[0:19])
+            aprsData["type"] = "regular"
             aprsData["comment"] = information[19:]
         return aprsData
 
@@ -151,13 +152,13 @@ class MicEParser(object):
     def extractDevice(self, comment):
         if comment[0] == ">":
             if comment[-1] == "=":
-                return comment[1:], {"manufacturer": "Kenwood", "device": "TH-D72"}
+                return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D72"}
             if comment[-1] == "^":
-                return comment[1:], {"manufacturer": "Kenwood", "device": "TH-D74"}
+                return comment[1:-1], {"manufacturer": "Kenwood", "device": "TH-D74"}
             return comment[1:], {"manufacturer": "Kenwood", "device": "TH-D7A"}
         if comment[0] == "]":
             if comment[-1] == "=":
-                return comment[1:], {"manufacturer": "Kenwood", "device": "TM-D710"}
+                return comment[1:-1], {"manufacturer": "Kenwood", "device": "TM-D710"}
             return comment[1:], {"manufacturer": "Kenwood", "device": "TM-D700"}
         if comment[0] == "`" or comment[0] == "'":
             if comment[-2] == "_":
@@ -245,4 +246,5 @@ class MicEParser(object):
             "comment": comment,
             "altitude": altitude,
             "device": device,
+            "type": "Mic-E",
         }
