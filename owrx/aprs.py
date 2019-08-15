@@ -69,7 +69,7 @@ class AprsParser(object):
             except Exception:
                 logger.exception("exception while parsing aprs data")
 
-    def hasCompressedCoordinatesx(self, raw):
+    def hasCompressedCoordinates(self, raw):
         return raw[0] == "/" or raw[0] == "\\"
 
     def parseUncompressedCoordinates(self, raw):
@@ -113,10 +113,33 @@ class AprsParser(object):
         return aprsData
 
     def parseRegularAprsData(self, information):
-        if self.hasCompressedCoordinatesx(information):
+        if self.hasCompressedCoordinates(information):
             aprsData = self.parseCompressedCoordinates(information[0:10])
             aprsData["type"] = "compressed"
-            aprsData["comment"] = information[10:]
+            if information[10] != " ":
+                if information[10] == "{":
+                    # pre-calculated radio range
+                    aprsData["range"] = 2 * 1.08 ** (information[11] - 33)
+                else:
+                    aprsData["course"] = (information[10] - 33) * 4
+                    aprsData["speed"] = 1.08 ** (information[11] - 33) - 1
+                # compression type
+                t = information[12]
+                aprsData["fix"] = (t & 0b00100000) > 0
+                sources = ["other", "GLL", "GGA", "RMC"]
+                aprsData["nmeasource"] = sources[(t & 0b00011000) >> 3]
+                origins = [
+                    "Compressed",
+                    "TNC BText",
+                    "Software",
+                    "[tbd]",
+                    "KPC3",
+                    "Pico",
+                    "Other tracker",
+                    "Digipeater conversion",
+                ]
+                aprsData["compressionorigin"] = origins[t & 0b00000111]
+            aprsData["comment"] = information[13:]
         else:
             aprsData = self.parseUncompressedCoordinates(information[0:19])
             aprsData["type"] = "regular"
