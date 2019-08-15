@@ -3,6 +3,7 @@ from owrx.config import PropertyManager
 from owrx.feature import FeatureDetector, UnknownFeatureException
 from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
+from owrx.aprs import AprsParser
 import threading
 import csdr
 import time
@@ -406,6 +407,7 @@ class DspManager(csdr.output):
         self.sdrSource = sdrSource
         self.metaParser = MetaParser(self.handler)
         self.wsjtParser = WsjtParser(self.handler)
+        self.aprsParser = AprsParser(self.handler)
 
         self.localProps = (
             self.sdrSource.getProps()
@@ -440,7 +442,9 @@ class DspManager(csdr.output):
             self.dsp.set_bpf(*bpf)
 
         def set_dial_freq(key, value):
-            self.wsjtParser.setDialFrequency(self.localProps["center_freq"] + self.localProps["offset_freq"])
+            freq = self.localProps["center_freq"] + self.localProps["offset_freq"]
+            self.wsjtParser.setDialFrequency(freq)
+            self.aprsParser.setDialFrequency(freq)
 
         self.subscriptions = [
             self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression),
@@ -502,7 +506,7 @@ class DspManager(csdr.output):
             "secondary_demod": self.handler.write_secondary_demod,
             "meta": self.metaParser.parse,
             "wsjt_demod": self.wsjtParser.parse,
-            "packet_demod": self.handler.write_packet_data,
+            "packet_demod": self.aprsParser.parse,
         }
         write = writers[t]
 

@@ -290,7 +290,7 @@
         }
         infowindow.setContent(
             '<h3>' + callsign + '</h3>' +
-            '<div>' + timestring + ' using ' + marker.mode + '</div>' +
+            '<div>' + timestring + ' using ' + marker.mode + ( marker.band ? ' on ' + marker.band : '' ) + '</div>' +
             commentString
         );
         infowindow.open(map, marker);

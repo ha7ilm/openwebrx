@@ -3,6 +3,7 @@ from owrx.source import SdrService
 from owrx.bands import Bandplan
 from csdr import dsp, output
 from owrx.wsjt import WsjtParser
+from owrx.aprs import AprsParser
 from owrx.config import PropertyManager
 
 import logging
@@ -14,14 +15,33 @@ class ServiceOutput(output):
     def __init__(self, frequency):
         self.frequency = frequency
 
+    def getParser(self):
+        # abstract method; implement in subclasses
+        pass
+
     def receive_output(self, t, read_fn):
-        parser = WsjtParser(WsjtHandler())
+        parser = self.getParser()
         parser.setDialFrequency(self.frequency)
         target = self.pump(read_fn, parser.parse)
         threading.Thread(target=target).start()
 
+
+class WsjtServiceOutput(ServiceOutput):
+
+    def getParser(self):
+        return WsjtParser(WsjtHandler())
+
     def supports_type(self, t):
         return t == "wsjt_demod"
+
+
+class AprsServiceOutput(ServiceOutput):
+
+    def getParser(self):
+        return AprsParser(AprsHandler())
+
+    def supports_type(self, t):
+        return t == "packet_demod"
 
 
 class ServiceHandler(object):
@@ -77,7 +97,12 @@ class ServiceHandler(object):
 
     def setupService(self, mode, frequency):
         logger.debug("setting up service {0} on frequency {1}".format(mode, frequency))
-        d = dsp(ServiceOutput(frequency))
+        # TODO selecting outputs will need some more intelligence here
+        if mode == "packet":
+            output = AprsServiceOutput(frequency)
+        else:
+            output = WsjtServiceOutput(frequency)
+        d = dsp(output)
         d.nc_port = self.source.getPort()
         d.set_offset_freq(frequency - self.source.getProps()["center_freq"])
         if mode == "packet":
@@ -95,6 +120,11 @@ class ServiceHandler(object):
 
 class WsjtHandler(object):
     def write_wsjt_message(self, msg):
+        pass
+
+
+class AprsHandler(object):
+    def write_aprs_data(self, data):
         pass
 
 

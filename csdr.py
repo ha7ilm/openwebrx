@@ -235,7 +235,7 @@ class dsp(object):
             chain = secondary_chain_base + "csdr fmdemod_quadri_cf | "
             if self.last_decimation != 1.0:
                 chain += "csdr fractional_decimator_ff {last_decimation} | "
-            chain += "csdr convert_f_s16 | direwolf -r {audio_rate} -t 0 -"
+            chain += "csdr convert_f_s16 | direwolf -r {audio_rate} -t 0 - 1>&2"
             return chain
 
     def set_secondary_demodulator(self, what):
