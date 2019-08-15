@@ -1,6 +1,7 @@
 import socket
 import time
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,21 @@ TFESC = 0xDD
 
 
 class KissClient(object):
+    @staticmethod
+    def getFreePort():
+        # direwolf has some strange hardcoded port ranges
+        while True:
+            try:
+                port = random.randrange(1024, 49151)
+                # test if port is available for use
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.bind(('localhost', port))
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.close()
+                return port
+            except OSError:
+                pass
+
     def __init__(self, port):
         time.sleep(1)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

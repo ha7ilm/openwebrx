@@ -235,7 +235,7 @@ class dsp(object):
             chain = secondary_chain_base + "csdr fmdemod_quadri_cf | "
             if self.last_decimation != 1.0:
                 chain += "csdr fractional_decimator_ff {last_decimation} | "
-            chain += "csdr convert_f_s16 | direwolf -r {audio_rate} -t 0 - 1>&2"
+            chain += "csdr convert_f_s16 | direwolf -c {direwolf_config} -r {audio_rate} -t 0 - 1>&2"
             return chain
 
     def set_secondary_demodulator(self, what):
@@ -278,6 +278,7 @@ class dsp(object):
         logger.debug("starting secondary demodulator from IF input sampled at %d" % self.if_samp_rate())
         secondary_command_demod = self.secondary_chain(self.secondary_demodulator)
         self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod)
+        self.try_create_configs(secondary_command_demod)
 
         secondary_command_demod = secondary_command_demod.format(
             input_pipe=self.iqtee2_pipe,
@@ -289,6 +290,7 @@ class dsp(object):
             if_samp_rate=self.if_samp_rate(),
             last_decimation=self.last_decimation,
             audio_rate=self.get_audio_rate(),
+            direwolf_config=self.direwolf_config,
         )
 
         logger.debug("secondary command (demod) = %s", secondary_command_demod)
@@ -337,7 +339,7 @@ class dsp(object):
             self.output.send_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
 
         if self.isPacket():
-            kiss = KissClient(8001)
+            kiss = KissClient(self.direwolf_port)
             self.output.send_output("packet_demod", kiss.read)
 
         # open control pipes for csdr and send initialization data
@@ -547,6 +549,20 @@ class dsp(object):
                     pass
                 except Exception:
                     logger.exception("try_delete_pipes()")
+
+    def try_create_configs(self, command):
+        if "{direwolf_config}" in command:
+            self.direwolf_config = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(tmp_dir=self.temporary_directory, myid=id(self))
+            self.direwolf_port = KissClient.getFreePort()
+            file = open(self.direwolf_config, "w")
+            file.write("""
+MODEM 1200
+KISSPORT {port}
+AGWPORT off
+            """.format(port=self.direwolf_port))
+            file.close()
+        else:
+            self.direwolf_config = None
 
     def start(self):
         self.modification_lock.acquire()
