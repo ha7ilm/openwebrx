@@ -27,7 +27,6 @@ class ServiceOutput(output):
 
 
 class WsjtServiceOutput(ServiceOutput):
-
     def getParser(self):
         return WsjtParser(WsjtHandler())
 
@@ -36,7 +35,6 @@ class WsjtServiceOutput(ServiceOutput):
 
 
 class AprsServiceOutput(ServiceOutput):
-
     def getParser(self):
         return AprsParser(AprsHandler())
 

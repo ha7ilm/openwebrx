@@ -437,7 +437,7 @@ class dsp(object):
             demodulator = self.get_secondary_demodulator()
         return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4"]
 
-    def isPacket(self, demodulator = None):
+    def isPacket(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
         return demodulator == "packet"
