@@ -61,7 +61,7 @@ class AprsParser(object):
                 # TODO how can we tell if this is an APRS frame at all?
                 aprsData = self.parseAprsData(data)
 
-                logger.debug(aprsData)
+                logger.debug("decoded APRS data: %s", aprsData)
                 if "lat" in aprsData and "lon" in aprsData:
                     loc = LatLngLocation(
                         aprsData["lat"], aprsData["lon"], aprsData["comment"] if "comment" in aprsData else None
@@ -103,7 +103,6 @@ class AprsParser(object):
             return aprsData
 
         information = information.decode("us-ascii")
-        logger.debug(information)
 
         if information[0] == "!" or information[0] == "=":
             # position without timestamp
@@ -220,15 +219,10 @@ class MicEParser(object):
         information = data["data"]
         destination = data["destination"]
 
-        logger.debug(destination)
         rawLatitude = [self.extractNumber(c) for c in destination[0:6]]
-        logger.debug(rawLatitude)
         lat = self.listToNumber(rawLatitude[0:2]) + self.listToNumber(rawLatitude[2:6]) / 6000
         if ord(destination[3]) <= ord("9"):
             lat *= -1
-
-        logger.debug(lat)
-        logger.debug(information)
 
         lon = information[1] - 28
         if ord(destination[4]) >= ord("P"):
