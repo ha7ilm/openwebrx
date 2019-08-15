@@ -155,18 +155,19 @@ class AprsParser(object):
 
         if information[0] == "!" or information[0] == "=":
             # position without timestamp
-            information = information[1:]
+            aprsData.update(self.parseRegularAprsData(information[1:]))
         elif information[0] == "/" or information[0] == "@":
             # position with timestamp
             # TODO parse timestamp
-            information = information[8:]
-        else:
-            return {}
+            aprsData.update(self.parseRegularAprsData(information[8:]))
 
+        return aprsData
+
+    def parseRegularAprsData(self, information):
         if self.hasCompressedCoordinatesx(information):
-            aprsData.update(self.parseCompressedCoordinates(information[0:10]))
+            aprsData = self.parseCompressedCoordinates(information[0:10])
             aprsData["comment"] = information[10:]
         else:
-            aprsData.update(self.parseUncompressedCoordinates(information[0:19]))
+            aprsData = self.parseUncompressedCoordinates(information[0:19])
             aprsData["comment"] = information[19:]
         return aprsData
