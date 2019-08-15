@@ -10,6 +10,9 @@ def decodeBase91(input):
     base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
     return base + (ord(input[-1]) - 33)
 
+# speed is in knots... convert to metric (km/h)
+speedConversionFactor = 1.852
+
 
 class Ax25Parser(object):
     def parse(self, ax25frame):
@@ -122,7 +125,8 @@ class AprsParser(object):
                     aprsData["range"] = 2 * 1.08 ** (information[11] - 33)
                 else:
                     aprsData["course"] = (information[10] - 33) * 4
-                    aprsData["speed"] = 1.08 ** (information[11] - 33) - 1
+                    # speed is in knots... convert to metric (km/h)
+                    aprsData["speed"] = (1.08 ** (information[11] - 33) - 1) * speedConversionFactor
                 # compression type
                 t = information[12]
                 aprsData["fix"] = (t & 0b00100000) > 0
@@ -252,6 +256,8 @@ class MicEParser(object):
             speed -= 800
         if course >= 400:
             course -= 400
+        # speed is in knots... convert to metric (km/h)
+        speed *= speedConversionFactor
 
         comment = information[9:].decode("us-ascii").strip()
         (comment, altitude) = self.extractAltitude(comment)
