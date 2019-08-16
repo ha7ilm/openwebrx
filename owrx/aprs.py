@@ -13,6 +13,9 @@ def decodeBase91(input):
 # speed is in knots... convert to metric (km/h)
 speedConversionFactor = 1.852
 
+# not sure what the correct encoding is. it seems TAPR has set utf-8 as a standard, but not everybody is following it.
+encoding = "utf-8"
+
 
 class Ax25Parser(object):
     def parse(self, ax25frame):
@@ -33,7 +36,7 @@ class Ax25Parser(object):
         }
 
     def extractCallsign(self, input):
-        cs = bytes([b >> 1 for b in input[0:6]]).decode("us-ascii").strip()
+        cs = bytes([b >> 1 for b in input[0:6]]).decode(encoding).strip()
         ssid = (input[6] & 0b00011110) >> 1
         if ssid > 0:
             return "{callsign}-{ssid}".format(callsign=cs, ssid=ssid)
@@ -102,7 +105,7 @@ class AprsParser(object):
             aprsData.update(MicEParser().parse(data))
             return aprsData
 
-        information = information.decode("us-ascii")
+        information = information.decode(encoding)
 
         if information[0] == "!" or information[0] == "=":
             # position without timestamp
@@ -253,7 +256,7 @@ class MicEParser(object):
         # speed is in knots... convert to metric (km/h)
         speed *= speedConversionFactor
 
-        comment = information[9:].decode("us-ascii").strip()
+        comment = information[9:].decode(encoding).strip()
         (comment, altitude) = self.extractAltitude(comment)
 
         (comment, device) = self.extractDevice(comment)
