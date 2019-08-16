@@ -124,13 +124,13 @@ class AprsParser(object):
             if information[10] != " ":
                 if information[10] == "{":
                     # pre-calculated radio range
-                    aprsData["range"] = 2 * 1.08 ** (information[11] - 33)
+                    aprsData["range"] = 2 * 1.08 ** (ord(information[11]) - 33)
                 else:
-                    aprsData["course"] = (information[10] - 33) * 4
+                    aprsData["course"] = (ord(information[10]) - 33) * 4
                     # speed is in knots... convert to metric (km/h)
-                    aprsData["speed"] = (1.08 ** (information[11] - 33) - 1) * speedConversionFactor
+                    aprsData["speed"] = (1.08 ** (ord(information[11]) - 33) - 1) * speedConversionFactor
                 # compression type
-                t = information[12]
+                t = ord(information[12])
                 aprsData["fix"] = (t & 0b00100000) > 0
                 sources = ["other", "GLL", "GGA", "RMC"]
                 aprsData["nmeasource"] = sources[(t & 0b00011000) >> 3]
