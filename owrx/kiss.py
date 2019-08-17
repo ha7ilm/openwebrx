@@ -22,8 +22,7 @@ MODEM 1200
 KISSPORT {port}
 AGWPORT off
         """.format(
-            port=port,
-            callsign=pm["aprs_callsign"],
+            port=port, callsign=pm["aprs_callsign"]
         )
 
         if pm["aprs_igate_enabled"]:
@@ -31,9 +30,7 @@ AGWPORT off
 IGSERVER {server}
 IGLOGIN {callsign} {password}
             """.format(
-                server=pm["aprs_igate_server"],
-                callsign=pm["aprs_callsign"],
-                password=pm["aprs_igate_password"],
+                server=pm["aprs_igate_server"], callsign=pm["aprs_callsign"], password=pm["aprs_igate_password"]
             )
 
             if pm["aprs_igate_beacon"]:
@@ -43,7 +40,9 @@ IGLOGIN {callsign} {password}
 
                 config += """
 PBEACON sendto=IG delay=0:30 every=60:00 symbol="igate" overlay=R lat={lat} long={lon} comment="OpenWebRX APRS gateway"
-                """.format(lat=lat, lon=lon)
+                """.format(
+                    lat=lat, lon=lon
+                )
 
         return config
 
@@ -57,7 +56,7 @@ class KissClient(object):
                 port = random.randrange(1024, 49151)
                 # test if port is available for use
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.bind(('localhost', port))
+                s.bind(("localhost", port))
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 s.close()
                 return port

@@ -195,10 +195,7 @@ class AprsParser(object):
             comment = information[19:]
 
         def decodeHeightGainDirectivity(comment):
-            res = {
-                "height": 2 ** int(comment[4]) * 10 * feetToMeters,
-                "gain": int(comment[5]),
-            }
+            res = {"height": 2 ** int(comment[4]) * 10 * feetToMeters, "gain": int(comment[5])}
             directivity = int(comment[6])
             if directivity == 0:
                 res["directivity"] = "omni"
@@ -353,7 +350,7 @@ class MicEParser(object):
         altitude = next((a for a in [altitude, insideAltitude] if a is not None), None)
 
         return {
-            "fix": information[0] == ord("`") or information[0] == 0x1c,
+            "fix": information[0] == ord("`") or information[0] == 0x1C,
             "lat": lat,
             "lon": lon,
             "comment": comment,

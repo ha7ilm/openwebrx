@@ -559,7 +559,9 @@ class dsp(object):
 
     def try_create_configs(self, command):
         if "{direwolf_config}" in command:
-            self.direwolf_config = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(tmp_dir=self.temporary_directory, myid=id(self))
+            self.direwolf_config = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
+                tmp_dir=self.temporary_directory, myid=id(self)
+            )
             self.direwolf_port = KissClient.getFreePort()
             file = open(self.direwolf_config, "w")
             file.write(DirewolfConfig().getConfig(self.direwolf_port))
