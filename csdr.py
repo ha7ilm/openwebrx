@@ -316,8 +316,12 @@ class dsp(object):
                 partial(self.secondary_process_fft.stdout.read, int(self.get_secondary_fft_bytes_to_read())),
             )
 
+        # direwolf does not provide any meaningful data on stdout
+        # more specifically, it doesn't provide any data. if however, for any strange reason, it would start to do so,
+        # it would block if not read. by piping it to devnull, we avoid a potential pitfall here.
+        secondary_output = subprocess.DEVNULL if self.isPacket() else subprocess.PIPE
         self.secondary_process_demod = subprocess.Popen(
-            secondary_command_demod, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env
+            secondary_command_demod, stdout=secondary_output, shell=True, preexec_fn=os.setpgrp, env=my_env
         )
         self.secondary_processes_running = True
 
@@ -335,12 +339,12 @@ class dsp(object):
                 chopper = Ft4Chopper(self.secondary_process_demod.stdout)
             chopper.start()
             self.output.send_output("wsjt_demod", chopper.read)
-        else:
-            self.output.send_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
-
-        if self.isPacket():
+        elif self.isPacket():
+            # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_port)
             self.output.send_output("packet_demod", kiss.read)
+        else:
+            self.output.send_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
 
         # open control pipes for csdr and send initialization data
         if self.secondary_shift_pipe != None:  # TODO digimodes
