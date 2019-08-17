@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # speed is in knots... convert to metric (km/h)
 knotsToKilometers = 1.852
 feetToMeters = 0.3048
+milesToKilometers = 1.609344
 
 # not sure what the correct encoding is. it seems TAPR has set utf-8 as a standard, but not everybody is following it.
 encoding = "utf-8"
@@ -166,7 +167,7 @@ class AprsParser(object):
             if information[10] != " ":
                 if information[10] == "{":
                     # pre-calculated radio range
-                    aprsData["range"] = 2 * 1.08 ** (ord(information[11]) - 33)
+                    aprsData["range"] = 2 * 1.08 ** (ord(information[11]) - 33) * milesToKilometers
                 else:
                     aprsData["course"] = (ord(information[10]) - 33) * 4
                     # speed is in knots... convert to metric (km/h)
@@ -187,16 +188,54 @@ class AprsParser(object):
                     "Digipeater conversion",
                 ]
                 aprsData["compressionorigin"] = origins[t & 0b00000111]
-            aprsData["comment"] = information[13:]
+            comment = information[13:]
         else:
             aprsData = self.parseUncompressedCoordinates(information[0:19])
             aprsData["type"] = "regular"
-            aprsData["comment"] = information[19:]
+            comment = information[19:]
 
-        matches = altitudeRegex.match(aprsData["comment"])
+        def decodeHeightGainDirectivity(comment):
+            res = {
+                "height": 2 ** int(comment[4]) * 10 * feetToMeters,
+                "gain": int(comment[5]),
+            }
+            directivity = int(comment[6])
+            if directivity == 0:
+                res["directivity"] = "omni"
+            elif 0 < directivity < 9:
+                res["directivity"] = directivity * 45
+            return res
+
+        # aprs data extensions
+        if len(comment) > 6:
+            if comment[3] == "/":
+                # course and speed
+                # for a weather report, this would be wind direction and speed
+                aprsData["course"] = int(comment[0:3])
+                aprsData["speed"] = int(comment[4:7]) * knotsToKilometers
+                comment = comment[7:]
+            elif comment[0:3] == "PHG":
+                # station power and effective antenna height/gain/directivity
+                powerCodes = [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+                aprsData["power"] = powerCodes[int(comment[3])]
+                aprsData.update(decodeHeightGainDirectivity(comment))
+                comment = comment[7:]
+            elif comment[0:3] == "RNG":
+                # pre-calculated radio range
+                aprsData["range"] = int(comment[3:7]) * milesToKilometers
+                comment = comment[7:]
+            elif comment[0:3] == "DFS":
+                # direction finding signal strength and antenna height/gain
+                aprsData["strength"] = int(comment[3])
+                aprsData.update(decodeHeightGainDirectivity(comment))
+                comment = comment[7:]
+
+        matches = altitudeRegex.match(comment)
         if matches:
             aprsData["altitude"] = int(matches[2]) * feetToMeters
-            aprsData["comment"] = matches[1] + matches[3]
+            comment = matches[1] + matches[3]
+
+        aprsData["comment"] = comment
 
         return aprsData
 
