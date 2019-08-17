@@ -134,17 +134,20 @@ class AprsParser(object):
 
         information = information.decode(encoding, "replace")
 
-        if information[0] == "!" or information[0] == "=":
+        # APRS data type identifier
+        dti = information[0]
+
+        if dti == "!" or dti == "=":
             # position without timestamp
             aprsData.update(self.parseRegularAprsData(information[1:]))
-        elif information[0] == "/" or information[0] == "@":
+        elif dti == "/" or dti == "@":
             # position with timestamp
             aprsData["timestamp"] = self.parseTimestamp(information[1:8])
             aprsData.update(self.parseRegularAprsData(information[8:]))
-        elif information[0] == ">":
+        elif dti == ">":
             # status update
             aprsData.update(self.parseStatusUpate(information[1:]))
-        elif information[0] == "}":
+        elif dti == "}":
             # third party
             aprsData["type"] = "thirdparty"
 
