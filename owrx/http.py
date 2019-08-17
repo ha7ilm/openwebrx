@@ -64,9 +64,6 @@ class Router(object):
         if res is not None:
             (controller, matches) = res
             query = parse_qs(url.query)
-            logger.debug(
-                "path: {0}, controller: {1}, query: {2}, matches: {3}".format(handler.path, controller, query, matches)
-            )
             request = Request(query, matches)
             controller(handler, request).handle_request()
         else:
