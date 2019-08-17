@@ -144,6 +144,9 @@ class AprsParser(object):
         elif information[0] == ">":
             # status update
             aprsData.update(self.parseStatusUpate(information[1:]))
+        elif information[0] == "}":
+            # third party
+            aprsData["type"] = "thirdparty"
 
         return aprsData
 
