@@ -1,6 +1,7 @@
 from owrx.kiss import KissDeframer
 from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class Ax25Parser(object):
         }
 
     def extractCallsign(self, input):
-        cs = bytes([b >> 1 for b in input[0:6]]).decode(encoding).strip()
+        cs = bytes([b >> 1 for b in input[0:6]]).decode(encoding, "replace").strip()
         ssid = (input[6] & 0b00011110) >> 1
         if ssid > 0:
             return "{callsign}-{ssid}".format(callsign=cs, ssid=ssid)
@@ -95,6 +96,32 @@ class AprsParser(object):
             "symbol": raw[9],
         }
 
+    def parseTimestamp(self, raw):
+        now = datetime.now()
+        if raw[6] == "h":
+            ts = datetime.strptime(raw[0:6], "%H%M%S")
+            ts = ts.replace(year=now.year, month=now.month, day=now.month, tzinfo=timezone.utc)
+        else:
+            ts = datetime.strptime(raw[0:6], "%d%H%M")
+            ts = ts.replace(year=now.year, month=now.month)
+            if raw[6] == "z":
+                ts = ts.replace(tzinfo=timezone.utc)
+            elif raw[6] == "/":
+                ts = ts.replace(tzinfo=now.tzinfo)
+            else:
+                logger.warning("invalid timezone info byte: %s", raw[6])
+        logger.debug(ts)
+        return int(ts.timestamp() * 1000)
+
+    def parseStatusUpate(self, raw):
+        res = {"type": "status"}
+        if raw[6] == "z":
+            res["timestamp"] = self.parseTimestamp(raw[0:7])
+            res["comment"] = raw[7:]
+        else:
+            res["comment"] = raw
+        return res
+
     def parseAprsData(self, data):
         information = data["data"]
 
@@ -105,15 +132,18 @@ class AprsParser(object):
             aprsData.update(MicEParser().parse(data))
             return aprsData
 
-        information = information.decode(encoding)
+        information = information.decode(encoding, "replace")
 
         if information[0] == "!" or information[0] == "=":
             # position without timestamp
             aprsData.update(self.parseRegularAprsData(information[1:]))
         elif information[0] == "/" or information[0] == "@":
             # position with timestamp
-            # TODO parse timestamp
+            aprsData["timestamp"] = self.parseTimestamp(information[1:8])
             aprsData.update(self.parseRegularAprsData(information[8:]))
+        elif information[0] == ">":
+            # status update
+            aprsData.update(self.parseStatusUpate(information[1:]))
 
         return aprsData
 
@@ -256,7 +286,7 @@ class MicEParser(object):
         # speed is in knots... convert to metric (km/h)
         speed *= speedConversionFactor
 
-        comment = information[9:].decode(encoding).strip()
+        comment = information[9:].decode(encoding, "replace").strip()
         (comment, altitude) = self.extractAltitude(comment)
 
         (comment, device) = self.extractDevice(comment)
