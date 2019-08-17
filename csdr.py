@@ -108,6 +108,8 @@ class dsp(object):
         self.modification_lock = threading.Lock()
         self.output = output
         self.temporary_directory = "/tmp"
+        self.direwolf_config = None
+        self.direwolf_port = None
 
     def set_temporary_directory(self, what):
         self.temporary_directory = what
@@ -361,6 +363,7 @@ class dsp(object):
         if self.secondary_processes_running == False:
             return
         self.try_delete_pipes(self.secondary_pipe_names)
+        self.try_delete_configs()
         if self.secondary_process_fft:
             try:
                 os.killpg(os.getpgid(self.secondary_process_fft.pid), signal.SIGTERM)
@@ -566,6 +569,18 @@ AGWPORT off
             """.format(port=self.direwolf_port))
             file.close()
         else:
+            self.direwolf_config = None
+            self.direwolf_port = None
+
+    def try_delete_configs(self):
+        if self.direwolf_config:
+            try:
+                os.unlink(self.direwolf_config)
+            except FileNotFoundError:
+                # result suits our expectations. fine :)
+                pass
+            except Exception:
+                logger.exception("try_delete_configs()")
             self.direwolf_config = None
 
     def start(self):
