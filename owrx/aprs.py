@@ -2,20 +2,26 @@ from owrx.kiss import KissDeframer
 from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan
 from datetime import datetime, timezone
+import re
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def decodeBase91(input):
-    base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
-    return base + (ord(input[-1]) - 33)
-
 # speed is in knots... convert to metric (km/h)
-speedConversionFactor = 1.852
+knotsToKilometers = 1.852
+feetToMeters = 0.3048
 
 # not sure what the correct encoding is. it seems TAPR has set utf-8 as a standard, but not everybody is following it.
 encoding = "utf-8"
+
+# regex for altitute in comment field
+altitudeRegex = re.compile("(^.*)\\/A=([0-9]{6})(.*$)")
+
+
+def decodeBase91(input):
+    base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
+    return base + (ord(input[-1]) - 33)
 
 
 class Ax25Parser(object):
@@ -164,7 +170,7 @@ class AprsParser(object):
                 else:
                     aprsData["course"] = (ord(information[10]) - 33) * 4
                     # speed is in knots... convert to metric (km/h)
-                    aprsData["speed"] = (1.08 ** (ord(information[11]) - 33) - 1) * speedConversionFactor
+                    aprsData["speed"] = (1.08 ** (ord(information[11]) - 33) - 1) * knotsToKilometers
                 # compression type
                 t = ord(information[12])
                 aprsData["fix"] = (t & 0b00100000) > 0
@@ -186,6 +192,12 @@ class AprsParser(object):
             aprsData = self.parseUncompressedCoordinates(information[0:19])
             aprsData["type"] = "regular"
             aprsData["comment"] = information[19:]
+
+        matches = altitudeRegex.match(aprsData["comment"])
+        if matches:
+            aprsData["altitude"] = int(matches[2]) * feetToMeters
+            aprsData["comment"] = matches[1] + matches[3]
+
         return aprsData
 
 
@@ -290,7 +302,7 @@ class MicEParser(object):
         if course >= 400:
             course -= 400
         # speed is in knots... convert to metric (km/h)
-        speed *= speedConversionFactor
+        speed *= knotsToKilometers
 
         comment = information[9:].decode(encoding, "replace").strip()
         (comment, altitude) = self.extractAltitude(comment)
