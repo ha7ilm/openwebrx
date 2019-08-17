@@ -17,8 +17,12 @@ class DirewolfConfig(object):
         pm = PropertyManager.getSharedInstance()
 
         config = """
+ACHANNELS 1
+
+CHANNEL 0
 MYCALL {callsign}
 MODEM 1200
+
 KISSPORT {port}
 AGWPORT off
         """.format(
