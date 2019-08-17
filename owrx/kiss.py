@@ -2,6 +2,7 @@ import socket
 import time
 import logging
 import random
+from owrx.config import PropertyManager
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +10,42 @@ FEND = 0xC0
 FESC = 0xDB
 TFEND = 0xDC
 TFESC = 0xDD
+
+
+class DirewolfConfig(object):
+    def getConfig(self, port):
+        pm = PropertyManager.getSharedInstance()
+
+        config = """
+MYCALL {callsign}
+MODEM 1200
+KISSPORT {port}
+AGWPORT off
+        """.format(
+            port=port,
+            callsign=pm["aprs_callsign"],
+        )
+
+        if pm["aprs_igate_enabled"]:
+            config += """
+IGSERVER {server}
+IGLOGIN {callsign} {password}
+            """.format(
+                server=pm["aprs_igate_server"],
+                callsign=pm["aprs_callsign"],
+                password=pm["aprs_igate_password"],
+            )
+
+            if pm["aprs_igate_beacon"]:
+                (lat, lon) = pm["receiver_gps"]
+                lat = "{0}^{1:.2f}{2}".format(int(lat), (lat - int(lat)) * 60, "N" if lat > 0 else "S")
+                lon = "{0}^{1:.2f}{2}".format(int(lon), (lon - int(lon)) * 60, "E" if lon > 0 else "W")
+
+                config += """
+PBEACON sendto=IG delay=0:30 every=60:00 symbol="igate" overlay=R lat={lat} long={lon} comment="OpenWebRX APRS gateway"
+                """.format(lat=lat, lon=lon)
+
+        return config
 
 
 class KissClient(object):

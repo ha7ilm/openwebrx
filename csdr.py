@@ -26,7 +26,7 @@ import signal
 import threading
 from functools import partial
 
-from owrx.kiss import KissClient
+from owrx.kiss import KissClient, DirewolfConfig
 from owrx.wsjt import Ft8Chopper, WsprChopper, Jt9Chopper, Jt65Chopper, Ft4Chopper
 
 import logging
@@ -562,11 +562,7 @@ class dsp(object):
             self.direwolf_config = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(tmp_dir=self.temporary_directory, myid=id(self))
             self.direwolf_port = KissClient.getFreePort()
             file = open(self.direwolf_config, "w")
-            file.write("""
-MODEM 1200
-KISSPORT {port}
-AGWPORT off
-            """.format(port=self.direwolf_port))
+            file.write(DirewolfConfig().getConfig(self.direwolf_port))
             file.close()
         else:
             self.direwolf_config = None

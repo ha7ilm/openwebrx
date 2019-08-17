@@ -254,3 +254,12 @@ temporary_directory = "/tmp"
 
 services_enabled = False
 services_decoders = ["ft8", "ft4", "wspr", "packet"]
+
+# === aprs igate settings ===
+# if you want to share your APRS decodes with the aprs network, configure these settings accordingly
+aprs_callsign = "N0CALL"
+aprs_igate_enabled = False
+aprs_igate_server = "euro.aprs2.net"
+aprs_igate_password = ""
+# beacon uses the receiver_gps setting, so if you enable this, make sure the location is correct there
+aprs_igate_beacon = False
