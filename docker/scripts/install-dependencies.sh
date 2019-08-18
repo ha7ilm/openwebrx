@@ -79,7 +79,7 @@ cmakebuild digiham
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd
 
-WSJT_DIR=wsjtx-2.0.1
+WSJT_DIR=wsjtx-2.1.0
 WSJT_TGZ=${WSJT_DIR}.tgz
 wget http://physics.princeton.edu/pulsar/k1jt/$WSJT_TGZ
 tar xvfz $WSJT_TGZ
