@@ -33,6 +33,7 @@ AGWPORT off
             config += """
 IGSERVER {server}
 IGLOGIN {callsign} {password}
+IGFILTER m/1
             """.format(
                 server=pm["aprs_igate_server"], callsign=pm["aprs_callsign"], password=pm["aprs_igate_password"]
             )
