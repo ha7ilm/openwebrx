@@ -8,7 +8,7 @@ import os
 from multiprocessing.connection import Pipe
 from owrx.map import Map, LocatorLocation
 import re
-from queue import Queue
+from queue import Queue, Full
 from owrx.config import PropertyManager
 from owrx.bands import Bandplan
 from owrx.metrics import Metrics
@@ -103,7 +103,11 @@ class WsjtChopper(threading.Thread):
         self.switchingLock.release()
 
         file.close()
-        WsjtQueue.getSharedInstance().put((self, filename))
+        try:
+            WsjtQueue.getSharedInstance().put((self, filename))
+        except Full:
+            logger.warning("wsjt decoding queue overflow; dropping one file")
+            os.unlink(filename)
         self._scheduleNextSwitch()
 
     def decoder_commandline(self, file):
