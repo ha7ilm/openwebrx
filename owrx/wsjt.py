@@ -78,7 +78,7 @@ class WsjtChopper(threading.Thread):
 
     def decode(self):
         def decode_and_unlink(file):
-            decoder = subprocess.Popen(self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir)
+            decoder = subprocess.Popen(self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir, preexec_fn=lambda : os.nice(10))
             while True:
                 line = decoder.stdout.readline()
                 if line is None or (isinstance(line, bytes) and len(line) == 0):
