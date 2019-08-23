@@ -3,6 +3,7 @@ FROM $BASE_IMAGE
 
 RUN apk add --no-cache bash
 
+ADD docker/scripts/direwolf-1.5.patch /
 ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh
 
