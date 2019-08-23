@@ -27,8 +27,11 @@ class WsjtQueueWorker(threading.Thread):
     def run(self) -> None:
         while self.doRun:
             (processor, file) = self.queue.get()
-            logger.debug("processing file %s", file)
-            processor.decode(file)
+            try:
+                logger.debug("processing file %s", file)
+                processor.decode(file)
+            except Exception:
+                logger.exception("failed to decode job")
             self.queue.task_done()
 
 
