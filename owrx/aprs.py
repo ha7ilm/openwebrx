@@ -19,6 +19,9 @@ encoding = "utf-8"
 # regex for altitute in comment field
 altitudeRegex = re.compile("(^.*)\\/A=([0-9]{6})(.*$)")
 
+# regex for parsing third-party headers
+thirdpartyeRegex = re.compile("^([A-Z0-9-]+)>((([A-Z0-9-]+\\*?,)*)([A-Z0-9-]+\\*?)):(.*)$")
+
 
 def decodeBase91(input):
     base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
@@ -73,15 +76,19 @@ class AprsParser(object):
                 aprsData = self.parseAprsData(data)
 
                 logger.debug("decoded APRS data: %s", aprsData)
-                if "lat" in aprsData and "lon" in aprsData:
-                    loc = LatLngLocation(
-                        aprsData["lat"], aprsData["lon"], aprsData["comment"] if "comment" in aprsData else None
-                    )
-                    Map.getSharedInstance().updateLocation(data["source"], loc, "APRS", self.band)
-
+                self.updateMap(aprsData)
                 self.handler.write_aprs_data(aprsData)
             except Exception:
                 logger.exception("exception while parsing aprs data")
+
+    def updateMap(self, mapData):
+        if "type" in mapData and mapData["type"] == "thirdparty" and "data" in mapData:
+            mapData = mapData["data"]
+        if "lat" in mapData and "lon" in mapData:
+            loc = LatLngLocation(
+                mapData["lat"], mapData["lon"], mapData["comment"] if "comment" in mapData else None
+            )
+            Map.getSharedInstance().updateLocation(mapData["source"], loc, "APRS", self.band)
 
     def hasCompressedCoordinates(self, raw):
         return raw[0] == "/" or raw[0] == "\\"
@@ -156,9 +163,30 @@ class AprsParser(object):
             aprsData.update(self.parseStatusUpate(information[1:]))
         elif dti == "}":
             # third party
-            aprsData["type"] = "thirdparty"
+            aprsData.update(self.parseThirdpartyAprsData(information[1:]))
 
         return aprsData
+
+    def parseThirdpartyAprsData(self, information):
+        matches = thirdpartyeRegex.match(information)
+        if matches:
+            logger.debug(matches)
+            path = matches[2].split(",")
+            destination = next((c for c in path if c.endswith("*")), None)
+            data = self.parseAprsData({
+                "source": matches[1],
+                "destination": destination,
+                "path": path,
+                "data": matches[6].encode(encoding)
+            })
+            return {
+                "type": "thirdparty",
+                "data": data,
+            }
+
+        return {
+            "type": "thirdparty",
+        }
 
     def parseRegularAprsData(self, information):
         if self.hasCompressedCoordinates(information):
