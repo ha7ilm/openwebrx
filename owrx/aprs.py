@@ -55,6 +55,66 @@ class Ax25Parser(object):
             return cs
 
 
+class WeatherMapping(object):
+    def __init__(self, char, key, length, scale = None):
+        self.char = char
+        self.key = key
+        self.length = length
+        self.scale = scale
+
+    def matches(self, input):
+        return self.char == input[0] and len(input) > self.length + 1
+
+    def updateWeather(self, weather, input):
+        def deepApply(obj, key, v):
+            keys = key.split(".")
+            if len(keys) > 1:
+                if not keys[0] in obj:
+                    obj[keys[0]] = {}
+                deepApply(obj[keys[0]], ".".join(keys[1:]), v)
+            else:
+                obj[key] = v
+        value = int(input[1:1 + self.length])
+        if self.scale:
+            value = self.scale(value)
+        deepApply(weather, self.key, value)
+        remain = input[1 + self.length:]
+        return weather, remain
+
+
+class WeatherParser(object):
+    mappings = [
+        WeatherMapping("c", "wind.direction", 3),
+        WeatherMapping("s", "wind.speed", 3, lambda x: x * milesToKilometers),
+        WeatherMapping("g", "wind.gust", 3, lambda x: x * milesToKilometers),
+        WeatherMapping("t", "temperature", 3),
+        WeatherMapping("r", "rain.hour", 3, lambda x: x / 100 * 25.4),
+        WeatherMapping("p", "rain.day", 3, lambda x: x / 100 * 25.4),
+        WeatherMapping("P", "rain.sincemidnight", 3, lambda x: x / 100 * 25.4),
+        WeatherMapping("h", "humidity", 2),
+        WeatherMapping("b", "barometricpressure", 5, lambda x: x/10),
+        WeatherMapping("s", "snowfall", 3, lambda x: x * 25.4),
+    ]
+
+    def __init__(self, data):
+        self.data = data
+
+    def getWeather(self):
+        doWork = True
+        weather = {}
+        while doWork:
+            mapping = next((m for m in WeatherParser.mappings if m.matches(self.data)), None)
+            if mapping:
+                (weather, remain) = mapping.updateWeather(weather, self.data)
+                self.data = remain
+            else:
+                doWork = False
+        return weather
+
+    def getRemainder(self):
+        return self.data
+
+
 class AprsParser(object):
     def __init__(self, handler):
         self.ax25parser = Ax25Parser()
@@ -232,7 +292,24 @@ class AprsParser(object):
             return res
 
         # aprs data extensions
-        if len(comment) > 6:
+        if "symbol" in aprsData and aprsData["symbol"] == "_":
+            # weather report
+            weather = {}
+            if len(comment) > 6 and comment[3] == "/":
+                try:
+                    weather["wind"] = {
+                        "direction": int(comment[0:3]),
+                        "speed": int(comment[4:7]) * milesToKilometers,
+                    }
+                except ValueError:
+                    pass
+                comment = comment[7:]
+
+            parser = WeatherParser(comment)
+            weather.update(parser.getWeather())
+            comment = parser.getRemainder()
+            aprsData["weather"] = weather
+        elif len(comment) > 6:
             if comment[3] == "/":
                 # course and speed
                 # for a weather report, this would be wind direction and speed
