@@ -20,7 +20,7 @@ encoding = "utf-8"
 altitudeRegex = re.compile("(^.*)\\/A=([0-9]{6})(.*$)")
 
 # regex for parsing third-party headers
-thirdpartyeRegex = re.compile("^([A-Z0-9-]+)>((([A-Z0-9-]+\\*?,)*)([A-Z0-9-]+\\*?)):(.*)$")
+thirdpartyeRegex = re.compile("^([a-zA-Z0-9-]+)>((([a-zA-Z0-9-]+\\*?,)*)([a-zA-Z0-9-]+\\*?)):(.*)$")
 
 
 def decodeBase91(input):
@@ -172,9 +172,9 @@ class AprsParser(object):
         if matches:
             logger.debug(matches)
             path = matches[2].split(",")
-            destination = next((c for c in path if c.endswith("*")), None)
+            destination = next((c.strip("*").upper() for c in path if c.endswith("*")), None)
             data = self.parseAprsData({
-                "source": matches[1],
+                "source": matches[1].upper(),
                 "destination": destination,
                 "path": path,
                 "data": matches[6].encode(encoding)
