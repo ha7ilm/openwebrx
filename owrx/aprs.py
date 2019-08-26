@@ -236,23 +236,35 @@ class AprsParser(object):
             if comment[3] == "/":
                 # course and speed
                 # for a weather report, this would be wind direction and speed
-                aprsData["course"] = int(comment[0:3])
-                aprsData["speed"] = int(comment[4:7]) * knotsToKilometers
+                try:
+                    aprsData["course"] = int(comment[0:3])
+                    aprsData["speed"] = int(comment[4:7]) * knotsToKilometers
+                except ValueError:
+                    pass
                 comment = comment[7:]
             elif comment[0:3] == "PHG":
                 # station power and effective antenna height/gain/directivity
-                powerCodes = [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
-                aprsData["power"] = powerCodes[int(comment[3])]
-                aprsData.update(decodeHeightGainDirectivity(comment))
+                try:
+                    powerCodes = [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+                    aprsData["power"] = powerCodes[int(comment[3])]
+                    aprsData.update(decodeHeightGainDirectivity(comment))
+                except ValueError:
+                    pass
                 comment = comment[7:]
             elif comment[0:3] == "RNG":
                 # pre-calculated radio range
-                aprsData["range"] = int(comment[3:7]) * milesToKilometers
+                try:
+                    aprsData["range"] = int(comment[3:7]) * milesToKilometers
+                except ValueError:
+                    pass
                 comment = comment[7:]
             elif comment[0:3] == "DFS":
                 # direction finding signal strength and antenna height/gain
-                aprsData["strength"] = int(comment[3])
-                aprsData.update(decodeHeightGainDirectivity(comment))
+                try:
+                    aprsData["strength"] = int(comment[3])
+                    aprsData.update(decodeHeightGainDirectivity(comment))
+                except ValueError:
+                    pass
                 comment = comment[7:]
 
         matches = altitudeRegex.match(comment)
