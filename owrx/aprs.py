@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 knotsToKilometers = 1.852
 feetToMeters = 0.3048
 milesToKilometers = 1.609344
+inchesToMilimeters = 25.4
 
 # not sure what the correct encoding is. it seems TAPR has set utf-8 as a standard, but not everybody is following it.
 encoding = "utf-8"
@@ -63,7 +64,7 @@ class WeatherMapping(object):
         self.scale = scale
 
     def matches(self, input):
-        return self.char == input[0] and len(input) > self.length + 1
+        return self.char == input[0] and len(input) > self.length
 
     def updateWeather(self, weather, input):
         def deepApply(obj, key, v):
@@ -74,10 +75,13 @@ class WeatherMapping(object):
                 deepApply(obj[keys[0]], ".".join(keys[1:]), v)
             else:
                 obj[key] = v
-        value = int(input[1:1 + self.length])
-        if self.scale:
-            value = self.scale(value)
-        deepApply(weather, self.key, value)
+        try:
+            value = int(input[1:1 + self.length])
+            if self.scale:
+                value = self.scale(value)
+            deepApply(weather, self.key, value)
+        except ValueError:
+            pass
         remain = input[1 + self.length:]
         return weather, remain
 
@@ -88,9 +92,9 @@ class WeatherParser(object):
         WeatherMapping("s", "wind.speed", 3, lambda x: x * milesToKilometers),
         WeatherMapping("g", "wind.gust", 3, lambda x: x * milesToKilometers),
         WeatherMapping("t", "temperature", 3),
-        WeatherMapping("r", "rain.hour", 3, lambda x: x / 100 * 25.4),
-        WeatherMapping("p", "rain.day", 3, lambda x: x / 100 * 25.4),
-        WeatherMapping("P", "rain.sincemidnight", 3, lambda x: x / 100 * 25.4),
+        WeatherMapping("r", "rain.hour", 3, lambda x: x / 100 * inchesToMilimeters),
+        WeatherMapping("p", "rain.day", 3, lambda x: x / 100 * inchesToMilimeters),
+        WeatherMapping("P", "rain.sincemidnight", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("h", "humidity", 2),
         WeatherMapping("b", "barometricpressure", 5, lambda x: x/10),
         WeatherMapping("s", "snowfall", 3, lambda x: x * 25.4),
@@ -107,6 +111,7 @@ class WeatherParser(object):
             if mapping:
                 (weather, remain) = mapping.updateWeather(weather, self.data)
                 self.data = remain
+                doWork = len(self.data) > 0
             else:
                 doWork = False
         return weather
