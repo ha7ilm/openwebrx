@@ -105,12 +105,13 @@ class WeatherParser(object):
         WeatherMapping("s", "snowfall", 3, lambda x: x * 25.4),
     ]
 
-    def __init__(self, data):
+    def __init__(self, data, weather={}):
         self.data = data
+        self.weather = weather
 
     def getWeather(self):
         doWork = True
-        weather = {}
+        weather = self.weather
         while doWork:
             mapping = next((m for m in WeatherParser.mappings if m.matches(self.data)), None)
             if mapping:
@@ -343,10 +344,9 @@ class AprsParser(object):
                     pass
                 comment = comment[7:]
 
-            parser = WeatherParser(comment)
-            weather.update(parser.getWeather())
+            parser = WeatherParser(comment, weather)
+            aprsData["weather"] = parser.getWeather()
             comment = parser.getRemainder()
-            aprsData["weather"] = weather
         elif len(comment) > 6:
             if comment[3] == "/":
                 # course and speed
