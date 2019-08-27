@@ -248,7 +248,7 @@ class AprsParser(object):
 
     def parseMessage(self, information):
         result = {"type": "message"}
-        if len(information) > 10 and information[10] == ":":
+        if len(information) > 9 and information[9] == ":":
             result["adressee"] = information[0:9]
             message = information[10:]
             if len(message) > 3 and message[0:3] == "ack":
