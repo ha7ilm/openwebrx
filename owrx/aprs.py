@@ -25,6 +25,9 @@ altitudeRegex = re.compile("(^.*)\\/A=([0-9]{6})(.*$)")
 # regex for parsing third-party headers
 thirdpartyeRegex = re.compile("^([a-zA-Z0-9-]+)>((([a-zA-Z0-9-]+\\*?,)*)([a-zA-Z0-9-]+\\*?)):(.*)$")
 
+# regex for getting the message id out of message
+messageIdRegex = re.compile("^(.*){([0-9]{1,5})$")
+
 
 def decodeBase91(input):
     base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
@@ -231,8 +234,36 @@ class AprsParser(object):
         elif dti == "}":
             # third party
             aprsData.update(self.parseThirdpartyAprsData(information[1:]))
+        elif dti == ":":
+            # message
+            aprsData.update(self.parseMessage(information[1:]))
+        elif dti == ";":
+            # object
+            aprsData["type"] = "object"
+        elif dti == ")":
+            # item
+            aprsData["type"] = "item"
 
         return aprsData
+
+    def parseMessage(self, information):
+        result = {"type": "message"}
+        if len(information) > 10 and information[10] == ":":
+            result["adressee"] = information[0:9]
+            message = information[10:]
+            if len(message) > 3 and message[0:3] == "ack":
+                result["type"] = "messageacknowledgement"
+                result["messageid"] = int(message[3:8])
+            elif len(message) > 3 and message[0:3] == "rej":
+                result["type"] = "messagerejection"
+                result["messageid"] = int(message[3:8])
+            else:
+                matches = messageIdRegex.match(message)
+                if matches:
+                    result["messageid"] = int(matches[2])
+                    message = matches[1]
+                result["message"] = message
+        return result
 
     def parseThirdpartyAprsData(self, information):
         matches = thirdpartyeRegex.match(information)
