@@ -13,6 +13,8 @@ knotsToKilometers = 1.852
 feetToMeters = 0.3048
 milesToKilometers = 1.609344
 inchesToMilimeters = 25.4
+def fahrenheitToCelsius(f):
+    return (f - 32) * 5 / 9
 
 # not sure what the correct encoding is. it seems TAPR has set utf-8 as a standard, but not everybody is following it.
 encoding = "utf-8"
@@ -91,7 +93,7 @@ class WeatherParser(object):
         WeatherMapping("c", "wind.direction", 3),
         WeatherMapping("s", "wind.speed", 3, lambda x: x * milesToKilometers),
         WeatherMapping("g", "wind.gust", 3, lambda x: x * milesToKilometers),
-        WeatherMapping("t", "temperature", 3),
+        WeatherMapping("t", "temperature", 3, fahrenheitToCelsius),
         WeatherMapping("r", "rain.hour", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("p", "rain.day", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("P", "rain.sincemidnight", 3, lambda x: x / 100 * inchesToMilimeters),
