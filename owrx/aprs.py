@@ -240,12 +240,38 @@ class AprsParser(object):
             aprsData.update(self.parseMessage(information[1:]))
         elif dti == ";":
             # object
-            aprsData["type"] = "object"
+            aprsData.update(self.parseObject(information[1:]))
         elif dti == ")":
             # item
-            aprsData["type"] = "item"
+            aprsData.update(self.parseItem(information[1:]))
 
         return aprsData
+
+    def parseObject(self, information):
+        result = {"type": "object"}
+        if len(information) > 16:
+            result["object"] = information[0:9].strip()
+            result["live"] = information[9] == "*"
+            result["timestamp"] = self.parseTimestamp(information[10:17])
+            result.update(self.parseRegularAprsData(information[17:]))
+            # override type, losing information about compression
+            result["type"] = "object"
+        return result
+
+    def parseItem(self, information):
+        result = {"type": "item"}
+        if len(information) > 3:
+            indexes = [information[0:9].find(p) for p in ["!", "_"]]
+            filtered = [i for i in indexes if i >= 3]
+            filtered.sort()
+            if len(filtered):
+                index = filtered[0]
+                result["item"] = information[0:index]
+                result["live"] = information[index] == "!"
+                result.update(self.parseRegularAprsData(information[index + 1:]))
+                # override type, losing information about compression
+                result["type"] = "item"
+        return result
 
     def parseMessage(self, information):
         result = {"type": "message"}
