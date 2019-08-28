@@ -267,7 +267,7 @@ class AprsParser(object):
     def parseItem(self, information):
         result = {"type": "item"}
         if len(information) > 3:
-            indexes = [information[0:9].find(p) for p in ["!", "_"]]
+            indexes = [information[0:10].find(p) for p in ["!", "_"]]
             filtered = [i for i in indexes if i >= 3]
             filtered.sort()
             if len(filtered):
