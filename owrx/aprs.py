@@ -159,7 +159,13 @@ class AprsParser(object):
             loc = LatLngLocation(
                 mapData["lat"], mapData["lon"], mapData["comment"] if "comment" in mapData else None
             )
-            Map.getSharedInstance().updateLocation(mapData["source"], loc, "APRS", self.band)
+            source = mapData["source"]
+            if "type" in mapData:
+                if mapData["type"] == "item":
+                    source = mapData["item"]
+                elif mapData["type"] == "object":
+                    source = mapData["object"]
+            Map.getSharedInstance().updateLocation(source, loc, "APRS", self.band)
 
     def hasCompressedCoordinates(self, raw):
         return raw[0] == "/" or raw[0] == "\\"
