@@ -293,8 +293,8 @@ class AprsParser(object):
             else:
                 matches = messageIdRegex.match(message)
                 if matches:
-                    result["messageid"] = int(matches[2])
-                    message = matches[1]
+                    result["messageid"] = int(matches.group(2))
+                    message = matches.group(1)
                 result["message"] = message
         return result
 
@@ -302,13 +302,13 @@ class AprsParser(object):
         matches = thirdpartyeRegex.match(information)
         if matches:
             logger.debug(matches)
-            path = matches[2].split(",")
+            path = matches.group(2).split(",")
             destination = next((c.strip("*").upper() for c in path if c.endswith("*")), None)
             data = self.parseAprsData({
-                "source": matches[1].upper(),
+                "source": matches.group(1).upper(),
                 "destination": destination,
                 "path": path,
-                "data": matches[6].encode(encoding)
+                "data": matches.group(6).encode(encoding)
             })
             return {
                 "type": "thirdparty",
@@ -416,8 +416,8 @@ class AprsParser(object):
 
         matches = altitudeRegex.match(comment)
         if matches:
-            aprsData["altitude"] = int(matches[2]) * feetToMeters
-            comment = matches[1] + matches[3]
+            aprsData["altitude"] = int(matches.group(2)) * feetToMeters
+            comment = matches.group(1) + matches.group(3)
 
         aprsData["comment"] = comment
 
