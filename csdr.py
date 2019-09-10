@@ -131,11 +131,10 @@ class dsp(object):
             if self.fft_compression == "adpcm":
                 chain += ["csdr compress_fft_adpcm_f_u8 {fft_size}"]
             return chain
-        chain += [
-            "csdr shift_addition_cc --fifo {shift_pipe}",
-            "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING",
-            "csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING",
-        ]
+        chain += ["csdr shift_addition_cc --fifo {shift_pipe}"]
+        if self.decimation > 1:
+            chain += ["csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING"]
+        chain += ["csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING"]
         if self.output.supports_type("smeter"):
             chain += [
                 "csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 {smeter_report_every}"
