@@ -11,7 +11,7 @@ import re
 from queue import Queue, Full
 from owrx.config import PropertyManager
 from owrx.bands import Bandplan
-from owrx.metrics import Metrics
+from owrx.metrics import Metrics, CounterMetric, DirectMetric
 
 import logging
 
@@ -48,6 +48,7 @@ class WsjtQueue(Queue):
     def __init__(self, maxsize, workers):
         super().__init__(maxsize)
         self.workers = [self.newWorker() for _ in range(0, workers)]
+        Metrics.getSharedInstance().addMetric("wsjt.queue.length", DirectMetric(self.qsize))
 
     def put(self, item):
         super(WsjtQueue, self).put(item, block=False)
@@ -249,6 +250,24 @@ class WsjtParser(object):
         ts = datetime.strptime(instring, dateformat)
         return int(datetime.combine(date.today(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000)
 
+    def pushDecode(self, mode):
+        metrics = Metrics.getSharedInstance()
+        band = self.band.getName()
+        if band is None:
+            band = "unknown"
+
+        if mode is None:
+            mode = "unknown"
+
+        name = "wsjt.decodes.{band}.{mode}".format(band=band, mode=mode)
+        metric = metrics.getMetric(name)
+        if metric is None:
+            metric = CounterMetric()
+            metrics.addMetric(name, metric)
+
+        metric.inc()
+
+
     def parse_from_jt9(self, msg):
         # ft8 sample
         # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
@@ -266,7 +285,8 @@ class WsjtParser(object):
         mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
         wsjt_msg = msg[17:53].strip()
         self.parseLocator(wsjt_msg, mode)
-        Metrics.getSharedInstance().pushDecodes(self.band, mode)
+
+        self.pushDecode(mode)
         return {
             "timestamp": timestamp,
             "db": float(msg[0:3]),
@@ -292,7 +312,7 @@ class WsjtParser(object):
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
         wsjt_msg = msg[29:].strip()
         self.parseWsprMessage(wsjt_msg)
-        Metrics.getSharedInstance().pushDecodes(self.band, "WSPR")
+        self.pushDecode("WSPR")
         return {
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
