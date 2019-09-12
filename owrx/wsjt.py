@@ -47,11 +47,23 @@ class WsjtQueue(Queue):
 
     def __init__(self, maxsize, workers):
         super().__init__(maxsize)
+        metrics = Metrics.getSharedInstance()
+        metrics.addMetric("wsjt.queue.length", DirectMetric(self.qsize))
+        self.inCounter = CounterMetric()
+        metrics.addMetric("wsjt.queue.in", self.inCounter)
+        self.outCounter = CounterMetric()
+        metrics.addMetric("wsjt.queue.out", self.outCounter)
         self.workers = [self.newWorker() for _ in range(0, workers)]
-        Metrics.getSharedInstance().addMetric("wsjt.queue.length", DirectMetric(self.qsize))
 
     def put(self, item):
+        self.inCounter.inc()
         super(WsjtQueue, self).put(item, block=False)
+
+    def get(self, **kwargs):
+        # super.get() is blocking, so it would mess up the stats to inc() first
+        out = super(WsjtQueue, self).get(**kwargs)
+        self.outCounter.inc()
+        return out
 
     def newWorker(self):
         worker = WsjtQueueWorker(self)
