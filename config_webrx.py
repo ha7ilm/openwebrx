@@ -250,6 +250,17 @@ google_maps_api_key = ""
 # in seconds; default: 2 hours
 map_position_retention_time = 2 * 60 * 60
 
+# wsjt decoder queue configuration
+# due to the nature of the wsjt operating modes (ft8, ft8, jt9, jt65 and wspr), the data is recorded for a given amount
+# of time (6.5 seconds up to 2 minutes) and decoded at the end. this can lead to very high peak loads.
+# to mitigate this, the recordings will be queued and processed in sequence.
+# the number of workers will limit the total amount of work (one worker will losely occupy one cpu / thread)
+wsjt_queue_workers = 2
+# the maximum queue length will cause decodes to be dumped if the workers cannot keep up
+# if you are running background services, make sure this number is high enough to accept the task influx during peaks
+# i.e. this should be higher than the number of wsjt services running at the same time
+wsjt_queue_length = 10
+
 temporary_directory = "/tmp"
 
 services_enabled = False

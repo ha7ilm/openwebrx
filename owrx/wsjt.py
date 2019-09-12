@@ -41,7 +41,8 @@ class WsjtQueue(Queue):
     @staticmethod
     def getSharedInstance():
         if WsjtQueue.sharedInstance is None:
-            WsjtQueue.sharedInstance = WsjtQueue(maxsize=10, workers=2)
+            pm = PropertyManager.getSharedInstance()
+            WsjtQueue.sharedInstance = WsjtQueue(maxsize=pm["wsjt_queue_length"], workers=pm["wsjt_queue_workers"])
         return WsjtQueue.sharedInstance
 
     def __init__(self, maxsize, workers):
