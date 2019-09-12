@@ -252,7 +252,9 @@ class WsjtParser(object):
 
     def pushDecode(self, mode):
         metrics = Metrics.getSharedInstance()
-        band = self.band.getName()
+        band = "unknown"
+        if self.band is not None:
+            band = self.band.getName()
         if band is None:
             band = "unknown"
 

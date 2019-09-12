@@ -1,6 +1,7 @@
 from owrx.kiss import KissDeframer
 from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan
+from owrx.metrics import Metrics, CounterMetric
 from datetime import datetime, timezone
 import re
 import logging
@@ -133,10 +134,24 @@ class AprsParser(object):
         self.dial_freq = None
         self.band = None
         self.handler = handler
+        self.metric = self.getMetric()
 
     def setDialFrequency(self, freq):
         self.dial_freq = freq
         self.band = Bandplan.getSharedInstance().findBand(freq)
+        self.metric = self.getMetric()
+
+    def getMetric(self):
+        band = "unknown"
+        if self.band is not None:
+            band = self.band.getName()
+        name = "aprs.decodes.{band}.aprs".format(band=band)
+        metrics = Metrics.getSharedInstance()
+        metric = metrics.getMetric(name)
+        if metric is None:
+            metric = CounterMetric()
+            metrics.addMetric(name, metric)
+        return metric
 
     def parse(self, raw):
         for frame in self.deframer.parse(raw):
@@ -148,6 +163,7 @@ class AprsParser(object):
 
                 logger.debug("decoded APRS data: %s", aprsData)
                 self.updateMap(aprsData)
+                self.metric.inc()
                 self.handler.write_aprs_data(aprsData)
             except Exception:
                 logger.exception("exception while parsing aprs data")
