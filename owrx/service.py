@@ -196,6 +196,7 @@ class ServiceHandler(object):
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(source.getProps()["samp_rate"])
+        d.set_service()
         d.start()
         return d
 

@@ -65,7 +65,7 @@ class output(object):
 class dsp(object):
     def __init__(self, output):
         self.samp_rate = 250000
-        self.output_rate = 11025  # this is default, and cannot be set at the moment
+        self.output_rate = 11025
         self.fft_size = 1024
         self.fft_fps = 5
         self.offset_freq = 0
@@ -80,7 +80,7 @@ class dsp(object):
         self.demodulator = "nfm"
         self.name = "csdr"
         self.base_bufsize = 512
-        self.nc_port = 4951
+        self.nc_port = None
         self.csdr_dynamic_bufsize = False
         self.csdr_print_bufsizes = False
         self.csdr_through = False
@@ -108,8 +108,12 @@ class dsp(object):
         self.modification_lock = threading.Lock()
         self.output = output
         self.temporary_directory = "/tmp"
+        self.is_service = False
         self.direwolf_config = None
         self.direwolf_port = None
+
+    def set_service(self, flag=True):
+        self.is_service = flag
 
     def set_temporary_directory(self, what):
         self.temporary_directory = what
@@ -563,7 +567,7 @@ class dsp(object):
             )
             self.direwolf_port = KissClient.getFreePort()
             file = open(self.direwolf_config, "w")
-            file.write(DirewolfConfig().getConfig(self.direwolf_port))
+            file.write(DirewolfConfig().getConfig(self.direwolf_port, self.is_service))
             file.close()
         else:
             self.direwolf_config = None

@@ -13,7 +13,7 @@ TFESC = 0xDD
 
 
 class DirewolfConfig(object):
-    def getConfig(self, port):
+    def getConfig(self, port, is_service):
         pm = PropertyManager.getSharedInstance()
 
         config = """
@@ -29,7 +29,7 @@ AGWPORT off
             port=port, callsign=pm["aprs_callsign"]
         )
 
-        if pm["aprs_igate_enabled"]:
+        if is_service and pm["aprs_igate_enabled"]:
             config += """
 IGSERVER {server}
 IGLOGIN {callsign} {password}
