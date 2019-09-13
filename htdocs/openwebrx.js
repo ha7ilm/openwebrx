@@ -1253,6 +1253,9 @@ function on_ws_recv(evt)
 					    dial_frequencies = json.value;
 					    update_dial_button();
 					    break;
+					case "aprs_data":
+					    update_packet_panel(json.value);
+					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
@@ -1439,18 +1442,59 @@ function update_wsjt_panel(msg) {
     $b.scrollTop($b[0].scrollHeight);
 }
 
-var wsjt_removal_interval;
+var digital_removal_interval;
 
 // remove old wsjt messages in fixed intervals
-function init_wsjt_removal_timer() {
-    if (wsjt_removal_interval) clearInterval(wsjt_removal_interval);
-    wsjt_removal_interval = setInterval(function(){
-        var $elements = $('#openwebrx-panel-wsjt-message tbody tr');
-        // limit to 1000 entries in the list since browsers get laggy at some point
-        var toRemove = $elements.length - 1000;
-        if (toRemove <= 0) return;
-        $elements.slice(0, toRemove).remove();
+function init_digital_removal_timer() {
+    if (digital_removal_interval) clearInterval(digital_removal_interval);
+    digital_removal_interval = setInterval(function(){
+        ['#openwebrx-panel-wsjt-message', '#openwebrx-panel-packet-message'].forEach(function(root){
+            var $elements = $(root + ' tbody tr');
+            // limit to 1000 entries in the list since browsers get laggy at some point
+            var toRemove = $elements.length - 1000;
+            if (toRemove <= 0) return;
+            $elements.slice(0, toRemove).remove();
+        });
     }, 15000);
+}
+
+function update_packet_panel(msg) {
+    var $b = $('#openwebrx-panel-packet-message tbody');
+    var pad = function(i) { return ('' + i).padStart(2, "0"); }
+
+    if (msg.type && msg.type == 'thirdparty' && msg.data) {
+        msg = msg.data;
+    }
+    var source = msg.source;
+    if (msg.type) {
+        if (msg.type == 'item') {
+            source = msg.item;
+        }
+        if (msg.type == 'object') {
+            source = msg.object;
+        }
+    }
+
+    var timestamp = '';
+    if (msg.timestamp) {
+        var t = new Date(msg.timestamp);
+        timestamp = pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds())
+    }
+
+    var link = '';
+    if (msg.lat && msg.lon) {
+        link = '<a class="openwebrx-maps-pin" href="/map?callsign=' + source + '" target="_blank"></a>';
+    }
+
+    $b.append($(
+        '<tr>' +
+            '<td>' + timestamp + '</td>' +
+            '<td class="callsign">' + source + '</td>' +
+            '<td class="coord">' + link + '</td>' +
+            '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
 }
 
 function hide_digitalvoice_panels() {
@@ -2752,6 +2796,7 @@ function demodulator_digital_replace(subtype)
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
+    toggle_panel("openwebrx-panel-packet-message", subtype == "packet");
 }
 
 function secondary_demod_create_canvas()
@@ -2807,6 +2852,7 @@ function secondary_demod_init()
 {
     $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
     $("#openwebrx-panel-wsjt-message")[0].openwebrxHidden = true;
+    $("#openwebrx-panel-packet-message")[0].openwebrxHidden = true;
     secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
     $(secondary_demod_canvas_container)
         .mousemove(secondary_demod_canvas_container_mousemove)
@@ -2814,7 +2860,7 @@ function secondary_demod_init()
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseout);
-    init_wsjt_removal_timer();
+    init_digital_removal_timer();
 }
 
 function secondary_demod_start(subtype) 
@@ -2874,6 +2920,7 @@ function secondary_demod_close_window()
     secondary_demod_stop();
     toggle_panel("openwebrx-panel-digimodes", false);
     toggle_panel("openwebrx-panel-wsjt-message", false);
+    toggle_panel("openwebrx-panel-packet-message", false);
 }
 
 secondary_demod_fft_offset_db=30; //need to calculate that later

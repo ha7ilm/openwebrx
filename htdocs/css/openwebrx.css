@@ -813,23 +813,32 @@ img.openwebrx-mirror-img
     display: inline-block;
 }
 
-#openwebrx-panel-wsjt-message {
+#openwebrx-panel-wsjt-message,
+#openwebrx-panel-packet-message
+{
     height: 180px;
 }
 
-#openwebrx-panel-wsjt-message tbody  {
+#openwebrx-panel-wsjt-message tbody,
+#openwebrx-panel-packet-message tbody
+{
     display: block;
     overflow: auto;
     height: 150px;
     width: 100%;
 }
 
-#openwebrx-panel-wsjt-message thead tr {
+#openwebrx-panel-wsjt-message thead tr,
+#openwebrx-panel-packet-message thead tr
+{
     display: block;
 }
 
 #openwebrx-panel-wsjt-message th,
-#openwebrx-panel-wsjt-message td {
+#openwebrx-panel-wsjt-message td,
+#openwebrx-panel-packet-message th,
+#openwebrx-panel-packet-message td
+{
     width: 50px;
     text-align: left;
     padding: 1px 3px;
@@ -846,6 +855,19 @@ img.openwebrx-mirror-img
 
 #openwebrx-panel-wsjt-message .decimal.freq {
     width: 70px;
+}
+
+#openwebrx-panel-packet-message .message {
+    width: 410px;
+}
+
+#openwebrx-panel-packet-message .callsign {
+    width: 80px;
+}
+
+#openwebrx-panel-packet-message .coord {
+    width: 40px;
+    text-align: center;
 }
 
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-content-container,
