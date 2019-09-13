@@ -11,9 +11,7 @@ class CounterMetric(Metric):
         self.counter += increment
 
     def getValue(self):
-        return {
-            "count": self.counter,
-        }
+        return {"count": self.counter}
 
 
 class DirectMetric(Metric):

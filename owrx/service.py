@@ -131,15 +131,14 @@ class ServiceHandler(object):
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
-        distances = [{
-            "frequency": freqs[i]["frequency"],
-            "distance": freqs[i+1]["frequency"] - freqs[i]["frequency"],
-        } for i in range(0, len(freqs)-1)]
+        distances = [
+            {"frequency": freqs[i]["frequency"], "distance": freqs[i + 1]["frequency"] - freqs[i]["frequency"]}
+            for i in range(0, len(freqs) - 1)
+        ]
 
         distances = [d for d in distances if d["distance"] > 0]
 
         distances = sorted(distances, key=lambda f: f["distance"], reverse=True)
-
 
         def calculate_usage(num_splits):
             splits = sorted([f["frequency"] for f in distances[0:num_splits]])
@@ -156,20 +155,11 @@ class ServiceHandler(object):
                 return bandwidth + len(group) * (freqs[-1] - freqs[0] + 24000)
 
             total_bandwidth = sum([get_bandwitdh(group) for group in groups])
-            return {
-                "num_splits": num_splits,
-                "total_bandwidth": total_bandwidth,
-                "groups": groups,
-            }
-
+            return {"num_splits": num_splits, "total_bandwidth": total_bandwidth, "groups": groups}
 
         usages = [calculate_usage(i) for i in range(0, len(freqs))]
         # this is simulating no resampling. i haven't seen this as the best result yet
-        usages += [{
-            "num_splits": None,
-            "total_bandwidth": bandwidth * len(freqs),
-            "groups": [freqs]
-        }]
+        usages += [{"num_splits": None, "total_bandwidth": bandwidth * len(freqs), "groups": [freqs]}]
         results = sorted(usages, key=lambda f: f["total_bandwidth"])
 
         for r in results:

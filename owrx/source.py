@@ -299,8 +299,7 @@ class Resampler(SdrSource):
             "nc -v 127.0.0.1 {nc_port}".format(nc_port=self.sdr.getPort()),
             "csdr shift_addition_cc {shift}".format(shift=self.shift),
             "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING".format(
-                decimation=self.decimation,
-                ddc_transition_bw=self.transition_bw,
+                decimation=self.decimation, ddc_transition_bw=self.transition_bw
             ),
         ]
 
@@ -316,11 +315,9 @@ class Resampler(SdrSource):
             self.modificationLock.release()
             return
         logger.debug("nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
-        resampler_command += ["nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (
-            nmux_bufsize,
-            nmux_bufcnt,
-            self.port,
-        )]
+        resampler_command += [
+            "nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (nmux_bufsize, nmux_bufcnt, self.port)
+        ]
         cmd = " | ".join(resampler_command)
         logger.debug("resampler command: %s", cmd)
         self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)

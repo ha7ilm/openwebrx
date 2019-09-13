@@ -134,7 +134,9 @@ class WsjtChopper(threading.Thread):
         return []
 
     def decode(self, file):
-        decoder = subprocess.Popen(self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir, preexec_fn=lambda : os.nice(10))
+        decoder = subprocess.Popen(
+            self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir, preexec_fn=lambda: os.nice(10)
+        )
         while True:
             line = decoder.stdout.readline()
             if line is None or (isinstance(line, bytes) and len(line) == 0):
@@ -280,7 +282,6 @@ class WsjtParser(object):
             metrics.addMetric(name, metric)
 
         metric.inc()
-
 
     def parse_from_jt9(self, msg):
         # ft8 sample

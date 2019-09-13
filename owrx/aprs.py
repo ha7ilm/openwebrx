@@ -14,8 +14,11 @@ knotsToKilometers = 1.852
 feetToMeters = 0.3048
 milesToKilometers = 1.609344
 inchesToMilimeters = 25.4
+
+
 def fahrenheitToCelsius(f):
     return (f - 32) * 5 / 9
+
 
 # not sure what the correct encoding is. it seems TAPR has set utf-8 as a standard, but not everybody is following it.
 encoding = "utf-8"
@@ -63,7 +66,7 @@ class Ax25Parser(object):
 
 
 class WeatherMapping(object):
-    def __init__(self, char, key, length, scale = None):
+    def __init__(self, char, key, length, scale=None):
         self.char = char
         self.key = key
         self.length = length
@@ -81,14 +84,15 @@ class WeatherMapping(object):
                 deepApply(obj[keys[0]], ".".join(keys[1:]), v)
             else:
                 obj[key] = v
+
         try:
-            value = int(input[1:1 + self.length])
+            value = int(input[1 : 1 + self.length])
             if self.scale:
                 value = self.scale(value)
             deepApply(weather, self.key, value)
         except ValueError:
             pass
-        remain = input[1 + self.length:]
+        remain = input[1 + self.length :]
         return weather, remain
 
 
@@ -102,7 +106,7 @@ class WeatherParser(object):
         WeatherMapping("p", "rain.day", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("P", "rain.sincemidnight", 3, lambda x: x / 100 * inchesToMilimeters),
         WeatherMapping("h", "humidity", 2),
-        WeatherMapping("b", "barometricpressure", 5, lambda x: x/10),
+        WeatherMapping("b", "barometricpressure", 5, lambda x: x / 10),
         WeatherMapping("s", "snowfall", 3, lambda x: x * 25.4),
     ]
 
@@ -172,9 +176,7 @@ class AprsParser(object):
         if "type" in mapData and mapData["type"] == "thirdparty" and "data" in mapData:
             mapData = mapData["data"]
         if "lat" in mapData and "lon" in mapData:
-            loc = LatLngLocation(
-                mapData["lat"], mapData["lon"], mapData["comment"] if "comment" in mapData else None
-            )
+            loc = LatLngLocation(mapData["lat"], mapData["lon"], mapData["comment"] if "comment" in mapData else None)
             source = mapData["source"]
             if "type" in mapData:
                 if mapData["type"] == "item":
@@ -290,7 +292,7 @@ class AprsParser(object):
                 index = filtered[0]
                 result["item"] = information[0:index]
                 result["live"] = information[index] == "!"
-                result.update(self.parseRegularAprsData(information[index + 1:]))
+                result.update(self.parseRegularAprsData(information[index + 1 :]))
                 # override type, losing information about compression
                 result["type"] = "item"
         return result
@@ -320,20 +322,17 @@ class AprsParser(object):
             logger.debug(matches)
             path = matches.group(2).split(",")
             destination = next((c.strip("*").upper() for c in path if c.endswith("*")), None)
-            data = self.parseAprsData({
-                "source": matches.group(1).upper(),
-                "destination": destination,
-                "path": path,
-                "data": matches.group(6).encode(encoding)
-            })
-            return {
-                "type": "thirdparty",
-                "data": data,
-            }
+            data = self.parseAprsData(
+                {
+                    "source": matches.group(1).upper(),
+                    "destination": destination,
+                    "path": path,
+                    "data": matches.group(6).encode(encoding),
+                }
+            )
+            return {"type": "thirdparty", "data": data}
 
-        return {
-            "type": "thirdparty",
-        }
+        return {"type": "thirdparty"}
 
     def parseRegularAprsData(self, information):
         if self.hasCompressedCoordinates(information):
@@ -384,10 +383,7 @@ class AprsParser(object):
             weather = {}
             if len(comment) > 6 and comment[3] == "/":
                 try:
-                    weather["wind"] = {
-                        "direction": int(comment[0:3]),
-                        "speed": int(comment[4:7]) * milesToKilometers,
-                    }
+                    weather["wind"] = {"direction": int(comment[0:3]), "speed": int(comment[4:7]) * milesToKilometers}
                 except ValueError:
                     pass
                 comment = comment[7:]
