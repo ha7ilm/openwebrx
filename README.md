@@ -19,6 +19,15 @@ It has the following features:
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
 
+**News (2019-09-13 by DD5JFK)**
+- New set of APRS-related features
+  - Decode Packet transmissions using [direwolf](https://github.com/wb2osz/direwolf) (1k2 only for now)
+  - APRS packets are mostly decoded and shown both in a new panel and on the map
+  - APRS is also available as a background service
+  - direwolfs I-gate functionality can be enabled, which allows your receiver to work as a receive-only I-gate for the APRS network in the background
+- Demodulation for background services has been optimized to use less total bandwidth, saving CPU
+- More metrics have been added; they can be used together with collectd and its curl_json plugin for now, with some limitations.
+
 **News (2019-07-21 by DD5JFK)**
 - Latest Features:
   - More WSJT-X modes have been added, including the new FT4 mode
