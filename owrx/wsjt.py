@@ -203,7 +203,7 @@ class Jt65Chopper(WsjtChopper):
 
     def decoder_commandline(self, file):
         # TODO expose decoding quality parameters through config
-        return ["jt9", "--jt65", "-d", "3", file]
+        return ["jt9", "--jt65", "-d", "1", file]
 
 
 class Jt9Chopper(WsjtChopper):
