@@ -2779,12 +2779,20 @@ function demodulator_digital_replace(subtype)
     case "bpsk31":
     case "rtty":
     case "ft8":
-    case "wspr":
     case "jt65":
     case "jt9":
     case "ft4":
         secondary_demod_start(subtype);
         demodulator_analog_replace('usb', true);
+        demodulator_buttons_update();
+        break;
+    case "wspr":
+        secondary_demod_start(subtype);
+        demodulator_analog_replace('usb', true);
+        // WSPR only samples between 1400 and 1600 Hz
+        demodulators[0].low_cut = 1350;
+        demodulators[0].high_cut = 1650;
+        demodulators[0].set();
         demodulator_buttons_update();
         break;
     case "packet":

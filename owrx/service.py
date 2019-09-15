@@ -180,6 +180,10 @@ class ServiceHandler(object):
         if mode == "packet":
             d.set_demodulator("nfm")
             d.set_bpf(-4000, 4000)
+        elif mode == "wspr":
+            d.set_demodulator("usb")
+            # WSPR only samples between 1400 and 1600 Hz
+            d.set_bpf(1350, 1650)
         else:
             d.set_demodulator("usb")
             d.set_bpf(0, 3000)
