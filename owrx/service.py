@@ -205,16 +205,9 @@ class AprsHandler(object):
         pass
 
 
-class ServiceManager(object):
-    sharedInstance = None
-
+class Services(object):
     @staticmethod
-    def getSharedInstance():
-        if ServiceManager.sharedInstance is None:
-            ServiceManager.sharedInstance = ServiceManager()
-        return ServiceManager.sharedInstance
-
-    def start(self):
+    def start():
         if not PropertyManager.getSharedInstance()["services_enabled"]:
             return
         for source in SdrService.getSources().values():
