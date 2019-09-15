@@ -53,11 +53,17 @@ class WsjtQueue(Queue):
         metrics.addMetric("wsjt.queue.in", self.inCounter)
         self.outCounter = CounterMetric()
         metrics.addMetric("wsjt.queue.out", self.outCounter)
+        self.overflowCounter = CounterMetric()
+        metrics.addMetric("wsjt.queue.overflow", self.overflowCounter)
         self.workers = [self.newWorker() for _ in range(0, workers)]
 
     def put(self, item):
         self.inCounter.inc()
-        super(WsjtQueue, self).put(item, block=False)
+        try:
+            super(WsjtQueue, self).put(item, block=False)
+        except Full:
+            self.overflowCounter.inc()
+            raise
 
     def get(self, **kwargs):
         # super.get() is blocking, so it would mess up the stats to inc() first
