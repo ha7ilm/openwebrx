@@ -180,6 +180,17 @@ class WsjtChopper(threading.Thread):
         except EOFError:
             return None
 
+    def decoding_depth(self, mode):
+        pm = PropertyManager.getSharedInstance()
+        # mode-specific setting?
+        if "wsjt_decoding_depths" in pm and mode in pm["wsjt_decoding_depths"]:
+                return pm["wsjt_decoding_depths"][mode]
+        # return global default
+        if "wsjt_decoding_depth" in pm:
+            return pm["wsjt_decoding_depth"]
+        # default when no setting is provided
+        return 3
+
 
 class Ft8Chopper(WsjtChopper):
     def __init__(self, source):
@@ -188,8 +199,7 @@ class Ft8Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        # TODO expose decoding quality parameters through config
-        return ["jt9", "--ft8", "-d", "3", file]
+        return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
 
 
 class WsprChopper(WsjtChopper):
@@ -199,8 +209,11 @@ class WsprChopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        # TODO expose decoding quality parameters through config
-        return ["wsprd", "-d", file]
+        cmd = ["wsprd"]
+        if self.decoding_depth("wspr") > 1:
+            cmd += ["-d"]
+        cmd += [file]
+        return cmd
 
 
 class Jt65Chopper(WsjtChopper):
@@ -210,8 +223,7 @@ class Jt65Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        # TODO expose decoding quality parameters through config
-        return ["jt9", "--jt65", "-d", "1", file]
+        return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
 
 
 class Jt9Chopper(WsjtChopper):
@@ -221,8 +233,7 @@ class Jt9Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        # TODO expose decoding quality parameters through config
-        return ["jt9", "--jt9", "-d", "3", file]
+        return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
 
 
 class Ft4Chopper(WsjtChopper):
@@ -232,8 +243,7 @@ class Ft4Chopper(WsjtChopper):
         super().__init__(source)
 
     def decoder_commandline(self, file):
-        # TODO expose decoding quality parameters through config
-        return ["jt9", "--ft4", "-d", "3", file]
+        return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
 
 
 class WsjtParser(object):

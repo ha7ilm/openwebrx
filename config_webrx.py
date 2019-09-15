@@ -260,6 +260,13 @@ wsjt_queue_workers = 2
 # if you are running background services, make sure this number is high enough to accept the task influx during peaks
 # i.e. this should be higher than the number of wsjt services running at the same time
 wsjt_queue_length = 10
+# wsjt decoding depth will allow more results, but will also consume more cpu
+wsjt_decoding_depth = 3
+# can also be set for each mode separately
+# jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
+wsjt_decoding_depths = {
+    "jt65": 1
+}
 
 temporary_directory = "/tmp"
 
