@@ -243,16 +243,21 @@ class SdrSource(object):
     def sleepOnRestart(self):
         pass
 
+    def hasActiveClients(self):
+        activeClients = [c for c in self.clients if c.isActive()]
+        return len(activeClients) > 0
+
     def addClient(self, c):
         self.clients.append(c)
-        self.start()
+        if self.hasActiveClients():
+            self.start()
 
     def removeClient(self, c):
         try:
             self.clients.remove(c)
         except ValueError:
             pass
-        if not self.clients:
+        if not self.hasActiveClients():
             self.stop()
 
     def addSpectrumClient(self, c):
@@ -478,6 +483,9 @@ class SpectrumThread(csdr.output):
             c.cancel()
         self.subscriptions = []
 
+    def isActive(self):
+        return True
+
     def onSdrAvailable(self):
         self.dsp.start()
 
@@ -605,6 +613,9 @@ class DspManager(csdr.output):
 
     def setProperty(self, prop, value):
         self.localProps.getProperty(prop).setValue(value)
+
+    def isActive(self):
+        return True
 
     def onSdrAvailable(self):
         logger.debug("received onSdrAvailable, attempting DspSource restart")
