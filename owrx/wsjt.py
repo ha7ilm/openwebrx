@@ -32,6 +32,7 @@ class WsjtQueueWorker(threading.Thread):
                 processor.decode(file)
             except Exception:
                 logger.exception("failed to decode job")
+                self.queue.onError()
             self.queue.task_done()
 
 
@@ -55,6 +56,8 @@ class WsjtQueue(Queue):
         metrics.addMetric("wsjt.queue.out", self.outCounter)
         self.overflowCounter = CounterMetric()
         metrics.addMetric("wsjt.queue.overflow", self.overflowCounter)
+        self.errorCounter = CounterMetric()
+        metrics.addMetric("wsjt.queue.error", self.errorCounter)
         self.workers = [self.newWorker() for _ in range(0, workers)]
 
     def put(self, item):
@@ -75,6 +78,9 @@ class WsjtQueue(Queue):
         worker = WsjtQueueWorker(self)
         worker.start()
         return worker
+
+    def onError(self):
+        self.errorCounter.inc()
 
 
 class WsjtChopper(threading.Thread):
