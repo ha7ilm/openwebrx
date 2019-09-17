@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import logging
 import threading
 from owrx.map import Map, LatLngLocation
+from owrx.bands import Bandplan
 
 logger = logging.getLogger(__name__)
 
@@ -71,19 +72,29 @@ class DmrMetaEnricher(object):
 
 
 class YsfMetaEnricher(object):
+    def __init__(self, parser):
+        self.parser = parser
+
     def enrich(self, meta):
         if "source" in meta and "lat" in meta and "lon" in meta:
             # TODO parsing the float values should probably happen earlier
             loc = LatLngLocation(float(meta["lat"]), float(meta["lon"]))
-            Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF")
+            Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF", self.parser.getBand())
         return None
 
 
 class MetaParser(object):
-    enrichers = {"DMR": DmrMetaEnricher(), "YSF": YsfMetaEnricher()}
 
     def __init__(self, handler):
         self.handler = handler
+        self.enrichers = {"DMR": DmrMetaEnricher(), "YSF": YsfMetaEnricher(self)}
+        self.band = None
+
+    def setDialFrequency(self, freq):
+        self.band = Bandplan.getSharedInstance().findBand(freq)
+
+    def getBand(self):
+        return self.band
 
     def parse(self, meta):
         fields = meta.split(";")
@@ -91,8 +102,8 @@ class MetaParser(object):
 
         if "protocol" in meta:
             protocol = meta["protocol"]
-            if protocol in MetaParser.enrichers:
-                additional_data = MetaParser.enrichers[protocol].enrich(meta)
+            if protocol in self.enrichers:
+                additional_data = self.enrichers[protocol].enrich(meta)
                 if additional_data is not None:
                     meta["additional"] = additional_data
         self.handler.write_metadata(meta)

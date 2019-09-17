@@ -537,6 +537,7 @@ class DspManager(csdr.output):
             freq = self.localProps["center_freq"] + self.localProps["offset_freq"]
             self.wsjtParser.setDialFrequency(freq)
             self.aprsParser.setDialFrequency(freq)
+            self.metaParser.setDialFrequency(freq)
 
         self.subscriptions = [
             self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression),
