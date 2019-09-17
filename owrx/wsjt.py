@@ -90,6 +90,7 @@ class WsjtChopper(threading.Thread):
         (self.wavefilename, self.wavefile) = self.getWaveFile()
         self.switchingLock = threading.Lock()
         self.scheduler = sched.scheduler(time.time, time.sleep)
+        self.schedulerLock = threading.Lock()
         (self.outputReader, self.outputWriter) = Pipe()
         self.doRun = True
         super().__init__()
@@ -118,11 +119,13 @@ class WsjtChopper(threading.Thread):
         threading.Thread(target=self.scheduler.run).start()
 
     def emptyScheduler(self):
-        for event in self.scheduler.queue:
-            self.scheduler.cancel(event)
+        with self.schedulerLock:
+            for event in self.scheduler.queue:
+                self.scheduler.cancel(event)
 
     def _scheduleNextSwitch(self):
-        self.scheduler.enterabs(self.getNextDecodingTime(), 1, self.switchFiles)
+        with self.schedulerLock:
+            self.scheduler.enterabs(self.getNextDecodingTime(), 1, self.switchFiles)
 
     def switchFiles(self):
         self.switchingLock.acquire()
