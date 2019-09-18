@@ -107,11 +107,22 @@
                         });
                         markers[update.callsign] = marker;
                     }
+                    var iconOptions = {}
+                    if (update.location.symbol) {
+                        var index = update.location.symbol.index;
+                        var tableId = update.location.symbol.table == '/' ? 0 : 1;
+                        iconOptions.icon = {
+                            url: '/aprs-symbols/aprs-symbols-24-' + tableId + '.png',
+                            size: new google.maps.Size(24, 24),
+                            origin: new google.maps.Point((index % 16) * 24, Math.floor(index / 16) * 24),
+                            anchor: new google.maps.Point(12, 12),
+                        };
+                    }
                     marker.setOptions($.extend({
                         position: pos,
                         map: map,
                         title: update.callsign
-                    }, getMarkerOpacityOptions(update.lastseen) ));
+                    }, iconOptions, getMarkerOpacityOptions(update.lastseen) ));
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
                     marker.band = update.band;

@@ -131,6 +131,21 @@ class WeatherParser(object):
         return self.data
 
 
+class AprsLocation(LatLngLocation):
+    def __init__(self, data):
+        super().__init__(data["lat"], data["lon"])
+        self.comment = data["comment"] if "comment" in data else None
+        self.symbol = data["symbol"] if "symbol" in data else None
+
+    def __dict__(self):
+        res = super(AprsLocation, self).__dict__()
+        if self.comment is not None:
+            res["comment"] = self.comment
+        if self.symbol is not None:
+            res["symbol"] = self.symbol
+        return res
+
+
 class AprsParser(object):
     def __init__(self, handler):
         self.ax25parser = Ax25Parser()
@@ -176,7 +191,7 @@ class AprsParser(object):
         if "type" in mapData and mapData["type"] == "thirdparty" and "data" in mapData:
             mapData = mapData["data"]
         if "lat" in mapData and "lon" in mapData:
-            loc = LatLngLocation(mapData["lat"], mapData["lon"], mapData["comment"] if "comment" in mapData else None)
+            loc = AprsLocation(mapData)
             source = mapData["source"]
             if "type" in mapData:
                 if mapData["type"] == "item":
@@ -195,14 +210,17 @@ class AprsParser(object):
         lon = int(raw[9:12]) + float(raw[12:17]) / 60
         if raw[17] == "W":
             lon *= -1
-        return {"lat": lat, "lon": lon, "symboltable": raw[8], "symbol": raw[18]}
+        return {"lat": lat, "lon": lon, "symbol": {"table": raw[8], "symbol": raw[18], "index": ord(raw[18]) - 33}}
 
     def parseCompressedCoordinates(self, raw):
         return {
             "lat": 90 - decodeBase91(raw[1:5]) / 380926,
             "lon": -180 + decodeBase91(raw[5:9]) / 190463,
-            "symboltable": raw[0],
-            "symbol": raw[9],
+            "symbol": {
+                "table": raw[0],
+                "symbol": raw[9],
+                "index": ord(raw[9]) - 33
+            },
         }
 
     def parseTimestamp(self, raw):
@@ -219,7 +237,6 @@ class AprsParser(object):
                 ts = ts.replace(tzinfo=now.tzinfo)
             else:
                 logger.warning("invalid timezone info byte: %s", raw[6])
-        logger.debug(ts)
         return int(ts.timestamp() * 1000)
 
     def parseStatusUpate(self, raw):
@@ -319,7 +336,6 @@ class AprsParser(object):
     def parseThirdpartyAprsData(self, information):
         matches = thirdpartyeRegex.match(information)
         if matches:
-            logger.debug(matches)
             path = matches.group(2).split(",")
             destination = next((c.strip("*").upper() for c in path if c.endswith("*")), None)
             data = self.parseAprsData(
@@ -378,7 +394,8 @@ class AprsParser(object):
             return res
 
         # aprs data extensions
-        if "symbol" in aprsData and aprsData["symbol"] == "_":
+        # yes, weather stations are officially identified by their symbols. go figure...
+        if "symbol" in aprsData and aprsData["symbol"]["index"] == 62:
             # weather report
             weather = {}
             if len(comment) > 6 and comment[3] == "/":
@@ -558,6 +575,9 @@ class MicEParser(object):
             "course": course,
             "device": device,
             "type": "Mic-E",
-            "symboltable": chr(information[8]),
-            "symbol": chr(information[7]),
+            "symbol": {
+                "table": chr(information[8]),
+                "symbol": chr(information[7]),
+                "index": information[7] - 33
+            }
         }
