@@ -1,12 +1,13 @@
 from owrx.controllers import (
     StatusController,
     IndexController,
-    AssetsController,
+    OwrxAssetsController,
     WebSocketController,
     MapController,
     FeatureController,
     ApiController,
     MetricsController,
+    AprsSymbolsController,
 )
 from http.server import BaseHTTPRequestHandler
 import re
@@ -36,11 +37,12 @@ class Router(object):
     mappings = [
         {"route": "/", "controller": IndexController},
         {"route": "/status", "controller": StatusController},
-        {"regex": "/static/(.+)", "controller": AssetsController},
+        {"regex": "/static/(.+)", "controller": OwrxAssetsController},
+        {"regex": "/aprs-symbols/(.+)", "controller": AprsSymbolsController},
         {"route": "/ws/", "controller": WebSocketController},
-        {"regex": "(/favicon.ico)", "controller": AssetsController},
+        {"regex": "(/favicon.ico)", "controller": OwrxAssetsController},
         # backwards compatibility for the sdr.hu portal
-        {"regex": "/(gfx/openwebrx-avatar.png)", "controller": AssetsController},
+        {"regex": "/(gfx/openwebrx-avatar.png)", "controller": OwrxAssetsController},
         {"route": "/map", "controller": MapController},
         {"route": "/features", "controller": FeatureController},
         {"route": "/api/features", "controller": ApiController},

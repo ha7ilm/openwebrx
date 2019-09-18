@@ -55,9 +55,15 @@ class StatusController(Controller):
 
 
 class AssetsController(Controller):
+    def __init__(self, handler, request, path):
+        if not path.endswith("/"):
+            path += "/"
+        self.path = path
+        super().__init__(handler, request)
+
     def serve_file(self, file, content_type=None):
         try:
-            modified = datetime.fromtimestamp(os.path.getmtime("htdocs/" + file))
+            modified = datetime.fromtimestamp(os.path.getmtime(self.path + file))
 
             if "If-Modified-Since" in self.handler.headers:
                 client_modified = datetime.strptime(
@@ -67,7 +73,7 @@ class AssetsController(Controller):
                     self.send_response("", code=304)
                     return
 
-            f = open("htdocs/" + file, "rb")
+            f = open(self.path + file, "rb")
             data = f.read()
             f.close()
 
@@ -80,6 +86,17 @@ class AssetsController(Controller):
     def handle_request(self):
         filename = self.request.matches.group(1)
         self.serve_file(filename)
+
+
+class OwrxAssetsController(AssetsController):
+    def __init__(self, handler, request):
+        super().__init__(handler, request, "htdocs/")
+
+
+class AprsSymbolsController(AssetsController):
+    def __init__(self, handler, request):
+        pm = PropertyManager.getSharedInstance()
+        super().__init__(handler, request, pm["aprs_symbols_path"])
 
 
 class TemplateController(Controller):

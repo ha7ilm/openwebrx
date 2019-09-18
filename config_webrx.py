@@ -281,3 +281,6 @@ aprs_igate_server = "euro.aprs2.net"
 aprs_igate_password = ""
 # beacon uses the receiver_gps setting, so if you enable this, make sure the location is correct there
 aprs_igate_beacon = False
+
+# path to the aprs symbols repository (get it here: https://github.com/hessu/aprs-symbols)
+aprs_symbols_path = "/opt/aprs-symbols/png"
