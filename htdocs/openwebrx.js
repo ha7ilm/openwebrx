@@ -1482,8 +1482,34 @@ function update_packet_panel(msg) {
     }
 
     var link = '';
+    var classes = [];
+    var styles = {};
+    var overlay = '';
+    var stylesToString = function(s) {
+        return $.map(s, function(value, key){ return key + ':' + value + ';'}).join('')
+    }
+    if (msg.symbol) {
+        classes.push('aprs-symbol');
+        classes.push('aprs-symboltable-' + (msg.symbol.table == '/' ? 'normal' : 'alternate'));
+        styles['background-position-x'] = -(msg.symbol.index % 16) * 15 + 'px';
+        styles['background-position-y'] = -Math.floor(msg.symbol.index / 16) * 15 + 'px';
+        if (msg.symbol.table != '/' && msg.symbol.table != '\\') {
+            s = {}
+            s['background-position-x'] = -(msg.symbol.tableindex % 16) * 15 + 'px';
+            s['background-position-y'] = -Math.floor(msg.symbol.tableindex / 16) * 15 + 'px';
+            overlay='<div class="aprs-symbol aprs-symboltable-overlay" style="' + stylesToString(s) + '"></div>';
+        }
+    } else if (msg.lat && msg.lon) {
+        classes.push('openwebrx-maps-pin');
+    }
+    var attrs = [
+        'class="' + classes.join(' ') + '"',
+        'style="' + stylesToString(styles) + '"',
+    ].join(' ');
     if (msg.lat && msg.lon) {
-        link = '<a class="openwebrx-maps-pin" href="/map?callsign=' + source + '" target="_blank"></a>';
+        link = '<a ' + attrs + ' href="/map?callsign=' + source + '" target="_blank">' + overlay + '</a>';
+    } else {
+        link = '<div ' + attrs + '>' + overlay + '</div>'
     }
 
     $b.append($(

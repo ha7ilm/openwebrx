@@ -870,6 +870,25 @@ img.openwebrx-mirror-img
     text-align: center;
 }
 
+.aprs-symbol {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-size: 240px 90px;
+}
+
+.aprs-symboltable-normal {
+    background-image: url(../../aprs-symbols/aprs-symbols-24-0.png)
+}
+
+.aprs-symboltable-alternate {
+    background-image: url(../../aprs-symbols/aprs-symbols-24-1.png)
+}
+
+.aprs-symboltable-overlay {
+    background-image: url(../../aprs-symbols/aprs-symbols-24-2.png)
+}
+
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-content-container,

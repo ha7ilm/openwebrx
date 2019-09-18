@@ -37,6 +37,15 @@ def decodeBase91(input):
     base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
     return base + (ord(input[-1]) - 33)
 
+def getSymbolData(symbol, table):
+    return {
+        "symbol": symbol,
+        "table": table,
+        "index": ord(symbol) - 33,
+        "tableindex": ord(table) - 33,
+    }
+
+
 
 class Ax25Parser(object):
     def parse(self, ax25frame):
@@ -210,17 +219,13 @@ class AprsParser(object):
         lon = int(raw[9:12]) + float(raw[12:17]) / 60
         if raw[17] == "W":
             lon *= -1
-        return {"lat": lat, "lon": lon, "symbol": {"table": raw[8], "symbol": raw[18], "index": ord(raw[18]) - 33}}
+        return {"lat": lat, "lon": lon, "symbol": getSymbolData(raw[18], raw[8])}
 
     def parseCompressedCoordinates(self, raw):
         return {
             "lat": 90 - decodeBase91(raw[1:5]) / 380926,
             "lon": -180 + decodeBase91(raw[5:9]) / 190463,
-            "symbol": {
-                "table": raw[0],
-                "symbol": raw[9],
-                "index": ord(raw[9]) - 33
-            },
+            "symbol": getSymbolData(raw[9], raw[0]),
         }
 
     def parseTimestamp(self, raw):
@@ -575,9 +580,5 @@ class MicEParser(object):
             "course": course,
             "device": device,
             "type": "Mic-E",
-            "symbol": {
-                "table": chr(information[8]),
-                "symbol": chr(information[7]),
-                "index": information[7] - 33
-            }
+            "symbol": getSymbolData(chr(information[7]), chr(information[8]))
         }
