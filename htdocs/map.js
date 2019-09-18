@@ -112,10 +112,11 @@
                         var index = update.location.symbol.index;
                         var tableId = update.location.symbol.table == '/' ? 0 : 1;
                         iconOptions.icon = {
-                            url: '/aprs-symbols/aprs-symbols-24-' + tableId + '.png',
+                            url: '/aprs-symbols/aprs-symbols-24-' + tableId + '@2x.png',
                             size: new google.maps.Size(24, 24),
                             origin: new google.maps.Point((index % 16) * 24, Math.floor(index / 16) * 24),
                             anchor: new google.maps.Point(12, 12),
+                            scaledSize: new google.maps.Size(384, 144),
                         };
                     }
                     marker.setOptions($.extend({
