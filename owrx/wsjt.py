@@ -38,12 +38,14 @@ class WsjtQueueWorker(threading.Thread):
 
 class WsjtQueue(Queue):
     sharedInstance = None
+    creationLock = threading.Lock()
 
     @staticmethod
     def getSharedInstance():
-        if WsjtQueue.sharedInstance is None:
-            pm = PropertyManager.getSharedInstance()
-            WsjtQueue.sharedInstance = WsjtQueue(maxsize=pm["wsjt_queue_length"], workers=pm["wsjt_queue_workers"])
+        with WsjtQueue.creationLock:
+            if WsjtQueue.sharedInstance is None:
+                pm = PropertyManager.getSharedInstance()
+                WsjtQueue.sharedInstance = WsjtQueue(maxsize=pm["wsjt_queue_length"], workers=pm["wsjt_queue_workers"])
         return WsjtQueue.sharedInstance
 
     def __init__(self, maxsize, workers):
@@ -125,7 +127,8 @@ class WsjtChopper(threading.Thread):
 
     def _scheduleNextSwitch(self):
         with self.schedulerLock:
-            self.scheduler.enterabs(self.getNextDecodingTime(), 1, self.switchFiles)
+            if self.doRun:
+                self.scheduler.enterabs(self.getNextDecodingTime(), 1, self.switchFiles)
 
     def switchFiles(self):
         self.switchingLock.acquire()

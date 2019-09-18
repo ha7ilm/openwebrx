@@ -4,6 +4,7 @@ from owrx.feature import FeatureDetector, UnknownFeatureException
 from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
+from owrx.metrics import Metrics, DirectMetric
 import threading
 import csdr
 import time
@@ -698,15 +699,18 @@ class TooManyClientsException(Exception):
 
 class ClientRegistry(object):
     sharedInstance = None
+    creationLock = threading.Lock()
 
     @staticmethod
     def getSharedInstance():
-        if ClientRegistry.sharedInstance is None:
-            ClientRegistry.sharedInstance = ClientRegistry()
+        with ClientRegistry.creationLock:
+            if ClientRegistry.sharedInstance is None:
+                ClientRegistry.sharedInstance = ClientRegistry()
         return ClientRegistry.sharedInstance
 
     def __init__(self):
         self.clients = []
+        Metrics.getSharedInstance().addMetric("openwebrx.users", DirectMetric(self.clientCount))
         super().__init__()
 
     def broadcast(self):

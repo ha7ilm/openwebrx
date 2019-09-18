@@ -1,3 +1,5 @@
+import threading
+
 class Metric(object):
     def getValue(self):
         return 0
@@ -24,11 +26,13 @@ class DirectMetric(Metric):
 
 class Metrics(object):
     sharedInstance = None
+    creationLock = threading.Lock()
 
     @staticmethod
     def getSharedInstance():
-        if Metrics.sharedInstance is None:
-            Metrics.sharedInstance = Metrics()
+        with Metrics.creationLock:
+            if Metrics.sharedInstance is None:
+                Metrics.sharedInstance = Metrics()
         return Metrics.sharedInstance
 
     def __init__(self):
