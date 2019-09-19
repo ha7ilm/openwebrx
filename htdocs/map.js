@@ -99,10 +99,12 @@
                     var pos = new google.maps.LatLng(update.location.lat, update.location.lon);
                     var marker;
                     var markerClass = google.maps.Marker;
-                    var iconOptions = {}
+                    var aprsOptions = {}
                     if (update.location.symbol) {
                         markerClass = AprsMarker;
-                        iconOptions.symbol = update.location.symbol;
+                        aprsOptions.symbol = update.location.symbol;
+                        aprsOptions.course = update.location.course;
+                        aprsOptions.speed = update.location.speed;
                     }
                     if (markers[update.callsign]) {
                         marker = markers[update.callsign];
@@ -117,7 +119,7 @@
                         position: pos,
                         map: map,
                         title: update.callsign
-                    }, iconOptions, getMarkerOpacityOptions(update.lastseen) ));
+                    }, aprsOptions, getMarkerOpacityOptions(update.lastseen) ));
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
                     marker.band = update.band;

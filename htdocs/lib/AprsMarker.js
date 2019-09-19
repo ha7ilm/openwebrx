@@ -14,6 +14,16 @@ AprsMarker.prototype.draw = function() {
         div.style['background-position-y'] = -Math.floor(this.symbol.index / 16) * 24 + 'px';
     }
 
+    if (this.course) {
+        if (this.course > 180) {
+            div.style.transform = 'scalex(-1) rotate(' + (270 - this.course) + 'deg)'
+        } else {
+            div.style.transform = 'rotate(' + (this.course - 90) + 'deg)';
+        }
+    } else {
+        div.style.transform = null;
+    }
+
     if (this.symbol.table != '/' && this.symbol.table != '\\') {
         overlay.style.display = 'block';
         overlay.style['background-position-x'] = -(this.symbol.tableindex % 16) * 24 + 'px';
@@ -32,8 +42,6 @@ AprsMarker.prototype.draw = function() {
 
 AprsMarker.prototype.onAdd = function() {
     var div = this.div = document.createElement('div');
-
-    div.className = 'marker';
 
     div.style.position = 'absolute';
     div.style.cursor = 'pointer';

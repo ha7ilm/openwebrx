@@ -143,15 +143,13 @@ class WeatherParser(object):
 class AprsLocation(LatLngLocation):
     def __init__(self, data):
         super().__init__(data["lat"], data["lon"])
-        self.comment = data["comment"] if "comment" in data else None
-        self.symbol = data["symbol"] if "symbol" in data else None
+        self.data = data
 
     def __dict__(self):
         res = super(AprsLocation, self).__dict__()
-        if self.comment is not None:
-            res["comment"] = self.comment
-        if self.symbol is not None:
-            res["symbol"] = self.symbol
+        for key in ["comment", "symbol", "course", "speed"]:
+            if key in self.data:
+                res[key] = self.data[key]
         return res
 
 
