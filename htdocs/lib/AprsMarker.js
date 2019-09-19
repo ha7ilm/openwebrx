@@ -5,6 +5,7 @@ AprsMarker.prototype = new google.maps.OverlayView();
 AprsMarker.prototype.draw = function() {
 	var div = this.div;
 	var overlay = this.overlay;
+	if (!div || !overlay) return;
 
     if (this.symbol) {
         var tableId = this.symbol.table == '/' ? 0 : 1;
@@ -32,12 +33,23 @@ AprsMarker.prototype.draw = function() {
         overlay.style.display = 'none';
     }
 
+    if (this.opacity) {
+        div.style.opacity = this.opacity;
+    } else {
+        div.style.opacity = null;
+    }
+
 	var point = this.getProjection().fromLatLngToDivPixel(this.position);
 
 	if (point) {
 		div.style.left = point.x - 12 + 'px';
 		div.style.top = point.y - 12 + 'px';
 	}
+};
+
+AprsMarker.prototype.setOptions = function(options) {
+    google.maps.OverlayView.prototype.setOptions.apply(this, arguments);
+    this.draw();
 };
 
 AprsMarker.prototype.onAdd = function() {
@@ -65,7 +77,7 @@ AprsMarker.prototype.onAdd = function() {
 
     var panes = this.getPanes();
     panes.overlayImage.appendChild(div);
-}
+};
 
 AprsMarker.prototype.remove = function() {
 	if (this.div) {
@@ -76,4 +88,4 @@ AprsMarker.prototype.remove = function() {
 
 AprsMarker.prototype.getAnchorPoint = function() {
     return new google.maps.Point(0, -12);
-}
+};
