@@ -3,8 +3,10 @@ from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
-import json
 from owrx.map import Map
+from multiprocessing import Queue
+import json
+import threading
 
 import logging
 
@@ -14,20 +16,29 @@ logger = logging.getLogger(__name__)
 class Client(object):
     def __init__(self, conn):
         self.conn = conn
+        self.multiprocessingPipe = Queue()
+
+        def mp_passthru():
+            run = True
+            while run:
+                try:
+                    data = self.multiprocessingPipe.get()
+                    self.protected_send(data)
+                except (EOFError, OSError):
+                    run = False
+
+        self.passThruThread = threading.Thread(target=mp_passthru)
+        self.passThruThread.start()
 
     def protected_send(self, data):
-        try:
-            self.conn.send(data)
-        # these exception happen when the socket is closed
-        except OSError:
-            logger.exception("OSError while sending data")
-            self.close()
-        except ValueError:
-            logger.exception("ValueError while sending data")
-            self.close()
+        self.conn.protected_send(data)
 
     def close(self):
         self.conn.close()
+        self.multiprocessingPipe.close()
+
+    def mp_send(self, data):
+        self.multiprocessingPipe.put(data, block=False)
 
 
 class OpenWebRxReceiverClient(Client):
@@ -171,10 +182,10 @@ class OpenWebRxReceiverClient(Client):
         self.protected_send({"type": "smeter", "value": level})
 
     def write_cpu_usage(self, usage):
-        self.protected_send({"type": "cpuusage", "value": usage})
+        self.mp_send({"type": "cpuusage", "value": usage})
 
     def write_clients(self, clients):
-        self.protected_send({"type": "clients", "value": clients})
+        self.mp_send({"type": "clients", "value": clients})
 
     def write_secondary_fft(self, data):
         self.protected_send(bytes([0x03]) + data)
@@ -227,7 +238,7 @@ class MapConnection(Client):
         self.protected_send({"type": "config", "value": cfg})
 
     def write_update(self, update):
-        self.protected_send({"type": "update", "value": update})
+        self.mp_send({"type": "update", "value": update})
 
 
 class WebSocketMessageHandler(object):
@@ -289,3 +300,7 @@ class WebSocketMessageHandler(object):
 
     def handleBinaryMessage(self, conn, data):
         logger.error("unsupported binary message, discarding")
+
+    def handleClose(self):
+        if self.client:
+            self.client.close()
