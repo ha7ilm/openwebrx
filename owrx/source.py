@@ -635,7 +635,6 @@ class CpuUsageThread(threading.Thread):
     def getSharedInstance():
         if CpuUsageThread.sharedInstance is None:
             CpuUsageThread.sharedInstance = CpuUsageThread()
-            CpuUsageThread.sharedInstance.start()
         return CpuUsageThread.sharedInstance
 
     def __init__(self):
@@ -679,6 +678,8 @@ class CpuUsageThread(threading.Thread):
 
     def add_client(self, c):
         self.clients.append(c)
+        if not self.is_alive():
+            self.start()
 
     def remove_client(self, c):
         try:
