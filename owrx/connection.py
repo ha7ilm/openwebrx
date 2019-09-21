@@ -20,13 +20,14 @@ class Client(object):
             self.conn.send(data)
         # these exception happen when the socket is closed
         except OSError:
+            logger.exception("OSError while sending data")
             self.close()
         except ValueError:
+            logger.exception("ValueError while sending data")
             self.close()
 
     def close(self):
         self.conn.close()
-        logger.debug("connection closed")
 
 
 class OpenWebRxReceiverClient(Client):
@@ -288,7 +289,3 @@ class WebSocketMessageHandler(object):
 
     def handleBinaryMessage(self, conn, data):
         logger.error("unsupported binary message, discarding")
-
-    def handleClose(self, conn):
-        if self.client:
-            self.client.close()

@@ -10,8 +10,8 @@ from owrx.controllers import (
     AprsSymbolsController,
 )
 from http.server import BaseHTTPRequestHandler
-import re
 from urllib.parse import urlparse, parse_qs
+import re
 
 import logging
 
