@@ -88,7 +88,7 @@
     }
 
     var processUpdates = function(updates) {
-        if (!map) {
+        if (typeof(AprsMarker) == 'undefined') {
             updateQueue = updateQueue.concat(updates);
             return;
         }
