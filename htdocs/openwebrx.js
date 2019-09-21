@@ -1160,7 +1160,7 @@ function audio_calculate_resampling(targetRate)
 
 debug_ws_data_received=0;
 max_clients_num=0;
-clients_num = 0;
+client_num = 0;
 
 var COMPRESS_FFT_PAD_N=10; //should be the same as in csdr.c
 
