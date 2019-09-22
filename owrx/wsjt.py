@@ -16,6 +16,7 @@ from owrx.metrics import Metrics, CounterMetric, DirectMetric
 import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class WsjtQueueWorker(threading.Thread):
