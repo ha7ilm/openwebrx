@@ -1,7 +1,7 @@
 import base64
 import hashlib
 import json
-import os
+from multiprocessing import Pipe
 import select
 import threading
 
@@ -19,7 +19,7 @@ class WebSocketConnection(object):
         self.handler = handler
         self.handler.connection.setblocking(0)
         self.messageHandler = messageHandler
-        (self.interruptPipeRecv, self.interruptPipeSend) = os.pipe()
+        (self.interruptPipeRecv, self.interruptPipeSend) = Pipe(duplex=False)
         self.open = True
         self.sendLock = threading.Lock()
         my_headers = self.handler.headers.items()
@@ -118,7 +118,7 @@ class WebSocketConnection(object):
             self.close()
 
     def interrupt(self):
-        os.write(self.interruptPipeSend, bytes(0x00))
+        self.interruptPipeSend.send(bytes(0x00))
 
     def read_loop(self):
         self.open = True
