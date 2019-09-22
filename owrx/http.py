@@ -16,12 +16,16 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class RequestHandler(BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         self.router = Router()
         super().__init__(request, client_address, server)
+
+    def log_message(self, format, *args):
+        logger.debug("%s - - [%s] %s", self.address_string(), self.log_date_time_string(), format%args)
 
     def do_GET(self):
         self.router.route(self)
