@@ -4,10 +4,11 @@ from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import PropertyManager
 from owrx.feature import FeatureDetector
-from owrx.source import SdrService, ClientRegistry
+from owrx.source import SdrService
 from socketserver import ThreadingMixIn
 from owrx.sdrhu import SdrHuUpdater
 from owrx.service import Services
+from owrx.websocket import WebSocketConnection
 
 import logging
 
@@ -58,5 +59,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        for c in ClientRegistry.getSharedInstance().clients:
-            c.close()
+        WebSocketConnection.closeAll()

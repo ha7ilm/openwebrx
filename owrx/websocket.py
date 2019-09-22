@@ -15,6 +15,16 @@ class IncompleteRead(Exception):
 
 
 class WebSocketConnection(object):
+    connections = []
+
+    @staticmethod
+    def closeAll():
+        for c in WebSocketConnection.connections:
+            try:
+                c.close()
+            except:
+                logger.exception("exception while shutting down websocket connections")
+
     def __init__(self, handler, messageHandler):
         self.handler = handler
         self.handler.connection.setblocking(0)
@@ -121,6 +131,7 @@ class WebSocketConnection(object):
         self.interruptPipeSend.send(bytes(0x00))
 
     def read_loop(self):
+        WebSocketConnection.connections.append(self)
         self.open = True
         while self.open:
             (read, _, _) = select.select([self.interruptPipeRecv, self.handler.rfile], [], [])
@@ -167,6 +178,11 @@ class WebSocketConnection(object):
             logger.exception("ValueError while writing close frame:")
         except OSError:
             logger.exception("OSError while writing close frame:")
+
+        try:
+            WebSocketConnection.connections.remove(self)
+        except ValueError:
+            pass
 
     def close(self):
         self.open = False
