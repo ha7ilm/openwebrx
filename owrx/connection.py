@@ -23,15 +23,14 @@ class Client(object):
             while run:
                 try:
                     data = self.multiprocessingPipe.get()
-                    self.protected_send(data)
+                    self.send(data)
                 except (EOFError, OSError):
                     run = False
 
-        self.passThruThread = threading.Thread(target=mp_passthru)
-        self.passThruThread.start()
+        threading.Thread(target=mp_passthru).start()
 
-    def protected_send(self, data):
-        self.conn.protected_send(data)
+    def send(self, data):
+        self.conn.send(data)
 
     def close(self):
         self.conn.close()
@@ -173,13 +172,13 @@ class OpenWebRxReceiverClient(Client):
             self.dsp.setProperty(key, value)
 
     def write_spectrum_data(self, data):
-        self.protected_send(bytes([0x01]) + data)
+        self.send(bytes([0x01]) + data)
 
     def write_dsp_data(self, data):
-        self.protected_send(bytes([0x02]) + data)
+        self.send(bytes([0x02]) + data)
 
     def write_s_meter_level(self, level):
-        self.protected_send({"type": "smeter", "value": level})
+        self.send({"type": "smeter", "value": level})
 
     def write_cpu_usage(self, usage):
         self.mp_send({"type": "cpuusage", "value": usage})
@@ -188,37 +187,37 @@ class OpenWebRxReceiverClient(Client):
         self.mp_send({"type": "clients", "value": clients})
 
     def write_secondary_fft(self, data):
-        self.protected_send(bytes([0x03]) + data)
+        self.send(bytes([0x03]) + data)
 
     def write_secondary_demod(self, data):
-        self.protected_send(bytes([0x04]) + data)
+        self.send(bytes([0x04]) + data)
 
     def write_secondary_dsp_config(self, cfg):
-        self.protected_send({"type": "secondary_config", "value": cfg})
+        self.send({"type": "secondary_config", "value": cfg})
 
     def write_config(self, cfg):
-        self.protected_send({"type": "config", "value": cfg})
+        self.send({"type": "config", "value": cfg})
 
     def write_receiver_details(self, details):
-        self.protected_send({"type": "receiver_details", "value": details})
+        self.send({"type": "receiver_details", "value": details})
 
     def write_profiles(self, profiles):
-        self.protected_send({"type": "profiles", "value": profiles})
+        self.send({"type": "profiles", "value": profiles})
 
     def write_features(self, features):
-        self.protected_send({"type": "features", "value": features})
+        self.send({"type": "features", "value": features})
 
     def write_metadata(self, metadata):
-        self.protected_send({"type": "metadata", "value": metadata})
+        self.send({"type": "metadata", "value": metadata})
 
     def write_wsjt_message(self, message):
-        self.protected_send({"type": "wsjt_message", "value": message})
+        self.send({"type": "wsjt_message", "value": message})
 
     def write_dial_frequendies(self, frequencies):
-        self.protected_send({"type": "dial_frequencies", "value": frequencies})
+        self.send({"type": "dial_frequencies", "value": frequencies})
 
     def write_aprs_data(self, data):
-        self.protected_send({"type": "aprs_data", "value": data})
+        self.send({"type": "aprs_data", "value": data})
 
 
 class MapConnection(Client):
@@ -235,7 +234,7 @@ class MapConnection(Client):
         super().close()
 
     def write_config(self, cfg):
-        self.protected_send({"type": "config", "value": cfg})
+        self.send({"type": "config", "value": cfg})
 
     def write_update(self, update):
         self.mp_send({"type": "update", "value": update})

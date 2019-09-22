@@ -98,27 +98,18 @@ class WebSocketConnection(object):
             for i in range(0, len(l), n):
                 yield l[i : i + n]
 
-        with self.sendLock:
-            for chunk in chunks(data_to_send, 1024):
-                (_, write, _) = select.select([], [self.handler.wfile], [], 10)
-                if self.handler.wfile in write:
-                    written = self.handler.wfile.write(chunk)
-                    if written != len(chunk):
-                        logger.error("incomplete write! closing socket!")
-                        self.close()
-                else:
-                    logger.debug("socket not returned from select; closing")
-                    self.close()
-
-    def protected_read(self, num):
-        data = self.handler.rfile.read(num)
-        if data is None or len(data) != num:
-            raise IncompleteRead()
-        return data
-
-    def protected_send(self, data):
         try:
-            self.send(data)
+            with self.sendLock:
+                for chunk in chunks(data_to_send, 1024):
+                    (_, write, _) = select.select([], [self.handler.wfile], [], 10)
+                    if self.handler.wfile in write:
+                        written = self.handler.wfile.write(chunk)
+                        if written != len(chunk):
+                            logger.error("incomplete write! closing socket!")
+                            self.close()
+                    else:
+                        logger.debug("socket not returned from select; closing")
+                        self.close()
         # these exception happen when the socket is closed
         except OSError:
             logger.exception("OSError while writing data")
@@ -126,6 +117,12 @@ class WebSocketConnection(object):
         except ValueError:
             logger.exception("ValueError while writing data")
             self.close()
+
+    def protected_read(self, num):
+        data = self.handler.rfile.read(num)
+        if data is None or len(data) != num:
+            raise IncompleteRead()
+        return data
 
     def interrupt(self):
         self.interruptPipeSend.send(bytes(0x00))
