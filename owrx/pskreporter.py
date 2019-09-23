@@ -3,6 +3,8 @@ import threading
 import time
 import random
 from sched import scheduler
+from owrx.config import PropertyManager
+from owrx.version import openwebrx_version
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +12,8 @@ logger = logging.getLogger(__name__)
 class PskReporter(object):
     sharedInstance = None
     creationLock = threading.Lock()
-    interval = 300
+    interval = 60
+    supportedModes = ["FT8", "FT4", "JT9", "JT65"]
 
     @staticmethod
     def getSharedInstance():
@@ -22,6 +25,7 @@ class PskReporter(object):
     def __init__(self):
         self.spots = []
         self.spotLock = threading.Lock()
+        self.uploader = Uploader()
         self.scheduler = scheduler(time.time, time.sleep)
         self.scheduleNextUpload()
         threading.Thread(target=self.scheduler.run).start()
@@ -32,6 +36,8 @@ class PskReporter(object):
         self.scheduler.enter(delay, 1, self.upload)
 
     def spot(self, spot):
+        if not spot["mode"] in PskReporter.supportedModes:
+            return
         with self.spotLock:
             self.spots.append(spot)
 
@@ -41,6 +47,131 @@ class PskReporter(object):
             self.spots = []
 
         if spots:
-            logger.debug("would now upload %i spots", len(spots))
+            self.uploader.upload(spots)
 
         self.scheduleNextUpload()
+
+
+class Uploader(object):
+    receieverDelimiter = [0x99, 0x92]
+    senderDelimiter = [0x99, 0x93]
+
+    def __init__(self):
+        self.sequence = 0
+
+    def upload(self, spots):
+        logger.debug("would now upload %i spots", len(spots))
+        for packet in self.getPackets(spots):
+            l = int.from_bytes(packet[2:4], "big")
+            logger.debug("packet length: %i; indicated length: %i", len(packet), l)
+            logger.debug(packet)
+            # TODO actually send the packet
+
+    def getPackets(self, spots):
+        encoded = [self.encodeSpot(spot) for spot in spots]
+
+        def chunks(l, n):
+            """Yield successive n-sized chunks from l."""
+            for i in range(0, len(l), n):
+                yield l[i : i + n]
+
+        rHeader = self.getReceiverInformationHeader()
+        rInfo = self.getReceiverInformation()
+        sHeader = self.getSenderInformationHeader()
+
+        packets = []
+        # 50 seems to be a safe bet
+        for chunk in chunks(encoded, 50):
+            sInfoLength = sum(map(len, chunk))
+            length = sInfoLength + 16 + len(rHeader) + len(sHeader) + len(rInfo) + 4
+            header = self.getHeader(length)
+            packets.append(
+                header
+                + rHeader
+                + sHeader
+                + rInfo
+                + bytes(Uploader.senderDelimiter)
+                + sInfoLength.to_bytes(2, "big")
+                + b"".join(chunk)
+            )
+
+        return packets
+
+    def getHeader(self, length):
+        self.sequence += 1
+        return bytes(
+            # protocol version
+            [0x00, 0x0A]
+            + list(length.to_bytes(2, "big"))
+            + list(int(time.time()).to_bytes(4, "big"))
+            + list(self.sequence.to_bytes(4, "big"))
+            + list((id(self) & 0xFFFFFFFF).to_bytes(4, "big"))
+        )
+
+    def encodeString(self, s):
+        return [len(s)] + list(s.encode("utf-8"))
+
+    def encodeSpot(self, spot):
+        return bytes(
+            self.encodeString(spot["callsign"])
+            + list(spot["freq"].to_bytes(4, "big"))
+            + list(int(spot["db"]).to_bytes(1, "big", signed=True))
+            + self.encodeString(spot["mode"])
+            + self.encodeString(spot["locator"])
+            # informationsource. 1 means "automatically extracted
+            + [0x01]
+            + list(int(spot["timestamp"] / 1000).to_bytes(4, "big"))
+        )
+
+    def getReceiverInformationHeader(self):
+        return bytes(
+            # id, length
+            [0x00, 0x03, 0x00, 0x24]
+            + Uploader.receieverDelimiter
+            # number of fields
+            + [0x00, 0x03, 0x00, 0x00]
+            # receiverCallsign
+            + [0x80, 0x02, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # receiverLocator
+            + [0x80, 0x04, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # decodingSoftware
+            + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # padding
+            + [0x00, 0x00]
+        )
+
+    def getReceiverInformation(self):
+        pm = PropertyManager.getSharedInstance()
+        callsign = pm["pskreporter_callsign"]
+        locator = pm["receiver_qra"]
+        decodingSoftware = "OpenWebRX " + openwebrx_version
+        body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
+        body = self.pad(body, 4)
+        body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
+        return body
+
+    def getSenderInformationHeader(self):
+        return bytes(
+            # id, length
+            [0x00, 0x02, 0x00, 0x3C]
+            + Uploader.senderDelimiter
+            # number of fields
+            + [0x00, 0x07]
+            # senderCallsign
+            + [0x80, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # frequency
+            + [0x80, 0x05, 0x00, 0x04, 0x00, 0x00, 0x76, 0x8F]
+            # sNR
+            + [0x80, 0x05, 0x00, 0x01, 0x00, 0x00, 0x76, 0x8F]
+            # mode
+            + [0x80, 0x0A, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # senderLocator
+            + [0x80, 0x03, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # informationSource
+            + [0x80, 0x0B, 0x00, 0x01, 0x00, 0x00, 0x76, 0x8F]
+            # flowStartSeconds
+            + [0x00, 0x96, 0x00, 0x04]
+        )
+
+    def pad(self, bytes, l):
+        return bytes + [0x00 for _ in range(0, -1 * len(bytes) % l)]

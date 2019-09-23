@@ -282,7 +282,7 @@ class WsjtParser(object):
                 decoder = Jt9Decoder()
             else:
                 decoder = WsprDecoder()
-            out = decoder.parse(msg)
+            out = decoder.parse(msg, self.dial_freq)
             if "mode" in out:
                 self.pushDecode(out["mode"])
                 if "callsign" in out and "locator" in out:
@@ -328,7 +328,7 @@ class Decoder(object):
 class Jt9Decoder(Decoder):
     locator_pattern = re.compile("[A-Z0-9]+\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
 
-    def parse(self, msg):
+    def parse(self, msg, dial_freq):
         # ft8 sample
         # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
         # jt65 sample
@@ -349,7 +349,7 @@ class Jt9Decoder(Decoder):
             "timestamp": timestamp,
             "db": float(msg[0:3]),
             "dt": float(msg[4:8]),
-            "freq": int(msg[9:13]),
+            "freq": dial_freq + int(msg[9:13]),
             "mode": mode,
             "msg": wsjt_msg,
         }
@@ -370,7 +370,7 @@ class Jt9Decoder(Decoder):
 class WsprDecoder(Decoder):
     wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
 
-    def parse(self, msg):
+    def parse(self, msg, dial_freq):
         # wspr sample
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
@@ -379,7 +379,7 @@ class WsprDecoder(Decoder):
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
             "dt": float(msg[9:13]),
-            "freq": float(msg[14:24]),
+            "freq": dial_freq + int(float(msg[14:24]) * 1e6),
             "drift": int(msg[25:28]),
             "mode": "WSPR",
             "msg": wsjt_msg,
