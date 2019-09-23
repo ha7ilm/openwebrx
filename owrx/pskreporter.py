@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 import random
+import socket
 from sched import scheduler
 from owrx.config import PropertyManager
 from owrx.version import openwebrx_version
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 class PskReporter(object):
     sharedInstance = None
     creationLock = threading.Lock()
-    interval = 60
+    interval = 300
     supportedModes = ["FT8", "FT4", "JT9", "JT65"]
 
     @staticmethod
@@ -58,14 +59,12 @@ class Uploader(object):
 
     def __init__(self):
         self.sequence = 0
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def upload(self, spots):
         logger.debug("would now upload %i spots", len(spots))
         for packet in self.getPackets(spots):
-            l = int.from_bytes(packet[2:4], "big")
-            logger.debug("packet length: %i; indicated length: %i", len(packet), l)
-            logger.debug(packet)
-            # TODO actually send the packet
+            self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 
     def getPackets(self, spots):
         encoded = [self.encodeSpot(spot) for spot in spots]
@@ -82,7 +81,8 @@ class Uploader(object):
         packets = []
         # 50 seems to be a safe bet
         for chunk in chunks(encoded, 50):
-            sInfoLength = sum(map(len, chunk))
+            sInfo = self.padBytes(b"".join(chunk), 4)
+            sInfoLength = len(sInfo)
             length = sInfoLength + 16 + len(rHeader) + len(sHeader) + len(rInfo) + 4
             header = self.getHeader(length)
             packets.append(
@@ -92,7 +92,7 @@ class Uploader(object):
                 + rInfo
                 + bytes(Uploader.senderDelimiter)
                 + sInfoLength.to_bytes(2, "big")
-                + b"".join(chunk)
+                + sInfo
             )
 
         return packets
@@ -162,7 +162,7 @@ class Uploader(object):
             # frequency
             + [0x80, 0x05, 0x00, 0x04, 0x00, 0x00, 0x76, 0x8F]
             # sNR
-            + [0x80, 0x05, 0x00, 0x01, 0x00, 0x00, 0x76, 0x8F]
+            + [0x80, 0x06, 0x00, 0x01, 0x00, 0x00, 0x76, 0x8F]
             # mode
             + [0x80, 0x0A, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # senderLocator
@@ -173,5 +173,8 @@ class Uploader(object):
             + [0x00, 0x96, 0x00, 0x04]
         )
 
-    def pad(self, bytes, l):
-        return bytes + [0x00 for _ in range(0, -1 * len(bytes) % l)]
+    def pad(self, b, l):
+        return b + [0x00 for _ in range(0, -1 * len(b) % l)]
+
+    def padBytes(self, b, l):
+        return b + bytes([0x00 for _ in range(0, -1 * len(b) % l)])
