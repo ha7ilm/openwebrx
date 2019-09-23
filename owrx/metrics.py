@@ -1,5 +1,6 @@
 import threading
 
+
 class Metric(object):
     def getValue(self):
         return 0

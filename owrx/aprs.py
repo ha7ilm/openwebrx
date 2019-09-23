@@ -37,14 +37,9 @@ def decodeBase91(input):
     base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
     return base + (ord(input[-1]) - 33)
 
-def getSymbolData(symbol, table):
-    return {
-        "symbol": symbol,
-        "table": table,
-        "index": ord(symbol) - 33,
-        "tableindex": ord(table) - 33,
-    }
 
+def getSymbolData(symbol, table):
+    return {"symbol": symbol, "table": table, "index": ord(symbol) - 33, "tableindex": ord(table) - 33}
 
 
 class Ax25Parser(object):
@@ -578,5 +573,5 @@ class MicEParser(object):
             "course": course,
             "device": device,
             "type": "Mic-E",
-            "symbol": getSymbolData(chr(information[7]), chr(information[8]))
+            "symbol": getSymbolData(chr(information[7]), chr(information[8])),
         }

@@ -197,7 +197,7 @@ class WsjtChopper(threading.Thread):
         pm = PropertyManager.getSharedInstance()
         # mode-specific setting?
         if "wsjt_decoding_depths" in pm and mode in pm["wsjt_decoding_depths"]:
-                return pm["wsjt_decoding_depths"][mode]
+            return pm["wsjt_decoding_depths"][mode]
         # return global default
         if "wsjt_decoding_depth" in pm:
             return pm["wsjt_decoding_depth"]

@@ -84,7 +84,6 @@ class YsfMetaEnricher(object):
 
 
 class MetaParser(object):
-
     def __init__(self, handler):
         self.handler = handler
         self.enrichers = {"DMR": DmrMetaEnricher(), "YSF": YsfMetaEnricher(self)}
