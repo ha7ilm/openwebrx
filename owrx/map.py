@@ -77,6 +77,13 @@ class Map(object):
             ]
         )
 
+    def touchLocation(self, callsign):
+        # not implemented on the client side yet, so do not use!
+        ts = datetime.now()
+        if callsign in self.positions:
+            self.positions[callsign]["updated"] = ts
+        self.broadcast([{"callsign": callsign, "lastseen": ts.timestamp() * 1000}])
+
     def removeLocation(self, callsign):
         self.positions.pop(callsign, None)
         # TODO broadcast removal to clients
