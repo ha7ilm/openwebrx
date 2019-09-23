@@ -642,6 +642,7 @@ class CpuUsageThread(threading.Thread):
         self.doRun = True
         self.last_worktime = 0
         self.last_idletime = 0
+        self.endEvent = threading.Event()
         super().__init__()
 
     def run(self):
@@ -652,7 +653,7 @@ class CpuUsageThread(threading.Thread):
                 cpu_usage = 0
             for c in self.clients:
                 c.write_cpu_usage(cpu_usage)
-            time.sleep(3)
+            self.endEvent.wait(timeout=3)
         logger.debug("cpu usage thread shut down")
 
     def get_cpu_usage(self):
@@ -692,6 +693,7 @@ class CpuUsageThread(threading.Thread):
     def shutdown(self):
         CpuUsageThread.sharedInstance = None
         self.doRun = False
+        self.endEvent.set()
 
 
 class TooManyClientsException(Exception):
