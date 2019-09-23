@@ -12,6 +12,7 @@ from queue import Queue, Full
 from owrx.config import PropertyManager
 from owrx.bands import Bandplan
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
+from owrx.pskreporter import PskReporter
 
 import logging
 
@@ -106,7 +107,7 @@ class WsjtChopper(threading.Thread):
         wavefile.setnchannels(1)
         wavefile.setsampwidth(2)
         wavefile.setframerate(12000)
-        return (filename, wavefile)
+        return filename, wavefile
 
     def getNextDecodingTime(self):
         t = datetime.now()
@@ -260,9 +261,6 @@ class Ft4Chopper(WsjtChopper):
 
 
 class WsjtParser(object):
-    locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
-    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
-
     def __init__(self, handler):
         self.handler = handler
         self.dial_freq = None
@@ -281,17 +279,21 @@ class WsjtParser(object):
 
             modes = list(WsjtParser.modes.keys())
             if msg[21] in modes or msg[19] in modes:
-                out = self.parse_from_jt9(msg)
+                decoder = Jt9Decoder()
             else:
-                out = self.parse_from_wsprd(msg)
+                decoder = WsprDecoder()
+            out = decoder.parse(msg)
+            if "mode" in out:
+                self.pushDecode(out["mode"])
+                if "callsign" in out and "locator" in out:
+                    Map.getSharedInstance().updateLocation(
+                        out["callsign"], LocatorLocation(out["locator"]), out["mode"], self.band
+                    )
+                    PskReporter.getSharedInstance().spot(out)
 
             self.handler.write_wsjt_message(out)
         except ValueError:
             logger.exception("error while parsing wsjt message")
-
-    def parse_timestamp(self, instring, dateformat):
-        ts = datetime.strptime(instring, dateformat)
-        return int(datetime.combine(date.today(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000)
 
     def pushDecode(self, mode):
         metrics = Metrics.getSharedInstance()
@@ -312,7 +314,21 @@ class WsjtParser(object):
 
         metric.inc()
 
-    def parse_from_jt9(self, msg):
+    def setDialFrequency(self, freq):
+        self.dial_freq = freq
+        self.band = Bandplan.getSharedInstance().findBand(freq)
+
+
+class Decoder(object):
+    def parse_timestamp(self, instring, dateformat):
+        ts = datetime.strptime(instring, dateformat)
+        return int(datetime.combine(date.today(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000)
+
+
+class Jt9Decoder(Decoder):
+    locator_pattern = re.compile("[A-Z0-9]+\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
+
+    def parse(self, msg):
         # ft8 sample
         # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
         # jt65 sample
@@ -328,10 +344,8 @@ class WsjtParser(object):
         modeChar = msg[14:15]
         mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
         wsjt_msg = msg[17:53].strip()
-        self.parseLocator(wsjt_msg, mode)
 
-        self.pushDecode(mode)
-        return {
+        result = {
             "timestamp": timestamp,
             "db": float(msg[0:3]),
             "dt": float(msg[4:8]),
@@ -339,25 +353,29 @@ class WsjtParser(object):
             "mode": mode,
             "msg": wsjt_msg,
         }
+        result.update(self.parseMessage(wsjt_msg))
+        return result
 
-    def parseLocator(self, msg, mode):
-        m = WsjtParser.locator_pattern.match(msg)
+    def parseMessage(self, msg):
+        m = Jt9Decoder.locator_pattern.match(msg)
         if m is None:
-            return
+            return {}
         # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
         # likely this just means roger roger goodbye.
         if m.group(2) == "RR73":
-            return
-        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), mode, self.band)
+            return {"callsign": m.group(1)}
+        return {"callsign": m.group(1), "locator": m.group(2)}
 
-    def parse_from_wsprd(self, msg):
+
+class WsprDecoder(Decoder):
+    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
+
+    def parse(self, msg):
         # wspr sample
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
         wsjt_msg = msg[29:].strip()
-        self.parseWsprMessage(wsjt_msg)
-        self.pushDecode("WSPR")
-        return {
+        result = {
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
             "dt": float(msg[9:13]),
@@ -366,13 +384,11 @@ class WsjtParser(object):
             "mode": "WSPR",
             "msg": wsjt_msg,
         }
+        result.update(self.parseMessage(wsjt_msg))
+        return result
 
-    def parseWsprMessage(self, msg):
-        m = WsjtParser.wspr_splitter_pattern.match(msg)
+    def parseMessage(self, msg):
+        m = WsprDecoder.wspr_splitter_pattern.match(msg)
         if m is None:
-            return
-        Map.getSharedInstance().updateLocation(m.group(1), LocatorLocation(m.group(2)), "WSPR", self.band)
-
-    def setDialFrequency(self, freq):
-        self.dial_freq = freq
-        self.band = Bandplan.getSharedInstance().findBand(freq)
+            return {}
+        return {"callsign": m.group(1), "locator": m.group(2)}
