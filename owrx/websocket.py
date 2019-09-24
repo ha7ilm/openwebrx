@@ -160,6 +160,9 @@ class WebSocketConnection(object):
                             logger.warning("unsupported opcode: {0}".format(opcode))
                     except IncompleteRead:
                         available = False
+                    except TimeoutError:
+                        logger.warning("websocket timed out; closing connection")
+                        self.open = False
 
         logger.debug("websocket loop ended; shutting down")
 
