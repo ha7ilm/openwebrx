@@ -322,7 +322,9 @@ class WsjtParser(object):
 class Decoder(object):
     def parse_timestamp(self, instring, dateformat):
         ts = datetime.strptime(instring, dateformat)
-        return int(datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000)
+        return int(
+            datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
+        )
 
 
 class Jt9Decoder(Decoder):

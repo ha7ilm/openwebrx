@@ -16,6 +16,7 @@ class PskReporterDummy(object):
     used in place of the PskReporter when reporting is disabled.
     does nothing.
     """
+
     def spot(self, spot):
         pass
 
@@ -97,13 +98,7 @@ class Uploader(object):
             sInfo = self.getSenderInformation(chunk)
             length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
-            packets.append(
-                header
-                + rHeader
-                + sHeader
-                + rInfo
-                + sInfo
-            )
+            packets.append(header + rHeader + sHeader + rInfo + sInfo)
 
         return packets
 
