@@ -94,17 +94,14 @@ class Uploader(object):
         packets = []
         # 50 seems to be a safe bet
         for chunk in chunks(encoded, 50):
-            sInfo = self.padBytes(b"".join(chunk), 4)
-            sInfoLength = len(sInfo)
-            length = sInfoLength + 16 + len(rHeader) + len(sHeader) + len(rInfo) + 4
+            sInfo = self.getSenderInformation(chunk)
+            length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
             packets.append(
                 header
                 + rHeader
                 + sHeader
                 + rInfo
-                + bytes(Uploader.senderDelimiter)
-                + sInfoLength.to_bytes(2, "big")
                 + sInfo
             )
 
@@ -185,6 +182,11 @@ class Uploader(object):
             # flowStartSeconds
             + [0x00, 0x96, 0x00, 0x04]
         )
+
+    def getSenderInformation(self, chunk):
+        sInfo = self.padBytes(b"".join(chunk), 4)
+        sInfoLength = len(sInfo) + 4
+        return bytes(Uploader.senderDelimiter) + sInfoLength.to_bytes(2, "big") + sInfo
 
     def pad(self, b, l):
         return b + [0x00 for _ in range(0, -1 * len(b) % l)]
