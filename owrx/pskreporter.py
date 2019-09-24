@@ -11,6 +11,15 @@ from owrx.locator import Locator
 logger = logging.getLogger(__name__)
 
 
+class PskReporterDummy(object):
+    """
+    used in place of the PskReporter when reporting is disabled.
+    does nothing.
+    """
+    def spot(self, spot):
+        pass
+
+
 class PskReporter(object):
     sharedInstance = None
     creationLock = threading.Lock()
@@ -21,7 +30,10 @@ class PskReporter(object):
     def getSharedInstance():
         with PskReporter.creationLock:
             if PskReporter.sharedInstance is None:
-                PskReporter.sharedInstance = PskReporter()
+                if PropertyManager.getSharedInstance()["pskreporter_enabled"]:
+                    PskReporter.sharedInstance = PskReporter()
+                else:
+                    PskReporter.sharedInstance = PskReporterDummy()
         return PskReporter.sharedInstance
 
     def __init__(self):
