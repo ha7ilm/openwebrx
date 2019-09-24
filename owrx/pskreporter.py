@@ -6,6 +6,7 @@ import socket
 from sched import scheduler
 from owrx.config import PropertyManager
 from owrx.version import openwebrx_version
+from owrx.locator import Locator
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ class Uploader(object):
     def getReceiverInformation(self):
         pm = PropertyManager.getSharedInstance()
         callsign = pm["pskreporter_callsign"]
-        locator = pm["receiver_qra"]
+        locator = Locator.fromCoordinates(pm["receiver_gps"])
         decodingSoftware = "OpenWebRX " + openwebrx_version
         body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
         body = self.pad(body, 4)

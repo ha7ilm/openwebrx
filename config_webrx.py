@@ -287,7 +287,6 @@ aprs_symbols_path = "/opt/aprs-symbols/png"
 
 # === PSK Reporter setting ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info
-# this also uses the receiver_qra setting from above, so make sure it contains a correct locator
-# TODO determine locator from gps coordinates
+# this also uses the receiver_gps setting from above, so make sure it contains a correct locator
 pskreporter_enabled = False
 pskreporter_callsign = "N0CALL"
