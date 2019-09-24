@@ -32,7 +32,7 @@ class PskReporter(object):
         threading.Thread(target=self.scheduler.run).start()
 
     def scheduleNextUpload(self):
-        delay = PskReporter.interval + random.uniform(-30, 30)
+        delay = PskReporter.interval + random.uniform(0, 30)
         logger.debug("scheduling next pskreporter upload in %f seconds", delay)
         self.scheduler.enter(delay, 1, self.upload)
 
