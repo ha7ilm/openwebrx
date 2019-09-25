@@ -264,9 +264,7 @@ wsjt_queue_length = 10
 wsjt_decoding_depth = 3
 # can also be set for each mode separately
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
-wsjt_decoding_depths = {
-    "jt65": 1
-}
+wsjt_decoding_depths = {"jt65": 1}
 
 temporary_directory = "/tmp"
 
