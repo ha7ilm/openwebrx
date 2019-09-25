@@ -58,4 +58,6 @@ make install
 cd ..
 rm -rf direwolf
 
+git clone https://github.com/hessu/aprs-symbols /opt/aprs-symbols
+
 apk del .build-deps
