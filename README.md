@@ -19,6 +19,13 @@ It has the following features:
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
 
+**News (2019-09-25 by DD5JFK)**
+- Automatic reporting of spots to [pskreporter](https://pskreporter.info/) is now possible. Please have a look at the configuration on how to set it up.
+- Websocket communication has been overhauled in large parts. It should now be more reliable, and failing connections should now have no impact on other users.
+- Profile scheduling allows to set up band-hopping if you are running background services.
+- APRS now has the ability to show symbols on the map, if a corresponding symbol set has been installed. Check the config!
+- Debug logging has been disabled in a handful of modules, expect vastly reduced output on the shell.
+
 **News (2019-09-13 by DD5JFK)**
 - New set of APRS-related features
   - Decode Packet transmissions using [direwolf](https://github.com/wb2osz/direwolf) (1k2 only for now)
