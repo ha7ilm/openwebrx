@@ -14,6 +14,10 @@ class IncompleteRead(Exception):
     pass
 
 
+class Drained(Exception):
+    pass
+
+
 class WebSocketConnection(object):
     connections = []
 
@@ -120,7 +124,9 @@ class WebSocketConnection(object):
 
     def protected_read(self, num):
         data = self.handler.rfile.read(num)
-        if data is None or len(data) != num:
+        if data is None:
+            raise Drained()
+        if len(data) != num:
             raise IncompleteRead()
         return data
 
@@ -134,7 +140,7 @@ class WebSocketConnection(object):
             (read, _, _) = select.select([self.interruptPipeRecv, self.handler.rfile], [], [])
             if self.handler.rfile in read:
                 available = True
-                while available:
+                while self.open and available:
                     try:
                         header = self.protected_read(2)
                         opcode = header[0] & 0x0F
@@ -158,8 +164,11 @@ class WebSocketConnection(object):
                             self.open = False
                         else:
                             logger.warning("unsupported opcode: {0}".format(opcode))
-                    except IncompleteRead:
+                    except Drained:
                         available = False
+                    except IncompleteRead:
+                        logger.warning("incomplete read on websocket; closing connection")
+                        self.open = False
                     except TimeoutError:
                         logger.warning("websocket timed out; closing connection")
                         self.open = False
