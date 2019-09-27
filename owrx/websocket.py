@@ -216,6 +216,9 @@ class WebSocketConnection(object):
 
     def resetPing(self):
         self.cancelPing()
+        if not self.open:
+            logger.debug("resetPing() while closed. passing...")
+            return
         self.pingTimer = threading.Timer(30, self.sendPing)
         self.pingTimer.start()
 
