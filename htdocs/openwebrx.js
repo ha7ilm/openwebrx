@@ -904,6 +904,7 @@ function resize_scale()
 	scale_ctx.canvas.width  = window.innerWidth;
 	scale_ctx.canvas.height = 47;
 	mkscale();
+	position_bookmarks();
 }
 
 function canvas_mouseover(evt)
@@ -992,6 +993,7 @@ function canvas_mousemove(evt)
 			canvas_drag_last_x=evt.pageX;
 			canvas_drag_last_y=evt.pageY;
 			mkscale();
+			position_bookmarks();
 		}
 	}
 	else e("webrx-mouse-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
@@ -1092,6 +1094,7 @@ function zoom_step(out, where, onscreen)
 	//console.log(zoom_center_where, zoom_center_rel, where);
 	resize_canvases(true);
 	mkscale();
+	position_bookmarks();
 }
 
 function zoom_set(level)
@@ -1105,6 +1108,7 @@ function zoom_set(level)
 	console.log(zoom_center_where, zoom_center_rel, -canvases[0].offsetLeft+canvas_container.clientWidth/2);
 	resize_canvases(true);
 	mkscale();
+	position_bookmarks();
 }
 
 function zoom_calc()
@@ -1256,6 +1260,9 @@ function on_ws_recv(evt)
 					case "aprs_data":
 					    update_packet_panel(json.value);
 					    break;
+					case "bookmarks":
+					    update_bookmarks(json.value);
+					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
@@ -1319,6 +1326,24 @@ function on_ws_recv(evt)
                 console.warn('unknown type of binary message: ' + type)
         }
     }
+}
+
+function update_bookmarks(bookmarks) {
+    $container = $('#openwebrx-bookmarks-container');
+    $container.empty();
+    bookmarks.forEach(function(b){
+        $bookmark = $('<div class="bookmark-locator"><div class="bookmark">' + b.name + '</div></div>');
+        $bookmark.data(b);
+        $container.append($bookmark);
+    });
+    position_bookmarks();
+}
+
+function position_bookmarks() {
+    range = get_visible_freq_range();
+    $('#openwebrx-bookmarks-container .bookmark-locator').each(function(){
+        $(this).css('left', scale_px_from_freq($(this).data('frequency'), range));
+    });
 }
 
 var dial_frequencies = [];

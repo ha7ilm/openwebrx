@@ -160,6 +160,51 @@ input[type=range]:focus::-ms-fill-upper
 	position: relative;
 }
 
+#openwebrx-bookmarks-container
+{
+    height: 25px;
+    background-color: #444;
+    overflow: hidden;
+    position: relative;
+}
+
+#openwebrx-bookmarks-container .bookmark-locator {
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+}
+
+#openwebrx-bookmarks-container .bookmark {
+    font-size: 10pt;
+    background-color: #FFFF00;
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 2px 5px;
+    cursor: pointer;
+
+    position: absolute;
+    bottom: 5px;
+    transform: translate(-50%, 0);
+}
+
+#openwebrx-bookmarks-container .bookmark:hover {
+    z-index: 11;
+}
+
+#openwebrx-bookmarks-container .bookmark:after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	width: 0;
+	height: 0;
+	border: 5px solid transparent;
+	border-top-color: #FFFF00;
+	border-bottom: 0;
+	margin-left: -5px;
+	margin-bottom: -5px;
+}
+
 #webrx-canvas-container
 {
 	/*background-image:url('../gfx/openwebrx-blank-background-1.jpg');*/
