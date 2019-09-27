@@ -39,6 +39,9 @@ class Client(object):
     def mp_send(self, data):
         self.multiprocessingPipe.put(data, block=False)
 
+    def handleTextMessage(self, conn, message):
+        pass
+
     def handleBinaryMessage(self, conn, data):
         logger.error("unsupported binary message, discarding")
 
@@ -307,3 +310,9 @@ class WebSocketMessageHandler(object):
         if not self.handshake:
             logger.warning("not answering client request since handshake is not complete")
             return
+
+    def handleBinaryMessage(self, conn, data):
+        pass
+
+    def handleClose(self):
+        pass
