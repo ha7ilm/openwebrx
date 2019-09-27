@@ -3,6 +3,7 @@ from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
+from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from multiprocessing import Queue
 import json
@@ -168,6 +169,8 @@ class OpenWebRxReceiverClient(Client):
             srh = configProps["samp_rate"] / 2
             frequencyRange = (cf - srh, cf + srh)
             self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
+            bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+            self.write_bookmarks(bookmarks)
 
         self.configSub = configProps.wire(sendConfig)
         sendConfig(None, None)
@@ -253,6 +256,9 @@ class OpenWebRxReceiverClient(Client):
 
     def write_dial_frequendies(self, frequencies):
         self.send({"type": "dial_frequencies", "value": frequencies})
+
+    def write_bookmarks(self, bookmarks):
+        self.send({"type": "bookmarks", "value": bookmarks})
 
     def write_aprs_data(self, data):
         self.send({"type": "aprs_data", "value": data})

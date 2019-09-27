@@ -1,0 +1,21 @@
+[{
+  "name": "DB0ZU",
+  "frequency": 145725000,
+  "modulation": "nfm"
+},{
+  "name": "DB0ZM",
+  "frequency": 145750000,
+  "modulation": "nfm"
+},{
+  "name": "DB0EL",
+  "frequency": 439275000,
+  "modulation": "nfm"
+},{
+  "name": "DB0NJ",
+  "frequency": 438775000,
+  "modulation": "nfm"
+},{
+  "name": "DB0NJ",
+  "frequency": 439437500,
+  "modulation": "dmr"
+}]
