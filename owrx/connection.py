@@ -39,6 +39,12 @@ class Client(object):
     def mp_send(self, data):
         self.multiprocessingPipe.put(data, block=False)
 
+    def handleBinaryMessage(self, conn, data):
+        logger.error("unsupported binary message, discarding")
+
+    def handleClose(self):
+        self.close()
+
 
 class OpenWebRxReceiverClient(Client):
     config_keys = [
@@ -99,6 +105,35 @@ class OpenWebRxReceiverClient(Client):
         self.write_features(features)
 
         CpuUsageThread.getSharedInstance().add_client(self)
+
+    def handleTextMessage(self, conn, message):
+        try:
+            message = json.loads(message)
+            if "type" in message:
+                if message["type"] == "dspcontrol":
+                    if "action" in message and message["action"] == "start":
+                        self.startDsp()
+
+                    if "params" in message:
+                        params = message["params"]
+                        self.setDspProperties(params)
+
+                if message["type"] == "config":
+                    if "params" in message:
+                        self.setParams(message["params"])
+                if message["type"] == "setsdr":
+                    if "params" in message:
+                        self.setSdr(message["params"]["sdr"])
+                if message["type"] == "selectprofile":
+                    if "params" in message and "profile" in message["params"]:
+                        profile = message["params"]["profile"].split("|")
+                        self.setSdr(profile[0])
+                        self.sdr.activateProfile(profile[1])
+            else:
+                logger.warning("received message without type: {0}".format(message))
+
+        except json.JSONDecodeError:
+            logger.warning("message is not json: {0}".format(message))
 
     def setSdr(self, id=None):
         next = SdrService.getSource(id)
@@ -229,6 +264,9 @@ class MapConnection(Client):
 
         Map.getSharedInstance().addClient(self)
 
+    def handleTextMessage(self, conn, message):
+        pass
+
     def close(self):
         Map.getSharedInstance().removeClient(self)
         super().close()
@@ -243,8 +281,6 @@ class MapConnection(Client):
 class WebSocketMessageHandler(object):
     def __init__(self):
         self.handshake = None
-        self.client = None
-        self.dsp = None
 
     def handleTextMessage(self, conn, message):
         if message[:16] == "SERVER DE CLIENT":
@@ -256,50 +292,18 @@ class WebSocketMessageHandler(object):
 
             if "type" in self.handshake:
                 if self.handshake["type"] == "receiver":
-                    self.client = OpenWebRxReceiverClient(conn)
+                    client = OpenWebRxReceiverClient(conn)
                 if self.handshake["type"] == "map":
-                    self.client = MapConnection(conn)
+                    client = MapConnection(conn)
             # backwards compatibility
             else:
-                self.client = OpenWebRxReceiverClient(conn)
+                client = OpenWebRxReceiverClient(conn)
+
+            # hand off all further communication to the correspondig connection
+            conn.setMessageHandler(client)
 
             return
 
         if not self.handshake:
             logger.warning("not answering client request since handshake is not complete")
             return
-
-        try:
-            message = json.loads(message)
-            if "type" in message:
-                if message["type"] == "dspcontrol":
-                    if "action" in message and message["action"] == "start":
-                        self.client.startDsp()
-
-                    if "params" in message:
-                        params = message["params"]
-                        self.client.setDspProperties(params)
-
-                if message["type"] == "config":
-                    if "params" in message:
-                        self.client.setParams(message["params"])
-                if message["type"] == "setsdr":
-                    if "params" in message:
-                        self.client.setSdr(message["params"]["sdr"])
-                if message["type"] == "selectprofile":
-                    if "params" in message and "profile" in message["params"]:
-                        profile = message["params"]["profile"].split("|")
-                        self.client.setSdr(profile[0])
-                        self.client.sdr.activateProfile(profile[1])
-            else:
-                logger.warning("received message without type: {0}".format(message))
-
-        except json.JSONDecodeError:
-            logger.warning("message is not json: {0}".format(message))
-
-    def handleBinaryMessage(self, conn, data):
-        logger.error("unsupported binary message, discarding")
-
-    def handleClose(self):
-        if self.client:
-            self.client.close()

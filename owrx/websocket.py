@@ -38,7 +38,7 @@ class WebSocketConnection(object):
     def __init__(self, handler, messageHandler):
         self.handler = handler
         self.handler.connection.setblocking(0)
-        self.messageHandler = messageHandler
+        self.setMessageHandler(messageHandler)
         (self.interruptPipeRecv, self.interruptPipeSend) = Pipe(duplex=False)
         self.open = True
         self.sendLock = threading.Lock()
@@ -63,6 +63,9 @@ class WebSocketConnection(object):
         )
         self.pingTimer = None
         self.resetPing()
+
+    def setMessageHandler(self, messageHandler):
+        self.messageHandler = messageHandler
 
     def get_header(self, size, opcode):
         ws_first_byte = 0b10000000 | (opcode & 0x0F)
