@@ -172,7 +172,7 @@ class OpenWebRxReceiverClient(Client):
             self.dsp.setProperty(key, value)
 
     def write_spectrum_data(self, data):
-        self.send(bytes([0x01]) + data)
+        self.mp_send(bytes([0x01]) + data)
 
     def write_dsp_data(self, data):
         self.send(bytes([0x02]) + data)
