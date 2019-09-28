@@ -57,12 +57,15 @@ class PskReporter(object):
             self.spots.append(spot)
 
     def upload(self):
-        with self.spotLock:
-            spots = self.spots
-            self.spots = []
+        try:
+            with self.spotLock:
+                spots = self.spots
+                self.spots = []
 
-        if spots:
-            self.uploader.upload(spots)
+            if spots:
+                self.uploader.upload(spots)
+        except Exception:
+            logger.exception("Failed to upload spots")
 
         self.scheduleNextUpload()
 
