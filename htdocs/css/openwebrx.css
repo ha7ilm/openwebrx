@@ -537,6 +537,22 @@ img.openwebrx-mirror-img
 	width:110px;
 }
 
+
+#openwebrx-panel-receiver .frequencies-container {
+    display: flex;
+    flex-direction: row;
+}
+
+#openwebrx-panel-receiver .frequencies {
+    flex-grow: 1;
+}
+
+#openwebrx-panel-receiver .openwebrx-bookmark-button {
+    width: 27px;
+    height: 27px;
+    text-align: center;
+}
+
 #openwebrx-mute-on
 {
 	color: lime;
@@ -564,6 +580,10 @@ img.openwebrx-mirror-img
 .openwebrx-panel-line
 {
 	padding-top: 5px;
+}
+
+.openwebrx-panel-line:first-child {
+    padding-top: 0;
 }
 
 #openwebrx-smeter-outer

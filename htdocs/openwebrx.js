@@ -1365,6 +1365,13 @@ function init_bookmarks() {
         demodulator_analog_replace(b.modulation);
         $bookmark.addClass('selected');
     });
+
+    $bookmarkButton = $('#openwebrx-panel-receiver .openwebrx-bookmark-button');
+    if (typeof(Storage) !== 'undefined') {
+        $bookmarkButton.show();
+    } else {
+        $bookmarkButton.hide();
+    }
 }
 
 var dial_frequencies = [];
