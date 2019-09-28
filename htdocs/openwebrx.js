@@ -1349,9 +1349,11 @@ function update_bookmarks(bookmarks, source) {
 }
 
 function loadLocalBookmarks() {
-    var range = get_visible_freq_range();
+    var bwh = bandwidth / 2;
+    var start = center_freq - bwh;
+    var end = center_freq + bwh;
     var bookmarks = getLocalBookmarks().filter(function(b){
-        return b.frequency >= range.start && b.frequency <= range.end;
+        return b.frequency >= start && b.frequency <= end;
     });
     update_bookmarks(bookmarks, 'local');
 }
