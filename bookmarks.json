@@ -7,6 +7,10 @@
   "frequency": 145750000,
   "modulation": "nfm"
 },{
+  "name": "DM0ULR",
+  "frequency": 145787500,
+  "modulation": "nfm"
+},{
   "name": "DB0EL",
   "frequency": 439275000,
   "modulation": "nfm"
@@ -18,4 +22,36 @@
   "name": "DB0NJ",
   "frequency": 439437500,
   "modulation": "dmr"
+},{
+  "name": "DB0UFO",
+  "frequency": 438312500,
+  "modulation": "dmr"
+},{
+  "name": "DB0PV",
+  "frequency": 438525000,
+  "modulation": "ysf"
+},{
+  "name": "DB0BZA",
+  "frequency": 438412500,
+  "modulation": "ysf"
+},{
+  "name": "DB0OSH",
+  "frequency": 438250000,
+  "modulation": "ysf"
+},{
+  "name": "DB0ULR",
+  "frequency": 439325000,
+  "modulation": "nfm"
+},{
+  "name": "DB0ZU",
+  "frequency": 43885000,
+  "modulation": "nfm"
+},{
+  "name": "DB0ISW",
+  "frequency": 43865000,
+  "modulation": "nfm"
+},{
+  "name": "Radio DARC",
+  "frequency": 6070000,
+  "modulation": "am"
 }]
