@@ -175,7 +175,7 @@ input[type=range]:focus::-ms-fill-upper
 }
 
 #openwebrx-bookmarks-container .bookmark {
-    font-size: 10pt;
+    font-size: 12px;
     background-color: #FFFF00;
     border: 1px solid #000;
     border-radius: 5px;
