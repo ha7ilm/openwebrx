@@ -54,4 +54,12 @@
   "name": "Radio DARC",
   "frequency": 6070000,
   "modulation": "am"
+},{
+  "name": "DB0TVM",
+  "frequency": 439575000,
+  "modulation": "dstar"
+},{
+  "name": "DB0TVM",
+  "frequency": 439800000,
+  "modulation": "dmr"
 }]
