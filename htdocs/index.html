@@ -218,5 +218,31 @@
         <br /><br />Start OpenWebRX
         </div>
     </div>
+    <div id="openwebrx-dialog-bookmark" class="openwebrx-dialog" style="display:none;">
+        <form>
+            <div class="form-field">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required="required">
+            </div>
+            <div class="form-field">
+                <label for="frequency">Frequency:</label>
+                <input type="number" id="frequency" name="frequency" step="12500">
+            </div>
+            <div class="form-field">
+                <label for="modulation">Modulation:</label>
+                <select name="modulation" id="modulation">
+                    <option value="nfm">FM</option>
+                    <option value="am">AM</option>
+                    <option value="usb">USB</option>
+                    <option value="lsb">LSB</option>
+                    <option value="cw">CW</option>
+                    <option value="dmr">DMR</option>
+                    <option value="dstar">D-Star</option>
+                    <option value="nxdn">NXDN</option>
+                    <option value="ysf">YSF</option>
+                </select>
+            </div>
+        </form>
+    </div>
     </body>
 </html>

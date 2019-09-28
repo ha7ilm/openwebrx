@@ -1372,6 +1372,18 @@ function init_bookmarks() {
     } else {
         $bookmarkButton.hide();
     }
+    $bookmarkButton.click(function(){
+        showBookmarkEditDialog();
+    });
+}
+
+function showBookmarkEditDialog() {
+    $dialog = $("#openwebrx-dialog-bookmark");
+    $form = $dialog.find("form");
+    $form.find("#name").val("");
+    $form.find("#frequency").val(center_freq + demodulators[0].offset_frequency);
+    $form.find("#modulation").val(demodulators[0].subtype);
+    $dialog.show();
 }
 
 var dial_frequencies = [];

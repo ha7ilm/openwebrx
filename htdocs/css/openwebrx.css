@@ -659,7 +659,9 @@ img.openwebrx-mirror-img
     transition: width 500ms, left 500ms;
 }
 
-.openwebrx-panel select {
+.openwebrx-panel select,
+.openwebrx-dialog select,
+.openwebrx-dialog input {
 	border-radius: 5px;
 	background-color: #373737;
 	color: White;
@@ -673,7 +675,8 @@ img.openwebrx-mirror-img
 	-moz-appearance: none;
 }
 
-.openwebrx-panel select option {
+.openwebrx-panel select option,
+.openwebrx-dialog select option {
 	border-width: 0px;
 	background-color: #373737;
 	color: White;
@@ -953,6 +956,45 @@ img.openwebrx-mirror-img
 .aprs-symboltable-overlay {
     background-image: url(../../aprs-symbols/aprs-symbols-24-2.png)
 }
+
+.openwebrx-dialog {
+	background-color: #575757;
+	padding: 10px;
+	color: white;
+	position: fixed;
+	font-size: 10pt;
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, 0);
+}
+
+.openwebrx-dialog .form-field {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+}
+
+.openwebrx-dialog label {
+    display: inline-block;
+    flex: 1 0 20px;
+    padding-right: 20px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.openwebrx-dialog .form-field input,
+.openwebrx-dialog .form-field select {
+    flex: 2 0 20px;
+    height: 27px;
+}
+
+.openwebrx-dialog .form-field input {
+    padding: 0 5px;
+}
+
 
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-content-container,
