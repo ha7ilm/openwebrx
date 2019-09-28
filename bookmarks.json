@@ -44,11 +44,11 @@
   "modulation": "nfm"
 },{
   "name": "DB0ZU",
-  "frequency": 43885000,
+  "frequency": 438850000,
   "modulation": "nfm"
 },{
   "name": "DB0ISW",
-  "frequency": 43865000,
+  "frequency": 438650000,
   "modulation": "nfm"
 },{
   "name": "Radio DARC",
