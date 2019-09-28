@@ -187,6 +187,10 @@ input[type=range]:focus::-ms-fill-upper
     transform: translate(-50%, 0);
 }
 
+#openwebrx-bookmarks-container .bookmark.selected {
+    z-index: 10;
+}
+
 #openwebrx-bookmarks-container .bookmark:hover {
     z-index: 11;
 }

@@ -630,6 +630,7 @@ function demodulator_set_offset_frequency(which,to_what)
 	demodulators[0].offset_frequency=Math.round(to_what);
 	demodulators[0].set();
 	mkenvelopes(get_visible_freq_range());
+    $("#webrx-actual-freq").html(format_frequency("{x} MHz", center_freq + to_what, 1e6, 4));
 }
 
 
@@ -1016,7 +1017,6 @@ function canvas_mouseup(evt)
 	{
 		//ws.send("SET offset_freq="+canvas_get_freq_offset(relativeX).toString());
 		demodulator_set_offset_frequency(0, canvas_get_freq_offset(relativeX));
-		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
 	}
 	else
 	{
@@ -1346,6 +1346,19 @@ function position_bookmarks() {
     });
 }
 
+function init_bookmarks() {
+    $container = $("#openwebrx-bookmarks-container")
+    $container.click(function(e){
+        $container.find('.bookmark').removeClass('selected');
+        $bookmark = $(e.target);
+        b = $bookmark.closest('.bookmark-locator').data();
+        if (!b || !b.frequency || !b.modulation) return;
+        demodulator_set_offset_frequency(0, b.frequency - center_freq);
+        demodulator_analog_replace(b.modulation);
+        $bookmark.addClass('selected');
+    });
+}
+
 var dial_frequencies = [];
 
 function find_dial_frequencies() {
@@ -1366,7 +1379,6 @@ function dial_button_click() {
     var frequency = available[0].frequency;
     console.info(frequency);
     demodulator_set_offset_frequency(0, frequency - center_freq);
-    $("#webrx-actual-freq").html(format_frequency("{x} MHz", frequency, 1e6, 4));
 }
 
 function update_metadata(meta) {
@@ -2533,6 +2545,7 @@ function openwebrx_init()
 	window.addEventListener("resize",openwebrx_resize);
 	check_top_bar_congestion();
 	init_header();
+	init_bookmarks();
 
 	//Synchronise volume with slider
 	updateVolume();
