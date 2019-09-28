@@ -977,6 +977,10 @@ img.openwebrx-mirror-img
     flex-direction: row;
 }
 
+.openwebrx-dialog .form-field:first-child {
+    padding-top: 0;
+}
+
 .openwebrx-dialog label {
     display: inline-block;
     flex: 1 0 20px;
@@ -995,6 +999,18 @@ img.openwebrx-mirror-img
     padding: 0 5px;
 }
 
+.openwebrx-dialog .buttons {
+    text-align: right;
+    padding: 5px 5px 0;
+    border-top: 1px solid #666;
+}
+
+.openwebrx-dialog .buttons .openwebrx-button {
+    font-size: 12pt;
+    min-width: 50px;
+    text-align: center;
+    padding: 5px 10px;
+}
 
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-content-container,

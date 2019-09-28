@@ -1337,7 +1337,7 @@ function on_ws_recv(evt)
 }
 
 function update_bookmarks(bookmarks) {
-    $container = $('#openwebrx-bookmarks-container');
+    var $container = $('#openwebrx-bookmarks-container');
     $container.empty();
     bookmarks.forEach(function(b){
         $bookmark = $('<div class="bookmark">' + b.name + '</div>');
@@ -1348,14 +1348,14 @@ function update_bookmarks(bookmarks) {
 }
 
 function position_bookmarks() {
-    range = get_visible_freq_range();
+    var range = get_visible_freq_range();
     $('#openwebrx-bookmarks-container .bookmark').each(function(){
         $(this).css('left', scale_px_from_freq($(this).data('frequency'), range));
     });
 }
 
 function init_bookmarks() {
-    $container = $("#openwebrx-bookmarks-container")
+    var $container = $("#openwebrx-bookmarks-container")
     $container.click(function(e){
         $container.find('.bookmark').removeClass('selected');
         $bookmark = $(e.target);
@@ -1366,7 +1366,7 @@ function init_bookmarks() {
         $bookmark.addClass('selected');
     });
 
-    $bookmarkButton = $('#openwebrx-panel-receiver .openwebrx-bookmark-button');
+    var $bookmarkButton = $('#openwebrx-panel-receiver .openwebrx-bookmark-button');
     if (typeof(Storage) !== 'undefined') {
         $bookmarkButton.show();
     } else {
@@ -1375,15 +1375,50 @@ function init_bookmarks() {
     $bookmarkButton.click(function(){
         showBookmarkEditDialog();
     });
+
+    var $dialog = $("#openwebrx-dialog-bookmark");
+    $dialog.find('.openwebrx-button[data-action=cancel]').click(function(){
+        $dialog.hide();
+    });
+    $dialog.find('.openwebrx-button[data-action=submit]').click(function(){
+        storeNewBookmark();
+    });
 }
 
 function showBookmarkEditDialog() {
-    $dialog = $("#openwebrx-dialog-bookmark");
-    $form = $dialog.find("form");
+    var $dialog = $("#openwebrx-dialog-bookmark");
+    var $form = $dialog.find("form");
     $form.find("#name").val("");
     $form.find("#frequency").val(center_freq + demodulators[0].offset_frequency);
     $form.find("#modulation").val(demodulators[0].subtype);
     $dialog.show();
+}
+
+function storeNewBookmark() {
+    var $dialog = $("#openwebrx-dialog-bookmark");
+    var bookmark = {};
+    var valid = true;
+    ['name', 'frequency', 'modulation'].forEach(function(key){
+        var $input = $dialog.find('#' + key);
+        valid = valid && $input[0].checkValidity();
+        bookmark[key] = $input.val();
+    });
+    if (!valid) {
+        $dialog.find("form :submit").click();
+        return;
+    }
+    var bookmarks = getLocalBookmarks();
+    bookmarks.push(bookmark);
+    setLocalBookmarks(bookmarks);
+    $dialog.hide();
+}
+
+function getLocalBookmarks(){
+    return JSON.parse(window.localStorage.getItem("bookmarks")) || [];
+}
+
+function setLocalBookmarks(bookmarks){
+    window.localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
 }
 
 var dial_frequencies = [];
