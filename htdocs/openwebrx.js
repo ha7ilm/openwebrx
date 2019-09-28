@@ -901,8 +901,16 @@ function mkscale()
 
 function resize_scale()
 {
-	scale_ctx.canvas.width  = window.innerWidth;
-	scale_ctx.canvas.height = 47;
+    ratio = window.devicePixelRatio || 1;
+    var w = window.innerWidth;
+    var h = 47;
+    scale_canvas.style.width = w + "px";
+    scale_canvas.style.height = h + "px";
+    w *= ratio;
+    h *= ratio;
+    scale_canvas.width  = w;
+    scale_canvas.height = h;
+    scale_ctx.scale(ratio, ratio);
 	mkscale();
 }
 
@@ -1339,7 +1347,6 @@ function dial_button_click() {
     var available = find_dial_frequencies();
     if (!available.length) return;
     var frequency = available[0].frequency;
-    console.info(frequency);
     demodulator_set_offset_frequency(0, frequency - center_freq);
     $("#webrx-actual-freq").html(format_frequency("{x} MHz", frequency, 1e6, 4));
 }
