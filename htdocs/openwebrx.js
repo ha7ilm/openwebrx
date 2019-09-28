@@ -1340,7 +1340,7 @@ function update_bookmarks(bookmarks) {
     $container = $('#openwebrx-bookmarks-container');
     $container.empty();
     bookmarks.forEach(function(b){
-        $bookmark = $('<div class="bookmark-locator"><div class="bookmark">' + b.name + '</div></div>');
+        $bookmark = $('<div class="bookmark">' + b.name + '</div>');
         $bookmark.data(b);
         $container.append($bookmark);
     });
@@ -1349,7 +1349,7 @@ function update_bookmarks(bookmarks) {
 
 function position_bookmarks() {
     range = get_visible_freq_range();
-    $('#openwebrx-bookmarks-container .bookmark-locator').each(function(){
+    $('#openwebrx-bookmarks-container .bookmark').each(function(){
         $(this).css('left', scale_px_from_freq($(this).data('frequency'), range));
     });
 }
@@ -1359,7 +1359,7 @@ function init_bookmarks() {
     $container.click(function(e){
         $container.find('.bookmark').removeClass('selected');
         $bookmark = $(e.target);
-        b = $bookmark.closest('.bookmark-locator').data();
+        b = $bookmark.closest('.bookmark').data();
         if (!b || !b.frequency || !b.modulation) return;
         demodulator_set_offset_frequency(0, b.frequency - center_freq);
         demodulator_analog_replace(b.modulation);

@@ -169,12 +169,6 @@ input[type=range]:focus::-ms-fill-upper
     z-index: 1000;
 }
 
-#openwebrx-bookmarks-container .bookmark-locator {
-    display: inline-block;
-    position: absolute;
-    bottom: 0;
-}
-
 #openwebrx-bookmarks-container .bookmark {
     font-size: 12px;
     background-color: #FFFF00;
