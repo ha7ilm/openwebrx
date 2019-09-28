@@ -181,6 +181,7 @@ input[type=range]:focus::-ms-fill-upper
     border-radius: 5px;
     padding: 2px 5px;
     cursor: pointer;
+    white-space: nowrap;
 
     position: absolute;
     bottom: 5px;
