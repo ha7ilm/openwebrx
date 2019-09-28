@@ -166,6 +166,7 @@ input[type=range]:focus::-ms-fill-upper
     background-color: #444;
     overflow: hidden;
     position: relative;
+    z-index: 1000;
 }
 
 #openwebrx-bookmarks-container .bookmark-locator {
@@ -189,11 +190,11 @@ input[type=range]:focus::-ms-fill-upper
 }
 
 #openwebrx-bookmarks-container .bookmark.selected {
-    z-index: 10;
+    z-index: 1010;
 }
 
 #openwebrx-bookmarks-container .bookmark:hover {
-    z-index: 11;
+    z-index: 1011;
 }
 
 #openwebrx-bookmarks-container .bookmark:after {
