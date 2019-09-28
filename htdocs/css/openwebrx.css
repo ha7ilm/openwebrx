@@ -205,6 +205,14 @@ input[type=range]:focus::-ms-fill-upper
 	margin-bottom: -5px;
 }
 
+#openwebrx-bookmarks-container .bookmark[data-source=local] {
+    background-color: #0FF;
+}
+
+#openwebrx-bookmarks-container .bookmark[data-source=local]:after {
+    border-top-color: #0FF;
+}
+
 #webrx-canvas-container
 {
 	/*background-image:url('../gfx/openwebrx-blank-background-1.jpg');*/

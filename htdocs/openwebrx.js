@@ -1215,6 +1215,7 @@ function on_ws_recv(evt)
 
 						waterfall_init();
 						audio_preinit();
+						loadLocalBookmarks();
 
 						if (audio_allowed && !audio_initialized) audio_init();
 						waterfall_clear();
@@ -1269,7 +1270,7 @@ function on_ws_recv(evt)
 					    update_packet_panel(json.value);
 					    break;
 					case "bookmarks":
-					    update_bookmarks(json.value);
+					    update_bookmarks(json.value, "server");
 					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
@@ -1336,15 +1337,23 @@ function on_ws_recv(evt)
     }
 }
 
-function update_bookmarks(bookmarks) {
+function update_bookmarks(bookmarks, source) {
     var $container = $('#openwebrx-bookmarks-container');
-    $container.empty();
+    $container.find('.bookmark[data-source=' + source + ']').remove();
     bookmarks.forEach(function(b){
-        $bookmark = $('<div class="bookmark">' + b.name + '</div>');
+        $bookmark = $('<div class="bookmark" data-source="' + source + '">' + b.name + '</div>');
         $bookmark.data(b);
         $container.append($bookmark);
     });
     position_bookmarks();
+}
+
+function loadLocalBookmarks() {
+    var range = get_visible_freq_range();
+    var bookmarks = getLocalBookmarks().filter(function(b){
+        return b.frequency >= range.start && b.frequency <= range.end;
+    });
+    update_bookmarks(bookmarks, 'local');
 }
 
 function position_bookmarks() {
@@ -1407,9 +1416,11 @@ function storeNewBookmark() {
         $dialog.find("form :submit").click();
         return;
     }
+    bookmark.frequency = Number(bookmark.frequency);
     var bookmarks = getLocalBookmarks();
     bookmarks.push(bookmark);
     setLocalBookmarks(bookmarks);
+    loadLocalBookmarks();
     $dialog.hide();
 }
 
