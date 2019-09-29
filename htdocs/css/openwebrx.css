@@ -164,7 +164,6 @@ input[type=range]:focus::-ms-fill-upper
 {
     height: 25px;
     background-color: #444;
-    overflow: hidden;
     position: relative;
     z-index: 1000;
 }
@@ -177,10 +176,30 @@ input[type=range]:focus::-ms-fill-upper
     padding: 2px 5px;
     cursor: pointer;
     white-space: nowrap;
+    max-height: 14px;
+    max-width: 50px;
 
     position: absolute;
     bottom: 5px;
     transform: translate(-50%, 0);
+}
+
+#openwebrx-bookmarks-container .bookmark .bookmark-content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#openwebrx-bookmarks-container .bookmark .bookmark-actions {
+    display: none;
+    text-align: right;
+}
+
+.bookmark-actions .action {
+    line-height: 0;
+}
+
+.bookmark-actions .action img {
+    width: 14px;
 }
 
 #openwebrx-bookmarks-container .bookmark.selected {
@@ -189,6 +208,13 @@ input[type=range]:focus::-ms-fill-upper
 
 #openwebrx-bookmarks-container .bookmark:hover {
     z-index: 1011;
+    max-height: none;
+    max-width: none;
+}
+
+#openwebrx-bookmarks-container .bookmark[editable]:hover .bookmark-actions {
+    display: block;
+    margin-bottom: 5px;
 }
 
 #openwebrx-bookmarks-container .bookmark:after {

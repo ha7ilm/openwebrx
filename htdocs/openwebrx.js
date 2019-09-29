@@ -1337,11 +1337,20 @@ function on_ws_recv(evt)
     }
 }
 
-function update_bookmarks(bookmarks, source) {
+function update_bookmarks(bookmarks, source, editable) {
+    editable = !!editable;
     var $container = $('#openwebrx-bookmarks-container');
     $container.find('.bookmark[data-source=' + source + ']').remove();
     bookmarks.forEach(function(b){
-        $bookmark = $('<div class="bookmark" data-source="' + source + '">' + b.name + '</div>');
+        $bookmark = $(
+            '<div class="bookmark" data-source="' + source + '"' + (editable?' editable="editable"':'') + '>' +
+                '<div class="bookmark-actions">' +
+                    '<div class="openwebrx-button action" data-action="edit"><img src="static/gfx/openwebrx-edit.png"></div>' +
+                    '<div class="openwebrx-button action" data-action="delete"><img src="static/gfx/openwebrx-trashcan.png"></div>' +
+                '</div>' +
+                '<div class="bookmark-content">' + b.name + '</div>' +
+            '</div>'
+        );
         $bookmark.data(b);
         $container.append($bookmark);
     });
@@ -1355,7 +1364,7 @@ function loadLocalBookmarks() {
     var bookmarks = getLocalBookmarks().filter(function(b){
         return b.frequency >= start && b.frequency <= end;
     });
-    update_bookmarks(bookmarks, 'local');
+    update_bookmarks(bookmarks, 'local', true);
 }
 
 function position_bookmarks() {
