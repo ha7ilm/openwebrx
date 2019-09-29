@@ -1415,6 +1415,10 @@ function init_bookmarks() {
     $dialog.find('.openwebrx-button[data-action=submit]').click(function(){
         storeBookmark();
     });
+    $dialog.find('form').on('submit', function(e){
+        e.preventDefault();
+        storeBookmark();
+    });
 }
 
 function showBookmarkEditDialog(bookmark) {
@@ -1432,6 +1436,7 @@ function showBookmarkEditDialog(bookmark) {
     });
     $dialog.data('id', bookmark.id);
     $dialog.show();
+    $dialog.find('#name').focus();
 }
 
 function storeBookmark() {
