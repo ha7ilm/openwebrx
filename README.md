@@ -19,6 +19,12 @@ It has the following features:
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
 
+**News (2019-09-29 by DD5FJK)**
+- One of the most-requested features is finally coming to OpenWebRX: Bookmarks (sometimes also referred to as labels). There's two kinds of bookmarks available:
+  - Serverside bookmarks that are set up by the receiver administrator. Check the file `bookmarks.json` for examples!
+  - Clientside bookmarks which every user can store for themselves. They are stored in the browser's localStorage.
+- Some more bugs in the websocket handling have been fixed.
+
 **News (2019-09-25 by DD5JFK)**
 - Automatic reporting of spots to [pskreporter](https://pskreporter.info/) is now possible. Please have a look at the configuration on how to set it up.
 - Websocket communication has been overhauled in large parts. It should now be more reliable, and failing connections should now have no impact on other users.
