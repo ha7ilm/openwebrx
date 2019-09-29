@@ -1376,14 +1376,26 @@ function position_bookmarks() {
 
 function init_bookmarks() {
     var $container = $("#openwebrx-bookmarks-container")
-    $container.click(function(e){
+    $container.on('click', '.bookmark', function(e){
+        var $bookmark = $(e.target).closest('.bookmark');
         $container.find('.bookmark').removeClass('selected');
-        $bookmark = $(e.target);
-        b = $bookmark.closest('.bookmark').data();
+        var b = $bookmark.data();
         if (!b || !b.frequency || !b.modulation) return;
         demodulator_set_offset_frequency(0, b.frequency - center_freq);
         demodulator_analog_replace(b.modulation);
         $bookmark.addClass('selected');
+    });
+
+    $container.on('click', '.action[data-action=edit]', function(e){
+        e.stopPropagation();
+        var $bookmark = $(e.target).closest('.bookmark');
+        showBookmarkEditDialog($bookmark.data());
+    });
+
+    $container.on('click', '.action[data-action=delete]', function(e){
+        e.stopPropagation();
+        var $bookmark = $(e.target).closest('.bookmark');
+        deleteBookmark($bookmark.data());
     });
 
     var $bookmarkButton = $('#openwebrx-panel-receiver .openwebrx-bookmark-button');
@@ -1401,20 +1413,28 @@ function init_bookmarks() {
         $dialog.hide();
     });
     $dialog.find('.openwebrx-button[data-action=submit]').click(function(){
-        storeNewBookmark();
+        storeBookmark();
     });
 }
 
-function showBookmarkEditDialog() {
+function showBookmarkEditDialog(bookmark) {
     var $dialog = $("#openwebrx-dialog-bookmark");
     var $form = $dialog.find("form");
-    $form.find("#name").val("");
-    $form.find("#frequency").val(center_freq + demodulators[0].offset_frequency);
-    $form.find("#modulation").val(demodulators[0].subtype);
+    if (!bookmark) {
+        bookmark = {
+            name: "",
+            frequency: center_freq + demodulators[0].offset_frequency,
+            modulation: demodulators[0].subtype
+        }
+    }
+    ['name', 'frequency', 'modulation'].forEach(function(key){
+        $form.find('#' + key).val(bookmark[key]);
+    });
+    $dialog.data('id', bookmark.id);
     $dialog.show();
 }
 
-function storeNewBookmark() {
+function storeBookmark() {
     var $dialog = $("#openwebrx-dialog-bookmark");
     var bookmark = {};
     var valid = true;
@@ -1428,11 +1448,32 @@ function storeNewBookmark() {
         return;
     }
     bookmark.frequency = Number(bookmark.frequency);
+
     var bookmarks = getLocalBookmarks();
+
+    bookmark.id = $dialog.data('id');
+    if (!bookmark.id) {
+        if (bookmarks.length) {
+            bookmark.id = 1 + Math.max.apply(Math, bookmarks.map(function(b){ return b.id || 0; }));
+        } else {
+            bookmark.id = 1;
+        }
+    }
+
+    bookmarks = bookmarks.filter(function(b) { return b.id != bookmark.id; });
     bookmarks.push(bookmark);
+
     setLocalBookmarks(bookmarks);
     loadLocalBookmarks();
     $dialog.hide();
+}
+
+function deleteBookmark(data) {
+    if (data.id) data = data.id;
+    var bookmarks = getLocalBookmarks();
+    bookmarks = bookmarks.filter(function(b) { return b.id != data; });
+    setLocalBookmarks(bookmarks);
+    loadLocalBookmarks();
 }
 
 function getLocalBookmarks(){
