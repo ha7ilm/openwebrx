@@ -153,17 +153,21 @@ input[type=range]:focus::-ms-fill-upper
 #openwebrx-scale-container
 {
 	height: 47px;
-	background-image: url("../gfx/openwebrx-scale-background.png");
-	background-repeat: repeat-x;
 	overflow: hidden;
 	z-index:1000;
 	position: relative;
 }
 
+#openwebrx-frequency-container {
+	background-image: url("../gfx/openwebrx-scale-background.png");
+	background-repeat: repeat-x;
+	background-size: cover;
+    background-color: #444;
+}
+
 #openwebrx-bookmarks-container
 {
     height: 25px;
-    background-color: #444;
     position: relative;
     z-index: 1000;
 }
