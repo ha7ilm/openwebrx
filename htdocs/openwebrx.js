@@ -620,8 +620,7 @@ function demodulator_analog_replace(subtype, for_digital)
 	}
 	demodulator_add(new demodulator_default_analog(temp_offset,subtype));
 	demodulator_buttons_update();
-	hide_digitalvoice_panels();
-    toggle_panel("openwebrx-panel-metadata-" + subtype, true);
+	update_digitalvoice_panels("openwebrx-panel-metadata-" + subtype);
 }
 
 function demodulator_set_offset_frequency(which,to_what)
@@ -1689,9 +1688,9 @@ function update_packet_panel(msg) {
     $b.scrollTop($b[0].scrollHeight);
 }
 
-function hide_digitalvoice_panels() {
+function update_digitalvoice_panels(showing) {
     $(".openwebrx-meta-panel").each(function(_, p){
-        toggle_panel(p.id, false);
+        toggle_panel(p.id, p.id == showing);
     });
     clear_metadata();
 }
@@ -2977,7 +2976,6 @@ function demodulator_digital_replace(subtype)
     case "ft4":
         secondary_demod_start(subtype);
         demodulator_analog_replace('usb', true);
-        demodulator_buttons_update();
         break;
     case "wspr":
         secondary_demod_start(subtype);
@@ -2986,14 +2984,13 @@ function demodulator_digital_replace(subtype)
         demodulators[0].low_cut = 1350;
         demodulators[0].high_cut = 1650;
         demodulators[0].set();
-        demodulator_buttons_update();
         break;
     case "packet":
         secondary_demod_start(subtype);
         demodulator_analog_replace('nfm', true);
-        demodulator_buttons_update();
         break;
     }
+    demodulator_buttons_update();
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
