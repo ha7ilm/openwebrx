@@ -42,17 +42,16 @@ class WebSocketConnection(object):
         (self.interruptPipeRecv, self.interruptPipeSend) = Pipe(duplex=False)
         self.open = True
         self.sendLock = threading.Lock()
-        my_headers = self.handler.headers.items()
-        my_header_keys = list(map(lambda x: x[0], my_headers))
-        h_key_exists = lambda x: my_header_keys.count(x)
-        h_value = lambda x: my_headers[my_header_keys.index(x)][1]
-        if (
-            (not h_key_exists("Upgrade"))
-            or not (h_value("Upgrade") == "websocket")
-            or (not h_key_exists("Sec-WebSocket-Key"))
-        ):
-            raise WebSocketException
-        ws_key = h_value("Sec-WebSocket-Key")
+
+        headers = {key.lower(): value for key, value in self.handler.headers.items()}
+        if not "upgrade" in headers:
+            raise WebSocketException("Upgrade header not found")
+        if headers["upgrade"].lower() != "websocket":
+            raise WebSocketException("Upgrade header does not contain expected value")
+        if not "sec-websocket-key" in headers:
+            raise WebSocketException("Websocket key not provided")
+
+        ws_key = headers["sec-websocket-key"]
         shakey = hashlib.sha1()
         shakey.update("{ws_key}258EAFA5-E914-47DA-95CA-C5AB0DC85B11".format(ws_key=ws_key).encode())
         ws_key_toreturn = base64.b64encode(shakey.digest())
