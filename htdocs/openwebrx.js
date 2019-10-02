@@ -1170,6 +1170,7 @@ function audio_calculate_resampling(targetRate)
 
 
 debug_ws_data_received=0;
+debug_ws_time_start = 0;
 max_clients_num=0;
 client_num = 0;
 
@@ -1749,6 +1750,8 @@ function on_ws_opened()
 {
 	ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
 	divlog("WebSocket opened to "+ws_url);
+    debug_ws_data_received = 0;
+    debug_ws_time_start = new Date().getTime();
 	reconnect_timeout = false;
 }
 
@@ -2087,10 +2090,10 @@ function audio_init()
 
 	audio_debug_time_start=(new Date()).getTime();
 	audio_debug_time_last_start=audio_debug_time_start;
+	audio_buffer_current_count_debug = 0;
 
 	//https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
 	audio_initialized=1; // only tell on_ws_recv() not to call it again
-
 
 	//on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
 	createjsnode_function = (audio_context.createJavaScriptNode == undefined)?audio_context.createScriptProcessor.bind(audio_context):audio_context.createJavaScriptNode.bind(audio_context);
@@ -2749,11 +2752,14 @@ function debug_audio()
 	progressbar_set(e("openwebrx-bar-audio-speed"),audio_speed_value/500000,"Audio stream ["+(audio_speed_value/1000).toFixed(0)+" kbps]",false);
 
 	var audio_output_value=(audio_buffer_current_count_debug*audio_buffer_size)/audio_debug_time_taken;
-	progressbar_set(e("openwebrx-bar-audio-output"),audio_output_value/55000,"Audio output ["+(audio_output_value/1000).toFixed(1)+" ksps]",audio_output_value>55000||audio_output_value<10000);
+	var audio_max_rate = audio_context.sampleRate * 1.25;
+	var audio_min_rate = audio_context.sampleRate * .25;
+	progressbar_set(e("openwebrx-bar-audio-output"),audio_output_value/audio_max_rate,"Audio output ["+(audio_output_value/1000).toFixed(1)+" ksps]",audio_output_value>audio_max_rate||audio_output_value<audio_min_rate);
 
 	audio_buffer_progressbar_update();
 
-	var network_speed_value=debug_ws_data_received/audio_debug_time_taken;
+    var debug_ws_time_taken = (time_now - debug_ws_time_start) / 1000;
+	var network_speed_value = debug_ws_data_received / debug_ws_time_taken;
 	progressbar_set(e("openwebrx-bar-network-speed"),network_speed_value*8/2000,"Network usage ["+(network_speed_value*8).toFixed(1)+" kbps]",false);
 
 	audio_buffer_current_size_debug=0;
