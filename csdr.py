@@ -455,8 +455,11 @@ class dsp(object):
         return demodulator == "packet"
 
     def set_output_rate(self, output_rate):
+        if self.output_rate == output_rate:
+            return
         self.output_rate = output_rate
         self.calculate_decimation()
+        self.restart()
 
     def set_demodulator(self, demodulator):
         if self.demodulator == demodulator:
