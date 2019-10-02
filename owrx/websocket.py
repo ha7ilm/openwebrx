@@ -189,8 +189,8 @@ class WebSocketConnection(object):
                     except IncompleteRead:
                         logger.warning("incomplete read on websocket; closing connection")
                         self.open = False
-                    except TimeoutError:
-                        logger.warning("websocket timed out; closing connection")
+                    except OSError:
+                        logger.exception("OSError while reading data; closing connection")
                         self.open = False
 
         logger.debug("websocket loop ended; shutting down")
