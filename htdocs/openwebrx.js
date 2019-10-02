@@ -1197,7 +1197,7 @@ function on_ws_recv(evt)
                         waterfallColorsDefault();
 
 			            window.starting_mod = config.start_mod
-                        window.starting_offset_frequency = config.start_offset_frequency;
+                        window.starting_offset_frequency = config.start_offset_freq;
                         window.audio_buffering_fill_to = config.client_audio_buffer_size;
                         bandwidth = config.samp_rate;
                         center_freq = config.center_freq + config.lfo_offset;
@@ -1217,7 +1217,13 @@ function on_ws_recv(evt)
 						audio_preinit();
 						loadLocalBookmarks();
 
-						if (audio_allowed && !audio_initialized) audio_init();
+						if (audio_allowed) {
+						    if (audio_initialized) {
+						        initialize_demodulator();
+						    } else {
+						        audio_init();
+						    }
+						}
 						waterfall_clear();
                     break;
                     case "secondary_config":
@@ -2108,18 +2114,7 @@ function audio_init()
 
 	window.setInterval(audio_flush,audio_flush_interval_ms);
 	divlog('Web Audio API succesfully initialized, sample rate: '+audio_context.sampleRate.toString()+ " sps");
-	/*audio_source=audio_context.createBufferSource();
-   audio_buffer = audio_context.createBuffer(xhr.response, false);
-	audio_source.buffer = buffer;
-	audio_source.noteOn(0);*/
-	demodulator_analog_replace(starting_mod);
-	if(starting_offset_frequency)
-	{
-		demodulators[0].offset_frequency = starting_offset_frequency;
-		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+starting_offset_frequency,1e6,4);
-		demodulators[0].set();
-		mkscale();
-	}
+	initialize_demodulator();
 
 	//hide log panel in a second (if user has not hidden it yet)
 	window.setTimeout(function(){
@@ -2131,6 +2126,17 @@ function audio_init()
 		}
 	},2000);
 
+}
+
+function initialize_demodulator() {
+	demodulator_analog_replace(starting_mod);
+	if(starting_offset_frequency)
+	{
+		demodulators[0].offset_frequency = starting_offset_frequency;
+		e("webrx-actual-freq").innerHTML=format_frequency("{x} MHz",center_freq+starting_offset_frequency,1e6,4);
+		demodulators[0].set();
+		mkscale();
+	}
 }
 
 var reconnect_timeout = false;
