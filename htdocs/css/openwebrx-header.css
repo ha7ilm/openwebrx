@@ -53,21 +53,13 @@
     padding: 15px;
 }
 
-#webrx-rx-avatar-background
-{
-    cursor:pointer;
-    background-image: url(../gfx/openwebrx-avatar-background.png);
-    background-origin: content-box;
-    background-repeat: no-repeat;
-    float: left;
-    width: 54px;
-    height: 54px;
-    padding: 7px;
-    box-sizing: content-box;
-}
-
 #webrx-rx-avatar
 {
+    background-color: rgba(154, 154, 154, .5);
+    border-radius: 7px;
+    float: left;
+    margin: 7px;
+
     cursor:pointer;
     width: 46px;
     height: 46px;
