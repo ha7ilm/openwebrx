@@ -5,6 +5,7 @@ from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
 from owrx.bookmarks import Bookmarks
 from owrx.map import Map
+from owrx.locator import Locator
 from multiprocessing import Queue
 import json
 import threading
@@ -89,13 +90,13 @@ class OpenWebRxReceiverClient(Client):
         receiver_keys = [
             "receiver_name",
             "receiver_location",
-            "receiver_qra",
             "receiver_asl",
             "receiver_gps",
             "photo_title",
             "photo_desc",
         ]
         receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
+        receiver_details["locator"] = Locator.fromCoordinates(receiver_details["receiver_gps"])
         self.write_receiver_details(receiver_details)
 
         profiles = [

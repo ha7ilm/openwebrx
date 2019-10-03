@@ -1220,7 +1220,7 @@ function on_ws_recv(evt)
                     case "receiver_details":
                         var r = json.value;
                         e('webrx-rx-title').innerHTML = r.receiver_name;
-                        e('webrx-rx-desc').innerHTML = r.receiver_location + ' | Loc: ' + r.receiver_qra + ', ASL: ' + r.receiver_asl + ' m, <a href="https://www.google.hu/maps/place/' + r.receiver_gps[0] + ',' + r.receiver_gps[1] + '" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a>';
+                        e('webrx-rx-desc').innerHTML = r.receiver_location + ' | Loc: ' + r.locator + ', ASL: ' + r.receiver_asl + ' m, <a href="https://www.google.hu/maps/place/' + r.receiver_gps[0] + ',' + r.receiver_gps[1] + '" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a>';
                         e('webrx-rx-photo-title').innerHTML = r.photo_title;
                         e('webrx-rx-photo-desc').innerHTML = r.photo_desc;
                     break;
