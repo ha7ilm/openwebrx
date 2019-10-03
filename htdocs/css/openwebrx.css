@@ -1015,7 +1015,8 @@ img.openwebrx-mirror-img
 
 .openwebrx-dialog label {
     display: inline-block;
-    flex: 1 0 20px;
+    flex-grow: 0;
+    width: 70px;
     padding-right: 20px;
     margin-top: auto;
     margin-bottom: auto;
@@ -1023,7 +1024,7 @@ img.openwebrx-mirror-img
 
 .openwebrx-dialog .form-field input,
 .openwebrx-dialog .form-field select {
-    flex: 2 0 20px;
+    flex-grow: 1;
     height: 27px;
 }
 
