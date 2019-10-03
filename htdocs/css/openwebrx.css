@@ -421,12 +421,18 @@ input[type=range]:focus::-ms-fill-upper
 	color: #FFFF50;
 }
 
+.openwebrx-button:last-child {
+    margin-right: 0;
+}
+
 .openwebrx-demodulator-button
 {
 	width: 38px;
 	height: 19px;
 	font-size: 12pt;
 	text-align: center;
+	flex: 1;
+	margin-right: 5px;
 }
 
 .openwebrx-dial-button svg {
@@ -597,6 +603,11 @@ img.openwebrx-mirror-img
 	padding-top: 5px;
 }
 
+.openwebrx-panel-flex-line {
+    display: flex;
+    flex-direction: row;
+}
+
 .openwebrx-panel-line:first-child {
     padding-top: 0;
 }
@@ -707,6 +718,7 @@ img.openwebrx-mirror-img
 	width: 173px;
 	height: 27px;
 	padding-left:3px;
+	margin-right: 5px;
 }
 
 #openwebrx-sdr-profiles-listbox {

@@ -60,7 +60,7 @@
                     <select id="openwebrx-sdr-profiles-listbox" onchange="sdr_profile_changed();">
                     </select>
                 </div>
-                <div class="openwebrx-panel-line">
+                <div class="openwebrx-panel-line openwebrx-panel-flex-line">
                     <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-nfm"
                         onclick="demodulator_analog_replace('nfm');">FM</div>
                     <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-am"
@@ -71,6 +71,8 @@
                         onclick="demodulator_analog_replace('usb');">USB</div>
                     <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-cw"
                         onclick="demodulator_analog_replace('cw');">CW</div>
+                </div>
+                <div class="openwebrx-panel-line openwebrx-panel-flex-line">
                     <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-dmr"
                          style="display:none;" data-feature="digital_voice_digiham"
                         onclick="demodulator_analog_replace('dmr');">DMR</div>
@@ -84,7 +86,7 @@
                          style="display:none;" data-feature="digital_voice_digiham"
                         onclick="demodulator_analog_replace('ysf');">YSF</div>
                 </div>
-                <div class="openwebrx-panel-line">
+                <div class="openwebrx-panel-line openwebrx-panel-flex-line">
                     <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-dig" onclick="demodulator_digital_replace_last();">DIG</div>
                     <select id="openwebrx-secondary-demod-listbox" onchange="secondary_demod_listbox_changed();">
                         <option value="none"></option>
