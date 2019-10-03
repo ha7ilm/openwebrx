@@ -41,7 +41,6 @@ max_clients = 20
 # ==== Web GUI configuration ====
 receiver_name = "[Callsign]"
 receiver_location = "Budapest, Hungary"
-receiver_qra = "JN97ML"
 receiver_asl = 200
 receiver_ant = "Longwire"
 receiver_device = "RTL-SDR"
