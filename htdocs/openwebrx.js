@@ -497,6 +497,8 @@ function demodulator_default_analog(offset_frequency,subtype)
 				this.color,center_freq+this.parent.offset_frequency);
 	};
 
+	this.envelope.dragged_range = demodulator.draggable_ranges.none;
+
 	// event handlers
 	this.envelope.drag_start=function(x, key_modifiers)
 	{
@@ -649,6 +651,8 @@ function scale_setup()
 	scale_canvas.addEventListener("mousemove", scale_canvas_mousemove, false);
 	scale_canvas.addEventListener("mouseup", scale_canvas_mouseup, false);
 	resize_scale();
+	var frequency_container = e("openwebrx-frequency-container");
+	frequency_container.addEventListener("mousemove", frequency_container_mousemove, false);
 }
 
 var scale_canvas_drag_params={
@@ -698,14 +702,18 @@ function scale_canvas_mousemove(evt)
 
 }
 
+function frequency_container_mousemove(evt) {
+	var frequency = center_freq + scale_offset_freq_from_px(evt.pageX);
+    e("webrx-mouse-freq").innerHTML = format_frequency("{x} MHz", frequency, 1e6, 4);
+}
+
 function scale_canvas_end_drag(x)
 {
-	canvas_container.style.cursor="default";
+	scale_canvas.style.cursor="default";
 	scale_canvas_drag_params.drag=false;
 	scale_canvas_drag_params.mouse_down=false;
 	var event_handled=false;
 	for (var i=0;i<demodulators.length;i++) event_handled|=demodulators[i].envelope.drag_end(x);
-	//console.log(event_handled);
 	if (!event_handled) demodulator_set_offset_frequency(0,scale_offset_freq_from_px(x));
 }
 
@@ -915,18 +923,6 @@ function resize_scale()
 	position_bookmarks();
 }
 
-function canvas_mouseover(evt)
-{
-	if(!waterfall_setup_done) return;
-	//e("webrx-freq-show").style.visibility="visible";
-}
-
-function canvas_mouseout(evt)
-{
-	if(!waterfall_setup_done) return;
-	//e("webrx-freq-show").style.visibility="hidden";
-}
-
 function canvas_get_freq_offset(relativeX)
 {
 	rel=(relativeX/canvases[0].clientWidth);
@@ -972,13 +968,7 @@ function canvas_mousedown(evt)
 function canvas_mousemove(evt)
 {
 	if(!waterfall_setup_done) return;
-	//element=e("webrx-freq-show");
-	relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
-	/*realX=(relativeX-element.clientWidth/2);
-	maxX=(canvases[0].clientWidth-element.clientWidth);
-	if(realX>maxX) realX=maxX;
-	if(realX<0) realX=0;
-	element.style.left=realX.toString()+"px";*/
+	relativeX = get_relative_x(evt);
 	if(canvas_mouse_down)
 	{
 		if(!canvas_drag&&Math.abs(evt.pageX-canvas_drag_start_x)>canvas_drag_min_delta)
@@ -990,13 +980,11 @@ function canvas_mousemove(evt)
 		{
 			var deltaX=canvas_drag_last_x-evt.pageX;
 			var deltaY=canvas_drag_last_y-evt.pageY;
-			//zoom_center_where=zoom_center_where_calc(evt.pageX);
 			var dpx=range.hps*deltaX;
 			if(
 				!(zoom_center_rel+dpx>(bandwidth/2-canvas_container.clientWidth*(1-zoom_center_where)*range.hps)) &&
 				!(zoom_center_rel+dpx<-bandwidth/2+canvas_container.clientWidth*zoom_center_where*range.hps)
 			) { zoom_center_rel+=dpx; }
-//			-((canvases_new_width*(0.5+zoom_center_rel/bandwidth))-(winsize*zoom_center_where));
 			resize_canvases(false);
 			canvas_drag_last_x=evt.pageX;
 			canvas_drag_last_y=evt.pageY;
@@ -1007,22 +995,18 @@ function canvas_mousemove(evt)
 	else e("webrx-mouse-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
 }
 
-function canvas_container_mouseout(evt)
+function canvas_container_mouseleave(evt)
 {
 	canvas_end_drag();
 }
 
-//function body_mouseup() { canvas_end_drag(); console.log("body_mouseup"); }
-//function window_mouseout() { canvas_end_drag(); console.log("document_mouseout"); }
-
 function canvas_mouseup(evt)
 {
 	if(!waterfall_setup_done) return;
-	relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
+	relativeX = get_relative_x(evt);
 
 	if(!canvas_drag)
 	{
-		//ws.send("SET offset_freq="+canvas_get_freq_offset(relativeX).toString());
 		demodulator_set_offset_frequency(0, canvas_get_freq_offset(relativeX));
 	}
 	else
@@ -1044,19 +1028,20 @@ function zoom_center_where_calc(screenposX)
 	return screenposX/canvas_container.clientWidth;
 }
 
+function get_relative_x(evt) {
+    var relativeX = (evt.offsetX)?evt.offsetX:evt.layerX;
+    if ($(evt.target).closest(canvas_container).length) return relativeX;
+	// compensate for the frequency scale, since that is not resized by the browser.
+    return relativeX - zoom_offset_px;
+}
+
 function canvas_mousewheel(evt)
 {
 	if(!waterfall_setup_done) return;
-	//var i=Math.abs(evt.wheelDelta);
-	//var dir=(i/evt.wheelDelta)<0;
-	//console.log(evt);
-	var relativeX=(evt.offsetX)?evt.offsetX:evt.layerX;
+	var relativeX = get_relative_x(evt);
 	var dir=(evt.deltaY/Math.abs(evt.deltaY))>0;
-	//console.log(dir);
-	//i/=120;
-	/*while (i--)*/ zoom_step(dir, relativeX, zoom_center_where_calc(evt.pageX));
+	zoom_step(dir, relativeX, zoom_center_where_calc(evt.pageX));
 	evt.preventDefault();
-	//evt.returnValue = false; //disable scrollbar move
 }
 
 
@@ -2235,12 +2220,6 @@ function add_canvas()
 	new_canvas.style.top=new_canvas.openwebrx_top.toString()+"px";
 	canvas_context = new_canvas.getContext("2d");
 	canvas_container.appendChild(new_canvas);
-	new_canvas.addEventListener("mouseover", canvas_mouseover, false);
-	new_canvas.addEventListener("mouseout", canvas_mouseout, false);
-	new_canvas.addEventListener("mousemove", canvas_mousemove, false);
-	new_canvas.addEventListener("mouseup", canvas_mouseup, false);
-	new_canvas.addEventListener("mousedown", canvas_mousedown, false);
-	new_canvas.addEventListener("wheel",canvas_mousewheel, false);
 	canvases.push(new_canvas);
     while (canvas_container && canvas_container.clientHeight + canvas_default_height * 2 < canvases.length * canvas_default_height) {
         var c = canvases.shift();
@@ -2254,17 +2233,13 @@ function init_canvas_container()
 {
 	canvas_container=e("webrx-canvas-container");
 	mathbox_container=e("openwebrx-mathbox-container");
-	canvas_container.addEventListener("mouseout",canvas_container_mouseout, false);
-	//window.addEventListener("mouseout",window_mouseout,false);
-	//document.body.addEventListener("mouseup",body_mouseup,false);
-	canvas_phantom=e("openwebrx-phantom-canvas");
-	canvas_phantom.addEventListener("mouseover", canvas_mouseover, false);
-	canvas_phantom.addEventListener("mouseout", canvas_mouseout, false);
-	canvas_phantom.addEventListener("mousemove", canvas_mousemove, false);
-	canvas_phantom.addEventListener("mouseup", canvas_mouseup, false);
-	canvas_phantom.addEventListener("mousedown", canvas_mousedown, false);
-	canvas_phantom.addEventListener("wheel",canvas_mousewheel, false);
-	canvas_phantom.style.width=canvas_container.clientWidth+"px";
+	canvas_container.addEventListener("mouseleave",canvas_container_mouseleave, false);
+	canvas_container.addEventListener("mousemove", canvas_mousemove, false);
+	canvas_container.addEventListener("mouseup", canvas_mouseup, false);
+	canvas_container.addEventListener("mousedown", canvas_mousedown, false);
+	canvas_container.addEventListener("wheel",canvas_mousewheel, false);
+	var frequency_container = e("openwebrx-frequency-container");
+	frequency_container.addEventListener("wheel",canvas_mousewheel, false);
 	add_canvas();
 }
 
@@ -2277,18 +2252,6 @@ function shift_canvases()
 		p.style.top=(p.openwebrx_top++).toString()+"px";
 	});
 	canvas_maxshift++;
-	if(canvas_container.clientHeight>canvas_maxshift)
-	{
-		canvas_phantom.style.top=canvas_maxshift.toString()+"px";
-		canvas_phantom.style.height=(canvas_container.clientHeight-canvas_maxshift).toString()+"px";
-		canvas_phantom.style.display="block";
-	}
-	else
-		canvas_phantom.style.display="none";
-
-
-	//canvas_container.style.height=(((canvases.length-1)*canvas_default_height)+(canvas_default_height-canvas_actual_line)).toString()+"px";
-	//canvas_container.style.height="100%";
 }
 
 function resize_canvases(zoom)
@@ -2303,8 +2266,6 @@ function resize_canvases(zoom)
 		p.style.width=new_width;
 		p.style.left=zoom_value;
 	});
-	canvas_phantom.style.width=new_width;
-	canvas_phantom.style.left=zoom_value;
 }
 
 function waterfall_init()
@@ -3069,7 +3030,7 @@ function secondary_demod_init()
         .mouseup(secondary_demod_canvas_container_mouseup)
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
-        .mouseleave(secondary_demod_canvas_container_mouseout);
+        .mouseleave(secondary_demod_canvas_container_mouseleave);
     init_digital_removal_timer();
 }
 
@@ -3227,7 +3188,7 @@ function secondary_demod_canvas_container_mousein()
     $("#openwebrx-digimode-select-channel").css("opacity","0.7"); //.css("border-width", "1px");
 }
 
-function secondary_demod_canvas_container_mouseout()
+function secondary_demod_canvas_container_mouseleave()
 {
     $("#openwebrx-digimode-select-channel").css("opacity","0");
 }
