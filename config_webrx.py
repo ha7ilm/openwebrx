@@ -42,11 +42,8 @@ max_clients = 20
 receiver_name = "[Callsign]"
 receiver_location = "Budapest, Hungary"
 receiver_asl = 200
-receiver_ant = "Longwire"
-receiver_device = "RTL-SDR"
 receiver_admin = "example@example.com"
 receiver_gps = (47.000000, 19.000000)
-photo_height = 350
 photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
 photo_desc = """
 You can add your own background photo and receiver information.<br />
@@ -180,8 +177,6 @@ sdrs = {
             },
         },
     },
-    # this one is just here to test feature detection
-    "test": {"type": "test"},
 }
 
 # ==== Misc settings ====
