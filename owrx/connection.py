@@ -164,6 +164,8 @@ class OpenWebRxReceiverClient(Client):
             config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
             # TODO mathematical properties? hmmmm
             config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
+            # TODO this is a hack that only works because setting the profile always causes plenty of config change
+            config["profile_id"] = self.sdr.getId() + "|" + self.sdr.getProfileId()
             self.write_config(config)
 
             cf = configProps["center_freq"]

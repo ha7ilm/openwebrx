@@ -89,7 +89,7 @@ class SdrService(object):
                 props = SdrService.sdrProps[id]
                 className = "".join(x for x in props["type"].title() if x.isalnum()) + "Source"
                 cls = getattr(sys.modules[__name__], className)
-                SdrService.sources[id] = cls(props, SdrService.getNextPort())
+                SdrService.sources[id] = cls(id, props, SdrService.getNextPort())
         return SdrService.sources
 
 
@@ -98,8 +98,10 @@ class SdrSourceException(Exception):
 
 
 class SdrSource(object):
-    def __init__(self, props, port):
+    def __init__(self, id, props, port):
+        self.id = id
         self.props = props
+        self.profile_id = None
         self.activateProfile()
         self.rtlProps = self.props.collect(
             "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"
@@ -131,13 +133,22 @@ class SdrSource(object):
         profiles = self.props["profiles"]
         if profile_id is None:
             profile_id = list(profiles.keys())[0]
+        if profile_id == self.profile_id:
+            return;
         logger.debug("activating profile {0}".format(profile_id))
+        self.profile_id = profile_id
         profile = profiles[profile_id]
         for (key, value) in profile.items():
             # skip the name, that would overwrite the source name.
             if key == "name":
                 continue
             self.props[key] = value
+
+    def getId(self):
+        return self.id
+
+    def getProfileId(self):
+        return self.profile_id
 
     def getProfiles(self):
         return self.props["profiles"]
@@ -291,7 +302,7 @@ class Resampler(SdrSource):
         props["samp_rate"] = if_samp_rate
 
         self.sdr = sdr
-        super().__init__(props, port)
+        super().__init__(None, props, port)
 
     def start(self):
         self.modificationLock.acquire()

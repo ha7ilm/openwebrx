@@ -1158,6 +1158,7 @@ debug_ws_data_received=0;
 debug_ws_time_start = 0;
 max_clients_num=0;
 client_num = 0;
+var currentprofile;
 
 var COMPRESS_FFT_PAD_N=10; //should be the same as in csdr.c
 
@@ -1210,6 +1211,9 @@ function on_ws_recv(evt)
 						    }
 						}
 						waterfall_clear();
+
+                        currentprofile = config.profile_id;
+						$('#openwebrx-sdr-profiles-listbox').val(currentprofile);
                     break;
                     case "secondary_config":
                         window.secondary_fft_size = json.value.secondary_fft_size;
@@ -1241,6 +1245,9 @@ function on_ws_recv(evt)
                         listbox.innerHTML = json.value.map(function(profile){
                             return '<option value="' + profile.id + '">' + profile.name + "</option>";
                         }).join("");
+                        if (currentprofile) {
+						    $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+						}
                     break;
 					case "features":
 						for (var feature in json.value) {
