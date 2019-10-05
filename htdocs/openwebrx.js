@@ -49,8 +49,6 @@ var fft_compression="none";
 var fft_codec=new sdrjs.ImaAdpcm();
 var audio_compression="none";
 var waterfall_setup_done=0;
-var waterfall_queue = [];
-var waterfall_timer;
 var secondary_fft_size;
 var audio_allowed;
 
@@ -1289,14 +1287,14 @@ function on_ws_recv(evt)
             case 1:
                 // FFT data
                 if (fft_compression=="none") {
-                    waterfall_add_queue(new Float32Array(data));
+                    waterfall_add(new Float32Array(data));
                 } else if (fft_compression == "adpcm") {
                     fft_codec.reset();
 
                     var waterfall_i16=fft_codec.decode(new Uint8Array(data));
                     var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
                     for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-                    waterfall_add_queue(waterfall_f32);
+                    waterfall_add(waterfall_f32);
                 }
             break;
             case 2:
@@ -1315,14 +1313,14 @@ function on_ws_recv(evt)
             case 3:
                 // secondary FFT
                 if (fft_compression == "none") {
-                    secondary_demod_waterfall_add_queue(new Float32Array(data));
+                    secondary_demod_waterfall_add(new Float32Array(data));
                 } else if (fft_compression == "adpcm") {
                     fft_codec.reset();
 
                     var waterfall_i16=fft_codec.decode(new Uint8Array(data));
                     var waterfall_f32=new Float32Array(waterfall_i16.length-COMPRESS_FFT_PAD_N);
                     for(var i=0;i<waterfall_i16.length;i++) waterfall_f32[i]=waterfall_i16[i+COMPRESS_FFT_PAD_N]/100;
-                    secondary_demod_waterfall_add_queue(waterfall_f32); //TODO digimodes
+                    secondary_demod_waterfall_add(waterfall_f32); //TODO digimodes
                 }
             break;
             case 4:
@@ -1724,24 +1722,6 @@ function waterfall_measure_minmax_do(what)
 function waterfall_measure_minmax_print()
 {
 	console.log("Waterfall | min = "+waterfall_measure_minmax_min.toString()+" dB | max = "+waterfall_measure_minmax_max.toString()+" dB");
-}
-
-function waterfall_add_queue(what)
-{
-	if(waterfall_measure_minmax) waterfall_measure_minmax_do(what);
-	if(waterfall_measure_minmax_now) { waterfall_measure_minmax_do(what); waterfall_measure_minmax_now=false; waterfallColorsAuto(); }
-	waterfall_queue.push(what);
-}
-
-function waterfall_dequeue()
-{
-	if(waterfall_queue.length) waterfall_add(waterfall_queue.shift());
-	if(waterfall_queue.length>Math.max(fft_fps/2,20)) //in case of emergency
-	{
-		console.log("waterfall queue length:", waterfall_queue.length);
-		add_problem("fft overflow");
-		while(waterfall_queue.length) waterfall_add(waterfall_queue.shift());
-	}
 }
 
 function on_ws_opened()
@@ -2278,7 +2258,6 @@ function resize_canvases(zoom)
 function waterfall_init()
 {
 	init_canvas_container();
-	waterfall_timer = window.setInterval(()=>{waterfall_dequeue(); secondary_demod_waterfall_dequeue();},900/fft_fps);
 	resize_waterfall_container(false); /* then */ resize_canvases();
 	scale_setup();
 	mkzoomlevels();
@@ -2327,6 +2306,13 @@ function waterfall_add(data)
 {
 	if(!waterfall_setup_done) return;
 	var w=fft_size;
+
+	if(waterfall_measure_minmax) waterfall_measure_minmax_do(data);
+	if(waterfall_measure_minmax_now) {
+	    waterfall_measure_minmax_do(data);
+	    waterfall_measure_minmax_now=false;
+	    waterfallColorsAuto();
+	}
 
 	//waterfall_shift();
 	// ==== do scaling if required ====
@@ -2937,7 +2923,6 @@ function demodulator_analog_replace_last() { demodulator_analog_replace(last_ana
 
 secondary_demod = false;
 secondary_demod_offset_freq = 0;
-secondary_demod_waterfall_queue = [];
 
 function demodulator_digital_replace_last() 
 { 
@@ -3057,12 +3042,6 @@ function secondary_demod_stop()
 {
 	ws.send(JSON.stringify({"type":"dspcontrol","params":{"secondary_mod":false}}));
     secondary_demod = false;
-    secondary_demod_waterfall_queue = [];
-}
-
-function secondary_demod_waterfall_add_queue(x)
-{
-    secondary_demod_waterfall_queue.push(x);
 }
 
 function secondary_demod_push_binary_data(x)
@@ -3124,17 +3103,6 @@ function secondary_demod_waterfall_add(data)
 }
 
 var secondary_demod_canvases_initialized = false;
-
-function secondary_demod_waterfall_dequeue()
-{
-    if(!secondary_demod || !secondary_demod_canvases_initialized) return;
-	if(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(secondary_demod_waterfall_queue.shift());
-	if(secondary_demod_waterfall_queue.length>Math.max(fft_fps/2,20)) //in case of fft overflow
-	{
-		console.log("secondary waterfall overflow, queue length:", secondary_demod_waterfall_queue.length);
-		while(secondary_demod_waterfall_queue.length) secondary_demod_waterfall_add(secondary_demod_waterfall_queue.shift());
-	}
-} 
 
 secondary_demod_listbox_updating = false;
 function secondary_demod_listbox_changed()
