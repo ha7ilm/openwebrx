@@ -101,7 +101,7 @@ class AprsSymbolsController(AssetsController):
 
 class TemplateController(Controller):
     def render_template(self, file, **vars):
-        f = open("htdocs/" + file, "r")
+        f = open("htdocs/" + file, "r", encoding="utf-8")
         template = Template(f.read())
         f.close()
 
