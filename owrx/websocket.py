@@ -16,11 +16,19 @@ OPCODE_PING = 0x09
 OPCODE_PONG = 0x0A
 
 
-class IncompleteRead(Exception):
+class WebSocketException(Exception):
     pass
 
 
-class Drained(Exception):
+class IncompleteRead(WebSocketException):
+    pass
+
+
+class Drained(WebSocketException):
+    pass
+
+
+class WebSocketClosed(WebSocketException):
     pass
 
 
@@ -93,6 +101,8 @@ class WebSocketConnection(object):
             return bytes([ws_first_byte, size])
 
     def send(self, data):
+        if not self.open:
+            raise WebSocketClosed()
         # convenience
         if type(data) == dict:
             # allow_nan = False disallows NaN and Infinty to be encoded. Browser JSON will not parse them anyway.
@@ -151,7 +161,7 @@ class WebSocketConnection(object):
         WebSocketConnection.connections.append(self)
         self.open = True
         while self.open:
-            (read, _, _) = select.select([self.interruptPipeRecv, self.handler.rfile], [], [])
+            (read, _, _) = select.select([self.interruptPipeRecv, self.handler.rfile], [], [], 15)
             if self.handler.rfile in read:
                 available = True
                 self.resetPing()
@@ -232,7 +242,3 @@ class WebSocketConnection(object):
     def sendPong(self):
         header = self.get_header(0, OPCODE_PONG)
         self._sendBytes(header)
-
-
-class WebSocketException(Exception):
-    pass
