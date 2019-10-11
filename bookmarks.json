@@ -82,103 +82,91 @@
   {
     "name": "DB0TR",
     "frequency": 438700000,
-    "modulation": "nfm",
-    "id": 1
+    "modulation": "nfm"
   },
   {
     "name": "DB0PME",
     "frequency": 439825000,
-    "modulation": "dmr",
-    "id": 2
+    "modulation": "dmr"
   },
   {
     "name": "DB0HKN",
     "frequency": 438300000,
-    "modulation": "dmr",
-    "id": 3
+    "modulation": "dmr"
   },
   {
     "name": "OE2XHM",
     "frequency": 438825000,
-    "modulation": "nfm",
-    "id": 4
+    "modulation": "nfm"
   },
   {
     "name": "DM0WW",
     "frequency": 438962500,
-    "modulation": "dmr",
-    "id": 5
+    "modulation": "dmr"
   },
   {
     "name": "OE7XXR",
     "frequency": 438200000,
-    "modulation": "dstar",
-    "id": 6
+    "modulation": "dstar"
   },
   {
     "name": "OE2XZR",
     "frequency": 439000000,
-    "modulation": "dstar",
-    "id": 7
+    "modulation": "dstar"
   },
   {
     "name": "DB0OAL",
     "frequency": 439912500,
-    "modulation": "dmr",
-    "id": 8
+    "modulation": "dmr"
   },
   {
     "name": "DB0AAT",
     "frequency": 439550000,
-    "modulation": "dmr",
-    "id": 9
+    "modulation": "dmr"
   },
   {
     "name": "DB0FSG",
     "frequency": 439937500,
-    "modulation": "dmr",
-    "id": 10
+    "modulation": "dmr"
   },
   {
     "name": "Pocsag",
     "frequency": 439987500,
-    "modulation": "nfm",
-    "id": 11
+    "modulation": "nfm"
   },
   {
     "name": "DB0ULR",
     "frequency": 145575000,
-    "modulation": "nfm",
-    "id": 12
+    "modulation": "nfm"
   },
   {
     "name": "DB0RDH",
     "frequency": 145737500,
-    "modulation": "dstar",
-    "id": 13
+    "modulation": "dstar"
   },
   {
     "name": "DM0GAP",
     "frequency": 145612500,
-    "modulation": "nfm",
-    "id": 14
+    "modulation": "nfm"
   },
   {
     "name": "DB0XF",
     "frequency": 145600000,
-    "modulation": "nfm",
-    "id": 15
+    "modulation": "nfm"
   },
   {
     "name": "DB0TOL",
     "frequency": 145712500,
-    "modulation": "nfm",
-    "id": 16
+    "modulation": "nfm"
   },
   {
     "name": "DB0TTB",
     "frequency": 439587500,
-    "modulation": "dmr",
-    "id": 17
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0TRS",
+    "frequency": 439125000,
+    "modulation": "nfm"
   }
 ]
