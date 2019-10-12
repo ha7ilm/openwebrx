@@ -918,7 +918,7 @@ function resize_scale()
     scale_canvas.height = h;
     scale_ctx.scale(ratio, ratio);
 	mkscale();
-	position_bookmarks();
+	bookmarks.position();
 }
 
 function canvas_get_freq_offset(relativeX)
@@ -987,7 +987,7 @@ function canvas_mousemove(evt)
 			canvas_drag_last_x=evt.pageX;
 			canvas_drag_last_y=evt.pageY;
 			mkscale();
-			position_bookmarks();
+        	bookmarks.position();
 		}
 	}
 	else e("webrx-mouse-freq").innerHTML=format_frequency("{x} MHz",canvas_get_frequency(relativeX),1e6,4);
@@ -1084,7 +1084,7 @@ function zoom_step(out, where, onscreen)
 	//console.log(zoom_center_where, zoom_center_rel, where);
 	resize_canvases(true);
 	mkscale();
-	position_bookmarks();
+	bookmarks.position();
 }
 
 function zoom_set(level)
@@ -1098,7 +1098,7 @@ function zoom_set(level)
 	console.log(zoom_center_where, zoom_center_rel, -canvases[0].offsetLeft+canvas_container.clientWidth/2);
 	resize_canvases(true);
 	mkscale();
-	position_bookmarks();
+	bookmarks.position();
 }
 
 function zoom_calc()
@@ -1199,7 +1199,7 @@ function on_ws_recv(evt)
 
 						waterfall_init();
 						audio_preinit();
-						loadLocalBookmarks();
+						bookmarks.loadLocalBookmarks();
 
 						if (audio_allowed) {
 						    if (audio_initialized) {
@@ -1266,7 +1266,7 @@ function on_ws_recv(evt)
 					    update_packet_panel(json.value);
 					    break;
 					case "bookmarks":
-					    update_bookmarks(json.value, "server");
+					    bookmarks.replace_bookmarks(json.value, "server");
 					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
@@ -1331,158 +1331,6 @@ function on_ws_recv(evt)
                 console.warn('unknown type of binary message: ' + type)
         }
     }
-}
-
-function update_bookmarks(bookmarks, source, editable) {
-    editable = !!editable;
-    var $container = $('#openwebrx-bookmarks-container');
-    $container.find('.bookmark[data-source=' + source + ']').remove();
-    bookmarks.forEach(function(b){
-        $bookmark = $(
-            '<div class="bookmark" data-source="' + source + '"' + (editable?' editable="editable"':'') + '>' +
-                '<div class="bookmark-actions">' +
-                    '<div class="openwebrx-button action" data-action="edit"><img src="static/gfx/openwebrx-edit.png"></div>' +
-                    '<div class="openwebrx-button action" data-action="delete"><img src="static/gfx/openwebrx-trashcan.png"></div>' +
-                '</div>' +
-                '<div class="bookmark-content">' + b.name + '</div>' +
-            '</div>'
-        );
-        $bookmark.data(b);
-        $container.append($bookmark);
-    });
-    position_bookmarks();
-}
-
-function loadLocalBookmarks() {
-    var bwh = bandwidth / 2;
-    var start = center_freq - bwh;
-    var end = center_freq + bwh;
-    var bookmarks = getLocalBookmarks().filter(function(b){
-        return b.frequency >= start && b.frequency <= end;
-    });
-    update_bookmarks(bookmarks, 'local', true);
-}
-
-function position_bookmarks() {
-    var range = get_visible_freq_range();
-    $('#openwebrx-bookmarks-container .bookmark').each(function(){
-        $(this).css('left', scale_px_from_freq($(this).data('frequency'), range));
-    });
-}
-
-function init_bookmarks() {
-    var $container = $("#openwebrx-bookmarks-container")
-    $container.on('click', '.bookmark', function(e){
-        var $bookmark = $(e.target).closest('.bookmark');
-        $container.find('.bookmark').removeClass('selected');
-        var b = $bookmark.data();
-        if (!b || !b.frequency || !b.modulation) return;
-        demodulator_set_offset_frequency(0, b.frequency - center_freq);
-        demodulator_analog_replace(b.modulation);
-        $bookmark.addClass('selected');
-    });
-
-    $container.on('click', '.action[data-action=edit]', function(e){
-        e.stopPropagation();
-        var $bookmark = $(e.target).closest('.bookmark');
-        showBookmarkEditDialog($bookmark.data());
-    });
-
-    $container.on('click', '.action[data-action=delete]', function(e){
-        e.stopPropagation();
-        var $bookmark = $(e.target).closest('.bookmark');
-        deleteBookmark($bookmark.data());
-    });
-
-    var $bookmarkButton = $('#openwebrx-panel-receiver .openwebrx-bookmark-button');
-    if (typeof(Storage) !== 'undefined') {
-        $bookmarkButton.show();
-    } else {
-        $bookmarkButton.hide();
-    }
-    $bookmarkButton.click(function(){
-        showBookmarkEditDialog();
-    });
-
-    var $dialog = $("#openwebrx-dialog-bookmark");
-    $dialog.find('.openwebrx-button[data-action=cancel]').click(function(){
-        $dialog.hide();
-    });
-    $dialog.find('.openwebrx-button[data-action=submit]').click(function(){
-        storeBookmark();
-    });
-    $dialog.find('form').on('submit', function(e){
-        e.preventDefault();
-        storeBookmark();
-    });
-}
-
-function showBookmarkEditDialog(bookmark) {
-    var $dialog = $("#openwebrx-dialog-bookmark");
-    var $form = $dialog.find("form");
-    if (!bookmark) {
-        bookmark = {
-            name: "",
-            frequency: center_freq + demodulators[0].offset_frequency,
-            modulation: demodulators[0].subtype
-        }
-    }
-    ['name', 'frequency', 'modulation'].forEach(function(key){
-        $form.find('#' + key).val(bookmark[key]);
-    });
-    $dialog.data('id', bookmark.id);
-    $dialog.show();
-    $dialog.find('#name').focus();
-}
-
-function storeBookmark() {
-    var $dialog = $("#openwebrx-dialog-bookmark");
-    var bookmark = {};
-    var valid = true;
-    ['name', 'frequency', 'modulation'].forEach(function(key){
-        var $input = $dialog.find('#' + key);
-        valid = valid && $input[0].checkValidity();
-        bookmark[key] = $input.val();
-    });
-    if (!valid) {
-        $dialog.find("form :submit").click();
-        return;
-    }
-    bookmark.frequency = Number(bookmark.frequency);
-
-    var bookmarks = getLocalBookmarks();
-
-    bookmark.id = $dialog.data('id');
-    if (!bookmark.id) {
-        if (bookmarks.length) {
-            bookmark.id = 1 + Math.max.apply(Math, bookmarks.map(function(b){ return b.id || 0; }));
-        } else {
-            bookmark.id = 1;
-        }
-    }
-
-    bookmarks = bookmarks.filter(function(b) { return b.id != bookmark.id; });
-    bookmarks.push(bookmark);
-
-    setLocalBookmarks(bookmarks);
-    loadLocalBookmarks();
-    $dialog.hide();
-}
-
-function deleteBookmark(data) {
-    if (data.id) data = data.id;
-    var bookmarks = getLocalBookmarks();
-    bookmarks = bookmarks.filter(function(b) { return b.id != data; });
-    setLocalBookmarks(bookmarks);
-    loadLocalBookmarks();
-}
-
-function getLocalBookmarks(){
-    return JSON.parse(window.localStorage.getItem("bookmarks")) || [];
-}
-
-function setLocalBookmarks(bookmarks){
-    window.localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
 }
 
 var dial_frequencies = [];
@@ -2623,6 +2471,8 @@ function init_header()
     });
 }
 
+var bookmarks;
+
 function openwebrx_init()
 {
 	if(ios||is_chrome) e("openwebrx-big-grey").style.display="table-cell";
@@ -2636,7 +2486,7 @@ function openwebrx_init()
 	window.addEventListener("resize",openwebrx_resize);
 	check_top_bar_congestion();
 	init_header();
-	init_bookmarks();
+	bookmarks = new BookmarkBar();
 
 	//Synchronise volume with slider
 	updateVolume();
