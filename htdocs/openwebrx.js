@@ -2745,6 +2745,7 @@ function demodulator_buttons_update()
 	$(".openwebrx-demodulator-button").removeClass("highlighted");
     if(secondary_demod) {
     	$("#openwebrx-button-dig").addClass("highlighted");
+    	$('#openwebrx-secondary-demod-listbox').val(secondary_demod);
     } else switch(demodulators[0].subtype) {
 		case "lsb":
 		case "usb":
