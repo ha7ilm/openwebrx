@@ -119,10 +119,13 @@ class ServiceScheduler(object):
         if time is not None:
             delta = time - datetime.utcnow()
             seconds = delta.total_seconds()
-        if self.selectionTimer:
-            self.selectionTimer.cancel()
+        self.cancelTimer()
         self.selectionTimer = threading.Timer(seconds, self.selectProfile)
         self.selectionTimer.start()
+
+    def cancelTimer(self):
+        if self.selectionTimer:
+            self.selectionTimer.cancel()
 
     def isActive(self):
         return self.active
@@ -132,6 +135,9 @@ class ServiceScheduler(object):
 
     def onSdrUnavailable(self):
         self.scheduleSelection()
+
+    def onSdrFailed(self):
+        self.cancelTimer()
 
     def selectProfile(self):
         self.active = False
@@ -181,6 +187,10 @@ class ServiceHandler(object):
 
     def onSdrUnavailable(self):
         logger.debug("sdr source becoming unavailable; stopping services.")
+        self.stopServices()
+
+    def onSdrFailed(self):
+        logger.debug("sdr source failed; stopping services.")
         self.stopServices()
 
     def isSupported(self, mode):

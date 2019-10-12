@@ -75,10 +75,11 @@ class SdrService(object):
     @staticmethod
     def getSource(id=None):
         SdrService.loadProps()
+        sources = SdrService.getSources()
         if id is None:
             # TODO: configure default sdr in config? right now it will pick the first one off the list.
-            id = list(SdrService.sdrProps.keys())[0]
-        sources = SdrService.getSources()
+            id = list(sources.keys())[0]
+
         return sources[id]
 
     @staticmethod
@@ -90,11 +91,7 @@ class SdrService(object):
                 className = "".join(x for x in props["type"].title() if x.isalnum()) + "Source"
                 cls = getattr(sys.modules[__name__], className)
                 SdrService.sources[id] = cls(id, props, SdrService.getNextPort())
-        return SdrService.sources
-
-
-class SdrSourceException(Exception):
-    pass
+        return {key: s for key, s in SdrService.sources.items() if not s.isFailed()}
 
 
 class SdrSource(object):
@@ -120,6 +117,7 @@ class SdrSource(object):
         self.spectrumThread = None
         self.process = None
         self.modificationLock = threading.Lock()
+        self.failed = False
 
     # override this in subclasses
     def getCommand(self):
@@ -224,16 +222,22 @@ class SdrSource(object):
             except:
                 time.sleep(0.1)
 
+        if not available:
+            self.failed = True
+
         self.modificationLock.release()
 
-        if not available:
-            raise SdrSourceException("rtl source failed to start up")
-
         for c in self.clients:
-            c.onSdrAvailable()
+            if self.failed:
+                c.onSdrFailed()
+            else:
+                c.onSdrAvailable()
 
     def isAvailable(self):
         return self.monitor is not None
+
+    def isFailed(self):
+        return self.failed
 
     def stop(self):
         for c in self.clients:
@@ -305,6 +309,9 @@ class Resampler(SdrSource):
         super().__init__(None, props, port)
 
     def start(self):
+        if self.isFailed():
+            return
+
         self.modificationLock.acquire()
         if self.monitor:
             self.modificationLock.release()
@@ -364,13 +371,16 @@ class Resampler(SdrSource):
             except:
                 time.sleep(0.1)
 
+        if not available:
+            self.failed = True
+
         self.modificationLock.release()
 
-        if not available:
-            raise SdrSourceException("resampler source failed to start up")
-
         for c in self.clients:
-            c.onSdrAvailable()
+            if self.failed:
+                c.onSdrFailed()
+            else:
+                c.onSdrAvailable()
 
     def activateProfile(self, profile_id=None):
         pass
@@ -502,6 +512,9 @@ class SpectrumThread(csdr.output):
         self.dsp.start()
 
     def onSdrUnavailable(self):
+        self.dsp.stop()
+
+    def onSdrFailed(self):
         self.dsp.stop()
 
 
@@ -636,6 +649,10 @@ class DspManager(csdr.output):
 
     def onSdrUnavailable(self):
         logger.debug("received onSdrUnavailable, shutting down DspSource")
+        self.dsp.stop()
+
+    def onSdrFailed(self):
+        logger.debug("received onSdrFailed, shutting down DspSource")
         self.dsp.stop()
 
 
