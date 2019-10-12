@@ -266,6 +266,9 @@ class OpenWebRxReceiverClient(Client):
     def write_aprs_data(self, data):
         self.send({"type": "aprs_data", "value": data})
 
+    def write_sdr_error(self, message):
+        self.send({"type": "sdr_error", "value": message})
+
 
 class MapConnection(Client):
     def __init__(self, conn):
