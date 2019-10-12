@@ -168,5 +168,15 @@
     "name": "DB0TRS",
     "frequency": 439125000,
     "modulation": "nfm"
+  },
+  {
+    "name": "DB0OAL",
+    "frequency": 438937500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DM0ULR",
+    "frequency": 439337500,
+    "modulation": "nxdn"
   }
 ]
