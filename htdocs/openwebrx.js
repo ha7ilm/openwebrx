@@ -1261,6 +1261,14 @@ function on_ws_recv(evt)
 					case "dial_frequencies":
 					    dial_frequencies = json.value;
 					    update_dial_button();
+					    var as_bookmarks = dial_frequencies.map(function(d){
+					        return {
+					            name: d.mode.toUpperCase(),
+					            digital_modulation: d.mode,
+					            frequency: d.frequency
+					        };
+					    });
+					    bookmarks.replace_bookmarks(as_bookmarks, 'dial_frequencies');
 					    break;
 					case "aprs_data":
 					    update_packet_panel(json.value);

@@ -8,9 +8,13 @@ function BookmarkBar() {
         var $bookmark = $(e.target).closest('.bookmark');
         me.$container.find('.bookmark').removeClass('selected');
         var b = $bookmark.data();
-        if (!b || !b.frequency || !b.modulation) return;
+        if (!b || !b.frequency || (!b.modulation && !b.digital_modulation)) return;
         demodulator_set_offset_frequency(0, b.frequency - center_freq);
-        demodulator_analog_replace(b.modulation);
+        if (b.modulation) {
+            demodulator_analog_replace(b.modulation);
+        } else if (b.digital_modulation) {
+            demodulator_digital_replace(b.digital_modulation);
+        }
         $bookmark.addClass('selected');
     });
 

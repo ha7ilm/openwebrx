@@ -243,6 +243,14 @@ input[type=range]:focus::-ms-fill-upper
     border-top-color: #0FF;
 }
 
+#openwebrx-bookmarks-container .bookmark[data-source=dial_frequencies] {
+    background-color: #0F0;
+}
+
+#openwebrx-bookmarks-container .bookmark[data-source=dial_frequencies]:after {
+    border-top-color: #0F0;
+}
+
 #webrx-canvas-container
 {
 	position: relative;
