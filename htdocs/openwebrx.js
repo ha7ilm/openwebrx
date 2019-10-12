@@ -1259,9 +1259,7 @@ function on_ws_recv(evt)
 					    update_wsjt_panel(json.value);
 					    break;
 					case "dial_frequencies":
-					    dial_frequencies = json.value;
-					    update_dial_button();
-					    var as_bookmarks = dial_frequencies.map(function(d){
+					    var as_bookmarks = json.value.map(function(d){
 					        return {
 					            name: d.mode.toUpperCase(),
 					            digital_modulation: d.mode,
@@ -1339,27 +1337,6 @@ function on_ws_recv(evt)
                 console.warn('unknown type of binary message: ' + type)
         }
     }
-}
-
-var dial_frequencies = [];
-
-function find_dial_frequencies() {
-    var sdm = $("#openwebrx-secondary-demod-listbox")[0].value;
-    return dial_frequencies.filter(function(d){
-        return d.mode == sdm;
-    });
-}
-
-function update_dial_button() {
-    var available = find_dial_frequencies();
-    $("#openwebrx-secondary-demod-dial-button")[available.length ? "addClass" : "removeClass"]("available");
-}
-
-function dial_button_click() {
-    var available = find_dial_frequencies();
-    if (!available.length) return;
-    var frequency = available[0].frequency;
-    demodulator_set_offset_frequency(0, frequency - center_freq);
 }
 
 function update_metadata(meta) {

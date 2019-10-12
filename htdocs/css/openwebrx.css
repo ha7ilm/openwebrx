@@ -444,20 +444,6 @@ input[type=range]:focus::-ms-fill-upper
 	margin-right: 5px;
 }
 
-.openwebrx-dial-button svg {
-    width: 19px;
-    height: 19px;
-    vertical-align: bottom;
-}
-
-.openwebrx-dial-button #ph_dial {
-    fill: #888;
-}
-
-.openwebrx-dial-button.available #ph_dial {
-    fill: #FFF;
-}
-
 .openwebrx-square-button img
 {
 	height: 27px;
@@ -727,7 +713,7 @@ img.openwebrx-mirror-img
 	width: 173px;
 	height: 27px;
 	padding-left:3px;
-	margin-right: 5px;
+	flex: 4;
 }
 
 #openwebrx-sdr-profiles-listbox {
