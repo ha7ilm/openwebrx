@@ -1274,6 +1274,9 @@ function on_ws_recv(evt)
 					case "bookmarks":
 					    bookmarks.replace_bookmarks(json.value, "server");
 					    break;
+					case "sdr_error":
+					    divlog(json.value, true);
+					    break;
                     default:
                         console.warn('received message of unknown type: ' + json.type);
 		        }
