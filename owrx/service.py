@@ -266,23 +266,28 @@ class ServiceHandler(object):
         with self.lock:
             self.services = []
 
-            for group in self.optimizeResampling(dials, sr):
-                frequencies = sorted([f["frequency"] for f in group])
-                min = frequencies[0]
-                max = frequencies[-1]
-                cf = (min + max) / 2
-                bw = max - min
-                logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
-                resampler_props = PropertyManager()
-                resampler_props["center_freq"] = cf
-                # TODO the + 24000 is a temporary fix since the resampling optimizer does not account for required bandwidths
-                resampler_props["samp_rate"] = bw + 24000
-                resampler = Resampler(resampler_props, self.getAvailablePort(), self.source)
-                resampler.start()
-                self.services.append(resampler)
+            groups = self.optimizeResampling(dials, sr)
+            if groups is None:
+                for dial in dials:
+                    self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
+            else:
+                for group in groups:
+                    frequencies = sorted([f["frequency"] for f in group])
+                    min = frequencies[0]
+                    max = frequencies[-1]
+                    cf = (min + max) / 2
+                    bw = max - min
+                    logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
+                    resampler_props = PropertyManager()
+                    resampler_props["center_freq"] = cf
+                    # TODO the + 24000 is a temporary fix since the resampling optimizer does not account for required bandwidths
+                    resampler_props["samp_rate"] = bw + 24000
+                    resampler = Resampler(resampler_props, self.getAvailablePort(), self.source)
+                    resampler.start()
+                    self.services.append(resampler)
 
-                for dial in group:
-                    self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
+                    for dial in group:
+                        self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
@@ -320,7 +325,10 @@ class ServiceHandler(object):
         for r in results:
             logger.debug("splits: {0}, total: {1}".format(r["num_splits"], r["total_bandwidth"]))
 
-        return results[0]["groups"]
+        best = results[0]
+        if best["num_splits"] is None:
+            return None
+        return best["groups"]
 
     def setupService(self, mode, frequency, source):
         logger.debug("setting up service {0} on frequency {1}".format(mode, frequency))
