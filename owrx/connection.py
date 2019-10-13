@@ -142,6 +142,11 @@ class OpenWebRxReceiverClient(Client):
 
     def setSdr(self, id=None):
         next = SdrService.getSource(id)
+
+        if next is None:
+            self.handleSdrFailure("sdr device failed")
+            return
+
         if next == self.sdr:
             return
 
@@ -179,6 +184,9 @@ class OpenWebRxReceiverClient(Client):
         sendConfig(None, None)
 
         self.sdr.addSpectrumClient(self)
+
+    def handleSdrFailure(self, message):
+        self.write_sdr_error(message)
 
     def startDsp(self):
         if self.dsp is None:

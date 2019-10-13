@@ -76,10 +76,14 @@ class SdrService(object):
     def getSource(id=None):
         SdrService.loadProps()
         sources = SdrService.getSources()
+        if not sources:
+            return None
         if id is None:
             # TODO: configure default sdr in config? right now it will pick the first one off the list.
             id = list(sources.keys())[0]
 
+        if not id in sources:
+            return None
         return sources[id]
 
     @staticmethod
@@ -654,7 +658,7 @@ class DspManager(csdr.output):
     def onSdrFailed(self):
         logger.debug("received onSdrFailed, shutting down DspSource")
         self.dsp.stop()
-        self.handler.write_sdr_error("sdr failed")
+        self.handler.handleSdrFailure("sdr device failed")
 
 
 class CpuUsageThread(threading.Thread):
