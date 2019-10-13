@@ -318,7 +318,7 @@ class ServiceHandler(object):
             return {"num_splits": num_splits, "total_bandwidth": total_bandwidth, "groups": groups}
 
         usages = [calculate_usage(i) for i in range(0, len(freqs))]
-        # this is simulating no resampling. i haven't seen this as the best result yet
+        # another possible outcome might be that it's best not to resample at all. this is a special case.
         usages += [{"num_splits": None, "total_bandwidth": bandwidth * len(freqs), "groups": [freqs]}]
         results = sorted(usages, key=lambda f: f["total_bandwidth"])
 
