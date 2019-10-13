@@ -8,6 +8,7 @@ from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.config import PropertyManager
 from owrx.source import Resampler
+from owrx.feature import FeatureDetector
 
 import logging
 
@@ -194,7 +195,24 @@ class ServiceHandler(object):
         self.stopServices()
 
     def isSupported(self, mode):
-        return mode in PropertyManager.getSharedInstance()["services_decoders"]
+        # TODO this should be in a more central place (the frontend also needs this)
+        requirements = {
+            'ft8': 'wsjt-x',
+            'ft4': 'wsjt-x',
+            'jt65': 'wsjt-x',
+            'jt9': 'wsjt-x',
+            'wspr': 'wsjt-x',
+            'packet': 'packet',
+        }
+        fd = FeatureDetector()
+
+        # this looks overly complicated... but i'd like modes with no requirements to be always available without
+        # being listed in the hash above
+        unavailable = [mode for mode, req in requirements.items() if not fd.is_available(req)]
+        configured = PropertyManager.getSharedInstance()["services_decoders"]
+        available = [mode for mode in configured if mode not in unavailable]
+
+        return mode in available
 
     def stopServices(self):
         with self.lock:
