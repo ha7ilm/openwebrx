@@ -391,6 +391,15 @@ class dsp(object):
     def set_audio_compression(self, what):
         self.audio_compression = what
 
+    def get_audio_bytes_to_read(self):
+        # desired latency: 5ms
+        # uncompressed audio has 16 bits = 2 bytes per sample
+        base = self.output_rate * 0.005 * 2
+        # adpcm compresses the bitstream by 4
+        if self.audio_compression == "adpcm":
+            base = base / 4
+        return int(base)
+
     def set_fft_compression(self, what):
         self.fft_compression = what
 
@@ -398,7 +407,7 @@ class dsp(object):
         if self.fft_compression == "none":
             return self.fft_size * 4
         if self.fft_compression == "adpcm":
-            return (self.fft_size / 2) + (10 / 2)
+            return int((self.fft_size / 2) + (10 / 2))
 
     def get_secondary_fft_bytes_to_read(self):
         if self.fft_compression == "none":
@@ -650,7 +659,8 @@ class dsp(object):
             self.output.send_output(
                 "audio",
                 partial(
-                    self.process.stdout.read, int(self.get_fft_bytes_to_read()) if self.demodulator == "fft" else 256
+                    self.process.stdout.read,
+                    self.get_fft_bytes_to_read() if self.demodulator == "fft" else self.get_audio_bytes_to_read(),
                 ),
             )
 
