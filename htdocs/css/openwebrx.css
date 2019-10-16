@@ -302,18 +302,6 @@ input[type=range]:focus::-ms-fill-upper
 	color: #ff6262;
 }
 
-#openwebrx-problems span
-{
-	background: #ff6262;
-	padding: 3px;
-	font-size: 8pt;
-	color: white;
-	font-weight: bold;
-	border-radius: 4px;
-	-moz-border-radius: 4px;
-	margin: 0px 2px 0px 2px;
-}
-
 /*#webrx-freq-show
 {
 	visibility: hidden;
