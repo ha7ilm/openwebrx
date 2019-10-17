@@ -178,5 +178,45 @@
     "name": "DM0ULR",
     "frequency": 439337500,
     "modulation": "nxdn"
+  },
+  {
+    "name": "DB0MIR",
+    "frequency": 439300000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0PM",
+    "frequency": 439075000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0CP",
+    "frequency": 439025000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "OE7XGR",
+    "frequency": 438925000,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0TOL",
+    "frequency": 438725000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0OAL",
+    "frequency": 438325000,
+    "modulation": "dstar"
+  },
+  {
+    "name": "DB0ROL",
+    "frequency": 439237500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0ABX",
+    "frequency": 439137500,
+    "modulation": "nfm"
   }
 ]
