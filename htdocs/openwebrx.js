@@ -31,7 +31,6 @@ function arrayBufferToString(buf) {
 var bandwidth;
 var center_freq;
 var audio_buffer_current_size_debug = 0;
-var audio_buffer_all_size_debug = 0;
 var audio_buffer_current_count_debug = 0;
 var fft_size;
 var fft_fps;
@@ -1256,7 +1255,6 @@ function on_ws_recv(evt) {
                 }
                 audio_prepare(audio_data);
                 audio_buffer_current_size_debug += audio_data.length;
-                audio_buffer_all_size_debug += audio_data.length;
                 if (!(ios || is_chrome) && (audio_initialized === 0)) audio_init();
                 break;
             case 3:
@@ -1531,8 +1529,8 @@ var audio_node;
 
 // Optimalise these if audio lags or is choppy:
 var audio_buffer_size;
-var audio_buffer_maximal_length_sec = 3; //actual number of samples are calculated from sample rate
-var audio_buffer_decrease_to_on_overrun_sec = 2.2;
+var audio_buffer_maximal_length_sec = 1; //actual number of samples are calculated from sample rate
+var audio_buffer_decrease_to_on_overrun_sec = 0.8;
 var audio_flush_interval_ms = 500; //the interval in which audio_flush() is called
 
 var audio_buffers = [];
@@ -1582,6 +1580,10 @@ function audio_onprocess(e) {
     }
 
     e.outputBuffer.copyToChannel(out, 0);
+
+    if (!audio_buffers.length) {
+        audio_buffer_progressbar_update();
+    }
 }
 
 var audio_buffer_progressbar_update_disabled = false;
@@ -1614,7 +1616,7 @@ function audio_buffer_progressbar_update() {
             audio_buffer_progressbar_update();
         }, 1000);
     }
-    progressbar_set(e("openwebrx-bar-audio-buffer"), (underrun) ? 1 : audio_buffer_value / 1.5, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun || audio_buffer_value < 0.25);
+    progressbar_set(e("openwebrx-bar-audio-buffer"), (underrun) ? 1 : audio_buffer_value, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun);
 }
 
 
@@ -2213,10 +2215,6 @@ function debug_audio() {
     audio_debug_time_last_start = time_now; //now
     var audio_debug_time_taken = (time_now - audio_debug_time_start) / 1000;
     var kbps_mult = (audio_compression === "adpcm") ? 8 : 16;
-    //e("openwebrx-audio-sps").innerHTML=
-    //	((audio_compression=="adpcm")?"ADPCM compressed":"uncompressed")+" audio downlink:<br/> "+(audio_buffer_current_size_debug*kbps_mult/audio_debug_time_since_last_call).toFixed(0)+" kbps ("+
-    //	(audio_buffer_all_size_debug*kbps_mult/audio_debug_time_taken).toFixed(1)+" kbps avg.), feed at "+
-    //	((audio_buffer_current_count_debug*audio_buffer_size)/audio_debug_time_taken).toFixed(1)+" sps output";
 
     var audio_speed_value = audio_buffer_current_size_debug * kbps_mult / audio_debug_time_since_last_call;
     progressbar_set(e("openwebrx-bar-audio-speed"), audio_speed_value / 500000, "Audio stream [" + (audio_speed_value / 1000).toFixed(0) + " kbps]", false);
