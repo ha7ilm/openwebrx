@@ -1544,12 +1544,19 @@ function gain_ff(gain_value, data) //great! solved clicking! will have to move t
 }
 
 function audio_prepare(data) {
+    if (!audio_node) return;
     var buffer = data;
     if (audio_compression === "adpcm") {
         //resampling & ADPCM
         buffer = audio_codec.decode(buffer);
     }
-    audio_buffers.push(audio_resampler.process(gain_ff(volume, sdrjs.ConvertI16_F(buffer))));
+    buffer = audio_resampler.process(gain_ff(volume, sdrjs.ConvertI16_F(buffer)));
+    if (audio_node.port) {
+        // AudioWorklets supported
+        audio_node.port.postMessage(buffer, [buffer.buffer]);
+    } else {
+        audio_buffers.push(buffer);
+    }
 }
 
 if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
@@ -1595,13 +1602,13 @@ function audio_buffers_total_length() {
     return audio_buffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
 }
 
-function audio_buffer_progressbar_update() {
+function audio_buffer_progressbar_update(reportedValue) {
     if (audio_buffer_progressbar_update_disabled) return;
-    var audio_buffer_value = audio_buffers_total_length() / audio_context.sampleRate;
+    var audio_buffer_value = (reportedValue || audio_buffers_total_length()) / audio_context.sampleRate;
     audio_buffer_total_average_level_length++;
     audio_buffer_total_average_level = (audio_buffer_total_average_level * ((audio_buffer_total_average_level_length - 1) / audio_buffer_total_average_level_length)) + (audio_buffer_value / audio_buffer_total_average_level_length);
     var overrun = audio_buffer_value > audio_buffer_maximal_length_sec;
-    var underrun = audio_buffers.length === 0;
+    var underrun = audio_buffer_value === 0;
     var text = "buffer";
     if (overrun) {
         text = "overrun";
@@ -1665,20 +1672,13 @@ function parsehash() {
 
 function audio_preinit() {
     try {
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        audio_context = new AudioContext();
+        var ctx = window.AudioContext || window.webkitAudioContext;
+        audio_context = new ctx();
     }
     catch (e) {
         divlog('Your browser does not support Web Audio API, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.', 1);
         return;
     }
-
-    if (audio_context.sampleRate < 44100 * 2)
-        audio_buffer_size = 4096;
-    else if (audio_context.sampleRate >= 44100 * 2 && audio_context.sampleRate < 44100 * 4)
-        audio_buffer_size = 4096 * 2;
-    else if (audio_context.sampleRate > 44100 * 4)
-        audio_buffer_size = 4096 * 4;
 
     //we send our setup packet
     // TODO this should be moved to another stage of initialization
@@ -1706,21 +1706,55 @@ function audio_init() {
     audio_debug_time_last_start = audio_debug_time_start;
     audio_buffer_current_count_debug = 0;
 
+    if (audio_context.sampleRate < 44100 * 2)
+        audio_buffer_size = 4096;
+    else if (audio_context.sampleRate >= 44100 * 2 && audio_context.sampleRate < 44100 * 4)
+        audio_buffer_size = 4096 * 2;
+    else if (audio_context.sampleRate > 44100 * 4)
+        audio_buffer_size = 4096 * 4;
+
     //https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
     audio_initialized = 1; // only tell on_ws_recv() not to call it again
 
-    //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
-    var createjsnode_function = (audio_context.createJavaScriptNode === undefined) ? audio_context.createScriptProcessor.bind(audio_context) : audio_context.createJavaScriptNode.bind(audio_context);
-    audio_node = createjsnode_function(audio_buffer_size, 0, 1);
-    audio_node.onaudioprocess = audio_onprocess;
-    audio_node.connect(audio_context.destination);
+    if (audio_context.audioWorklet) {
+        audio_context.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
+            audio_node = new AudioWorkletNode(audio_context, 'openwebrx-audio-processor', {
+                numberOfInputs: 0,
+                numberOfOutputs: 1,
+                outputChannelCount: [1],
+                processorOptions: {
+                    maxLength: audio_buffer_maximal_length_sec,
+                    reduceToLength: audio_buffer_decrease_to_on_overrun_sec
+                }
+            });
+            audio_node.connect(audio_context.destination);
+            window.setInterval(function(){
+                audio_node.port.postMessage(JSON.stringify({cmd:'getBuffers'}));
+            }, audio_flush_interval_ms);
+            audio_node.port.addEventListener('message', function(m){
+                var json = JSON.parse(m.data);
+                if (json.buffersize) {
+                    audio_buffer_progressbar_update_disabled = false;
+                    audio_buffer_progressbar_update(json.buffersize);
+                }
+            });
+            audio_node.port.start();
+        });
+    } else {
+        //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
+        var createjsnode_function = (audio_context.createJavaScriptNode === undefined) ? audio_context.createScriptProcessor.bind(audio_context) : audio_context.createJavaScriptNode.bind(audio_context);
+        audio_node = createjsnode_function(audio_buffer_size, 0, 1);
+        audio_node.onaudioprocess = audio_onprocess;
+        audio_node.connect(audio_context.destination);
+        window.setInterval(audio_flush, audio_flush_interval_ms);
+    }
+
     // --- Resampling ---
     //https://github.com/grantgalitz/XAudioJS/blob/master/XAudioServer.js
     //audio_resampler = new Resampler(audio_received_sample_rate, audio_context.sampleRate, 1, audio_buffer_size, true);
     //audio_input_buffer_size = audio_buffer_size*(audio_received_sample_rate/audio_context.sampleRate);
     webrx_set_param("audio_rate", audio_context.sampleRate);
 
-    window.setInterval(audio_flush, audio_flush_interval_ms);
     divlog('Web Audio API succesfully initialized, sample rate: ' + audio_context.sampleRate.toString() + " sps");
     initialize_demodulator();
 
@@ -2224,7 +2258,8 @@ function debug_audio() {
     var audio_min_rate = audio_context.sampleRate * .25;
     progressbar_set(e("openwebrx-bar-audio-output"), audio_output_value / audio_max_rate, "Audio output [" + (audio_output_value / 1000).toFixed(1) + " ksps]", audio_output_value > audio_max_rate || audio_output_value < audio_min_rate);
 
-    audio_buffer_progressbar_update();
+    // disable when audioworklets used
+    if (!audio_node.port) audio_buffer_progressbar_update();
 
     var debug_ws_time_taken = (time_now - debug_ws_time_start) / 1000;
     var network_speed_value = debug_ws_data_received / debug_ws_time_taken;
