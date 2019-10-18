@@ -181,11 +181,6 @@ sdrs = {
 
 # ==== Misc settings ====
 
-client_audio_buffer_size = 5
-# increasing client_audio_buffer_size will:
-# - also increase the latency
-# - decrease the chance of audio underruns
-
 iq_port_range = [
     4950,
     4960,

@@ -65,7 +65,6 @@ class OpenWebRxReceiverClient(Client):
         "fft_compression",
         "max_clients",
         "start_mod",
-        "client_audio_buffer_size",
         "start_freq",
         "center_freq",
         "mathbox_waterfall_colors",

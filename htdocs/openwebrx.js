@@ -1115,7 +1115,6 @@ function on_ws_recv(evt) {
 
                         window.starting_mod = config['start_mod'];
                         window.starting_offset_frequency = config['start_offset_freq'];
-                        window.audio_buffering_fill_to = config['client_audio_buffer_size'];
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'] + config['lfo_offset'];
                         fft_size = config['fft_size'];
@@ -1258,7 +1257,7 @@ function on_ws_recv(evt) {
                 audio_prepare(audio_data);
                 audio_buffer_current_size_debug += audio_data.length;
                 audio_buffer_all_size_debug += audio_data.length;
-                if (!(ios || is_chrome) && (audio_initialized === 0 && audio_prepared_buffers.length > audio_buffering_fill_to)) audio_init();
+                if (!(ios || is_chrome) && (audio_initialized === 0)) audio_init();
                 break;
             case 3:
                 // secondary FFT
@@ -1536,12 +1535,8 @@ var audio_buffer_maximal_length_sec = 3; //actual number of samples are calculat
 var audio_buffer_decrease_to_on_overrun_sec = 2.2;
 var audio_flush_interval_ms = 500; //the interval in which audio_flush() is called
 
-var audio_prepared_buffers = Array();
-var audio_rebuffer;
+var audio_buffers = [];
 var audio_last_output_buffer;
-var audio_buffering = false;
-//var audio_buffering_fill_to=4; //on audio underrun we wait until this n*audio_buffer_size samples are present
-//tnx to the hint from HA3FLT, now we have about half the response time! (original value: 10)
 
 function gain_ff(gain_value, data) //great! solved clicking! will have to move to sdr.js
 {
@@ -1551,24 +1546,12 @@ function gain_ff(gain_value, data) //great! solved clicking! will have to move t
 }
 
 function audio_prepare(data) {
-
-    //audio_rebuffer.push(sdrjs.ConvertI16_F(data));//no resampling
-    //audio_rebuffer.push(audio_resampler.process(sdrjs.ConvertI16_F(data)));//resampling without ADPCM
-    if (audio_compression === "none")
-        audio_rebuffer.push(audio_resampler.process(gain_ff(volume, sdrjs.ConvertI16_F(data))));//resampling without ADPCM
-    else if (audio_compression === "adpcm")
-        audio_rebuffer.push(audio_resampler.process(gain_ff(volume, sdrjs.ConvertI16_F(audio_codec.decode(data))))); //resampling & ADPCM
-    else return;
-
-    //console.log("prepare",data.length,audio_rebuffer.remaining());
-    while (audio_rebuffer.remaining()) {
-        audio_prepared_buffers.push(audio_rebuffer.take());
-        audio_buffer_current_count_debug++;
+    var buffer = data;
+    if (audio_compression === "adpcm") {
+        //resampling & ADPCM
+        buffer = audio_codec.decode(buffer);
     }
-    if (audio_buffering && audio_prepared_buffers.length > audio_buffering_fill_to) {
-        console.log("buffers now: " + audio_prepared_buffers.length.toString());
-        audio_buffering = false;
-    }
+    audio_buffers.push(audio_resampler.process(gain_ff(volume, sdrjs.ConvertI16_F(buffer))));
 }
 
 if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
@@ -1579,45 +1562,50 @@ if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefo
     }
 }
 
-var silence = new Float32Array(4096);
-
 function audio_onprocess(e) {
-    if (audio_buffering) {
-        e.outputBuffer.copyToChannel(silence, 0);
-        return;
+    var total = 0;
+    var out = new Float32Array(audio_buffer_size);
+    while (audio_buffers.length) {
+        var b = audio_buffers.shift();
+        var newLength = total + b.length;
+        // not enough space to fit all data, so splice and put back in the queue
+        if (newLength > audio_buffer_size) {
+            var tokeep = b.slice(0, audio_buffer_size - total);
+            out.set(tokeep, total);
+            var tobuffer = b.slice(audio_buffer_size - total, b.length);
+            audio_buffers.unshift(tobuffer);
+            break;
+        } else {
+            out.set(b, total);
+        }
+        total = newLength;
     }
-    if (audio_prepared_buffers.length === 0) {
-        audio_buffer_progressbar_update();
-        audio_buffering = true;
-        e.outputBuffer.copyToChannel(silence, 0);
-    } else {
-        var buf = audio_prepared_buffers.shift();
-        e.outputBuffer.copyToChannel(buf, 0);
-    }
+
+    e.outputBuffer.copyToChannel(out, 0);
 }
 
 var audio_buffer_progressbar_update_disabled = false;
 
 var audio_buffer_total_average_level = 0;
 var audio_buffer_total_average_level_length = 0;
-var audio_overrun_cnt = 0;
-var audio_underrun_cnt = 0;
+
+function audio_buffers_total_length() {
+    return audio_buffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
+}
 
 function audio_buffer_progressbar_update() {
     if (audio_buffer_progressbar_update_disabled) return;
-    var audio_buffer_value = (audio_prepared_buffers.length * audio_buffer_size) / audio_context.sampleRate;
+    var audio_buffer_value = audio_buffers_total_length() / audio_context.sampleRate;
     audio_buffer_total_average_level_length++;
     audio_buffer_total_average_level = (audio_buffer_total_average_level * ((audio_buffer_total_average_level_length - 1) / audio_buffer_total_average_level_length)) + (audio_buffer_value / audio_buffer_total_average_level_length);
     var overrun = audio_buffer_value > audio_buffer_maximal_length_sec;
-    var underrun = audio_prepared_buffers.length === 0;
+    var underrun = audio_buffers.length === 0;
     var text = "buffer";
     if (overrun) {
         text = "overrun";
-        console.log("audio overrun, " + (++audio_overrun_cnt).toString());
     }
     if (underrun) {
         text = "underrun";
-        console.log("audio underrun, " + (++audio_underrun_cnt).toString());
     }
     if (overrun || underrun) {
         audio_buffer_progressbar_update_disabled = true;
@@ -1633,12 +1621,12 @@ function audio_buffer_progressbar_update() {
 function audio_flush() {
     var flushed = false;
     var we_have_more_than = function (sec) {
-        return sec * audio_context.sampleRate < audio_prepared_buffers.length * audio_buffer_size;
+        return sec * audio_context.sampleRate < audio_buffers_total_length();
     };
     if (we_have_more_than(audio_buffer_maximal_length_sec)) while (we_have_more_than(audio_buffer_decrease_to_on_overrun_sec)) {
         if (!flushed) audio_buffer_progressbar_update();
         flushed = true;
-        audio_prepared_buffers.shift();
+        audio_buffers.shift();
     }
 }
 
@@ -1690,13 +1678,11 @@ function audio_preinit() {
     else if (audio_context.sampleRate > 44100 * 4)
         audio_buffer_size = 4096 * 4;
 
-    if (!audio_rebuffer) {
-        audio_rebuffer = new sdrjs.Rebuffer(audio_buffer_size, sdrjs.REBUFFER_FIXED);
-        audio_last_output_buffer = new Float32Array(audio_buffer_size);
+    //we send our setup packet
+    // TODO this should be moved to another stage of initialization
+    parsehash();
 
-        //we send our setup packet
-        parsehash();
-
+    if (!audio_resampler) {
         audio_calculate_resampling(audio_context.sampleRate);
         audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor, 1);
     }
