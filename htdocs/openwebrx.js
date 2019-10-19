@@ -1716,7 +1716,9 @@ function audio_init() {
     //https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
     audio_initialized = 1; // only tell on_ws_recv() not to call it again
 
+    var tech;
     if (audio_context.audioWorklet) {
+        tech = "AudioWorklet";
         audio_context.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
             audio_node = new AudioWorkletNode(audio_context, 'openwebrx-audio-processor', {
                 numberOfInputs: 0,
@@ -1741,6 +1743,7 @@ function audio_init() {
             audio_node.port.start();
         });
     } else {
+        tech = "ScriptProcessorNode";
         //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
         var createjsnode_function = (audio_context.createJavaScriptNode === undefined) ? audio_context.createScriptProcessor.bind(audio_context) : audio_context.createJavaScriptNode.bind(audio_context);
         audio_node = createjsnode_function(audio_buffer_size, 0, 1);
@@ -1755,7 +1758,7 @@ function audio_init() {
     //audio_input_buffer_size = audio_buffer_size*(audio_received_sample_rate/audio_context.sampleRate);
     webrx_set_param("audio_rate", audio_context.sampleRate);
 
-    divlog('Web Audio API succesfully initialized, sample rate: ' + audio_context.sampleRate.toString() + " sps");
+    divlog('Web Audio API succesfully initialized, using ' + tech + ', sample rate: ' + audio_context.sampleRate.toString() + " sps");
     initialize_demodulator();
 
     //hide log panel in a second (if user has not hidden it yet)
@@ -2259,7 +2262,7 @@ function debug_audio() {
     progressbar_set(e("openwebrx-bar-audio-output"), audio_output_value / audio_max_rate, "Audio output [" + (audio_output_value / 1000).toFixed(1) + " ksps]", audio_output_value > audio_max_rate || audio_output_value < audio_min_rate);
 
     // disable when audioworklets used
-    if (!audio_node.port) audio_buffer_progressbar_update();
+    if (audio_node && !audio_node.port) audio_buffer_progressbar_update();
 
     var debug_ws_time_taken = (time_now - debug_ws_time_start) / 1000;
     var network_speed_value = debug_ws_data_received / debug_ws_time_taken;
