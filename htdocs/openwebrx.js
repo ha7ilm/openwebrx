@@ -108,7 +108,7 @@ function style_value(of_what, which) {
 }
 
 function updateVolume() {
-    volume = parseFloat(e("openwebrx-panel-volume").value) / 100;
+    gainNode.gain.value = parseFloat(e("openwebrx-panel-volume").value) / 100;
 }
 
 function toggleMute() {
@@ -1519,7 +1519,7 @@ function divlog(what, is_error) {
 
 var audio_context;
 var audio_initialized = 0;
-var volume = 1.0;
+var gainNode;
 var volumeBeforeMute = 100.0;
 var mute = false;
 
@@ -1536,13 +1536,6 @@ var audio_flush_interval_ms = 500; //the interval in which audio_flush() is call
 var audio_buffers = [];
 var audio_last_output_buffer;
 
-function gain_ff(gain_value, data) //great! solved clicking! will have to move to sdr.js
-{
-    for (var i = 0; i < data.length; i++)
-        data[i] *= gain_value;
-    return data;
-}
-
 function audio_prepare(data) {
     if (!audio_node) return;
     var buffer = data;
@@ -1550,7 +1543,7 @@ function audio_prepare(data) {
         //resampling & ADPCM
         buffer = audio_codec.decode(buffer);
     }
-    buffer = audio_resampler.process(gain_ff(volume, sdrjs.ConvertI16_F(buffer)));
+    buffer = audio_resampler.process(sdrjs.ConvertI16_F(buffer));
     if (audio_node.port) {
         // AudioWorklets supported
         audio_node.port.postMessage(buffer, [buffer.buffer]);
@@ -1717,6 +1710,8 @@ function audio_init() {
     audio_initialized = 1; // only tell on_ws_recv() not to call it again
 
     var tech;
+    gainNode = audio_context.createGain();
+    gainNode.connect(audio_context.destination);
     if (audio_context.audioWorklet) {
         tech = "AudioWorklet";
         audio_context.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
@@ -1729,7 +1724,7 @@ function audio_init() {
                     reduceToLength: audio_buffer_decrease_to_on_overrun_sec
                 }
             });
-            audio_node.connect(audio_context.destination);
+            audio_node.connect(gainNode);
             window.setInterval(function(){
                 audio_node.port.postMessage(JSON.stringify({cmd:'getBuffers'}));
             }, audio_flush_interval_ms);
@@ -1748,9 +1743,12 @@ function audio_init() {
         var createjsnode_function = (audio_context.createJavaScriptNode === undefined) ? audio_context.createScriptProcessor.bind(audio_context) : audio_context.createJavaScriptNode.bind(audio_context);
         audio_node = createjsnode_function(audio_buffer_size, 0, 1);
         audio_node.onaudioprocess = audio_onprocess;
-        audio_node.connect(audio_context.destination);
+        audio_node.connect(gainNode);
         window.setInterval(audio_flush, audio_flush_interval_ms);
     }
+
+    //Synchronise volume with slider
+    updateVolume();
 
     // --- Resampling ---
     //https://github.com/grantgalitz/XAudioJS/blob/master/XAudioServer.js
@@ -2199,9 +2197,6 @@ function openwebrx_init() {
     check_top_bar_congestion();
     init_header();
     bookmarks = new BookmarkBar();
-
-    //Synchronise volume with slider
-    updateVolume();
 
 }
 
