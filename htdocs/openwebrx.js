@@ -1586,8 +1586,6 @@ function audio_onprocess(e) {
     }
 }
 
-var audio_buffer_progressbar_update_disabled = false;
-
 var audio_buffer_total_average_level = 0;
 var audio_buffer_total_average_level_length = 0;
 
@@ -1596,8 +1594,11 @@ function audio_buffers_total_length() {
 }
 
 function audio_buffer_progressbar_update(reportedValue) {
-    if (audio_buffer_progressbar_update_disabled) return;
-    var audio_buffer_value = (reportedValue || audio_buffers_total_length()) / audio_context.sampleRate;
+    var audio_buffer_value = reportedValue;
+    if (typeof(audio_buffer_value) === 'undefined') {
+        audio_buffer_value = audio_buffers_total_length();
+    }
+    audio_buffer_value /= audio_context.sampleRate;
     audio_buffer_total_average_level_length++;
     audio_buffer_total_average_level = (audio_buffer_total_average_level * ((audio_buffer_total_average_level_length - 1) / audio_buffer_total_average_level_length)) + (audio_buffer_value / audio_buffer_total_average_level_length);
     var overrun = audio_buffer_value > audio_buffer_maximal_length_sec;
@@ -1609,14 +1610,7 @@ function audio_buffer_progressbar_update(reportedValue) {
     if (underrun) {
         text = "underrun";
     }
-    if (overrun || underrun) {
-        audio_buffer_progressbar_update_disabled = true;
-        window.setTimeout(function () {
-            audio_buffer_progressbar_update_disabled = false;
-            audio_buffer_progressbar_update();
-        }, 1000);
-    }
-    progressbar_set(e("openwebrx-bar-audio-buffer"), (underrun) ? 1 : audio_buffer_value, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun);
+    progressbar_set(e("openwebrx-bar-audio-buffer"), audio_buffer_value, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun);
 }
 
 
@@ -1748,8 +1742,7 @@ function audio_init() {
             }, audio_flush_interval_ms);
             audio_node.port.addEventListener('message', function(m){
                 var json = JSON.parse(m.data);
-                if (json.buffersize) {
-                    audio_buffer_progressbar_update_disabled = false;
+                if (typeof(json.buffersize) !== 'undefined') {
                     audio_buffer_progressbar_update(json.buffersize);
                 }
             });
