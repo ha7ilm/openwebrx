@@ -1709,11 +1709,29 @@ function audio_init() {
     //https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
     audio_initialized = 1; // only tell on_ws_recv() not to call it again
 
-    var tech;
+    // --- Resampling ---
+    webrx_set_param("audio_rate", audio_context.sampleRate);
+
+    var finish = function() {
+        divlog('Web Audio API succesfully initialized, using ' + audio_node.constructor.name + ', sample rate: ' + audio_context.sampleRate.toString() + " sps");
+        initialize_demodulator();
+
+        //hide log panel in a second (if user has not hidden it yet)
+        window.setTimeout(function () {
+            if (typeof e("openwebrx-panel-log").openwebrxHidden === "undefined" && !was_error) {
+                toggle_panel("openwebrx-panel-log");
+                //animate(e("openwebrx-panel-log"),"opacity","",1,0,0.9,1000,60);
+                //window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
+            }
+        }, 2000);
+    };
+
     gainNode = audio_context.createGain();
     gainNode.connect(audio_context.destination);
+    //Synchronise volume with slider
+    updateVolume();
+
     if (audio_context.audioWorklet) {
-        tech = "AudioWorklet";
         audio_context.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
             audio_node = new AudioWorkletNode(audio_context, 'openwebrx-audio-processor', {
                 numberOfInputs: 0,
@@ -1736,38 +1754,17 @@ function audio_init() {
                 }
             });
             audio_node.port.start();
+            finish();
         });
     } else {
-        tech = "ScriptProcessorNode";
         //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
         var createjsnode_function = (audio_context.createJavaScriptNode === undefined) ? audio_context.createScriptProcessor.bind(audio_context) : audio_context.createJavaScriptNode.bind(audio_context);
         audio_node = createjsnode_function(audio_buffer_size, 0, 1);
         audio_node.onaudioprocess = audio_onprocess;
         audio_node.connect(gainNode);
         window.setInterval(audio_flush, audio_flush_interval_ms);
+        finish();
     }
-
-    //Synchronise volume with slider
-    updateVolume();
-
-    // --- Resampling ---
-    //https://github.com/grantgalitz/XAudioJS/blob/master/XAudioServer.js
-    //audio_resampler = new Resampler(audio_received_sample_rate, audio_context.sampleRate, 1, audio_buffer_size, true);
-    //audio_input_buffer_size = audio_buffer_size*(audio_received_sample_rate/audio_context.sampleRate);
-    webrx_set_param("audio_rate", audio_context.sampleRate);
-
-    divlog('Web Audio API succesfully initialized, using ' + tech + ', sample rate: ' + audio_context.sampleRate.toString() + " sps");
-    initialize_demodulator();
-
-    //hide log panel in a second (if user has not hidden it yet)
-    window.setTimeout(function () {
-        if (typeof e("openwebrx-panel-log").openwebrxHidden === "undefined" && !was_error) {
-            toggle_panel("openwebrx-panel-log");
-            //animate(e("openwebrx-panel-log"),"opacity","",1,0,0.9,1000,60);
-            //window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
-        }
-    }, 2000);
-
 }
 
 function initialize_demodulator() {
