@@ -117,14 +117,14 @@ AudioEngine.prototype.start = function(callback) {
 
         setInterval(me.reportStats.bind(me), 1000);
     });
-}
+};
 
 AudioEngine.prototype.isAllowed = function() {
     return this.allowed;
-}
+};
 
 AudioEngine.prototype.reportStats = function() {
-    var stats = {}
+    var stats = {};
     if (this.audioNode.port) {
         this.audioNode.port.postMessage(JSON.stringify({cmd:'getBuffers'}));
     } else {
@@ -132,12 +132,12 @@ AudioEngine.prototype.reportStats = function() {
     }
     stats.audioRate = this.stats.audioSamples;
     var elapsed = new Date() - this.stats.startTime;
-    stats.audioByteRate = this.stats.audioBytes * 1000 / elapsed
+    stats.audioByteRate = this.stats.audioBytes * 1000 / elapsed;
     this.audioReporter(stats);
 
     // sample rate is just measuring the last seconds
     this.stats.audioSamples = 0;
-}
+};
 
 AudioEngine.prototype.resetStats = function() {
     this.stats = {
@@ -145,7 +145,7 @@ AudioEngine.prototype.resetStats = function() {
         audioBytes: 0,
         audioSamples: 0
     };
-}
+};
 
 AudioEngine.prototype.setupResampling = function() { //both at the server and the client
     var output_range_max = 12000;
@@ -166,15 +166,15 @@ AudioEngine.prototype.setupResampling = function() { //both at the server and th
         }
         i++;
     }
-}
+};
 
 AudioEngine.prototype.getOutputRate = function() {
     return this.outputRate;
-}
+};
 
 AudioEngine.prototype.getSampleRate = function() {
     return this.audioContext.sampleRate;
-}
+};
 
 AudioEngine.prototype.pushAudio = function(data) {
     if (!this.audioNode) return;
@@ -197,18 +197,18 @@ AudioEngine.prototype.pushAudio = function(data) {
             this.audioBuffers.push(buffer);
         }
     }
-}
+};
 
 AudioEngine.prototype.setCompression = function(compression) {
     this.compression = compression;
-}
+};
 
 AudioEngine.prototype.setVolume = function(volume) {
     this.gainNode.gain.value = volume;
-}
+};
 
 AudioEngine.prototype.getBuffersize = function() {
     // only available when using ScriptProcessorNode
     if (!this.audioBuffers) return 0;
     return this.audioBuffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
-}
+};

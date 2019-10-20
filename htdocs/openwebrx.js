@@ -157,6 +157,10 @@ function updateSquelch() {
 
 var waterfall_min_level;
 var waterfall_max_level;
+var waterfall_min_level_default;
+var waterfall_max_level_default;
+var waterfall_colors;
+var waterfall_auto_level_margin;
 
 function updateWaterfallColors(which) {
     var wfmax = e("openwebrx-waterfall-color-max");
@@ -1450,10 +1454,6 @@ var waterfall_measure_minmax_max = -1e100;
 function waterfall_measure_minmax_do(what) {
     waterfall_measure_minmax_min = Math.min(waterfall_measure_minmax_min, Math.min.apply(Math, what));
     waterfall_measure_minmax_max = Math.max(waterfall_measure_minmax_max, Math.max.apply(Math, what));
-}
-
-function waterfall_measure_minmax_print() {
-    console.log("Waterfall | min = " + waterfall_measure_minmax_min.toString() + " dB | max = " + waterfall_measure_minmax_max.toString() + " dB");
 }
 
 function on_ws_opened() {

@@ -2,14 +2,14 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
     constructor(options){
         super(options);
         // initialize ringbuffer, make sure it aligns with the expected buffer size of 128
-        this.bufferSize = Math.round(options.processorOptions.maxBufferSize / 128) * 128
+        this.bufferSize = Math.round(options.processorOptions.maxBufferSize / 128) * 128;
         this.audioBuffer = new Float32Array(this.bufferSize);
         this.inPos = 0;
         this.outPos = 0;
         this.port.addEventListener('message', (m) => {
             if (typeof(m.data) === 'string') {
                 const json = JSON.parse(m.data);
-                if (json.cmd && json.cmd == 'getBuffers') {
+                if (json.cmd && json.cmd === 'getBuffers') {
                     this.reportBuffers();
                 }
             } else {
@@ -31,7 +31,7 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
         this.port.addEventListener('messageerror', console.error);
         this.port.start();
     }
-    process(inputs, outputs, parameters) {
+    process(inputs, outputs) {
         const samples = Math.min(128, this.remaining());
         outputs[0].forEach((output) => {
             output.set(this.audioBuffer.subarray(this.outPos, this.outPos + samples));
