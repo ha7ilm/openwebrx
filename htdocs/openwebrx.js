@@ -42,9 +42,6 @@ function e(what) {
     return document.getElementById(what);
 }
 
-ios = /iPad|iPod|iPhone|Chrome/.test(navigator.userAgent);
-is_chrome = /Chrome/.test(navigator.userAgent);
-
 var rx_photo_height;
 
 function init_rx_photo() {
