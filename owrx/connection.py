@@ -157,6 +157,8 @@ class OpenWebRxReceiverClient(Client):
 
         self.sdr = next
 
+        self.startDsp()
+
         # send initial config
         configProps = (
             self.sdr.getProps()

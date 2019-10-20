@@ -30,16 +30,12 @@ function arrayBufferToString(buf) {
 
 var bandwidth;
 var center_freq;
-var audio_buffer_current_size_debug = 0;
-var audio_buffer_current_count_debug = 0;
 var fft_size;
 var fft_fps;
 var fft_compression = "none";
 var fft_codec = new sdrjs.ImaAdpcm();
-var audio_compression = "none";
 var waterfall_setup_done = 0;
 var secondary_fft_size;
-var audio_allowed;
 var rx_photo_state = 1;
 
 function e(what) {
@@ -108,7 +104,7 @@ function style_value(of_what, which) {
 }
 
 function updateVolume() {
-    gainNode.gain.value = parseFloat(e("openwebrx-panel-volume").value) / 100;
+    audioEngine.setVolume(parseFloat(e("openwebrx-panel-volume").value) / 100);
 }
 
 function toggleMute() {
@@ -406,8 +402,8 @@ function Demodulator_default_analog(offset_frequency, subtype) {
     this.subtype = subtype;
     this.filter = {
         min_passband: 100,
-        high_cut_limit: (audio_server_output_rate / 2) - 1, //audio_context.sampleRate/2,
-        low_cut_limit: (-audio_server_output_rate / 2) + 1 //-audio_context.sampleRate/2
+        high_cut_limit: (audioEngine.getOutputRate() / 2) - 1,
+        low_cut_limit: (-audioEngine.getOutputRate() / 2) + 1
     };
     //Subtypes only define some filter parameters and the mod string sent to server,
     //so you may set these parameters in your custom child class.
@@ -689,7 +685,8 @@ function scale_px_from_freq(f, range) {
 function get_visible_freq_range() {
     var out = {};
     var fcalc = function (x) {
-        return Math.round(((-zoom_offset_px + x) / canvases[0].clientWidth) * bandwidth) + (center_freq - bandwidth / 2);
+        var canvasWidth = canvas_container.clientWidth * zoom_levels[zoom_level];
+        return Math.round(((-zoom_offset_px + x) / canvasWidth) * bandwidth) + (center_freq - bandwidth / 2);
     };
     out.start = fcalc(0);
     out.center = fcalc(canvas_container.clientWidth / 2);
@@ -1063,30 +1060,8 @@ function resize_waterfall_container(check_init) {
 
 }
 
-var audio_server_output_rate = 11025;
-var audio_client_resampling_factor = 4;
-
-
-function audio_calculate_resampling(targetRate) { //both at the server and the client
-    var output_range_max = 12000;
-    var output_range_min = 8000;
-    var i = 1;
-    while (true) {
-        audio_server_output_rate = Math.floor(targetRate / i);
-        if (audio_server_output_rate < output_range_min) {
-            audio_client_resampling_factor = audio_server_output_rate = 0;
-            divlog("Your audio card sampling rate (" + targetRate.toString() + ") is not supported.<br />Please change your operating system default settings in order to fix this.", 1);
-        }
-        if (audio_server_output_rate >= output_range_min && audio_server_output_rate <= output_range_max) break; //okay, we're done
-        i++;
-    }
-    audio_client_resampling_factor = i;
-    console.log("audio_calculate_resampling() :: " + audio_client_resampling_factor.toString() + ", " + audio_server_output_rate.toString());
-}
-
-
 var debug_ws_data_received = 0;
-var debug_ws_time_start = 0;
+var debug_ws_time_start;
 var max_clients_num = 0;
 var client_num = 0;
 var currentprofile;
@@ -1096,7 +1071,7 @@ var COMPRESS_FFT_PAD_N = 10; //should be the same as in csdr.c
 function on_ws_recv(evt) {
     if (typeof evt.data === 'string') {
         // text messages
-        debug_ws_data_received += evt.data.length / 1000;
+        debug_ws_data_received += evt.data.length;
 
         if (evt.data.substr(0, 16) === "CLIENT DE SERVER") {
             divlog("Server acknowledged WebSocket connection.");
@@ -1106,19 +1081,20 @@ function on_ws_recv(evt) {
                 switch (json.type) {
                     case "config":
                         var config = json['value'];
-                        window.waterfall_colors = config['waterfall_colors'];
-                        window.waterfall_min_level_default = config['waterfall_min_level'];
-                        window.waterfall_max_level_default = config['waterfall_max_level'];
-                        window.waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
+                        waterfall_colors = config['waterfall_colors'];
+                        waterfall_min_level_default = config['waterfall_min_level'];
+                        waterfall_max_level_default = config['waterfall_max_level'];
+                        waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
                         waterfallColorsDefault();
 
-                        window.starting_mod = config['start_mod'];
-                        window.starting_offset_frequency = config['start_offset_freq'];
+                        starting_mod = config['start_mod'];
+                        starting_offset_frequency = config['start_offset_freq'];
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'] + config['lfo_offset'];
                         fft_size = config['fft_size'];
                         fft_fps = config['fft_fps'];
-                        audio_compression = config['audio_compression'];
+                        var audio_compression = config['audio_compression'];
+                        audioEngine.setCompression(audio_compression);
                         divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
                         fft_compression = config['fft_compression'];
                         divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
@@ -1129,20 +1105,14 @@ function on_ws_recv(evt) {
                         mathbox_waterfall_history_length = config['mathbox_waterfall_history_length'];
 
                         waterfall_init();
-                        audio_preinit();
+                        initialize_demodulator();
                         bookmarks.loadLocalBookmarks();
 
-                        if (audio_allowed) {
-                            if (audio_initialized) {
-                                initialize_demodulator();
-                            } else {
-                                audio_init();
-                            }
-                        }
                         waterfall_clear();
 
                         currentprofile = config['profile_id'];
                         $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+
                         break;
                     case "secondary_config":
                         var s = json['value'];
@@ -1222,7 +1192,7 @@ function on_ws_recv(evt) {
         }
     } else if (evt.data instanceof ArrayBuffer) {
         // binary messages
-        debug_ws_data_received += evt.data.byteLength / 1000;
+        debug_ws_data_received += evt.data.byteLength;
 
         var type = new Uint8Array(evt.data, 0, 1)[0];
         var data = evt.data.slice(1);
@@ -1247,15 +1217,7 @@ function on_ws_recv(evt) {
                 break;
             case 2:
                 // audio data
-                var audio_data;
-                if (audio_compression === "adpcm") {
-                    audio_data = new Uint8Array(data);
-                } else {
-                    audio_data = new Int16Array(data);
-                }
-                audio_prepare(audio_data);
-                audio_buffer_current_size_debug += audio_data.length;
-                if (!(ios || is_chrome) && (audio_initialized === 0)) audio_init();
+                audioEngine.pushAudio(data);
                 break;
             case 3:
                 // secondary FFT
@@ -1498,8 +1460,13 @@ function on_ws_opened() {
     ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
     divlog("WebSocket opened to " + ws.url);
     debug_ws_data_received = 0;
-    debug_ws_time_start = new Date().getTime();
+    debug_ws_time_start = new Date();
     reconnect_timeout = false;
+    ws.send(JSON.stringify({
+        "type": "dspcontrol",
+        "action": "start",
+        "params": {"output_rate": audioEngine.getOutputRate()}
+    }));
 }
 
 var was_error = 0;
@@ -1517,114 +1484,11 @@ function divlog(what, is_error) {
     nano.nanoScroller({scroll: 'bottom'});
 }
 
-var audio_context;
-var audio_initialized = 0;
-var gainNode;
 var volumeBeforeMute = 100.0;
 var mute = false;
 
-var audio_resampler;
-var audio_codec = new sdrjs.ImaAdpcm();
-var audio_node;
-
 // Optimalise these if audio lags or is choppy:
-var audio_buffer_size;
 var audio_buffer_maximal_length_sec = 1; //actual number of samples are calculated from sample rate
-var audio_buffer_decrease_to_on_overrun_sec = 0.8;
-var audio_flush_interval_ms = 500; //the interval in which audio_flush() is called
-
-var audio_buffers = [];
-var audio_last_output_buffer;
-
-function audio_prepare(data) {
-    if (!audio_node) return;
-    var buffer = data;
-    if (audio_compression === "adpcm") {
-        //resampling & ADPCM
-        buffer = audio_codec.decode(buffer);
-    }
-    buffer = audio_resampler.process(sdrjs.ConvertI16_F(buffer));
-    if (audio_node.port) {
-        // AudioWorklets supported
-        audio_node.port.postMessage(buffer);
-    } else {
-        audio_buffers.push(buffer);
-    }
-}
-
-if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
-    AudioBuffer.prototype.copyToChannel = function (input, channel) //input is Float32Array
-    {
-        var cd = this.getChannelData(channel);
-        for (var i = 0; i < input.length; i++) cd[i] = input[i];
-    }
-}
-
-function audio_onprocess(e) {
-    var total = 0;
-    var out = new Float32Array(audio_buffer_size);
-    while (audio_buffers.length) {
-        var b = audio_buffers.shift();
-        var newLength = total + b.length;
-        // not enough space to fit all data, so splice and put back in the queue
-        if (newLength > audio_buffer_size) {
-            var tokeep = b.subarray(0, audio_buffer_size - total);
-            out.set(tokeep, total);
-            var tobuffer = b.subarray(audio_buffer_size - total, b.length);
-            audio_buffers.unshift(tobuffer);
-            break;
-        } else {
-            out.set(b, total);
-        }
-        total = newLength;
-    }
-
-    e.outputBuffer.copyToChannel(out, 0);
-
-    if (!audio_buffers.length) {
-        audio_buffer_progressbar_update();
-    }
-}
-
-var audio_buffer_total_average_level = 0;
-var audio_buffer_total_average_level_length = 0;
-
-function audio_buffers_total_length() {
-    return audio_buffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
-}
-
-function audio_buffer_progressbar_update(reportedValue) {
-    var audio_buffer_value = reportedValue;
-    if (typeof(audio_buffer_value) === 'undefined') {
-        audio_buffer_value = audio_buffers_total_length();
-    }
-    audio_buffer_value /= audio_context.sampleRate;
-    audio_buffer_total_average_level_length++;
-    audio_buffer_total_average_level = (audio_buffer_total_average_level * ((audio_buffer_total_average_level_length - 1) / audio_buffer_total_average_level_length)) + (audio_buffer_value / audio_buffer_total_average_level_length);
-    var overrun = audio_buffer_value > audio_buffer_maximal_length_sec;
-    var underrun = audio_buffer_value === 0;
-    var text = "buffer";
-    if (overrun) {
-        text = "overrun";
-    }
-    if (underrun) {
-        text = "underrun";
-    }
-    progressbar_set(e("openwebrx-bar-audio-buffer"), audio_buffer_value, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun);
-}
-
-
-function audio_flush() {
-    var flushed = false;
-    var we_have_more_than = function (sec) {
-        return sec * audio_context.sampleRate < audio_buffers_total_length();
-    };
-    if (we_have_more_than(audio_buffer_maximal_length_sec)) while (we_have_more_than(audio_buffer_decrease_to_on_overrun_sec)) {
-        if (!flushed) audio_buffer_progressbar_update();
-        flushed = true;
-        audio_buffers.shift();
-    }
-}
 
 function webrx_set_param(what, value) {
     var params = {};
@@ -1632,11 +1496,10 @@ function webrx_set_param(what, value) {
     ws.send(JSON.stringify({"type": "dspcontrol", "params": params}));
 }
 
-var starting_mute = false;
 var starting_offset_frequency;
 var starting_mod;
 
-function parsehash() {
+function parseHash() {
     var h;
     if (h = window.location.hash) {
         h.substring(1).split(",").forEach(function (x) {
@@ -1657,106 +1520,21 @@ function parsehash() {
     }
 }
 
-function audio_preinit() {
-    try {
-        var ctx = window.AudioContext || window.webkitAudioContext;
-        audio_context = new ctx();
-    }
-    catch (e) {
-        divlog('Your browser does not support Web Audio API, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.', 1);
-        return;
-    }
+function onAudioStart(success, apiType){
+    divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
 
-    //we send our setup packet
-    // TODO this should be moved to another stage of initialization
-    parsehash();
+    // canvas_container is set after waterfall_init() has been called. we cannot initialize before.
+    if (canvas_container) initialize_demodulator();
 
-    if (!audio_resampler) {
-        audio_calculate_resampling(audio_context.sampleRate);
-        audio_resampler = new sdrjs.RationalResamplerFF(audio_client_resampling_factor, 1);
-    }
+    //hide log panel in a second (if user has not hidden it yet)
+    window.setTimeout(function () {
+        if (typeof e("openwebrx-panel-log").openwebrxHidden === "undefined" && !was_error) {
+            toggle_panel("openwebrx-panel-log");
+        }
+    }, 2000);
 
-    ws.send(JSON.stringify({
-        "type": "dspcontrol",
-        "action": "start",
-        "params": {"output_rate": audio_server_output_rate}
-    }));
-}
-
-function audio_init() {
-    if (is_chrome) audio_context.resume();
-    if (starting_mute) toggleMute();
-
-    if (audio_client_resampling_factor === 0) return; //if failed to find a valid resampling factor...
-
-    audio_debug_time_start = (new Date()).getTime();
-    audio_debug_time_last_start = audio_debug_time_start;
-    audio_buffer_current_count_debug = 0;
-
-    if (audio_context.sampleRate < 44100 * 2)
-        audio_buffer_size = 4096;
-    else if (audio_context.sampleRate >= 44100 * 2 && audio_context.sampleRate < 44100 * 4)
-        audio_buffer_size = 4096 * 2;
-    else if (audio_context.sampleRate > 44100 * 4)
-        audio_buffer_size = 4096 * 4;
-
-    //https://github.com/0xfe/experiments/blob/master/www/tone/js/sinewave.js
-    audio_initialized = 1; // only tell on_ws_recv() not to call it again
-
-    // --- Resampling ---
-    webrx_set_param("audio_rate", audio_context.sampleRate);
-
-    var finish = function() {
-        divlog('Web Audio API succesfully initialized, using ' + audio_node.constructor.name + ', sample rate: ' + audio_context.sampleRate.toString() + " sps");
-        initialize_demodulator();
-
-        //hide log panel in a second (if user has not hidden it yet)
-        window.setTimeout(function () {
-            if (typeof e("openwebrx-panel-log").openwebrxHidden === "undefined" && !was_error) {
-                toggle_panel("openwebrx-panel-log");
-                //animate(e("openwebrx-panel-log"),"opacity","",1,0,0.9,1000,60);
-                //window.setTimeout(function(){toggle_panel("openwebrx-panel-log");e("openwebrx-panel-log").style.opacity="1";},1200)
-            }
-        }, 2000);
-    };
-
-    gainNode = audio_context.createGain();
-    gainNode.connect(audio_context.destination);
     //Synchronise volume with slider
     updateVolume();
-
-    if (audio_context.audioWorklet) {
-        audio_context.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
-            audio_node = new AudioWorkletNode(audio_context, 'openwebrx-audio-processor', {
-                numberOfInputs: 0,
-                numberOfOutputs: 1,
-                outputChannelCount: [1],
-                processorOptions: {
-                    maxLength: audio_buffer_maximal_length_sec
-                }
-            });
-            audio_node.connect(gainNode);
-            window.setInterval(function(){
-                audio_node.port.postMessage(JSON.stringify({cmd:'getBuffers'}));
-            }, audio_flush_interval_ms);
-            audio_node.port.addEventListener('message', function(m){
-                var json = JSON.parse(m.data);
-                if (typeof(json.buffersize) !== 'undefined') {
-                    audio_buffer_progressbar_update(json.buffersize);
-                }
-            });
-            audio_node.port.start();
-            finish();
-        });
-    } else {
-        //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
-        var createjsnode_function = (audio_context.createJavaScriptNode === undefined) ? audio_context.createScriptProcessor.bind(audio_context) : audio_context.createJavaScriptNode.bind(audio_context);
-        audio_node = createjsnode_function(audio_buffer_size, 0, 1);
-        audio_node.onaudioprocess = audio_onprocess;
-        audio_node.connect(gainNode);
-        window.setInterval(audio_flush, audio_flush_interval_ms);
-        finish();
-    }
 }
 
 function initialize_demodulator() {
@@ -1772,12 +1550,6 @@ function initialize_demodulator() {
 var reconnect_timeout = false;
 
 function on_ws_closed() {
-    try {
-        audio_node.disconnect();
-    }
-    catch (dont_care) {
-    }
-    audio_initialized = 0;
     if (reconnect_timeout) {
         // max value: roundabout 8 and a half minutes
         reconnect_timeout = Math.min(reconnect_timeout * 2, 512000);
@@ -2168,25 +1940,66 @@ function init_header() {
     });
 }
 
+function audio_buffer_progressbar_update(buffersize) {
+    var audio_buffer_value = buffersize / audioEngine.getSampleRate();
+    var overrun = audio_buffer_value > audio_buffer_maximal_length_sec;
+    var underrun = audio_buffer_value === 0;
+    var text = "buffer";
+    if (overrun) {
+        text = "overrun";
+    }
+    if (underrun) {
+        text = "underrun";
+    }
+    progressbar_set(e("openwebrx-bar-audio-buffer"), audio_buffer_value, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun);
+}
+
+function updateNetworkStats() {
+    var elapsed = (new Date() - debug_ws_time_start) / 1000;
+    var network_speed_value = (debug_ws_data_received / 1000) /  elapsed;
+    progressbar_set(e("openwebrx-bar-network-speed"), network_speed_value * 8 / 2000, "Network usage [" + (network_speed_value * 8).toFixed(1) + " kbps]", false);
+}
+
+function audioReporter(stats) {
+    if (typeof(stats.buffersize) !== 'undefined') {
+        audio_buffer_progressbar_update(stats.buffersize);
+    }
+
+    if (typeof(stats.audioByteRate) !== 'undefined') {
+        var audio_speed_value = stats.audioByteRate * 8;
+        progressbar_set(e("openwebrx-bar-audio-speed"), audio_speed_value / 500000, "Audio stream [" + (audio_speed_value / 1000).toFixed(0) + " kbps]", false);
+    }
+
+    if (typeof(stats.audioRate) !== 'undefined') {
+        var audio_max_rate = audioEngine.getSampleRate() * 1.25;
+        var audio_min_rate = audioEngine.getSampleRate() * .25;
+        progressbar_set(e("openwebrx-bar-audio-output"), stats.audioRate / audio_max_rate, "Audio output [" + (stats.audioRate / 1000).toFixed(1) + " ksps]", stats.audioRate > audio_max_rate || stats.audioRate < audio_min_rate);
+    }
+}
+
 var bookmarks;
+var audioEngine;
 
 function openwebrx_init() {
-    if (ios || is_chrome) e("openwebrx-big-grey").style.display = "table-cell";
-    var opb = e("openwebrx-play-button-text");
-    opb.style.marginTop = (window.innerHeight / 2 - opb.clientHeight / 2).toString() + "px";
+    audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
+    if (!audioEngine.isAllowed()) {
+        e("openwebrx-big-grey").style.display = "table-cell";
+        var opb = e("openwebrx-play-button-text");
+        opb.style.marginTop = (window.innerHeight / 2 - opb.clientHeight / 2).toString() + "px";
+    } else {
+        audioEngine.start(onAudioStart);
+    }
     init_rx_photo();
     open_websocket();
+    setInterval(updateNetworkStats, 1000);
     secondary_demod_init();
     digimodes_init();
     place_panels(first_show_panel);
-    window.setTimeout(function () {
-        window.setInterval(debug_audio, 1000);
-    }, 1000);
     window.addEventListener("resize", openwebrx_resize);
     check_top_bar_congestion();
     init_header();
     bookmarks = new BookmarkBar();
-
+    parseHash();
 }
 
 function digimodes_init() {
@@ -2210,14 +2023,13 @@ function update_dmr_timeslot_filtering() {
     webrx_set_param("dmr_filter", filter);
 }
 
-function iosPlayButtonClick() {
+function playButtonClick() {
     //On iOS, we can only start audio from a click or touch event.
-    audio_init();
+    audioEngine.start(onAudioStart);
     e("openwebrx-big-grey").style.opacity = 0;
     window.setTimeout(function () {
         e("openwebrx-big-grey").style.display = "none";
     }, 1100);
-    audio_allowed = 1;
 }
 
 var rt = function (s, n) {
@@ -2225,37 +2037,6 @@ var rt = function (s, n) {
         return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + n) ? c : c - 26);
     });
 };
-
-var audio_debug_time_start = 0;
-var audio_debug_time_last_start = 0;
-
-function debug_audio() {
-    if (audio_debug_time_start === 0) return; //audio_init has not been called
-    var time_now = (new Date()).getTime();
-    var audio_debug_time_since_last_call = (time_now - audio_debug_time_last_start) / 1000;
-    audio_debug_time_last_start = time_now; //now
-    var audio_debug_time_taken = (time_now - audio_debug_time_start) / 1000;
-    var kbps_mult = (audio_compression === "adpcm") ? 8 : 16;
-
-    var audio_speed_value = audio_buffer_current_size_debug * kbps_mult / audio_debug_time_since_last_call;
-    progressbar_set(e("openwebrx-bar-audio-speed"), audio_speed_value / 500000, "Audio stream [" + (audio_speed_value / 1000).toFixed(0) + " kbps]", false);
-
-    var audio_output_value = (audio_buffer_current_count_debug * audio_buffer_size) / audio_debug_time_taken;
-    var audio_max_rate = audio_context.sampleRate * 1.25;
-    var audio_min_rate = audio_context.sampleRate * .25;
-    progressbar_set(e("openwebrx-bar-audio-output"), audio_output_value / audio_max_rate, "Audio output [" + (audio_output_value / 1000).toFixed(1) + " ksps]", audio_output_value > audio_max_rate || audio_output_value < audio_min_rate);
-
-    // disable when audioworklets used
-    if (audio_node && !audio_node.port) audio_buffer_progressbar_update();
-
-    var debug_ws_time_taken = (time_now - debug_ws_time_start) / 1000;
-    var network_speed_value = debug_ws_data_received / debug_ws_time_taken;
-    progressbar_set(e("openwebrx-bar-network-speed"), network_speed_value * 8 / 2000, "Network usage [" + (network_speed_value * 8).toFixed(1) + " kbps]", false);
-
-    audio_buffer_current_size_debug = 0;
-
-    if (waterfall_measure_minmax) waterfall_measure_minmax_print();
-}
 
 // ========================================================
 // =======================  PANELS  =======================
