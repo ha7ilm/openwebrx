@@ -1546,7 +1546,7 @@ function audio_prepare(data) {
     buffer = audio_resampler.process(sdrjs.ConvertI16_F(buffer));
     if (audio_node.port) {
         // AudioWorklets supported
-        audio_node.port.postMessage(buffer, [buffer.buffer]);
+        audio_node.port.postMessage(buffer);
     } else {
         audio_buffers.push(buffer);
     }
@@ -1568,9 +1568,9 @@ function audio_onprocess(e) {
         var newLength = total + b.length;
         // not enough space to fit all data, so splice and put back in the queue
         if (newLength > audio_buffer_size) {
-            var tokeep = b.slice(0, audio_buffer_size - total);
+            var tokeep = b.subarray(0, audio_buffer_size - total);
             out.set(tokeep, total);
-            var tobuffer = b.slice(audio_buffer_size - total, b.length);
+            var tobuffer = b.subarray(audio_buffer_size - total, b.length);
             audio_buffers.unshift(tobuffer);
             break;
         } else {
@@ -1732,8 +1732,7 @@ function audio_init() {
                 numberOfOutputs: 1,
                 outputChannelCount: [1],
                 processorOptions: {
-                    maxLength: audio_buffer_maximal_length_sec,
-                    reduceToLength: audio_buffer_decrease_to_on_overrun_sec
+                    maxLength: audio_buffer_maximal_length_sec
                 }
             });
             audio_node.connect(gainNode);

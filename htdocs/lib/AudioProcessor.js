@@ -2,7 +2,6 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
     constructor(options){
         super(options);
         this.maxLength = options.processorOptions.maxLength;
-        this.reduceToLength = options.processorOptions.reduceToLength;
         // initialize ringbuffer, make sure it aligns with the expected buffer size of 128
         this.bufferSize = Math.round(sampleRate * this.maxLength / 128) * 128
         this.audioBuffer = new Float32Array(this.bufferSize);
