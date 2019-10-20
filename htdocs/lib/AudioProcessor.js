@@ -32,11 +32,11 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
         this.port.start();
     }
     process(inputs, outputs) {
-        const samples = Math.min(128, this.remaining());
+        if (this.remaining() < 128) return true;
         outputs[0].forEach((output) => {
-            output.set(this.audioBuffer.subarray(this.outPos, this.outPos + samples));
+            output.set(this.audioBuffer.subarray(this.outPos, this.outPos + 128));
         });
-        this.outPos = (this.outPos + samples) % this.bufferSize;
+        this.outPos = (this.outPos + 128) % this.bufferSize;
         return true;
     }
     remaining() {
