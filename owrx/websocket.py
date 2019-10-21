@@ -149,6 +149,26 @@ class WebSocketConnection(object):
     def interrupt(self):
         self.interruptPipeSend.send(bytes(0x00))
 
+    def handle(self):
+        WebSocketConnection.connections.append(self)
+        try:
+            self.read_loop()
+        finally:
+            logger.debug("websocket loop ended; shutting down")
+
+            self.messageHandler.handleClose()
+            self.cancelPing()
+
+            logger.debug("websocket loop ended; sending close frame")
+
+            header = self.get_header(0, OPCODE_CLOSE)
+            self._sendBytes(header)
+
+            try:
+                WebSocketConnection.connections.remove(self)
+            except ValueError:
+                pass
+
     def read_loop(self):
         def protected_read(num):
             data = self.handler.rfile.read(num)
@@ -158,7 +178,6 @@ class WebSocketConnection(object):
                 raise IncompleteRead()
             return data
 
-        WebSocketConnection.connections.append(self)
         self.open = True
         while self.open:
             (read, _, _) = select.select([self.interruptPipeRecv, self.handler.rfile], [], [], 15)
@@ -202,21 +221,6 @@ class WebSocketConnection(object):
                     except OSError:
                         logger.exception("OSError while reading data; closing connection")
                         self.open = False
-
-        logger.debug("websocket loop ended; shutting down")
-
-        self.messageHandler.handleClose()
-        self.cancelPing()
-
-        logger.debug("websocket loop ended; sending close frame")
-
-        header = self.get_header(0, OPCODE_CLOSE)
-        self._sendBytes(header)
-
-        try:
-            WebSocketConnection.connections.remove(self)
-        except ValueError:
-            pass
 
     def close(self):
         self.open = False
