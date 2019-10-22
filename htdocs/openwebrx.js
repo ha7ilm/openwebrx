@@ -1063,8 +1063,6 @@ function resize_waterfall_container(check_init) {
 
 var debug_ws_data_received = 0;
 var debug_ws_time_start;
-var max_clients_num = 0;
-var client_num = 0;
 var currentprofile;
 
 var COMPRESS_FFT_PAD_N = 10; //should be the same as in csdr.c
@@ -1099,8 +1097,7 @@ function on_ws_recv(evt) {
                         divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
                         fft_compression = config['fft_compression'];
                         divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
-                        max_clients_num = config['max_clients'];
-                        progressbar_set(e("openwebrx-bar-clients"), client_num / max_clients_num, "Clients [" + client_num + "]", client_num > max_clients_num * 0.85);
+                        clientProgressBar.setMaxClients(config['max_clients']);
                         mathbox_waterfall_colors = config['mathbox_waterfall_colors'];
                         mathbox_waterfall_frequency_resolution = config['mathbox_waterfall_frequency_resolution'];
                         mathbox_waterfall_history_length = config['mathbox_waterfall_history_length'];
@@ -1134,12 +1131,10 @@ function on_ws_recv(evt) {
                         setSmeterAbsoluteValue(smeter_level);
                         break;
                     case "cpuusage":
-                        var server_cpu_usage = json['value'];
-                        progressbar_set(e("openwebrx-bar-server-cpu"), server_cpu_usage, "Server CPU [" + Math.round(server_cpu_usage * 100) + "%]", server_cpu_usage > 85);
+                        cpuProgressBar.setUsage(json['value']);
                         break;
                     case "clients":
-                        client_num = json['value'];
-                        progressbar_set(e("openwebrx-bar-clients"), client_num / max_clients_num, "Clients [" + client_num + "]", client_num > max_clients_num * 0.85);
+                        clientProgressBar.setClients(json['value']);
                         break;
                     case "profiles":
                         var listbox = e("openwebrx-sdr-profiles-listbox");
@@ -1937,40 +1932,39 @@ function init_header() {
     });
 }
 
-function audio_buffer_progressbar_update(buffersize) {
-    var audio_buffer_value = buffersize / audioEngine.getSampleRate();
-    var overrun = audio_buffer_value > audio_buffer_maximal_length_sec;
-    var underrun = audio_buffer_value === 0;
-    var text = "buffer";
-    if (overrun) {
-        text = "overrun";
-    }
-    if (underrun) {
-        text = "underrun";
-    }
-    progressbar_set(e("openwebrx-bar-audio-buffer"), audio_buffer_value, "Audio " + text + " [" + (audio_buffer_value).toFixed(1) + " s]", overrun || underrun);
-}
+var audioBufferProgressBar;
+var networkSpeedProgressBar;
+var audioSpeedProgressBar;
+var audioOutputProgressBar;
+var clientProgressBar;
+var cpuProgressBar;
+
+function initProgressBars() {
+    audioBufferProgressBar = new AudioBufferProgressBar($('#openwebrx-bar-audio-buffer'), audioEngine.getSampleRate());
+    networkSpeedProgressBar = new NetworkSpeedProgressBar($('#openwebrx-bar-network-speed'));
+    audioSpeedProgressBar = new AudioSpeedProgressBar($('#openwebrx-bar-audio-speed'));
+    audioOutputProgressBar = new AudioOutputProgressBar($('#openwebrx-bar-audio-output'), audioEngine.getSampleRate());
+    clientProgressBar = new ClientsProgressBar($('#openwebrx-bar-clients'));
+    cpuProgressBar = new CpuProgressBar($('#openwebrx-bar-server-cpu'));
+};
 
 function updateNetworkStats() {
     var elapsed = (new Date() - debug_ws_time_start) / 1000;
     var network_speed_value = (debug_ws_data_received / 1000) /  elapsed;
-    progressbar_set(e("openwebrx-bar-network-speed"), network_speed_value * 8 / 2000, "Network usage [" + (network_speed_value * 8).toFixed(1) + " kbps]", false);
+    networkSpeedProgressBar.setSpeed(network_speed_value);
 }
 
 function audioReporter(stats) {
     if (typeof(stats.buffersize) !== 'undefined') {
-        audio_buffer_progressbar_update(stats.buffersize);
+        audioBufferProgressBar.setBuffersize(stats.buffersize);
     }
 
     if (typeof(stats.audioByteRate) !== 'undefined') {
-        var audio_speed_value = stats.audioByteRate * 8;
-        progressbar_set(e("openwebrx-bar-audio-speed"), audio_speed_value / 500000, "Audio stream [" + (audio_speed_value / 1000).toFixed(0) + " kbps]", false);
+        audioSpeedProgressBar.setSpeed(stats.audioByteRate * 8);
     }
 
     if (typeof(stats.audioRate) !== 'undefined') {
-        var audio_max_rate = audioEngine.getSampleRate() * 1.25;
-        var audio_min_rate = audioEngine.getSampleRate() * .25;
-        progressbar_set(e("openwebrx-bar-audio-output"), stats.audioRate / audio_max_rate, "Audio output [" + (stats.audioRate / 1000).toFixed(1) + " ksps]", stats.audioRate > audio_max_rate || stats.audioRate < audio_min_rate);
+        audioOutputProgressBar.setAudioRate(stats.audioRate);
     }
 }
 
@@ -1986,6 +1980,7 @@ function openwebrx_init() {
     } else {
         audioEngine.start(onAudioStart);
     }
+    initProgressBars();
     init_rx_photo();
     open_websocket();
     setInterval(updateNetworkStats, 1000);
@@ -2160,24 +2155,6 @@ function place_panels(function_apply) {
         y += p.openwebrxPanelHeight + ((p.openwebrxPanelTransparent) ? 0 : 3) * panel_margin;
         if (function_apply) function_apply(p);
     }
-}
-
-function progressbar_set(obj, val, text, over) {
-    if (val < 0.05) val = 0;
-    if (val > 1) val = 1;
-    var innerBar = null;
-    var innerText = null;
-    for (var i = 0; i < obj.children.length; i++) {
-        if (obj.children[i].className === "openwebrx-progressbar-text") innerText = obj.children[i];
-        else if (obj.children[i].className === "openwebrx-progressbar-bar") innerBar = obj.children[i];
-    }
-    if (innerBar == null) return;
-    //.h: function animate(object,style_name,unit,from,to,accel,time_ms,fps,to_exec)
-    animate(innerBar, "width", "px", innerBar.clientWidth, val * obj.clientWidth, 0.7, 700, 60);
-    //innerBar.style.width=(val*100).toFixed(0)+"%";
-    innerBar.style.backgroundColor = (over) ? "#ff6262" : "#00aba6";
-    if (innerText == null) return;
-    innerText.innerHTML = text;
 }
 
 function demodulator_buttons_update() {
