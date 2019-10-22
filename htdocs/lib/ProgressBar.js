@@ -98,7 +98,6 @@ ClientsProgressBar.prototype.setMaxClients = function(maxClients) {
 };
 
 ClientsProgressBar.prototype.render = function() {
-    console.info(this);
     this.set(this.clients / this.maxClients, "Clients [" + this.clients + "]", this.clients > this.maxClients * 0.85);
 };
 
