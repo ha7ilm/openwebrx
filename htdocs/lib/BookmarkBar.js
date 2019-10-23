@@ -31,7 +31,7 @@ function BookmarkBar() {
         me.loadLocalBookmarks();
     });
 
-    var $bookmarkButton = $('#openwebrx-panel-receiver .openwebrx-bookmark-button');
+    var $bookmarkButton = $('#openwebrx-panel-receiver').find('.openwebrx-bookmark-button');
     if (typeof(Storage) !== 'undefined') {
         $bookmarkButton.show();
     } else {
@@ -56,10 +56,10 @@ function BookmarkBar() {
 
 BookmarkBar.prototype.position = function(){
     var range = get_visible_freq_range();
-    $('#openwebrx-bookmarks-container .bookmark').each(function(){
+    $('#openwebrx-bookmarks-container').find('.bookmark').each(function(){
         $(this).css('left', scale_px_from_freq($(this).data('frequency'), range));
     });
-}
+};
 
 BookmarkBar.prototype.loadLocalBookmarks = function(){
     var bwh = bandwidth / 2;
@@ -69,7 +69,7 @@ BookmarkBar.prototype.loadLocalBookmarks = function(){
         return b.frequency >= start && b.frequency <= end;
     });
     this.replace_bookmarks(bookmarks, 'local', true);
-}
+};
 
 BookmarkBar.prototype.replace_bookmarks = function(bookmarks, source, editable) {
     editable = !!editable;
@@ -80,13 +80,13 @@ BookmarkBar.prototype.replace_bookmarks = function(bookmarks, source, editable) 
     });
     this.bookmarks[source] = bookmarks;
     this.render();
-}
+};
 
 BookmarkBar.prototype.render = function(){
     var bookmarks = Object.values(this.bookmarks).reduce(function(l, v){ return l.concat(v); });
     bookmarks = bookmarks.sort(function(a, b){ return a.frequency - b.frequency; });
     var elements = bookmarks.map(function(b){
-        $bookmark = $(
+        var $bookmark = $(
             '<div class="bookmark" data-source="' + b.source + '"' + (b.editable?' editable="editable"':'') + '>' +
                 '<div class="bookmark-actions">' +
                     '<div class="openwebrx-button action" data-action="edit"><img src="static/gfx/openwebrx-edit.png"></div>' +
@@ -101,7 +101,7 @@ BookmarkBar.prototype.render = function(){
     this.$container.find('.bookmark').remove();
     this.$container.append(elements);
 	this.position();
-}
+};
 
 BookmarkBar.prototype.showEditDialog = function(bookmark) {
     var $form = this.$dialog.find("form");
@@ -118,7 +118,7 @@ BookmarkBar.prototype.showEditDialog = function(bookmark) {
     this.$dialog.data('id', bookmark.id);
     this.$dialog.show();
     this.$dialog.find('#name').focus();
-}
+};
 
 BookmarkBar.prototype.storeBookmark = function() {
     var me = this;
@@ -146,31 +146,31 @@ BookmarkBar.prototype.storeBookmark = function() {
         }
     }
 
-    bookmarks = bookmarks.filter(function(b) { return b.id != bookmark.id; });
+    bookmarks = bookmarks.filter(function(b) { return b.id !== bookmark.id; });
     bookmarks.push(bookmark);
 
     me.localBookmarks.setBookmarks(bookmarks);
     me.loadLocalBookmarks();
     me.$dialog.hide();
-}
+};
 
 BookmarkLocalStorage = function(){
-}
+};
 
 BookmarkLocalStorage.prototype.getBookmarks = function(){
     return JSON.parse(window.localStorage.getItem("bookmarks")) || [];
-}
+};
 
 BookmarkLocalStorage.prototype.setBookmarks = function(bookmarks){
     window.localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-}
+};
 
 BookmarkLocalStorage.prototype.deleteBookmark = function(data) {
     if (data.id) data = data.id;
     var bookmarks = this.getBookmarks();
-    bookmarks = bookmarks.filter(function(b) { return b.id != data; });
+    bookmarks = bookmarks.filter(function(b) { return b.id !== data; });
     this.setBookmarks(bookmarks);
-}
+};
 
 
 

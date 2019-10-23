@@ -1946,7 +1946,7 @@ function initProgressBars() {
     audioOutputProgressBar = new AudioOutputProgressBar($('#openwebrx-bar-audio-output'), audioEngine.getSampleRate());
     clientProgressBar = new ClientsProgressBar($('#openwebrx-bar-clients'));
     cpuProgressBar = new CpuProgressBar($('#openwebrx-bar-server-cpu'));
-};
+}
 
 function updateNetworkStats() {
     var elapsed = (new Date() - debug_ws_time_start) / 1000;
