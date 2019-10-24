@@ -1948,6 +1948,22 @@ function openwebrx_init() {
     init_header();
     bookmarks = new BookmarkBar();
     parseHash();
+    initSliders();
+}
+
+function initSliders() {
+    $('#openwebrx-panel-receiver').on('wheel', 'input[type=range]', function(ev){
+        var $slider = $(this);
+        if (!$slider.attr('step')) return;
+        var val = Number($slider.val());
+        var step = Number($slider.attr('step'));
+        if (ev.originalEvent.wheelDelta < 0) {
+            step *= -1;
+        }
+        val += step;
+        $slider.val(val + (ev.originalEvent.wheelDelta > 0 ? 1 : -1))
+        $slider.trigger('change');
+    });
 }
 
 function digimodes_init() {
