@@ -49,10 +49,10 @@ function init_rx_photo() {
     rx_photo_height = clip.clientHeight;
     clip.style.maxHeight = rx_photo_height + "px";
     window.setTimeout(function () {
-        animate(e("webrx-rx-photo-title"), "opacity", "", 1, 0, 1, 500, 30);
+        $('#webrx-rx-photo-title').animate({opacity: 0}, 500);
     }, 1000);
     window.setTimeout(function () {
-        animate(e("webrx-rx-photo-desc"), "opacity", "", 1, 0, 1, 500, 30);
+        $('#webrx-rx-photo-desc').animate({opacity: 0}, 500);
     }, 1500);
     window.setTimeout(function () {
         close_rx_photo()
@@ -77,9 +77,9 @@ function toggle_rx_photo() {
 
 function close_rx_photo() {
     rx_photo_state = 0;
-    animate_to(e("webrx-top-photo-clip"), "maxHeight", "px", 67, 0.93, 1000, 60, function () {
+    $('#webrx-top-photo-clip').animate({maxHeight: 67}, {duration: 1000, step: function () {
         resize_waterfall_container(true);
-    });
+    }});
     e("openwebrx-rx-details-arrow-down").style.display = "block";
     e("openwebrx-rx-details-arrow-up").style.display = "none";
 }
@@ -88,9 +88,9 @@ function open_rx_photo() {
     rx_photo_state = 1;
     e("webrx-rx-photo-desc").style.opacity = 1;
     e("webrx-rx-photo-title").style.opacity = 1;
-    animate_to(e("webrx-top-photo-clip"), "maxHeight", "px", rx_photo_height, 0.93, 1000, 60, function () {
+    $('#webrx-top-photo-clip').animate({maxHeight: rx_photo_height}, {duration: 1000, step: function () {
         resize_waterfall_container(true);
-    });
+    }});
     e("openwebrx-rx-details-arrow-down").style.display = "none";
     e("openwebrx-rx-details-arrow-up").style.display = "block";
 }
@@ -222,50 +222,6 @@ function typeInAnimation(element, timeout, what, onFinish) {
     window.setTimeout(function () {
         typeInAnimation(element, timeout, what.substring(1), onFinish);
     }, timeout);
-}
-
-
-// ========================================================
-// =================  ANIMATION ROUTINES  =================
-// ========================================================
-
-function animate(object, style_name, unit, from, to, accel, time_ms, fps, to_exec) {
-    //console.log(object.className);
-    if (typeof to_exec === "undefined") to_exec = 0;
-    object.style[style_name] = from.toString() + unit;
-    object.anim_i = 0;
-    var n_of_iters = time_ms / (1000 / fps);
-    var change = (to - from) / (n_of_iters);
-    if (typeof object.anim_timer !== "undefined") {
-        window.clearInterval(object.anim_timer);
-    }
-    object.anim_timer = window.setInterval(
-        function () {
-            if (object.anim_i++ < n_of_iters) {
-                if (accel === 1) object.style[style_name] = (parseFloat(object.style[style_name]) + change).toString() + unit;
-                else {
-                    var remain = parseFloat(object.style[style_name]) - to;
-                    var new_val;
-                    if (Math.abs(remain) > 9 || unit !== "px") new_val = (to + accel * remain);
-                    else {
-                        if (Math.abs(remain) < 2) new_val = to;
-                        else new_val = to + remain - (remain / Math.abs(remain));
-                    }
-                    object.style[style_name] = new_val.toString() + unit;
-                }
-            }
-            else {
-                object.style[style_name] = to.toString() + unit;
-                window.clearInterval(object.anim_timer);
-                delete object.anim_timer;
-            }
-            if (to_exec !== 0) to_exec();
-        }, 1000 / fps);
-}
-
-function animate_to(object, style_name, unit, to, accel, time_ms, fps, to_exec) {
-    var from = parseFloat(style_value(object, style_name));
-    animate(object, style_name, unit, from, to, accel, time_ms, fps, to_exec);
 }
 
 
