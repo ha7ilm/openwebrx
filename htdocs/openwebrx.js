@@ -95,11 +95,6 @@ function open_rx_photo() {
     e("openwebrx-rx-details-arrow-up").style.display = "block";
 }
 
-function style_value(of_what, which) {
-    if (of_what.currentStyle) return of_what.currentStyle[which];
-    else if (window.getComputedStyle) return document.defaultView.getComputedStyle(of_what, null).getPropertyValue(which);
-}
-
 function updateVolume() {
     audioEngine.setVolume(parseFloat(e("openwebrx-panel-volume").value) / 100);
 }
@@ -1961,7 +1956,7 @@ function initSliders() {
             step *= -1;
         }
         val += step;
-        $slider.val(val + (ev.originalEvent.wheelDelta > 0 ? 1 : -1))
+        $slider.val(val + (ev.originalEvent.wheelDelta > 0 ? 1 : -1));
         $slider.trigger('change');
     });
 }
