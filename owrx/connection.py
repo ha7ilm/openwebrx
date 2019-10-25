@@ -243,7 +243,8 @@ class OpenWebRxReceiverClient(Client):
         self.send(bytes([0x03]) + data)
 
     def write_secondary_demod(self, data):
-        self.send(bytes([0x04]) + data)
+        message = data.decode('ascii')
+        self.send({"type": "secondary_demod", "value": message})
 
     def write_secondary_dsp_config(self, cfg):
         self.send({"type": "secondary_config", "value": cfg})

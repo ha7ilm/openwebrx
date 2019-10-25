@@ -23,11 +23,6 @@
 
 is_firefox = navigator.userAgent.indexOf("Firefox") >= 0;
 
-function arrayBufferToString(buf) {
-    //http://stackoverflow.com/questions/6965107/converting-between-strings-and-arraybuffers
-    return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-
 var bandwidth;
 var center_freq;
 var fft_size;
@@ -1136,6 +1131,9 @@ function on_ws_recv(evt) {
                     case "sdr_error":
                         divlog(json['value'], true);
                         break;
+                    case 'secondary_demod':
+                        secondary_demod_push_data(json['value']);
+                        break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
                 }
@@ -1185,10 +1183,6 @@ function on_ws_recv(evt) {
                     for (i = 0; i < waterfall_i16.length; i++) waterfall_f32[i] = waterfall_i16[i + COMPRESS_FFT_PAD_N] / 100;
                     secondary_demod_waterfall_add(waterfall_f32);
                 }
-                break;
-            case 4:
-                // secondary demod
-                secondary_demod_push_data(arrayBufferToString(data));
                 break;
             default:
                 console.warn('unknown type of binary message: ' + type)
