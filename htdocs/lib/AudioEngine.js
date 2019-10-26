@@ -4,6 +4,7 @@ var useAudioWorklets = true;
 
 function AudioEngine(maxBufferLength, audioReporter) {
     this.audioReporter = audioReporter;
+    this.initStats();
     this.resetStats();
     var ctx = window.AudioContext || window.webkitAudioContext;
     if (!ctx) {
@@ -55,7 +56,12 @@ AudioEngine.prototype.start = function(callback) {
                 me.audioNode.port.addEventListener('message', function(m){
                     var json = JSON.parse(m.data);
                     if (typeof(json.buffersize) !== 'undefined') {
-                        me.audioReporter(json);
+                        me.audioReporter({
+                            buffersize: json.buffersize
+                        });
+                    }
+                    if (typeof(json.samplesProcessed) !== 'undefined') {
+                        me.audioSamples.add(json.samplesProcessed);
                     }
                 });
                 me.audioNode.port.start();
@@ -86,21 +92,23 @@ AudioEngine.prototype.start = function(callback) {
                 var out = new Float32Array(bufferSize);
                 while (me.audioBuffers.length) {
                     var b = me.audioBuffers.shift();
-                    var newLength = total + b.length;
                     // not enough space to fit all data, so splice and put back in the queue
-                    if (newLength > bufferSize) {
-                        var tokeep = b.subarray(0, bufferSize - total);
+                    if (total + b.length > bufferSize) {
+                        var spaceLeft  = bufferSize - total;
+                        var tokeep = b.subarray(0, spaceLeft);
                         out.set(tokeep, total);
-                        var tobuffer = b.subarray(bufferSize - total, b.length);
+                        var tobuffer = b.subarray(spaceLeft, b.length);
                         me.audioBuffers.unshift(tobuffer);
+                        total += spaceLeft;
                         break;
                     } else {
                         out.set(b, total);
+                        total += b.length;
                     }
-                    total = newLength;
                 }
 
                 e.outputBuffer.copyToChannel(out, 0);
+                me.audioSamples.add(total);
 
             }
 
@@ -124,27 +132,36 @@ AudioEngine.prototype.isAllowed = function() {
 };
 
 AudioEngine.prototype.reportStats = function() {
-    var stats = {};
     if (this.audioNode.port) {
-        this.audioNode.port.postMessage(JSON.stringify({cmd:'getBuffers'}));
+        this.audioNode.port.postMessage(JSON.stringify({cmd:'getStats'}));
     } else {
-        stats.buffersize = this.getBuffersize();
+        this.audioReporter({
+            buffersize: this.getBuffersize()
+        });
     }
-    stats.audioRate = this.stats.audioSamples;
-    var elapsed = new Date() - this.stats.startTime;
-    stats.audioByteRate = this.stats.audioBytes * 1000 / elapsed;
-    this.audioReporter(stats);
+};
 
-    // sample rate is just measuring the last seconds
-    this.stats.audioSamples = 0;
+AudioEngine.prototype.initStats = function() {
+    var me = this;
+    var buildReporter = function(key) {
+        return function(v){
+            var report = {};
+            report[key] = v;
+            me.audioReporter(report);
+        }
+
+    };
+
+    this.audioBytes = new Measurement();
+    this.audioBytes.report(10000, 1000, buildReporter('audioByteRate'));
+
+    this.audioSamples = new Measurement();
+    this.audioSamples.report(10000, 1000, buildReporter('audioRate'));
 };
 
 AudioEngine.prototype.resetStats = function() {
-    this.stats = {
-        startTime: new Date(),
-        audioBytes: 0,
-        audioSamples: 0
-    };
+    this.audioBytes.reset();
+    this.audioSamples.reset();
 };
 
 AudioEngine.prototype.setupResampling = function() { //both at the server and the client
@@ -178,7 +195,7 @@ AudioEngine.prototype.getSampleRate = function() {
 
 AudioEngine.prototype.pushAudio = function(data) {
     if (!this.audioNode) return;
-    this.stats.audioBytes += data.byteLength;
+    this.audioBytes.add(data.byteLength);
     var buffer;
     if (this.compression === "adpcm") {
         //resampling & ADPCM
@@ -187,7 +204,6 @@ AudioEngine.prototype.pushAudio = function(data) {
         buffer = new Int16Array(data);
     }
     buffer = this.resampler.process(sdrjs.ConvertI16_F(buffer));
-    this.stats.audioSamples += buffer.length;
     if (this.audioNode.port) {
         // AudioWorklets supported
         this.audioNode.port.postMessage(buffer);
