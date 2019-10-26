@@ -54,7 +54,8 @@ NetworkSpeedProgressBar = function(el) {
 NetworkSpeedProgressBar.prototype = new ProgressBar();
 
 NetworkSpeedProgressBar.prototype.setSpeed = function(speed) {
-   this.set(speed * 8 / 2000, "Network usage [" + (speed * 8).toFixed(1) + " kbps]", false);
+    var speedInKilobits = speed * 8 / 1000;
+    this.set(speedInKilobits / 2000, "Network usage [" + speedInKilobits.toFixed(1) + " kbps]", false);
 };
 
 AudioSpeedProgressBar = function(el) {

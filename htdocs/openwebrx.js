@@ -997,8 +997,7 @@ function zoom_calc() {
     //console.log("zoom_calc || zopx:"+zoom_offset_px.toString()+ " maxoff:"+(winsize-canvases_new_width).toString()+" relval:"+(0.5+zoom_center_rel/bandwidth).toString() );
 }
 
-var debug_ws_data_received = 0;
-var debug_ws_time_start;
+var networkSpeedMeasurement;
 var currentprofile;
 
 var COMPRESS_FFT_PAD_N = 10; //should be the same as in csdr.c
@@ -1006,7 +1005,7 @@ var COMPRESS_FFT_PAD_N = 10; //should be the same as in csdr.c
 function on_ws_recv(evt) {
     if (typeof evt.data === 'string') {
         // text messages
-        debug_ws_data_received += evt.data.length;
+        networkSpeedMeasurement.add(evt.data.length);
 
         if (evt.data.substr(0, 16) === "CLIENT DE SERVER") {
             divlog("Server acknowledged WebSocket connection.");
@@ -1127,7 +1126,7 @@ function on_ws_recv(evt) {
         }
     } else if (evt.data instanceof ArrayBuffer) {
         // binary messages
-        debug_ws_data_received += evt.data.byteLength;
+        networkSpeedMeasurement.add(evt.data.byteLength);
 
         var type = new Uint8Array(evt.data, 0, 1)[0];
         var data = evt.data.slice(1);
@@ -1386,8 +1385,14 @@ function waterfall_measure_minmax_do(what) {
 function on_ws_opened() {
     ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
     divlog("WebSocket opened to " + ws.url);
-    debug_ws_data_received = 0;
-    debug_ws_time_start = new Date();
+    if (!networkSpeedMeasurement) {
+        networkSpeedMeasurement = new Measurement();
+        networkSpeedMeasurement.report(60000, 1000, function(rate){
+            networkSpeedProgressBar.setSpeed(rate);
+        });
+    } else {
+        networkSpeedMeasurement.reset();
+    }
     reconnect_timeout = false;
     ws.send(JSON.stringify({
         "type": "dspcontrol",
@@ -1880,12 +1885,6 @@ function initProgressBars() {
     cpuProgressBar = new CpuProgressBar($('#openwebrx-bar-server-cpu'));
 }
 
-function updateNetworkStats() {
-    var elapsed = (new Date() - debug_ws_time_start) / 1000;
-    var network_speed_value = (debug_ws_data_received / 1000) /  elapsed;
-    networkSpeedProgressBar.setSpeed(network_speed_value);
-}
-
 function audioReporter(stats) {
     if (typeof(stats.buffersize) !== 'undefined') {
         audioBufferProgressBar.setBuffersize(stats.buffersize);
@@ -1915,7 +1914,6 @@ function openwebrx_init() {
     initProgressBars();
     init_rx_photo();
     open_websocket();
-    setInterval(updateNetworkStats, 1000);
     secondary_demod_init();
     digimodes_init();
     initPanels();
