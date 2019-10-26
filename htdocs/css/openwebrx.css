@@ -146,8 +146,10 @@ input[type=range]:focus::-ms-fill-upper
 
 #webrx-page-container
 {
-   min-height:100%;
-   position:relative;
+    height: 100%;
+    position: relative;
+	display: flex;
+	flex-direction: column;
 }
 
 #openwebrx-scale-container
@@ -253,8 +255,8 @@ input[type=range]:focus::-ms-fill-upper
 
 #webrx-canvas-container
 {
+    flex-grow: 1;
 	position: relative;
-	height: 2000px;
 	overflow: hidden;
 	background-image: url('../gfx/openwebrx-background-cool-blue.png');
 	background-repeat: no-repeat;
@@ -274,6 +276,7 @@ input[type=range]:focus::-ms-fill-upper
 
 #openwebrx-mathbox-container
 {
+    flex-grow: 1;
 	overflow: none;
 	display: none;
 }
@@ -287,14 +290,6 @@ input[type=range]:focus::-ms-fill-upper
 
 .nano .nano-pane   { background: #444; }
 .nano .nano-slider { background: #eee !important;  }
-
-#webrx-main-container
-{
-	position: relative;
-	width: 100%;
-	margin: 0;
-	padding: 0;
-}
 
 .webrx-error
 {
@@ -356,18 +351,35 @@ input[type=range]:focus::-ms-fill-upper
 	margin-bottom: 5px;
 }
 
+#openwebrx-panels-container-left,
+#openwebrx-panels-container-right {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+#openwebrx-panels-container-left {
+    left: 0;
+    align-items: flex-start;
+}
+
+#openwebrx-panels-container-right {
+    right: 0;
+    align-items: flex-end;
+}
 
 .openwebrx-panel
 {
 	transform: perspective( 600px ) rotateX( 90deg );
-	visibility: hidden;
 	background-color: #575757;
 	padding: 10px;
 	color: white;
-	position: fixed;
 	font-size: 10pt;
 	border-radius: 15px;
 	-moz-border-radius: 15px;
+	margin: 5.9px;
 }
 
 .openwebrx-panel a
@@ -525,7 +537,7 @@ img.openwebrx-mirror-img
 
 #openwebrx-panel-status
 {
-	margin: 0px;
+	margin: 0 0 0 5.9px;
 	padding: 0px;
 	background-color:rgba(0, 0, 0, 0);
 }

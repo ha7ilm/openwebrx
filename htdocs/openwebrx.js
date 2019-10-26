@@ -79,9 +79,7 @@ function toggle_rx_photo() {
 
 function close_rx_photo() {
     rx_photo_state = 0;
-    $('#webrx-top-photo-clip').animate({maxHeight: 67}, {duration: 1000, easing: 'easeOutCubic', step: function () {
-        resize_waterfall_container(true);
-    }});
+    $('#webrx-top-photo-clip').animate({maxHeight: 67}, {duration: 1000, easing: 'easeOutCubic'});
     e("openwebrx-rx-details-arrow-down").style.display = "block";
     e("openwebrx-rx-details-arrow-up").style.display = "none";
 }
@@ -90,9 +88,7 @@ function open_rx_photo() {
     rx_photo_state = 1;
     e("webrx-rx-photo-desc").style.opacity = 1;
     e("webrx-rx-photo-title").style.opacity = 1;
-    $('#webrx-top-photo-clip').animate({maxHeight: rx_photo_height}, {duration: 1000, easing: 'easeOutCubic', step: function () {
-        resize_waterfall_container(true);
-    }});
+    $('#webrx-top-photo-clip').animate({maxHeight: rx_photo_height}, {duration: 1000, easing: 'easeOutCubic'});
     e("openwebrx-rx-details-arrow-down").style.display = "none";
     e("openwebrx-rx-details-arrow-up").style.display = "block";
 }
@@ -1001,19 +997,6 @@ function zoom_calc() {
     //console.log("zoom_calc || zopx:"+zoom_offset_px.toString()+ " maxoff:"+(winsize-canvases_new_width).toString()+" relval:"+(0.5+zoom_center_rel/bandwidth).toString() );
 }
 
-function resize_waterfall_container(check_init) {
-    if (check_init && !waterfall_setup_done) return;
-    var numHeight;
-    mathbox_container.style.height = canvas_container.style.height = (numHeight = window.innerHeight - e("webrx-top-container").clientHeight - e("openwebrx-scale-container").clientHeight).toString() + "px";
-    if (mathbox) {
-        //mathbox.three.camera.aspect = document.body.offsetWidth / numHeight;
-        //mathbox.three.camera.updateProjectionMatrix();
-        mathbox.three.renderer.setSize(document.body.offsetWidth, numHeight);
-        console.log(document.body.offsetWidth, numHeight);
-    }
-
-}
-
 var debug_ws_data_received = 0;
 var debug_ws_time_start;
 var currentprofile;
@@ -1624,8 +1607,6 @@ function resize_canvases(zoom) {
 
 function waterfall_init() {
     init_canvas_container();
-    resize_waterfall_container(false);
-    /* then */
     resize_canvases();
     scale_setup();
     mkzoomlevels();
@@ -1873,7 +1854,6 @@ function waterfall_clear() {
 
 function openwebrx_resize() {
     resize_canvases();
-    resize_waterfall_container(true);
     resize_scale();
     check_top_bar_congestion();
 }
@@ -1938,7 +1918,7 @@ function openwebrx_init() {
     setInterval(updateNetworkStats, 1000);
     secondary_demod_init();
     digimodes_init();
-    place_panels(first_show_panel);
+    initPanels();
     window.addEventListener("resize", openwebrx_resize);
     check_top_bar_congestion();
     init_header();
@@ -1963,10 +1943,6 @@ function initSliders() {
 }
 
 function digimodes_init() {
-    $(".openwebrx-meta-panel").each(function (_, p) {
-        p.openwebrxHidden = true;
-    });
-
     // initialze DMR timeslot muting
     $('.openwebrx-dmr-timeslot-panel').click(function (e) {
         $(e.currentTarget).toggleClass("muted");
@@ -2002,50 +1978,32 @@ var rt = function (s, n) {
 // =======================  PANELS  =======================
 // ========================================================
 
-var panel_margin = 5.9;
-
-function pop_bottommost_panel(from) {
-    var min_order = parseInt(from[0].dataset.panelOrder);
-    var min_index = 0;
-    for (var i = 0; i < from.length; i++) {
-        var actual_order = parseInt(from[i].dataset.panelOrder);
-        if (actual_order < min_order) {
-            min_index = i;
-            min_order = actual_order;
-        }
-    }
-    var to_return = from[min_index];
-    from.splice(min_index, 1);
-    return to_return;
+function panel_displayed(el){
+    return !(el.style && el.style.display && el.style.display === 'none')
 }
 
 function toggle_panel(what, on) {
-    var item = e(what);
+    var item = $('#' + what)[0];
     if (!item) return;
-    if (typeof on !== "undefined") {
-        if (item.openwebrxHidden && !on) return;
-        if (!item.openwebrxHidden && on) return;
+    var displayed = panel_displayed(item);
+    if (typeof on !== "undefined" && displayed === on) {
+        return;
     }
     if (item.openwebrxDisableClick) return;
-    item.style.transitionDuration = "599ms";
+    if (displayed) {
+        item.movement = 'collapse';
+        item.style.transform = "perspective(600px) rotateX(90deg)";
+        item.style.transitionProperty = 'transform';
+    } else {
+        item.movement = 'expand';
+        item.style.display = 'block';
+        setTimeout(function(){
+            item.style.transitionProperty = 'transform';
+            item.style.transform = 'perspective(600px) rotateX(0deg)';
+        }, 20);
+    }
+    item.style.transitionDuration = "600ms";
     item.style.transitionDelay = "0ms";
-    if (!item.openwebrxHidden) {
-        window.setTimeout(function () {
-            item.openwebrxHidden = !item.openwebrxHidden;
-            place_panels();
-            item.openwebrxDisableClick = false;
-        }, 700);
-        item.style.transform = "perspective( 599px ) rotateX( 90deg )";
-    }
-    else {
-        item.openwebrxHidden = !item.openwebrxHidden;
-        place_panels();
-        window.setTimeout(function () {
-            item.openwebrxDisableClick = false;
-        }, 700);
-        item.style.transform = "perspective( 599px ) rotateX( 0deg )";
-    }
-    item.style.transitionDuration = "0";
 
     item.openwebrxDisableClick = true;
 
@@ -2062,67 +2020,31 @@ function first_show_panel(panel) {
         roty = rottemp;
     }
     if (rotx !== 0 && Math.random() > 0.5) rotx = 270;
-    panel.style.transform = "perspective( 599px ) rotateX( %1deg ) rotateY( %2deg )"
+    panel.style.transform = "perspective(600px) rotateX(%1deg) rotateY(%2deg)"
         .replace("%1", rotx.toString()).replace("%2", roty.toString());
     window.setTimeout(function () {
-        panel.style.transitionDuration = "599ms";
+        panel.style.transitionDuration = "600ms";
         panel.style.transitionDelay = (Math.floor(Math.random() * 500)).toString() + "ms";
-        panel.style.transform = "perspective( 599px ) rotateX( 0deg ) rotateY( 0deg )";
+        panel.style.transform = "perspective(600px) rotateX(0deg) rotateY(0deg)";
     }, 1);
 }
 
-function place_panels(function_apply) {
-    if (function_apply === undefined) function_apply = function (x) {
-    };
-    var hoffset = 0; //added this because the first panel should not have such great gap below
-    var left_col = [];
-    var right_col = [];
-    var plist = e("openwebrx-panels-container").children;
-    for (var i = 0; i < plist.length; i++) {
-        var c = plist[i];
-        if (c.className.indexOf("openwebrx-panel") >= 0) {
-            if (c.openwebrxHidden) {
-                c.style.display = "none";
-                continue;
+function initPanels() {
+    $('#openwebrx-panels-container').find('.openwebrx-panel').each(function(){
+        var el = this;
+        el.openwebrxPanelTransparent = (!!el.dataset.panelTransparent);
+        el.addEventListener('transitionend', function(ev){
+            if (ev.target !== el) return;
+            el.openwebrxDisableClick = false;
+            el.style.transitionDuration = null;
+            el.style.transitionDelay = null;
+            el.style.transitionProperty = null;
+            if (el.movement && el.movement == 'collapse') {
+                el.style.display = 'none';
             }
-            c.style.display = "block";
-            c.openwebrxPanelTransparent = (!!c.dataset.panelTransparent);
-            var newSize = c.dataset.panelSize.split(",");
-            if (c.dataset.panelPos === "left") {
-                left_col.push(c);
-            }
-            else if (c.dataset.panelPos === "right") {
-                right_col.push(c);
-            }
-            c.style.width = newSize[0] + "px";
-            //c.style.height=newSize[1]+"px";
-            if (!c.openwebrxPanelTransparent) c.style.margin = panel_margin.toString() + "px";
-            else c.style.marginLeft = panel_margin.toString() + "px";
-            c.openwebrxPanelWidth = parseInt(newSize[0]);
-            c.openwebrxPanelHeight = parseInt(newSize[1]);
-        }
-    }
-
-    var y = hoffset; //was y=0 before hoffset
-    var p;
-    while (left_col.length > 0) {
-        p = pop_bottommost_panel(left_col);
-        p.style.left = "0px";
-        p.style.bottom = y.toString() + "px";
-        p.style.visibility = "visible";
-        y += p.openwebrxPanelHeight + ((p.openwebrxPanelTransparent) ? 0 : 3) * panel_margin;
-        if (function_apply) function_apply(p);
-        //console.log(p.id, y, p.openwebrxPanelTransparent);
-    }
-    y = hoffset;
-    while (right_col.length > 0) {
-        p = pop_bottommost_panel(right_col);
-        p.style.right = (e("webrx-canvas-container").offsetWidth - e("webrx-canvas-container").clientWidth).toString() + "px"; //get scrollbar width
-        p.style.bottom = y.toString() + "px";
-        p.style.visibility = "visible";
-        y += p.openwebrxPanelHeight + ((p.openwebrxPanelTransparent) ? 0 : 3) * panel_margin;
-        if (function_apply) function_apply(p);
-    }
+        });
+        if (panel_displayed(el)) first_show_panel(el);
+    });
 }
 
 function demodulator_buttons_update() {
@@ -2261,9 +2183,6 @@ function secondary_demod_swap_canvases() {
 }
 
 function secondary_demod_init() {
-    $("#openwebrx-panel-digimodes")[0].openwebrxHidden = true;
-    $("#openwebrx-panel-wsjt-message")[0].openwebrxHidden = true;
-    $("#openwebrx-panel-packet-message")[0].openwebrxHidden = true;
     secondary_demod_canvas_container = $("#openwebrx-digimode-canvas-container")[0];
     $(secondary_demod_canvas_container)
         .mousemove(secondary_demod_canvas_container_mousemove)
