@@ -60,3 +60,4 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         WebSocketConnection.closeAll()
+        Services.stop()

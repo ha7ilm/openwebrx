@@ -369,12 +369,19 @@ class AprsHandler(object):
 
 
 class Services(object):
+    handlers = []
     @staticmethod
     def start():
         if not PropertyManager.getSharedInstance()["services_enabled"]:
             return
         for source in SdrService.getSources().values():
-            ServiceHandler(source)
+            Services.handlers.append(ServiceHandler(source))
+
+    @staticmethod
+    def stop():
+        for handler in Services.handlers:
+            handler.stopServices()
+        Services.handlers = []
 
 
 class Service(object):
