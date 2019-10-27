@@ -1931,11 +1931,10 @@ function initSliders() {
         if (!$slider.attr('step')) return;
         var val = Number($slider.val());
         var step = Number($slider.attr('step'));
-        if (ev.originalEvent.wheelDelta < 0) {
+        if (ev.originalEvent.deltaY > 0) {
             step *= -1;
         }
-        val += step;
-        $slider.val(val + (ev.originalEvent.wheelDelta > 0 ? 1 : -1));
+        $slider.val(val + step);
         $slider.trigger('change');
     });
 }
