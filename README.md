@@ -19,6 +19,13 @@ It has the following features:
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
 
+**News (2019-10-27 by DD5JFK)**
+- Part of the frontend code has been reworked
+  - Audio buffer minimums have been completely stripped. As a result, you should get better latency. Unfortunately, this also means there will be some skipping when audio starts.
+  - Now also supports AudioWorklets (for those browser that have it). The Raspberry Pi image has been updated to include https due to the SecureContext requirement.
+  - Mousewheel controls for the receiver sliders
+- Error handling for failed SDR devices
+
 **News (2019-09-29 by DD5FJK)**
 - One of the most-requested features is finally coming to OpenWebRX: Bookmarks (sometimes also referred to as labels). There's two kinds of bookmarks available:
   - Serverside bookmarks that are set up by the receiver administrator. Check the file `bookmarks.json` for examples!
@@ -78,13 +85,13 @@ It has the following features:
 
 ### Raspberry Pi SD Card Images
 
-Probably the quickest way to get started is to download the [latest Raspberry Pi SD Card Image](https://s3.eu-central-1.amazonaws.com/de.dd5jfk.openwebrx/2019-09-29-OpenWebRX-full.zip). It contains all the depencencies out of the box, and should work on all Raspberries up to the 3B+.
+Probably the quickest way to get started is to download the [latest Raspberry Pi SD Card Image](https://s3.eu-central-1.amazonaws.com/de.dd5jfk.openwebrx/2019-10-27-OpenWebRX-full.zip). It contains all the depencencies out of the box, and should work on all Raspberries up to the 3B+.
 
 This is based off the Raspbian Lite distribution, so [their installation instructions](https://www.raspberrypi.org/documentation/installation/installing-images/) apply.
 
 Please note: I have not updated this to include the Raspberry Pi 4 yet. (It seems to be impossible to build Rasbpian Buster images on x86 hardware right now. Stay tuned!)
 
-Once you have booted a Raspberry with the SD Card, it will appear in your network with the hostname "openwebrx", which should make it available as http://openwebrx:8073/ on most networks. This may vary depending on your specific setup.
+Once you have booted a Raspberry with the SD Card, it will appear in your network with the hostname "openwebrx", which should make it available as https://openwebrx:8073/ on most networks. This may vary depending on your specific setup.
 
 For Digital voice, the minimum requirement right now seems to be a Rasbperry Pi 3B+. I would like to work on optimizing this for lower specs, but at this point I am not sure how much can be done. 
 
