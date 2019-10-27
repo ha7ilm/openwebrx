@@ -188,6 +188,18 @@ function setSmeterRelativeValue(value) {
     bar.style.background = (value > 0.9) ? bgRed : ((value > 0.7) ? bgYellow : bgGreen);
 }
 
+function setSquelchSliderBackground(val) {
+    var $slider = $('#openwebrx-panel-squelch');
+    var min = Number($slider.attr('min'));
+    var max = Number($slider.attr('max'));
+    var sliderPosition = $slider.val();
+    var relative = (val - min) / (max - min);
+    // use a brighter color when squelch is open
+    var color = val >= sliderPosition ? '#22ff2f' : '#008908';
+    var style = 'linear-gradient(90deg, ' + color + ' ' + relative * 100 + '%, #B6B6B6 ' + (1 - relative) * 100 + '%)';
+    $slider.css('--track-background', style);
+}
+
 function getLogSmeterValue(value) {
     return 10 * Math.log10(value);
 }
@@ -199,6 +211,7 @@ function getLinearSmeterValue(db_value) {
 function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch_and_smeter_cc`
 {
     var logValue = getLogSmeterValue(value);
+    setSquelchSliderBackground(logValue);
     var lowLevel = waterfall_min_level - 20;
     var highLevel = waterfall_max_level + 20;
     var percent = (logValue - lowLevel) / (highLevel - lowLevel);
