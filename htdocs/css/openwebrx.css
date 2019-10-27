@@ -85,6 +85,7 @@ input[type=range]::-moz-range-track
 	animate: 0.2s;
 	box-shadow: 0px 0px 0px #000000;
 	background: #B6B6B6;
+	background: var(--track-background);
 	border-radius: 11px;
 	border: 1px solid #8A8A8A;
 }
