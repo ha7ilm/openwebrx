@@ -196,7 +196,8 @@ function setSquelchSliderBackground(val) {
     var relative = (val - min) / (max - min);
     // use a brighter color when squelch is open
     var color = val >= sliderPosition ? '#22ff2f' : '#008908';
-    var style = 'linear-gradient(90deg, ' + color + ' ' + relative * 100 + '%, #B6B6B6 ' + (1 - relative) * 100 + '%)';
+    // we don't use the gradient, but separate the colors discretely using css tricks
+    var style = 'linear-gradient(90deg, ' + color + ', ' + color + ' ' + relative * 100 + '%, #B6B6B6 ' + relative * 100 + '%)';
     $slider.css('--track-background', style);
 }
 
