@@ -284,10 +284,13 @@ class ServiceHandler(object):
                     resampler_props["samp_rate"] = bw + 24000
                     resampler = Resampler(resampler_props, self.getAvailablePort(), self.source)
                     resampler.start()
-                    self.services.append(resampler)
 
                     for dial in group:
                         self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
+
+                    # resampler goes in after the services since it must not be shutdown as long as the services are still running
+                    self.services.append(resampler)
+
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
