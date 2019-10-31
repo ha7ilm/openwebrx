@@ -62,7 +62,7 @@ class DmrMetaEnricher(object):
         cache = DmrCache.getSharedInstance()
         if not cache.isValid(id):
             if not id in self.threads:
-                self.threads[id] = threading.Thread(target=self.downloadRadioIdData, args=[id])
+                self.threads[id] = threading.Thread(target=self.downloadRadioIdData, args=[id], daemon=True)
                 self.threads[id].start()
             return None
         data = cache.get(id)

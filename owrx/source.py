@@ -136,7 +136,7 @@ class SdrSource(object):
         if profile_id is None:
             profile_id = list(profiles.keys())[0]
         if profile_id == self.profile_id:
-            return;
+            return
         logger.debug("activating profile {0}".format(profile_id))
         self.profile_id = profile_id
         profile = profiles[profile_id]

@@ -3,7 +3,6 @@ import threading
 import time
 import random
 import socket
-from sched import scheduler
 from owrx.config import PropertyManager
 from owrx.version import openwebrx_version
 from owrx.locator import Locator
@@ -18,6 +17,9 @@ class PskReporterDummy(object):
     """
 
     def spot(self, spot):
+        pass
+
+    def cancelTimer(self):
         pass
 
 
@@ -37,24 +39,31 @@ class PskReporter(object):
                     PskReporter.sharedInstance = PskReporterDummy()
         return PskReporter.sharedInstance
 
+    @staticmethod
+    def stop():
+        if PskReporter.sharedInstance:
+            PskReporter.sharedInstance.cancelTimer()
+
     def __init__(self):
         self.spots = []
         self.spotLock = threading.Lock()
         self.uploader = Uploader()
-        self.scheduler = scheduler(time.time, time.sleep)
-        self.scheduleNextUpload()
-        threading.Thread(target=self.scheduler.run).start()
+        self.timer = None
 
     def scheduleNextUpload(self):
+        if self.timer:
+            return
         delay = PskReporter.interval + random.uniform(0, 30)
         logger.debug("scheduling next pskreporter upload in %f seconds", delay)
-        self.scheduler.enter(delay, 1, self.upload)
+        self.timer = threading.Timer(delay, self.upload)
+        self.timer.start()
 
     def spot(self, spot):
         if not spot["mode"] in PskReporter.supportedModes:
             return
         with self.spotLock:
             self.spots.append(spot)
+        self.scheduleNextUpload()
 
     def upload(self):
         try:
@@ -67,7 +76,12 @@ class PskReporter(object):
         except Exception:
             logger.exception("Failed to upload spots")
 
+        self.timer = None
         self.scheduleNextUpload()
+
+    def cancelTimer(self):
+        if self.timer:
+            self.timer.cancel()
 
 
 class Uploader(object):

@@ -1,8 +1,6 @@
 import threading
 import wave
-from datetime import datetime, timedelta, date, timezone
-import time
-import sched
+from datetime import datetime, timedelta, timezone
 import subprocess
 import os
 from multiprocessing.connection import Pipe
@@ -93,8 +91,7 @@ class WsjtChopper(threading.Thread):
         self.tmp_dir = PropertyManager.getSharedInstance()["temporary_directory"]
         (self.wavefilename, self.wavefile) = self.getWaveFile()
         self.switchingLock = threading.Lock()
-        self.scheduler = sched.scheduler(time.time, time.sleep)
-        self.schedulerLock = threading.Lock()
+        self.timer = None
         (self.outputReader, self.outputWriter) = Pipe()
         self.doRun = True
         super().__init__()
@@ -110,27 +107,23 @@ class WsjtChopper(threading.Thread):
         return filename, wavefile
 
     def getNextDecodingTime(self):
-        t = datetime.now()
+        t = datetime.utcnow()
         zeroed = t.replace(minute=0, second=0, microsecond=0)
         delta = t - zeroed
         seconds = (int(delta.total_seconds() / self.interval) + 1) * self.interval
         t = zeroed + timedelta(seconds=seconds)
         logger.debug("scheduling: {0}".format(t))
-        return t.timestamp()
+        return t
 
-    def startScheduler(self):
-        self._scheduleNextSwitch()
-        threading.Thread(target=self.scheduler.run).start()
-
-    def emptyScheduler(self):
-        with self.schedulerLock:
-            for event in self.scheduler.queue:
-                self.scheduler.cancel(event)
+    def cancelTimer(self):
+        if self.timer:
+            self.timer.cancel()
 
     def _scheduleNextSwitch(self):
-        with self.schedulerLock:
-            if self.doRun:
-                self.scheduler.enterabs(self.getNextDecodingTime(), 1, self.switchFiles)
+        if self.doRun:
+            delta = self.getNextDecodingTime() - datetime.utcnow()
+            self.timer = threading.Timer(delta.total_seconds(), self.switchFiles)
+            self.timer.start()
 
     def switchFiles(self):
         self.switchingLock.acquire()
@@ -169,7 +162,7 @@ class WsjtChopper(threading.Thread):
 
     def run(self) -> None:
         logger.debug("WSJT chopper starting up")
-        self.startScheduler()
+        self._scheduleNextSwitch()
         while self.doRun:
             data = self.source.read(256)
             if data is None or (isinstance(data, bytes) and len(data) == 0):
@@ -182,7 +175,7 @@ class WsjtChopper(threading.Thread):
         logger.debug("WSJT chopper shutting down")
         self.outputReader.close()
         self.outputWriter.close()
-        self.emptyScheduler()
+        self.cancelTimer()
         try:
             os.unlink(self.wavefilename)
         except Exception:

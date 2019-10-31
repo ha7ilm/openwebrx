@@ -115,6 +115,10 @@ class ServiceScheduler(object):
         self.selectionTimer = None
         self.scheduleSelection()
 
+    def shutdown(self):
+        self.cancelTimer()
+        self.source.removeClient(self)
+
     def scheduleSelection(self, time=None):
         seconds = 10
         if time is not None:
@@ -177,8 +181,9 @@ class ServiceHandler(object):
         props.collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
         if self.source.isAvailable():
             self.scheduleServiceStartup()
+        self.scheduler = None
         if "schedule" in props:
-            ServiceScheduler(self.source, props["schedule"])
+            self.scheduler = ServiceScheduler(self.source, props["schedule"])
 
     def isActive(self):
         return False
@@ -213,6 +218,12 @@ class ServiceHandler(object):
         available = [mode for mode in configured if mode not in unavailable]
 
         return mode in available
+
+    def shutdown(self):
+        self.stopServices()
+        self.source.removeClient(self)
+        if self.scheduler:
+            self.scheduler.shutdown()
 
     def stopServices(self):
         with self.lock:
@@ -383,7 +394,7 @@ class Services(object):
     @staticmethod
     def stop():
         for handler in Services.handlers:
-            handler.stopServices()
+            handler.shutdown()
         Services.handlers = []
 
 

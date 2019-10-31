@@ -9,6 +9,7 @@ from socketserver import ThreadingMixIn
 from owrx.sdrhu import SdrHuUpdater
 from owrx.service import Services
 from owrx.websocket import WebSocketConnection
+from owrx.pskreporter import PskReporter
 
 import logging
 
@@ -61,3 +62,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         WebSocketConnection.closeAll()
         Services.stop()
+        PskReporter.stop()
