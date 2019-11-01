@@ -563,6 +563,10 @@ function demodulator_set_offset_frequency(which, to_what) {
     $("#webrx-actual-freq").html(format_frequency("{x} MHz", center_freq + to_what, 1e6, 4));
 }
 
+function waterfallWidth() {
+    return $('body').width();
+}
+
 
 // ========================================================
 // ===================  SCALE ROUTINES  ===================
@@ -602,7 +606,7 @@ function scale_canvas_mousedown(evt) {
 
 function scale_offset_freq_from_px(x, visible_range) {
     if (typeof visible_range === "undefined") visible_range = get_visible_freq_range();
-    return (visible_range.start + visible_range.bw * (x / canvas_container.clientWidth)) - center_freq;
+    return (visible_range.start + visible_range.bw * (x / waterfallWidth())) - center_freq;
 }
 
 function scale_canvas_mousemove(evt) {
@@ -643,20 +647,20 @@ function scale_canvas_mouseup(evt) {
 }
 
 function scale_px_from_freq(f, range) {
-    return Math.round(((f - range.start) / range.bw) * canvas_container.clientWidth);
+    return Math.round(((f - range.start) / range.bw) * waterfallWidth());
 }
 
 function get_visible_freq_range() {
     var out = {};
     var fcalc = function (x) {
-        var canvasWidth = canvas_container.clientWidth * zoom_levels[zoom_level];
+        var canvasWidth = waterfallWidth() * zoom_levels[zoom_level];
         return Math.round(((-zoom_offset_px + x) / canvasWidth) * bandwidth) + (center_freq - bandwidth / 2);
     };
     out.start = fcalc(0);
-    out.center = fcalc(canvas_container.clientWidth / 2);
-    out.end = fcalc(canvas_container.clientWidth);
+    out.center = fcalc(waterfallWidth() / 2);
+    out.end = fcalc(waterfallWidth());
     out.bw = out.end - out.start;
-    out.hps = out.bw / canvas_container.clientWidth;
+    out.hps = out.bw / waterfallWidth();
     return out;
 }
 
@@ -732,7 +736,7 @@ function get_scale_mark_spacing(range) {
     var out = {};
     var fcalc = function (freq) {
         out.numlarge = (range.bw / freq);
-        out.large = canvas_container.clientWidth / out.numlarge; 	//distance between large markers (these have text)
+        out.large = waterfallWidth() / out.numlarge; 	//distance between large markers (these have text)
         out.ratio = 5; 														//(ratio-1) small markers exist per large marker
         out.small = out.large / out.ratio; 								//distance between small markers
         if (out.small < scale_min_space_bw_small_markers) return false;
@@ -891,8 +895,8 @@ function canvas_mousemove(evt) {
             var deltaX = canvas_drag_last_x - evt.pageX;
             var dpx = range.hps * deltaX;
             if (
-                !(zoom_center_rel + dpx > (bandwidth / 2 - canvas_container.clientWidth * (1 - zoom_center_where) * range.hps)) &&
-                !(zoom_center_rel + dpx < -bandwidth / 2 + canvas_container.clientWidth * zoom_center_where * range.hps)
+                !(zoom_center_rel + dpx > (bandwidth / 2 - waterfallWidth() * (1 - zoom_center_where) * range.hps)) &&
+                !(zoom_center_rel + dpx < -bandwidth / 2 + waterfallWidth() * zoom_center_where * range.hps)
             ) {
                 zoom_center_rel += dpx;
             }
@@ -929,14 +933,18 @@ function canvas_end_drag() {
 }
 
 function zoom_center_where_calc(screenposX) {
-    //return (screenposX-(window.innerWidth-canvas_container.clientWidth))/canvas_container.clientWidth;
-    return screenposX / canvas_container.clientWidth;
+    return screenposX / waterfallWidth();
 }
 
 function get_relative_x(evt) {
-    var relativeX = (evt.offsetX) ? evt.offsetX : evt.layerX;
+    var relativeX = evt.offsetX || evt.layerX;
     if ($(evt.target).closest(canvas_container).length) return relativeX;
     // compensate for the frequency scale, since that is not resized by the browser.
+    var relatives = $(evt.target).closest('#openwebrx-frequency-container').map(function(){
+        return evt.pageX - this.offsetLeft;
+    });
+    if (relatives.length) relativeX = relatives[0];
+
     return relativeX - zoom_offset_px;
 }
 
@@ -993,7 +1001,7 @@ function zoom_set(level) {
     if (!(level >= 0 && level <= zoom_levels.length - 1)) return;
     level = parseInt(level);
     zoom_level = level;
-    //zoom_center_rel=canvas_get_freq_offset(-canvases[0].offsetLeft+canvas_container.clientWidth/2); //zoom to screen center instead of demod envelope
+    //zoom_center_rel=canvas_get_freq_offset(-canvases[0].offsetLeft+waterfallWidth()/2); //zoom to screen center instead of demod envelope
     zoom_center_rel = demodulators[0].offset_frequency;
     zoom_center_where = 0.5 + (zoom_center_rel / bandwidth); //this is a kind of hack
     resize_canvases(true);
@@ -1002,13 +1010,12 @@ function zoom_set(level) {
 }
 
 function zoom_calc() {
-    var winsize = canvas_container.clientWidth;
+    var winsize = waterfallWidth();
     var canvases_new_width = winsize * zoom_levels[zoom_level];
     zoom_offset_px = -((canvases_new_width * (0.5 + zoom_center_rel / bandwidth)) - (winsize * zoom_center_where));
     if (zoom_offset_px > 0) zoom_offset_px = 0;
     if (zoom_offset_px < winsize - canvases_new_width)
         zoom_offset_px = winsize - canvases_new_width;
-    //console.log("zoom_calc || zopx:"+zoom_offset_px.toString()+ " maxoff:"+(winsize-canvases_new_width).toString()+" relval:"+(0.5+zoom_center_rel/bandwidth).toString() );
 }
 
 var networkSpeedMeasurement;
@@ -1572,9 +1579,6 @@ function add_canvas() {
     new_canvas.width = fft_size;
     new_canvas.height = canvas_default_height;
     canvas_actual_line = canvas_default_height - 1;
-    new_canvas.style.width = (canvas_container.clientWidth * zoom_levels[zoom_level]).toString() + "px";
-    new_canvas.style.left = zoom_offset_px.toString() + "px";
-    new_canvas.style.height = canvas_default_height.toString() + "px";
     new_canvas.openwebrx_top = (-canvas_default_height + 1);
     new_canvas.style.top = new_canvas.openwebrx_top.toString() + "px";
     canvas_context = new_canvas.getContext("2d");
@@ -1614,11 +1618,9 @@ function resize_canvases(zoom) {
     if (typeof zoom === "undefined") zoom = false;
     if (!zoom) mkzoomlevels();
     zoom_calc();
-    var new_width = (canvas_container.clientWidth * zoom_levels[zoom_level]).toString() + "px";
-    var zoom_value = zoom_offset_px.toString() + "px";
-    canvases.forEach(function (p) {
-        p.style.width = new_width;
-        p.style.left = zoom_value;
+    $('#webrx-canvas-container').css({
+        width: waterfallWidth() * zoom_levels[zoom_level] + 'px',
+        left: zoom_offset_px + "px"
     });
 }
 
