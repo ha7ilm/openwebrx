@@ -23,7 +23,7 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 git clone https://git.code.sf.net/p/itpp/git itpp
 cmakebuild itpp
 
-git clone https://github.com/jketterl/csdr.git -b 48khz_filter
+git clone https://github.com/jketterl/csdr.git -b docker_fixes
 cd csdr
 make
 make install
