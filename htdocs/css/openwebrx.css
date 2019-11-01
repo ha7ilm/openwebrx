@@ -170,6 +170,7 @@ input[type=range]:focus::-ms-fill-upper
 	background-repeat: repeat-x;
 	background-size: cover;
     background-color: #444;
+    z-index: 10;
 }
 
 #openwebrx-bookmarks-container
