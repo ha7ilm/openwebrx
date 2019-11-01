@@ -1422,7 +1422,7 @@ function divlog(what, is_error) {
     was_error |= is_error;
     if (is_error) {
         what = "<span class=\"webrx-error\">" + what + "</span>";
-        if (e("openwebrx-panel-log").openwebrxHidden) toggle_panel("openwebrx-panel-log"); //show panel if any error is present
+        toggle_panel("openwebrx-panel-log", true); //show panel if any error is present
     }
     e("openwebrx-debugdiv").innerHTML += what + "<br />";
     var nano = $('.nano');
@@ -1474,9 +1474,7 @@ function onAudioStart(success, apiType){
 
     //hide log panel in a second (if user has not hidden it yet)
     window.setTimeout(function () {
-        if (typeof e("openwebrx-panel-log").openwebrxHidden === "undefined" && !was_error) {
-            toggle_panel("openwebrx-panel-log");
-        }
+        toggle_panel("openwebrx-panel-log", !!was_error);
     }, 2000);
 
     //Synchronise volume with slider
@@ -1918,10 +1916,10 @@ var audioEngine;
 
 function openwebrx_init() {
     audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
+    $overlay = $('#openwebrx-autoplay-overlay');
+    $overlay.on('click', playButtonClick);
     if (!audioEngine.isAllowed()) {
-        e("openwebrx-big-grey").style.display = "table-cell";
-        var opb = e("openwebrx-play-button-text");
-        opb.style.marginTop = (window.innerHeight / 2 - opb.clientHeight / 2).toString() + "px";
+        $overlay.show();
     } else {
         audioEngine.start(onAudioStart);
     }
@@ -1973,10 +1971,11 @@ function update_dmr_timeslot_filtering() {
 function playButtonClick() {
     //On iOS, we can only start audio from a click or touch event.
     audioEngine.start(onAudioStart);
-    e("openwebrx-big-grey").style.opacity = 0;
-    window.setTimeout(function () {
-        e("openwebrx-big-grey").style.display = "none";
-    }, 1100);
+    $overlay = $('#openwebrx-autoplay-overlay');
+    $overlay.css('opacity', 0);
+    $overlay.on('transitionend', function() {
+        $overlay.hide();
+    });
 }
 
 var rt = function (s, n) {

@@ -645,7 +645,7 @@ img.openwebrx-mirror-img
 	font-family: 'expletus-sans-medium';
 }
 
-#openwebrx-big-grey
+#openwebrx-autoplay-overlay
 {
 	position: fixed;
 	width: 100%;
@@ -657,9 +657,6 @@ img.openwebrx-mirror-img
 	left: 0;
 	top: 0;
 	z-index: 1001;
-	display: none;
-	vertical-align: middle;
-	text-align: center;
 	color: white;
 	font-weight: bold;
 	font-size: 20pt;
@@ -667,9 +664,17 @@ img.openwebrx-mirror-img
 	transition: opacity 0.3s linear;
 }
 
-#openwebrx-big-grey img
+#openwebrx-autoplay-overlay img
 {
 	width: 150px;
+}
+
+#openwebrx-autoplay-overlay .overlay-content {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
 }
 
 #openwebrx-digimode-canvas-container
