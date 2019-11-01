@@ -363,6 +363,8 @@ input[type=range]:focus::-ms-fill-upper
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    height: 0;
+    overflow: visible;
 }
 
 #openwebrx-panels-container-left {
