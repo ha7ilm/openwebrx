@@ -1973,7 +1973,7 @@ function update_dmr_timeslot_filtering() {
 function playButtonClick() {
     //On iOS, we can only start audio from a click or touch event.
     audioEngine.start(onAudioStart);
-    $overlay = $('#openwebrx-autoplay-overlay');
+    var $overlay = $('#openwebrx-autoplay-overlay');
     $overlay.css('opacity', 0);
     $overlay.on('transitionend', function() {
         $overlay.hide();
@@ -2051,7 +2051,7 @@ function initPanels() {
             el.style.transitionDuration = null;
             el.style.transitionDelay = null;
             el.style.transitionProperty = null;
-            if (el.movement && el.movement == 'collapse') {
+            if (el.movement && el.movement === 'collapse') {
                 el.style.display = 'none';
             }
         });
@@ -2221,16 +2221,14 @@ function secondary_demod_push_data(x) {
         var c = y.charCodeAt(0);
         return (c === 10 || (c >= 32 && c <= 126));
     }).map(function (y) {
-        if (y === "&"
-        )
+        if (y === "&")
             return "&amp;";
         if (y === "<") return "&lt;";
         if (y === ">") return "&gt;";
         if (y === " ") return "&nbsp;";
         return y;
     }).map(function (y) {
-        if (y === "\n"
-        )
+        if (y === "\n")
             return "<br />";
         return "<span class=\"part\">" + y + "</span>";
     }).join("");

@@ -1,6 +1,6 @@
 function Measurement() {
     this.reset();
-};
+}
 
 Measurement.prototype.add = function(v) {
     this.value += v;
@@ -25,7 +25,7 @@ Measurement.prototype.reset = function() {
 
 Measurement.prototype.report = function(range, interval, callback) {
     return new Reporter(this, range, interval, callback);
-}
+};
 
 function Reporter(measurement, range, interval, callback) {
     this.measurement = measurement;
@@ -33,7 +33,7 @@ function Reporter(measurement, range, interval, callback) {
     this.samples = [];
     this.callback = callback;
     this.interval = setInterval(this.report.bind(this), interval);
-};
+}
 
 Reporter.prototype.sample = function(){
     this.samples.push({
