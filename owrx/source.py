@@ -435,7 +435,7 @@ class RtlSdrSocketSource(SdrSource):
             self.controlSocket = None
 
     def getCommand(self):
-        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain}"
+        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm}"
 
     def getFormatConversion(self):
         return None
