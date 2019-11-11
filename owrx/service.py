@@ -1,5 +1,5 @@
 import threading
-import socket
+from owrx.socket import getAvailablePort
 from datetime import datetime, timezone, timedelta
 from owrx.source import SdrService
 from owrx.bands import Bandplan
@@ -245,14 +245,6 @@ class ServiceHandler(object):
         self.startupTimer = threading.Timer(10, self.updateServices)
         self.startupTimer.start()
 
-    def getAvailablePort(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("", 0))
-        s.listen(1)
-        port = s.getsockname()[1]
-        s.close()
-        return port
-
     def updateServices(self):
         logger.debug("re-scheduling services due to sdr changes")
         self.stopServices()
@@ -293,7 +285,7 @@ class ServiceHandler(object):
                     resampler_props["center_freq"] = cf
                     # TODO the + 24000 is a temporary fix since the resampling optimizer does not account for required bandwidths
                     resampler_props["samp_rate"] = bw + 24000
-                    resampler = Resampler(resampler_props, self.getAvailablePort(), self.source)
+                    resampler = Resampler(resampler_props, getAvailablePort(), self.source)
                     resampler.start()
 
                     for dial in group:

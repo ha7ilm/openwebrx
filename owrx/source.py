@@ -5,6 +5,7 @@ from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.metrics import Metrics, DirectMetric
+from owrx.socket import getAvailablePort
 import threading
 import csdr
 import time
@@ -105,15 +106,10 @@ class SdrSource(object):
         self.profile_id = None
         self.activateProfile()
         self.rtlProps = self.props.collect(
-            "samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"
+            *self.getEventNames()
         ).defaults(PropertyManager.getSharedInstance())
+        self.wireEvents()
 
-        def restart(name, value):
-            logger.debug("restarting sdr source due to property change: {0} changed to {1}".format(name, value))
-            self.stop()
-            self.start()
-
-        self.rtlProps.wire(restart)
         self.port = port
         self.monitor = None
         self.clients = []
@@ -122,6 +118,17 @@ class SdrSource(object):
         self.process = None
         self.modificationLock = threading.Lock()
         self.failed = False
+
+    def getEventNames(self):
+        return ["samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"]
+
+    def wireEvents(self):
+        def restart(name, value):
+            logger.debug("restarting sdr source due to property change: {0} changed to {1}".format(name, value))
+            self.stop()
+            self.start()
+
+        self.rtlProps.wire(restart)
 
     # override this in subclasses
     def getCommand(self):
@@ -164,6 +171,9 @@ class SdrSource(object):
     def getPort(self):
         return self.port
 
+    def useNmux(self):
+        return True
+
     def start(self):
         self.modificationLock.acquire()
         if self.monitor:
@@ -172,7 +182,7 @@ class SdrSource(object):
 
         props = self.rtlProps
 
-        start_sdr_command = self.getCommand().format(
+        cmd = self.getCommand().format(
             **props.collect(
                 "samp_rate", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"
             ).__dict__()
@@ -180,25 +190,27 @@ class SdrSource(object):
 
         format_conversion = self.getFormatConversion()
         if format_conversion is not None:
-            start_sdr_command += " | " + format_conversion
+            cmd += " | " + format_conversion
 
-        nmux_bufcnt = nmux_bufsize = 0
-        while nmux_bufsize < props["samp_rate"] / 4:
-            nmux_bufsize += 4096
-        while nmux_bufsize * nmux_bufcnt < props["nmux_memory"] * 1e6:
-            nmux_bufcnt += 1
-        if nmux_bufcnt == 0 or nmux_bufsize == 0:
-            logger.error(
-                "Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py"
+        if self.useNmux():
+            nmux_bufcnt = nmux_bufsize = 0
+            while nmux_bufsize < props["samp_rate"] / 4:
+                nmux_bufsize += 4096
+            while nmux_bufsize * nmux_bufcnt < props["nmux_memory"] * 1e6:
+                nmux_bufcnt += 1
+            if nmux_bufcnt == 0 or nmux_bufsize == 0:
+                logger.error(
+                    "Error: nmux_bufsize or nmux_bufcnt is zero. These depend on nmux_memory and samp_rate options in config_webrx.py"
+                )
+                self.modificationLock.release()
+                return
+            logger.debug("nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
+            cmd = cmd + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (
+                nmux_bufsize,
+                nmux_bufcnt,
+                self.port,
             )
-            self.modificationLock.release()
-            return
-        logger.debug("nmux_bufsize = %d, nmux_bufcnt = %d" % (nmux_bufsize, nmux_bufcnt))
-        cmd = start_sdr_command + " | nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (
-            nmux_bufsize,
-            nmux_bufcnt,
-            self.port,
-        )
+
         self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
         logger.info("Started rtl source: " + cmd)
 
@@ -229,6 +241,8 @@ class SdrSource(object):
         if not available:
             self.failed = True
 
+        self.postStart()
+
         self.modificationLock.release()
 
         for c in self.clients:
@@ -236,6 +250,9 @@ class SdrSource(object):
                 c.onSdrFailed()
             else:
                 c.onSdrAvailable()
+
+    def postStart(self):
+        pass
 
     def isAvailable(self):
         return self.monitor is not None
@@ -388,6 +405,43 @@ class Resampler(SdrSource):
 
     def activateProfile(self, profile_id=None):
         pass
+
+
+class RtlSdrSocketSource(SdrSource):
+    def __init__(self, id, props, port):
+        super().__init__(id, props, port)
+        self.controlSocket = None
+        self.controlPort = getAvailablePort()
+
+    def getEventNames(self):
+        return ["samp_rate", "center_freq", "ppm", "rf_gain"]
+
+    def wireEvents(self):
+        def reconfigure(prop, value):
+            logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
+            self.controlSocket.send("{prop}:{value}\n".format(prop=prop, value=value).encode())
+
+        self.rtlProps.wire(reconfigure)
+
+    def postStart(self):
+        logger.debug("opening control socket...")
+        self.controlSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.controlSocket.connect(("localhost", self.controlPort))
+
+    def stop(self):
+        super().stop()
+        if self.controlSocket:
+            self.controlSocket.close()
+            self.controlSocket = None
+
+    def getCommand(self):
+        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain}"
+
+    def getFormatConversion(self):
+        return None
+
+    def useNmux(self):
+        return False
 
 
 class RtlSdrSource(SdrSource):

@@ -19,6 +19,7 @@ class FeatureDetector(object):
     features = {
         "core": ["csdr", "nmux", "nc"],
         "rtl_sdr": ["rtl_sdr"],
+        "rtl_sdr_socket": ["owrx_connector"],
         "sdrplay": ["rx_tools"],
         "hackrf": ["hackrf_transfer"],
         "airspy": ["airspy_rx"],
@@ -163,7 +164,10 @@ class FeatureDetector(object):
         def check_digiham_version(command):
             try:
                 process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
-                version = LooseVersion(digiham_version_regex.match(process.stdout.readline().decode()).group(1))
+                matches = digiham_version_regex.match(process.stdout.readline().decode())
+                if matches is None:
+                    return False
+                version = LooseVersion(matches.group(1))
                 process.wait(1)
                 return version >= required_version
             except FileNotFoundError:
@@ -180,6 +184,40 @@ class FeatureDetector(object):
                     "mbe_synthesizer",
                     "gfsk_demodulator",
                     "digitalvoice_filter",
+                ],
+            ),
+            True,
+        )
+
+    def has_owrx_connector(self):
+        """
+        The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
+        frequency switching, uses less CPU and can even provide more stability in some cases.
+
+        You can get it here: https://github.com/jketterl/owrx_connector
+        """
+        required_version = LooseVersion("0.1")
+
+        owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
+
+        def check_owrx_connector_version(command):
+            try:
+                process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
+                matches = owrx_connector_version_regex.match(process.stdout.readline().decode())
+                if matches is None:
+                    return False
+                version = LooseVersion(matches.group(1))
+                process.wait(1)
+                return version >= required_version
+            except FileNotFoundError:
+                return False
+
+        return reduce(
+            and_,
+            map(
+                check_owrx_connector_version,
+                [
+                    "rtl_connector",
                 ],
             ),
             True,
