@@ -418,8 +418,10 @@ class RtlSdrSocketSource(SdrSource):
 
     def wireEvents(self):
         def reconfigure(prop, value):
+            if self.monitor is None:
+                return
             logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
-            self.controlSocket.send("{prop}:{value}\n".format(prop=prop, value=value).encode())
+            self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
 
         self.rtlProps.wire(reconfigure)
 
