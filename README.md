@@ -130,7 +130,7 @@ Please note that the server is also listening on the following ports (on localho
 Now the next step is to customize the parameters of your server in `config_webrx.py`.
 
 Actually, if you do something cool with OpenWebRX, please drop me a mail:  
-*Andras Retzler, HA7ILM &lt;randras@sdr.hu&gt;*
+*Jakob Ketterl, DD5JFK &lt;dd5jfk@darc.de&gt;*
 
 ## Usage tips
 

@@ -27,7 +27,7 @@ def main():
 OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE file in the package
 _________________________________________________________________________________________________
 
-Author contact info:    Andras Retzler, HA7ILM <randras@sdr.hu>
+Author contact info:    Jakob Ketterl, DD5JFK <dd5jfk@darc.de>
 
     """
     )
