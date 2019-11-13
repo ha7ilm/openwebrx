@@ -113,6 +113,7 @@ class ServiceScheduler(object):
         self.active = False
         self.source.addClient(self)
         self.selectionTimer = None
+        self.source.getProps().collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
         self.scheduleSelection()
 
     def shutdown(self):
@@ -143,6 +144,9 @@ class ServiceScheduler(object):
 
     def onSdrFailed(self):
         self.cancelTimer()
+
+    def onFrequencyChange(self, name, value):
+        self.scheduleSelection()
 
     def selectProfile(self):
         self.active = False
