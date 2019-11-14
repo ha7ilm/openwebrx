@@ -1,10 +1,11 @@
-import os
 import subprocess
 from functools import reduce
 from operator import and_
 import re
 from distutils.version import LooseVersion
 import inspect
+from owrx.config import PropertyManager
+import shlex
 
 import logging
 
@@ -84,7 +85,13 @@ class FeatureDetector(object):
         return inspect.getdoc(self._get_requirement_method(requirement))
 
     def command_is_runnable(self, command):
-        return os.system("{0} 2>/dev/null >/dev/null".format(command)) != 32512
+        tmp_dir = PropertyManager.getSharedInstance()['temporary_directory']
+        cmd = shlex.split(command)
+        try:
+            process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir)
+            return process.wait() != 32512
+        except FileNotFoundError:
+            return False
 
     def has_csdr(self):
         """
@@ -144,9 +151,6 @@ class FeatureDetector(object):
         # TODO i don't have a hackrf, so somebody doublecheck this.
         # TODO also check if it has the stdout feature
         return self.command_is_runnable("hackrf_transfer --help")
-
-    def command_exists(self, command):
-        return os.system("which {0}".format(command)) == 0
 
     def has_digiham(self):
         """
@@ -246,7 +250,7 @@ class FeatureDetector(object):
         """
         In order to use an Airspy Receiver, you need to install the airspy_rx receiver software.
         """
-        return self.command_is_runnable("airspy_rx --help 2> /dev/null")
+        return self.command_is_runnable("airspy_rxxx --help")
 
     def has_wsjtx(self):
         """
