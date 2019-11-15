@@ -250,7 +250,7 @@ class FeatureDetector(object):
         """
         In order to use an Airspy Receiver, you need to install the airspy_rx receiver software.
         """
-        return self.command_is_runnable("airspy_rxxx --help")
+        return self.command_is_runnable("airspy_rx --help")
 
     def has_wsjtx(self):
         """
