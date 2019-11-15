@@ -110,7 +110,6 @@ class ServiceScheduler(object):
     def __init__(self, source, schedule):
         self.source = source
         self.schedule = Schedule.parse(schedule)
-        self.active = False
         self.source.addClient(self)
         self.selectionTimer = None
         self.source.getProps().collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
@@ -133,8 +132,8 @@ class ServiceScheduler(object):
         if self.selectionTimer:
             self.selectionTimer.cancel()
 
-    def isActive(self):
-        return self.active
+    def getClientClass(self):
+        return SdrSource.CLIENT_BACKGROUND
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_STOPPING:
@@ -142,13 +141,16 @@ class ServiceScheduler(object):
         elif state == SdrSource.STATE_FAILED:
             self.cancelTimer()
 
+    def onBusyStateChange(self, state):
+        if state == SdrSource.BUSYSTATE_IDLE:
+            self.scheduleSelection()
+
     def onFrequencyChange(self, name, value):
         self.scheduleSelection()
 
     def selectProfile(self):
-        self.active = False
-        if self.source.hasActiveClients():
-            logger.debug("source has active clients; not touching")
+        if self.source.hasClients(SdrSource.CLIENT_USER):
+            logger.debug("source has active users; not touching")
             return
         logger.debug("source seems to be idle, selecting profile for background services")
         entry = self.schedule.getCurrentEntry()
@@ -164,7 +166,6 @@ class ServiceScheduler(object):
         self.scheduleSelection(entry.getScheduledEnd())
 
         try:
-            self.active = True
             self.source.activateProfile(entry.getProfile())
             self.source.start()
         except KeyError:
@@ -186,8 +187,8 @@ class ServiceHandler(object):
         if "schedule" in props:
             self.scheduler = ServiceScheduler(self.source, props["schedule"])
 
-    def isActive(self):
-        return False
+    def getClientClass(self):
+        return SdrSource.CLIENT_BACKGROUND
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
@@ -198,6 +199,9 @@ class ServiceHandler(object):
         elif state == SdrSource.STATE_FAILED:
             logger.debug("sdr source failed; stopping services.")
             self.stopServices()
+
+    def onBusyStateChange(self, state):
+        pass
 
     def isSupported(self, mode):
         # TODO this should be in a more central place (the frontend also needs this)

@@ -107,6 +107,13 @@ class SdrSource(object):
     STATE_TUNING = 4
     STATE_FAILED = 5
 
+    BUSYSTATE_IDLE = 0
+    BUSYSTATE_BUSY = 1
+
+    CLIENT_INACTIVE = 0
+    CLIENT_BACKGROUND = 1
+    CLIENT_USER = 2
+
     def __init__(self, id, props, port):
         self.id = id
         self.props = props
@@ -126,6 +133,7 @@ class SdrSource(object):
         self.modificationLock = threading.Lock()
         self.failed = False
         self.state = SdrSource.STATE_STOPPED
+        self.busyState = SdrSource.BUSYSTATE_IDLE
 
     def getEventNames(self):
         return ["samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"]
@@ -285,21 +293,28 @@ class SdrSource(object):
     def sleepOnRestart(self):
         pass
 
-    def hasActiveClients(self):
-        activeClients = [c for c in self.clients if c.isActive()]
-        return len(activeClients) > 0
+    def hasClients(self, *args):
+        clients = [c for c in self.clients if c.getClientClass() in args]
+        return len(clients) > 0
 
     def addClient(self, c):
         self.clients.append(c)
-        if self.hasActiveClients():
+        hasUsers = self.hasClients(SdrSource.CLIENT_USER)
+        hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
+        if hasUsers or hasBackgroundTasks:
             self.start()
+            self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
 
     def removeClient(self, c):
         try:
             self.clients.remove(c)
         except ValueError:
             pass
-        if not self.hasActiveClients():
+
+        hasUsers = self.hasClients(SdrSource.CLIENT_USER)
+        hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
+        self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
+        if not hasUsers and not hasBackgroundTasks:
             self.stop()
 
     def addSpectrumClient(self, c):
@@ -327,6 +342,13 @@ class SdrSource(object):
         self.state = state
         for c in self.clients:
             c.onStateChange(state)
+
+    def setBusyState(self, state):
+        if state == self.busyState:
+            return
+        self.busyState = state
+        for c in self.clients:
+            c.onBusyStateChange(state)
 
 
 class Resampler(SdrSource):
@@ -575,14 +597,17 @@ class SpectrumThread(csdr.output):
             c.cancel()
         self.subscriptions = []
 
-    def isActive(self):
-        return True
+    def getClientClass(self):
+        return SdrSource.CLIENT_USER
 
     def onStateChange(self, state):
         if state in [SdrSource.STATE_STOPPING, SdrSource.STATE_FAILED]:
             self.dsp.stop()
         elif state == SdrSource.STATE_RUNNING:
             self.dsp.start()
+
+    def onBusyStateChange(self, state):
+        pass
 
 
 class DspManager(csdr.output):
@@ -707,8 +732,8 @@ class DspManager(csdr.output):
     def setProperty(self, prop, value):
         self.localProps.getProperty(prop).setValue(value)
 
-    def isActive(self):
-        return True
+    def getClientClass(self):
+        return SdrSource.CLIENT_USER
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
@@ -721,6 +746,9 @@ class DspManager(csdr.output):
             logger.debug("received STATE_FAILED, shutting down DspSource")
             self.dsp.stop()
             self.handler.handleSdrFailure("sdr device failed")
+
+    def onBusyStateChange(self, state):
+        pass
 
 
 class CpuUsageThread(threading.Thread):
