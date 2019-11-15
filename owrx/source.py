@@ -100,6 +100,13 @@ class SdrService(object):
 
 
 class SdrSource(object):
+    STATE_STOPPED = 0
+    STATE_STARTING = 1
+    STATE_RUNNING = 2
+    STATE_STOPPING = 3
+    STATE_TUNING = 4
+    STATE_FAILED = 5
+
     def __init__(self, id, props, port):
         self.id = id
         self.props = props
@@ -118,6 +125,7 @@ class SdrSource(object):
         self.process = None
         self.modificationLock = threading.Lock()
         self.failed = False
+        self.state = SdrSource.STATE_STOPPED
 
     def getEventNames(self):
         return ["samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"]
@@ -245,11 +253,7 @@ class SdrSource(object):
 
         self.modificationLock.release()
 
-        for c in self.clients:
-            if self.failed:
-                c.onSdrFailed()
-            else:
-                c.onSdrAvailable()
+        self.setState(SdrSource.STATE_FAILED if self.failed else SdrSource.STATE_RUNNING)
 
     def postStart(self):
         pass
@@ -261,8 +265,7 @@ class SdrSource(object):
         return self.failed
 
     def stop(self):
-        for c in self.clients:
-            c.onSdrUnavailable()
+        self.setState(SdrSource.STATE_STOPPING)
 
         self.modificationLock.acquire()
 
@@ -276,6 +279,8 @@ class SdrSource(object):
             self.monitor.join()
         self.sleepOnRestart()
         self.modificationLock.release()
+
+        self.setState(SdrSource.STATE_STOPPED)
 
     def sleepOnRestart(self):
         pass
@@ -316,6 +321,13 @@ class SdrSource(object):
         for c in self.spectrumClients:
             c.write_spectrum_data(data)
 
+    def setState(self, state):
+        if state == self.state:
+            return
+        self.state = state
+        for c in self.clients:
+            c.onStateChange(state)
+
 
 class Resampler(SdrSource):
     def __init__(self, props, port, sdr):
@@ -337,6 +349,8 @@ class Resampler(SdrSource):
         if self.monitor:
             self.modificationLock.release()
             return
+
+        self.setState(SdrSource.STATE_STARTING)
 
         props = self.rtlProps
 
@@ -397,11 +411,7 @@ class Resampler(SdrSource):
 
         self.modificationLock.release()
 
-        for c in self.clients:
-            if self.failed:
-                c.onSdrFailed()
-            else:
-                c.onSdrAvailable()
+        self.setState(SdrSource.STATE_FAILED if self.failed else SdrSource.STATE_RUNNING)
 
     def activateProfile(self, profile_id=None):
         pass
@@ -568,14 +578,11 @@ class SpectrumThread(csdr.output):
     def isActive(self):
         return True
 
-    def onSdrAvailable(self):
-        self.dsp.start()
-
-    def onSdrUnavailable(self):
-        self.dsp.stop()
-
-    def onSdrFailed(self):
-        self.dsp.stop()
+    def onStateChange(self, state):
+        if state in [SdrSource.STATE_STOPPING, SdrSource.STATE_FAILED]:
+            self.dsp.stop()
+        elif state == SdrSource.STATE_RUNNING:
+            self.dsp.start()
 
 
 class DspManager(csdr.output):
@@ -703,18 +710,17 @@ class DspManager(csdr.output):
     def isActive(self):
         return True
 
-    def onSdrAvailable(self):
-        logger.debug("received onSdrAvailable, attempting DspSource restart")
-        self.dsp.start()
-
-    def onSdrUnavailable(self):
-        logger.debug("received onSdrUnavailable, shutting down DspSource")
-        self.dsp.stop()
-
-    def onSdrFailed(self):
-        logger.debug("received onSdrFailed, shutting down DspSource")
-        self.dsp.stop()
-        self.handler.handleSdrFailure("sdr device failed")
+    def onStateChange(self, state):
+        if state == SdrSource.STATE_RUNNING:
+            logger.debug("received STATE_RUNNING, attempting DspSource restart")
+            self.dsp.start()
+        elif state == SdrSource.STATE_STOPPING:
+            logger.debug("received STATE_STOPPING, shutting down DspSource")
+            self.dsp.stop()
+        elif state == SdrSource.STATE_FAILED:
+            logger.debug("received STATE_FAILED, shutting down DspSource")
+            self.dsp.stop()
+            self.handler.handleSdrFailure("sdr device failed")
 
 
 class CpuUsageThread(threading.Thread):

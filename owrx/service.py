@@ -1,7 +1,7 @@
 import threading
 from owrx.socket import getAvailablePort
 from datetime import datetime, timezone, timedelta
-from owrx.source import SdrService
+from owrx.source import SdrService, SdrSource
 from owrx.bands import Bandplan
 from csdr import dsp, output
 from owrx.wsjt import WsjtParser
@@ -136,14 +136,11 @@ class ServiceScheduler(object):
     def isActive(self):
         return self.active
 
-    def onSdrAvailable(self):
-        pass
-
-    def onSdrUnavailable(self):
-        self.scheduleSelection()
-
-    def onSdrFailed(self):
-        self.cancelTimer()
+    def onStateChange(self, state):
+        if state == SdrSource.STATE_STOPPING:
+            self.scheduleSelection()
+        elif state == SdrSource.STATE_FAILED:
+            self.cancelTimer()
 
     def onFrequencyChange(self, name, value):
         self.scheduleSelection()
@@ -192,16 +189,15 @@ class ServiceHandler(object):
     def isActive(self):
         return False
 
-    def onSdrAvailable(self):
-        self.scheduleServiceStartup()
-
-    def onSdrUnavailable(self):
-        logger.debug("sdr source becoming unavailable; stopping services.")
-        self.stopServices()
-
-    def onSdrFailed(self):
-        logger.debug("sdr source failed; stopping services.")
-        self.stopServices()
+    def onStateChange(self, state):
+        if state == SdrSource.STATE_RUNNING:
+            self.scheduleServiceStartup()
+        elif state == SdrSource.STATE_STOPPING:
+            logger.debug("sdr source becoming unavailable; stopping services.")
+            self.stopServices()
+        elif state == SdrSource.STATE_FAILED:
+            logger.debug("sdr source failed; stopping services.")
+            self.stopServices()
 
     def isSupported(self, mode):
         # TODO this should be in a more central place (the frontend also needs this)
