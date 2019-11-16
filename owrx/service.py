@@ -188,7 +188,7 @@ class ServiceHandler(object):
             self.scheduler = ServiceScheduler(self.source, props["schedule"])
 
     def getClientClass(self):
-        return SdrSource.CLIENT_BACKGROUND
+        return SdrSource.CLIENT_INACTIVE
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
