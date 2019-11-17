@@ -20,8 +20,9 @@ class FeatureDetector(object):
     features = {
         "core": ["csdr", "nmux", "nc"],
         "rtl_sdr": ["rtl_sdr"],
-        "rtl_sdr_socket": ["owrx_connector"],
+        "rtl_sdr_connector": ["owrx_connector"],
         "sdrplay": ["rx_tools"],
+        "sdrplay_connector": ["owrx_connector"],
         "hackrf": ["hackrf_transfer"],
         "airspy": ["airspy_rx"],
         "digital_voice_digiham": ["digiham", "sox"],

@@ -199,9 +199,7 @@ class SdrSource(object):
         props = self.rtlProps
 
         cmd = self.getCommand().format(
-            **props.collect(
-                "samp_rate", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"
-            ).__dict__()
+            **props.collect(*self.getEventNames()).__dict__()
         )
 
         format_conversion = self.getFormatConversion()
@@ -439,14 +437,11 @@ class Resampler(SdrSource):
         pass
 
 
-class RtlSdrSocketSource(SdrSource):
+class ConnectorSource(SdrSource):
     def __init__(self, id, props, port):
         super().__init__(id, props, port)
         self.controlSocket = None
         self.controlPort = getAvailablePort()
-
-    def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain"]
 
     def wireEvents(self):
         def reconfigure(prop, value):
@@ -468,14 +463,27 @@ class RtlSdrSocketSource(SdrSource):
             self.controlSocket.close()
             self.controlSocket = None
 
-    def getCommand(self):
-        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm}"
-
     def getFormatConversion(self):
         return None
 
     def useNmux(self):
         return False
+
+
+class RtlSdrConnectorSource(ConnectorSource):
+    def getEventNames(self):
+        return ["samp_rate", "center_freq", "ppm", "rf_gain"]
+
+    def getCommand(self):
+        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm}"
+
+
+class SdrplayConnectorSource(ConnectorSource):
+    def getEventNames(self):
+        return ["samp_rate", "center_freq", "ppm", "rf_gain", "antenna", "device"]
+
+    def getCommand(self):
+        return "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g \"{rf_gain}\" -P {ppm} -a \"{antenna}\" -d \"{device}\""
 
 
 class RtlSdrSource(SdrSource):
