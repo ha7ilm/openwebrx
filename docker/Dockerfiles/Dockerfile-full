@@ -9,3 +9,6 @@ RUN /install-dependencies-hackrf.sh
 RUN /install-dependencies-soapysdr.sh
 RUN /install-dependencies-sdrplay.sh
 RUN /install-dependencies-airspy.sh
+
+ADD docker/scripts/install-connectors.sh /
+RUN /install-connectors.sh
