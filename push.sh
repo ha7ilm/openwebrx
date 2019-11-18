@@ -12,5 +12,5 @@ for image in openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airsp
     IMAGE_LIST="$IMAGE_LIST jketterl/$image:$a"
   done
   docker manifest create --amend jketterl/$image:latest $IMAGE_LIST
-  docker manifest push jketterl/$image:latest
+  docker manifest push --purge jketterl/$image:latest
 done
