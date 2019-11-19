@@ -480,10 +480,14 @@ class RtlSdrConnectorSource(ConnectorSource):
 
 class SdrplayConnectorSource(ConnectorSource):
     def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain", "antenna", "device"]
+        return ["samp_rate", "center_freq", "ppm", "rf_gain", "antenna", "device", "iqswap"]
 
     def getCommand(self):
-        return "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g \"{rf_gain}\" -P {ppm} -a \"{antenna}\" -d \"{device}\""
+        cmd = "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) +\
+              " -s {samp_rate} -f {center_freq} -g \"{rf_gain}\" -P {ppm} -a \"{antenna}\" -d \"{device}\""
+        if self.rtlProps["iqswap"]:
+            cmd += " -i"
+        return cmd
 
 
 class RtlSdrSource(SdrSource):
