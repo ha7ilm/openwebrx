@@ -472,10 +472,10 @@ class ConnectorSource(SdrSource):
 
 class RtlSdrConnectorSource(ConnectorSource):
     def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain"]
+        return ["samp_rate", "center_freq", "ppm", "rf_gain", "device"]
 
     def getCommand(self):
-        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm}"
+        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm} -d {device}"
 
 
 class SdrplayConnectorSource(ConnectorSource):
