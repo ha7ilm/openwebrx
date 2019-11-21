@@ -192,7 +192,7 @@ class SdrSource(object):
 
     def getCommandValues(self):
         dict = self.rtlProps.collect(*self.getEventNames()).__dict__()
-        if "lfo_offset" in dict:
+        if "lfo_offset" in dict and dict["lfo_offset"] is not None:
             dict["tuner_freq"] = dict["center_freq"] + dict["lfo_offset"]
         else:
             dict["tuner_freq"] = dict["center_freq"]
@@ -451,16 +451,19 @@ class ConnectorSource(SdrSource):
         self.controlSocket = None
         self.controlPort = getAvailablePort()
 
+    def sendControlMessage(self, prop, value):
+        logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
+        self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
+
     def wireEvents(self):
         def reconfigure(prop, value):
             if self.monitor is None:
                 return
-            v = value
-            if prop == "center_freq" and "lfo_offset" in self.rtlProps:
-                v = value + self.rtlProps["lfo_offset"]
-            logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, v))
-            self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=v).encode())
-
+            if (prop == "center_freq" or prop == "lfo_offset") and "lfo_offset" in self.rtlProps:
+                freq = self.rtlProps["center_freq"] + self.rtlProps["lfo_offset"]
+                self.sendControlMessage("center_freq", freq)
+            else:
+                self.sendControlMessage(prop, value)
         self.rtlProps.wire(reconfigure)
 
     def postStart(self):
