@@ -459,7 +459,7 @@ class ConnectorSource(SdrSource):
         def reconfigure(prop, value):
             if self.monitor is None:
                 return
-            if (prop == "center_freq" or prop == "lfo_offset") and "lfo_offset" in self.rtlProps:
+            if (prop == "center_freq" or prop == "lfo_offset") and "lfo_offset" in self.rtlProps and self.rtlProps["lfo_offset"] is not None:
                 freq = self.rtlProps["center_freq"] + self.rtlProps["lfo_offset"]
                 self.sendControlMessage("center_freq", freq)
             else:
