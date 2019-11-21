@@ -57,7 +57,6 @@ class OpenWebRxReceiverClient(Client):
         "waterfall_min_level",
         "waterfall_max_level",
         "waterfall_auto_level_margin",
-        "lfo_offset",
         "samp_rate",
         "fft_size",
         "fft_fps",

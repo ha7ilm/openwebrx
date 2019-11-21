@@ -136,7 +136,7 @@ class SdrSource(object):
         self.busyState = SdrSource.BUSYSTATE_IDLE
 
     def getEventNames(self):
-        return ["samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain"]
+        return ["samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain", "lfo_offset"]
 
     def wireEvents(self):
         def restart(name, value):
@@ -190,6 +190,14 @@ class SdrSource(object):
     def useNmux(self):
         return True
 
+    def getCommandValues(self):
+        dict = self.rtlProps.collect(*self.getEventNames()).__dict__()
+        if "lfo_offset" in dict:
+            dict["tuner_freq"] = dict["center_freq"] + dict["lfo_offset"]
+        else:
+            dict["tuner_freq"] = dict["center_freq"]
+        return dict
+
     def start(self):
         self.modificationLock.acquire()
         if self.monitor:
@@ -199,7 +207,7 @@ class SdrSource(object):
         props = self.rtlProps
 
         cmd = self.getCommand().format(
-            **props.collect(*self.getEventNames()).__dict__()
+            **self.getCommandValues()
         )
 
         format_conversion = self.getFormatConversion()
@@ -447,8 +455,11 @@ class ConnectorSource(SdrSource):
         def reconfigure(prop, value):
             if self.monitor is None:
                 return
-            logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
-            self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
+            v = value
+            if prop == "center_freq" and "lfo_offset" in self.rtlProps:
+                v = value + self.rtlProps["lfo_offset"]
+            logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, v))
+            self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=v).encode())
 
         self.rtlProps.wire(reconfigure)
 
@@ -472,27 +483,45 @@ class ConnectorSource(SdrSource):
 
 class RtlSdrConnectorSource(ConnectorSource):
     def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain", "device"]
+        return ["samp_rate", "center_freq", "ppm", "rf_gain", "device", "iqswap", "lfo_offset"]
 
     def getCommand(self):
-        return "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + " -s {samp_rate} -f {center_freq} -g {rf_gain} -P {ppm} -d {device}"
-
-
-class SdrplayConnectorSource(ConnectorSource):
-    def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain", "antenna", "device", "iqswap"]
-
-    def getCommand(self):
-        cmd = "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) +\
-              " -s {samp_rate} -f {center_freq} -g \"{rf_gain}\" -P {ppm} -a \"{antenna}\" -d \"{device}\""
+        cmd = "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) +\
+              " -s {samp_rate} -f {tuner_freq} -g {rf_gain} -P {ppm} -d {device}"
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         return cmd
 
 
+class SdrplayConnectorSource(ConnectorSource):
+    def getEventNames(self):
+        return ["samp_rate", "center_freq", "ppm", "rf_gain", "antenna", "device", "iqswap", "lfo_offset"]
+
+    def getCommand(self):
+        cmd = "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) +\
+              " -s {samp_rate} -f {tuner_freq} -g \"{rf_gain}\" -P {ppm} -a \"{antenna}\" -d \"{device}\""
+        if self.rtlProps["iqswap"]:
+            cmd += " -i"
+        return cmd
+
+
+class AirspyConnectorSource(ConnectorSource):
+    def getEventNames(self):
+        return ["samp_rate", "center_freq", "ppm", "rf_gain", "device", "iqswap", "lfo_offset", "bias_tee"]
+
+    def getCommand(self):
+        cmd = "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + \
+              " -s {samp_rate} -f {tuner_freq} -g \"{rf_gain}\" -P {ppm} -d \"{device}\""
+        if self.rtlProps["iqswap"]:
+            cmd += " -i"
+        if self.rtlProps["bias_tee"]:
+            cmd += " -t biastee=true"
+        return cmd
+
+
 class RtlSdrSource(SdrSource):
     def getCommand(self):
-        return "rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -"
+        return "rtl_sdr -s {samp_rate} -f {tuner_freq} -p {ppm} -g {rf_gain} -"
 
     def getFormatConversion(self):
         return "csdr convert_u8_f"
@@ -500,7 +529,7 @@ class RtlSdrSource(SdrSource):
 
 class HackrfSource(SdrSource):
     def getCommand(self):
-        return "hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-"
+        return "hackrf_transfer -s {samp_rate} -f {tuner_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-"
 
     def getFormatConversion(self):
         return "csdr convert_s8_f"
@@ -508,7 +537,7 @@ class HackrfSource(SdrSource):
 
 class SdrplaySource(SdrSource):
     def getCommand(self):
-        command = "rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm}"
+        command = "rx_sdr -F CF32 -s {samp_rate} -f {tuner_freq} -p {ppm}"
         gainMap = {"rf_gain": "RFGR", "if_gain": "IFGR"}
         gains = [
             "{0}={{{1}}}".format(gainMap[name], name)
@@ -528,7 +557,7 @@ class SdrplaySource(SdrSource):
 
 class AirspySource(SdrSource):
     def getCommand(self):
-        frequency = self.props["center_freq"] / 1e6
+        frequency = self.props["tuner_freq"] / 1e6
         command = "airspy_rx"
         command += " -f{0}".format(frequency)
         command += " -r /dev/stdout -a{samp_rate} -g {rf_gain}"

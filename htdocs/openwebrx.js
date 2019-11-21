@@ -1046,7 +1046,7 @@ function on_ws_recv(evt) {
                         starting_mod = config['start_mod'];
                         starting_offset_frequency = config['start_offset_freq'];
                         bandwidth = config['samp_rate'];
-                        center_freq = config['center_freq'] + config['lfo_offset'];
+                        center_freq = config['center_freq'];
                         fft_size = config['fft_size'];
                         fft_fps = config['fft_fps'];
                         var audio_compression = config['audio_compression'];

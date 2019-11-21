@@ -20,11 +20,12 @@ class FeatureDetector(object):
     features = {
         "core": ["csdr", "nmux", "nc"],
         "rtl_sdr": ["rtl_sdr"],
-        "rtl_sdr_connector": ["owrx_connector"],
+        "rtl_sdr_connector": ["rtl_connector"],
         "sdrplay": ["rx_tools"],
-        "sdrplay_connector": ["owrx_connector"],
+        "sdrplay_connector": ["soapy_connector"],
         "hackrf": ["hackrf_transfer"],
         "airspy": ["airspy_rx"],
+        "airspy_connector": ["soapy_connector"],
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
@@ -194,39 +195,39 @@ class FeatureDetector(object):
             True,
         )
 
-    def has_owrx_connector(self):
+    def _check_connector(self, command):
+        required_version = LooseVersion("0.1")
+
+        owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
+
+        try:
+            process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
+            matches = owrx_connector_version_regex.match(process.stdout.readline().decode())
+            if matches is None:
+                return False
+            version = LooseVersion(matches.group(1))
+            process.wait(1)
+            return version >= required_version
+        except FileNotFoundError:
+            return False
+
+    def has_rtl_connector(self):
         """
         The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
         frequency switching, uses less CPU and can even provide more stability in some cases.
 
         You can get it here: https://github.com/jketterl/owrx_connector
         """
-        required_version = LooseVersion("0.1")
+        return self._check_connector("rtl_connector")
 
-        owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
+    def has_soapy_connector(self):
+        """
+        The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
+        frequency switching, uses less CPU and can even provide more stability in some cases.
 
-        def check_owrx_connector_version(command):
-            try:
-                process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
-                matches = owrx_connector_version_regex.match(process.stdout.readline().decode())
-                if matches is None:
-                    return False
-                version = LooseVersion(matches.group(1))
-                process.wait(1)
-                return version >= required_version
-            except FileNotFoundError:
-                return False
-
-        return reduce(
-            and_,
-            map(
-                check_owrx_connector_version,
-                [
-                    "rtl_connector",
-                ],
-            ),
-            True,
-        )
+        You can get it here: https://github.com/jketterl/owrx_connector
+        """
+        return self._check_connector("soapy_connector")
 
     def has_dsd(self):
         """

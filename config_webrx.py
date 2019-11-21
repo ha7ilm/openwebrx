@@ -106,7 +106,7 @@ sdrs = {
         "type": "rtl_sdr",
         "ppm": 0,
         # you can change this if you use an upconverter. formula is:
-        # shown_center_freq = center_freq + lfo_offset
+        # center_freq + lfo_offset = actual frequency on the sdr
         # "lfo_offset": 0,
         "profiles": {
             "70cm": {
