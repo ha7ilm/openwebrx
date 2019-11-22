@@ -237,7 +237,7 @@ class dsp(object):
             chain += ["csdr realpart_cf"]
             if self.last_decimation != 1.0:
                 chain += ["csdr fractional_decimator_ff {last_decimation}"]
-            return chain + ["csdr agc_ff", "csdr limit_ff", "csdr convert_f_s16"]
+            return chain + ["csdr limit_ff", "csdr convert_f_s16"]
         elif which == "packet":
             chain += ["csdr fmdemod_quadri_cf"]
             if self.last_decimation != 1.0:
