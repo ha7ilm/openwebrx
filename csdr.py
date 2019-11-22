@@ -214,35 +214,35 @@ class dsp(object):
         return chain
 
     def secondary_chain(self, which):
-        secondary_chain_base = "cat {input_pipe} | "
+        chain = ["cat {input_pipe}"]
         if which == "fft":
-            return (
-                secondary_chain_base
-                + "csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 "
-                + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression == "adpcm" else "")
-            )
+            chain += [
+                "csdr realpart_cf",
+                "csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size}",
+                "csdr logpower_cf -70",
+            ]
+            if self.fft_compression == "adpcm":
+                chain += ["csdr compress_fft_adpcm_f_u8 {secondary_fft_size}"]
+            return chain
         elif which == "bpsk31":
-            return (
-                secondary_chain_base
-                + "csdr shift_addition_cc --fifo {secondary_shift_pipe} | "
-                + "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_cutoff} | "
-                + "csdr simple_agc_cc 0.001 0.5 | "
-                + "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | "
-                + "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | "
-                + "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
-            )
+            return chain + [
+                "csdr shift_addition_cc --fifo {secondary_shift_pipe}",
+                "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_cutoff}",
+                "csdr simple_agc_cc 0.001 0.5",
+                "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q",
+                "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8",
+                "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8",
+            ]
         elif self.isWsjtMode(which):
-            chain = secondary_chain_base + "csdr realpart_cf | "
+            chain += ["csdr realpart_cf"]
             if self.last_decimation != 1.0:
-                chain += "csdr fractional_decimator_ff {last_decimation} | "
-            chain += "csdr agc_ff | csdr limit_ff | csdr convert_f_s16"
-            return chain
+                chain += ["csdr fractional_decimator_ff {last_decimation}"]
+            return chain + ["csdr agc_ff", "csdr limit_ff", "csdr convert_f_s16"]
         elif which == "packet":
-            chain = secondary_chain_base + "csdr fmdemod_quadri_cf | "
+            chain += ["csdr fmdemod_quadri_cf"]
             if self.last_decimation != 1.0:
-                chain += "csdr fractional_decimator_ff {last_decimation} | "
-            chain += "csdr convert_f_s16 | direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h - 1>&2"
-            return chain
+                chain += ["csdr fractional_decimator_ff {last_decimation}"]
+            return chain + ["csdr convert_f_s16", "direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h - 1>&2"]
 
     def set_secondary_demodulator(self, what):
         if self.get_secondary_demodulator() == what:
@@ -282,7 +282,7 @@ class dsp(object):
         if not self.secondary_demodulator:
             return
         logger.debug("starting secondary demodulator from IF input sampled at %d" % self.if_samp_rate())
-        secondary_command_demod = self.secondary_chain(self.secondary_demodulator)
+        secondary_command_demod = " | ".join(self.secondary_chain(self.secondary_demodulator))
         self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod)
         self.try_create_configs(secondary_command_demod)
 
@@ -305,7 +305,7 @@ class dsp(object):
         if self.csdr_print_bufsizes:
             my_env["CSDR_PRINT_BUFSIZES"] = "1"
         if self.output.supports_type("secondary_fft"):
-            secondary_command_fft = self.secondary_chain("fft")
+            secondary_command_fft = " | ".join(self.secondary_chain("fft"))
             secondary_command_fft = secondary_command_fft.format(
                 input_pipe=self.iqtee_pipe,
                 secondary_fft_input_size=self.secondary_fft_size,
