@@ -3,9 +3,12 @@ import threading
 import time
 import random
 import socket
+from functools import reduce
+from operator import and_
 from owrx.config import PropertyManager
 from owrx.version import openwebrx_version
 from owrx.locator import Locator
+from owrx.metrics import Metrics, CounterMetric
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +52,11 @@ class PskReporter(object):
         self.spotLock = threading.Lock()
         self.uploader = Uploader()
         self.timer = None
+        metrics = Metrics.getSharedInstance()
+        self.dupeCounter = CounterMetric()
+        metrics.addMetric("pskreporter.duplicates", self.dupeCounter)
+        self.spotCounter = CounterMetric()
+        metrics.addMetric("pskreporter.spots", self.spotCounter)
 
     def scheduleNextUpload(self):
         if self.timer:
@@ -58,11 +66,27 @@ class PskReporter(object):
         self.timer = threading.Timer(delay, self.upload)
         self.timer.start()
 
+    def spotEquals(self, s1, s2):
+        keys = ["callsign", "timestamp", "locator", "mode", "msg"]
+
+        return reduce(
+            and_,
+            map(
+                lambda key: s1[key] == s2[key],
+                keys
+            )
+        )
+
     def spot(self, spot):
         if not spot["mode"] in PskReporter.supportedModes:
             return
         with self.spotLock:
-            self.spots.append(spot)
+            if any(x for x in self.spots if self.spotEquals(spot, x)):
+                # dupe
+                self.dupeCounter.inc()
+            else:
+                self.spotCounter.inc()
+                self.spots.append(spot)
         self.scheduleNextUpload()
 
     def upload(self):
