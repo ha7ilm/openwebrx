@@ -99,6 +99,19 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #################################################################################################
 
 # Currently supported types of sdr receivers: "rtl_sdr", "sdrplay", "hackrf", "airspy"
+#
+# NEW: There is now custom connector software available, that is tailored for the use with
+# openwebrx. The connectors allow the SDR to be reprogrammed while running, which allows for
+# quicker profile changes. It also reduces the risk of a USB disconnect that can happen when the
+# SDR software is restarted, since the connector will run continuously.
+# Check out the connector repository here: https://github.com/jketterl/owrx_connector
+#
+# The following connectors are available (simply use them as the "type" in the config below):
+# "rtl_sdr_connector", "sdrplay_connector", "airspy_connector"
+#
+# NOTE: These connectors will become the default as soon as they have become mature; the existing
+# receiver types will then automatically be migrated to connectors. At that point, the old "nmux"
+# method will start to be phased out.
 
 sdrs = {
     "rtlsdr": {
