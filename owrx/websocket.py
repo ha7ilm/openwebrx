@@ -120,7 +120,6 @@ class WebSocketConnection(object):
         self._sendBytes(data_to_send)
 
     def _sendBytes(self, data_to_send):
-
         def chunks(l, n):
             """Yield successive n-sized chunks from l."""
             for i in range(0, len(l), n):

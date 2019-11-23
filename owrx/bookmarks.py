@@ -26,6 +26,7 @@ class Bookmark(object):
 
 class Bookmarks(object):
     sharedInstance = None
+
     @staticmethod
     def getSharedInstance():
         if Bookmarks.sharedInstance is None:

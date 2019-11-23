@@ -119,9 +119,7 @@ class SdrSource(object):
         self.props = props
         self.profile_id = None
         self.activateProfile()
-        self.rtlProps = self.props.collect(
-            *self.getEventNames()
-        ).defaults(PropertyManager.getSharedInstance())
+        self.rtlProps = self.props.collect(*self.getEventNames()).defaults(PropertyManager.getSharedInstance())
         self.wireEvents()
 
         self.port = port
@@ -136,7 +134,18 @@ class SdrSource(object):
         self.busyState = SdrSource.BUSYSTATE_IDLE
 
     def getEventNames(self):
-        return ["samp_rate", "nmux_memory", "center_freq", "ppm", "rf_gain", "lna_gain", "rf_amp", "antenna", "if_gain", "lfo_offset"]
+        return [
+            "samp_rate",
+            "nmux_memory",
+            "center_freq",
+            "ppm",
+            "rf_gain",
+            "lna_gain",
+            "rf_amp",
+            "antenna",
+            "if_gain",
+            "lfo_offset",
+        ]
 
     def wireEvents(self):
         def restart(name, value):
@@ -206,9 +215,7 @@ class SdrSource(object):
 
         props = self.rtlProps
 
-        cmd = self.getCommand().format(
-            **self.getCommandValues()
-        )
+        cmd = self.getCommand().format(**self.getCommandValues())
 
         format_conversion = self.getFormatConversion()
         if format_conversion is not None:
@@ -459,11 +466,16 @@ class ConnectorSource(SdrSource):
         def reconfigure(prop, value):
             if self.monitor is None:
                 return
-            if (prop == "center_freq" or prop == "lfo_offset") and "lfo_offset" in self.rtlProps and self.rtlProps["lfo_offset"] is not None:
+            if (
+                (prop == "center_freq" or prop == "lfo_offset")
+                and "lfo_offset" in self.rtlProps
+                and self.rtlProps["lfo_offset"] is not None
+            ):
                 freq = self.rtlProps["center_freq"] + self.rtlProps["lfo_offset"]
                 self.sendControlMessage("center_freq", freq)
             else:
                 self.sendControlMessage(prop, value)
+
         self.rtlProps.wire(reconfigure)
 
     def postStart(self):
@@ -486,11 +498,21 @@ class ConnectorSource(SdrSource):
 
 class RtlSdrConnectorSource(ConnectorSource):
     def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain", "device", "iqswap", "lfo_offset"]
+        return [
+            "samp_rate",
+            "center_freq",
+            "ppm",
+            "rf_gain",
+            "device",
+            "iqswap",
+            "lfo_offset",
+        ]
 
     def getCommand(self):
-        cmd = "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) +\
-              " -s {samp_rate} -f {tuner_freq} -g {rf_gain} -P {ppm} -d {device}"
+        cmd = (
+            "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
+            + " -s {samp_rate} -f {tuner_freq} -g {rf_gain} -P {ppm} -d {device}"
+        )
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         return cmd
@@ -498,11 +520,22 @@ class RtlSdrConnectorSource(ConnectorSource):
 
 class SdrplayConnectorSource(ConnectorSource):
     def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain", "antenna", "device", "iqswap", "lfo_offset"]
+        return [
+            "samp_rate",
+            "center_freq",
+            "ppm",
+            "rf_gain",
+            "antenna",
+            "device",
+            "iqswap",
+            "lfo_offset",
+        ]
 
     def getCommand(self):
-        cmd = "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) +\
-              " -s {samp_rate} -f {tuner_freq} -g \"{rf_gain}\" -P {ppm} -a \"{antenna}\" -d \"{device}\""
+        cmd = (
+            "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}" -d "{device}"'
+        )
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         return cmd
@@ -510,11 +543,22 @@ class SdrplayConnectorSource(ConnectorSource):
 
 class AirspyConnectorSource(ConnectorSource):
     def getEventNames(self):
-        return ["samp_rate", "center_freq", "ppm", "rf_gain", "device", "iqswap", "lfo_offset", "bias_tee"]
+        return [
+            "samp_rate",
+            "center_freq",
+            "ppm",
+            "rf_gain",
+            "device",
+            "iqswap",
+            "lfo_offset",
+            "bias_tee",
+        ]
 
     def getCommand(self):
-        cmd = "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort) + \
-              " -s {samp_rate} -f {tuner_freq} -g \"{rf_gain}\" -P {ppm} -d \"{device}\""
+        cmd = (
+            "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -d "{device}"'
+        )
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         if self.rtlProps["bias_tee"]:

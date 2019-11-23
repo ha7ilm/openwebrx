@@ -206,12 +206,12 @@ class ServiceHandler(object):
     def isSupported(self, mode):
         # TODO this should be in a more central place (the frontend also needs this)
         requirements = {
-            'ft8': 'wsjt-x',
-            'ft4': 'wsjt-x',
-            'jt65': 'wsjt-x',
-            'jt9': 'wsjt-x',
-            'wspr': 'wsjt-x',
-            'packet': 'packet',
+            "ft8": "wsjt-x",
+            "ft4": "wsjt-x",
+            "jt65": "wsjt-x",
+            "jt9": "wsjt-x",
+            "wspr": "wsjt-x",
+            "packet": "packet",
         }
         fd = FeatureDetector()
 
@@ -298,7 +298,6 @@ class ServiceHandler(object):
                     # resampler goes in after the services since it must not be shutdown as long as the services are still running
                     self.services.append(resampler)
 
-
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
         distances = [
@@ -380,6 +379,7 @@ class AprsHandler(object):
 
 class Services(object):
     handlers = []
+
     @staticmethod
     def start():
         if not PropertyManager.getSharedInstance()["services_enabled"]:

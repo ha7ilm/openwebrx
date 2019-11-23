@@ -69,13 +69,7 @@ class PskReporter(object):
     def spotEquals(self, s1, s2):
         keys = ["callsign", "timestamp", "locator", "mode", "msg"]
 
-        return reduce(
-            and_,
-            map(
-                lambda key: s1[key] == s2[key],
-                keys
-            )
-        )
+        return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
     def spot(self, spot):
         if not spot["mode"] in PskReporter.supportedModes:
