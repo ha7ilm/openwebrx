@@ -1,4 +1,4 @@
-*.pyc
-*.swp
+**/*.pyc
+**/*.swp
 tags
 .idea
