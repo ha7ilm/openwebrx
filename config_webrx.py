@@ -67,8 +67,8 @@ server_hostname = "localhost"
 fft_fps = 9
 fft_size = 4096  # Should be power of 2
 fft_voverlap_factor = (
-    0.3
-)  # If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
+    0.3  # If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
+)
 
 audio_compression = "adpcm"  # valid values: "adpcm", "none"
 fft_compression = "adpcm"  # valid values: "adpcm", "none"
