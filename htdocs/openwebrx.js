@@ -1067,7 +1067,7 @@ function on_ws_recv(evt) {
 
                         waterfall_clear();
 
-                        currentprofile = config['profile_id'];
+                        currentprofile = config['sdr_id'] + '|' + config['profile_id'];
                         $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
 
                         break;

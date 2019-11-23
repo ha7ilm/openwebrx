@@ -172,6 +172,7 @@ class SdrSource(object):
         logger.debug("activating profile {0}".format(profile_id))
         self.profile_id = profile_id
         profile = profiles[profile_id]
+        self.props["profile_id"] = profile_id
         for (key, value) in profile.items():
             # skip the name, that would overwrite the source name.
             if key == "name":

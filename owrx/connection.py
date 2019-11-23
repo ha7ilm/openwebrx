@@ -70,6 +70,7 @@ class OpenWebRxReceiverClient(Client):
         "mathbox_waterfall_history_length",
         "mathbox_waterfall_frequency_resolution",
         "initial_squelch_level",
+        "profile_id",
     ]
 
     def __init__(self, conn):
@@ -170,8 +171,8 @@ class OpenWebRxReceiverClient(Client):
             config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
             # TODO mathematical properties? hmmmm
             config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
-            # TODO this is a hack that only works because setting the profile always causes plenty of config change
-            config["profile_id"] = self.sdr.getId() + "|" + self.sdr.getProfileId()
+            # TODO this is a hack to support multiple sdrs
+            config["sdr_id"] = self.sdr.getId()
             self.write_config(config)
 
             cf = configProps["center_freq"]
