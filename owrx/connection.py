@@ -69,6 +69,7 @@ class OpenWebRxReceiverClient(Client):
         "mathbox_waterfall_colors",
         "mathbox_waterfall_history_length",
         "mathbox_waterfall_frequency_resolution",
+        "initial_squelch_level",
     ]
 
     def __init__(self, conn):

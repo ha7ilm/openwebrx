@@ -141,9 +141,8 @@ function setSquelchToAuto() {
 }
 
 function updateSquelch() {
-    var sliderValue = parseInt(e("openwebrx-panel-squelch").value);
-    var outputValue = (sliderValue === parseInt(e("openwebrx-panel-squelch").min)) ? 0 : getLinearSmeterValue(sliderValue);
-    ws.send(JSON.stringify({"type": "dspcontrol", "params": {"squelch_level": outputValue}}));
+    var sliderValue = parseInt($("#openwebrx-panel-squelch").val());
+    ws.send(JSON.stringify({"type": "dspcontrol", "params": {"squelch_level": sliderValue}}));
 }
 
 var waterfall_min_level;
@@ -1058,6 +1057,9 @@ function on_ws_recv(evt) {
                         mathbox_waterfall_colors = config['mathbox_waterfall_colors'];
                         mathbox_waterfall_frequency_resolution = config['mathbox_waterfall_frequency_resolution'];
                         mathbox_waterfall_history_length = config['mathbox_waterfall_history_length'];
+                        var sql = Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150;
+                        $("#openwebrx-panel-squelch").val(sql);
+                        updateSquelch();
 
                         waterfall_init();
                         initialize_demodulator();

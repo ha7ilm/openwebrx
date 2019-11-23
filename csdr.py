@@ -25,6 +25,7 @@ import subprocess
 import os
 import signal
 import threading
+import math
 from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
@@ -85,7 +86,7 @@ class dsp(object):
         self.csdr_dynamic_bufsize = False
         self.csdr_print_bufsizes = False
         self.csdr_through = False
-        self.squelch_level = 0
+        self.squelch_level = -150
         self.fft_averages = 50
         self.iqtee = False
         self.iqtee2 = False
@@ -521,13 +522,16 @@ class dsp(object):
     def get_bpf(self):
         return [self.low_cut, self.high_cut]
 
+    def convertToLinear(self, db):
+        return float(math.pow(10, db / 10))
+
     def set_squelch_level(self, squelch_level):
         self.squelch_level = squelch_level
         # no squelch required on digital voice modes
-        actual_squelch = 0 if self.isDigitalVoice() or self.isPacket() else self.squelch_level
+        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() else self.squelch_level
         if self.running:
             self.modification_lock.acquire()
-            self.squelch_pipe_file.write("%g\n" % (float(actual_squelch)))
+            self.squelch_pipe_file.write("%g\n" % (self.convertToLinear(actual_squelch)))
             self.squelch_pipe_file.flush()
             self.modification_lock.release()
 
