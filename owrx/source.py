@@ -512,8 +512,10 @@ class RtlSdrConnectorSource(ConnectorSource):
     def getCommand(self):
         cmd = (
             "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
-            + " -s {samp_rate} -f {tuner_freq} -g {rf_gain} -P {ppm} -d {device}"
+            + " -s {samp_rate} -f {tuner_freq} -g {rf_gain} -P {ppm}"
         )
+        if "device" in self.rtlProps and self.rtlProps["device"] is not None:
+            cmd += ' -d "{device}"'
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         return cmd
@@ -535,8 +537,10 @@ class SdrplayConnectorSource(ConnectorSource):
     def getCommand(self):
         cmd = (
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
-            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}" -d "{device}"'
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}"'
         )
+        if "device" in self.rtlProps and self.rtlProps["device"] is not None:
+            cmd += ' -d "{device}"'
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         return cmd
@@ -558,8 +562,10 @@ class AirspyConnectorSource(ConnectorSource):
     def getCommand(self):
         cmd = (
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
-            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -d "{device}"'
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm}'
         )
+        if "device" in self.rtlProps and self.rtlProps["device"] is not None:
+            cmd += ' -d "{device}"'
         if self.rtlProps["iqswap"]:
             cmd += " -i"
         if self.rtlProps["bias_tee"]:
