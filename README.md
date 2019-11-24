@@ -19,6 +19,17 @@ It has the following features:
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
 
+**News (2019-11-24 by DD5JFK)**
+- There is now a new way to interface with SDR hardware, [owrx_connectors](https://github.com/jketterl/owrx_connector).
+  They talk directly with the hardware (no rtl_sdr / rx_sdr necessary) and offer I/Q data on a socket, just like nmux
+  did before. They additionally offer a control socket that allows openwebrx to control the SDR parameters directly,
+  without the need for repeated restarts. This allows for quicker profile changes, and also reduces the risk of your
+  SDR hardware from failing during the switchover. See `config.webrx.py` for further information and instructions.
+- Offset tuning using the `lfo_offset` has been reworked in a way that `center_freq` has to be set to the frequency you
+  actually want to listen to. If you're using an `lfo_offset` already, you will probably need to change the sign.
+- `initial_squelch_level` can now be set on each profile.
+- As usual, plenty of fixes and improvements.
+
 **News (2019-10-27 by DD5JFK)**
 - Part of the frontend code has been reworked
   - Audio buffer minimums have been completely stripped. As a result, you should get better latency. Unfortunately, this also means there will be some skipping when audio starts.
