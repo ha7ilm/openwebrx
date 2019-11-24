@@ -21,12 +21,12 @@ It has the following features:
 
 **News (2019-11-24 by DD5JFK)**
 - There is now a new way to interface with SDR hardware, [owrx_connectors](https://github.com/jketterl/owrx_connector).
-  They talk directly with the hardware (no rtl_sdr / rx_sdr necessary) and offer I/Q data on a socket, just like nmux
+  They talk directly to the hardware (no rtl_sdr / rx_sdr necessary) and offer I/Q data on a socket, just like nmux
   did before. They additionally offer a control socket that allows openwebrx to control the SDR parameters directly,
   without the need for repeated restarts. This allows for quicker profile changes, and also reduces the risk of your
-  SDR hardware from failing during the switchover. See `config.webrx.py` for further information and instructions.
+  SDR hardware from failing during the switchover. See `config_webrx.py` for further information and instructions.
 - Offset tuning using the `lfo_offset` has been reworked in a way that `center_freq` has to be set to the frequency you
-  actually want to listen to. If you're using an `lfo_offset` already, you will probably need to change the sign.
+  actually want to listen to. If you're using an `lfo_offset` already, you will probably need to change its sign.
 - `initial_squelch_level` can now be set on each profile.
 - As usual, plenty of fixes and improvements.
 
@@ -112,19 +112,23 @@ For those familiar with docker, I am providing [recent builds and Releases for b
 
 ### Manual Installation
 
-OpenWebRX currently requires Linux and python 3 to run. 
+OpenWebRX currently requires Linux and python >= 3.6 to run. 
 
 First you will need to install the dependencies:
 
 - [csdr](https://github.com/simonyiszk/csdr)
 - [rtl-sdr](http://sdr.osmocom.org/trac/wiki/rtl-sdr)
 
-Optional Dependencies if you want to be able to listen do digital voice:
+Optional dependency for improved hardware access (to become mandatory at some point):
+
+- [owrx_connector](https://github.com/jketterl/owrx_connector)
+
+Optional dependencies if you want to be able to listen do digital voice:
 
 - [digiham](https://github.com/jketterl/digiham)
 - [dsd](https://github.com/f4exb/dsdcc)
 
-Optional Dependency if you want to decode WSJT-X modes:
+Optional dependency if you want to decode WSJT-X modes:
 
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html)
 
