@@ -1532,7 +1532,9 @@ function open_websocket() {
         protocol = 'wss';
     }
 
-    var ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/"; //guess automatically -> now default behaviour
+    var base = protocol + "://" + (window.location.href.split("://")[1]);
+    if (!base.endsWith('/')) base += '/';
+    var ws_url = base + "ws/"; //guess automatically -> now default behaviour
     if (!("WebSocket" in window))
         divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
     ws = new WebSocket(ws_url);

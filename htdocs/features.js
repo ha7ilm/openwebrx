@@ -1,6 +1,6 @@
 $(function(){
     var converter = new showdown.Converter();
-    $.ajax('/api/features').done(function(data){
+    $.ajax('api/features').done(function(data){
         var $table = $('table.features');
         $.each(data, function(name, details) {
             var requirements = $.map(details.requirements, function(r, name){

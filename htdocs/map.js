@@ -18,8 +18,10 @@
     var expectedLocator;
     if (query.locator) expectedLocator = query.locator;
 
-    var ws_url = protocol + "://" + (window.location.origin.split("://")[1]) + "/ws/";
-    if (!("WebSocket" in window)) return;
+    var base = protocol + "://" + (window.location.href.split("://")[1]);
+    base = base.replace(/\/map$/, '');
+    if (!base.endsWith('/')) base += '/';
+    var ws_url = base + "ws/"; //guess automatically -> now default behaviour
 
     var map;
     var markers = {};
@@ -216,11 +218,11 @@
                                 },
                                 zoom: 5
                             });
-                            $.getScript("/static/lib/nite-overlay.js").done(function(){
+                            $.getScript("static/lib/nite-overlay.js").done(function(){
                                 nite.init(map);
                                 setInterval(function() { nite.refresh() }, 10000); // every 10s
                             });
-                            $.getScript('/static/lib/AprsMarker.js').done(function(){
+                            $.getScript('static/lib/AprsMarker.js').done(function(){
                                 processUpdates(updateQueue);
                                 updateQueue = [];
                             });

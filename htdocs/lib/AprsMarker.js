@@ -9,7 +9,7 @@ AprsMarker.prototype.draw = function() {
 
     if (this.symbol) {
         var tableId = this.symbol.table === '/' ? 0 : 1;
-        div.style.background = 'url(/aprs-symbols/aprs-symbols-24-' + tableId + '@2x.png)';
+        div.style.background = 'url(aprs-symbols/aprs-symbols-24-' + tableId + '@2x.png)';
         div.style['background-size'] = '384px 144px';
         div.style['background-position-x'] = -(this.symbol.index % 16) * 24 + 'px';
         div.style['background-position-y'] = -Math.floor(this.symbol.index / 16) * 24 + 'px';
@@ -63,7 +63,7 @@ AprsMarker.prototype.onAdd = function() {
     var overlay = this.overlay = document.createElement('div');
     overlay.style.width = '24px';
     overlay.style.height = '24px';
-    overlay.style.background = 'url(/aprs-symbols/aprs-symbols-24-2@2x.png)';
+    overlay.style.background = 'url(aprs-symbols/aprs-symbols-24-2@2x.png)';
     overlay.style['background-size'] = '384px 144px';
     overlay.style.display = 'none';
 
