@@ -271,7 +271,7 @@ input[type=range]:focus::-ms-fill-upper
 #webrx-canvas-container
 {
 	position: relative;
-	overflow: hidden;
+	overflow: visible;
 	cursor: crosshair;
 	height: 100%;
 }

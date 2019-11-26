@@ -1108,7 +1108,7 @@ function on_ws_recv(evt) {
                         var features = json['value'];
                         for (var feature in features) {
                             if (features.hasOwnProperty(feature)) {
-                                $('[data-feature="' + feature + '"')[features[feature] ? "show" : "hide"]();
+                                $('[data-feature="' + feature + '"]')[features[feature] ? "show" : "hide"]();
                             }
                         }
                         break;
