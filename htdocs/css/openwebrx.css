@@ -266,6 +266,8 @@ input[type=range]:focus::-ms-fill-upper
 	background-repeat: no-repeat;
 	background-color: #1e5f7f;
 	background-size: cover;
+	display: flex;
+	flex-direction: column;
 }
 
 #webrx-canvas-container
@@ -273,7 +275,7 @@ input[type=range]:focus::-ms-fill-upper
 	position: relative;
 	overflow: visible;
 	cursor: crosshair;
-	height: 100%;
+	flex-grow: 1;
 }
 
 #webrx-canvas-container canvas
