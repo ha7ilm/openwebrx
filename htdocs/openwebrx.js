@@ -1419,9 +1419,12 @@ function on_ws_opened() {
     }
     reconnect_timeout = false;
     ws.send(JSON.stringify({
-        "type": "dspcontrol",
-        "action": "start",
+        "type": "connectionproperties",
         "params": {"output_rate": audioEngine.getOutputRate()}
+    }));
+    ws.send(JSON.stringify({
+        "type": "dspcontrol",
+        "action": "start"
     }));
 }
 

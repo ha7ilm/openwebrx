@@ -79,6 +79,7 @@ class OpenWebRxReceiverClient(Client):
         self.dsp = None
         self.sdr = None
         self.configSub = None
+        self.connectionProperties = {}
 
         ClientRegistry.getSharedInstance().addClient(self)
 
@@ -123,17 +124,23 @@ class OpenWebRxReceiverClient(Client):
                         params = message["params"]
                         self.setDspProperties(params)
 
-                if message["type"] == "config":
+                elif message["type"] == "config":
                     if "params" in message:
                         self.setParams(message["params"])
-                if message["type"] == "setsdr":
+                elif message["type"] == "setsdr":
                     if "params" in message:
                         self.setSdr(message["params"]["sdr"])
-                if message["type"] == "selectprofile":
+                elif message["type"] == "selectprofile":
                     if "params" in message and "profile" in message["params"]:
                         profile = message["params"]["profile"].split("|")
                         self.setSdr(profile[0])
                         self.sdr.activateProfile(profile[1])
+                elif message["type"] == "connectionproperties":
+                    if "params" in message:
+                        self.connectionProperties = message["params"]
+                        if self.dsp:
+                            self.setDspProperties(self.connectionProperties)
+
             else:
                 logger.warning("received message without type: {0}".format(message))
 
@@ -161,6 +168,8 @@ class OpenWebRxReceiverClient(Client):
         self.startDsp()
 
         # send initial config
+        self.setDspProperties(self.connectionProperties)
+
         configProps = (
             self.sdr.getProps()
             .collect(*OpenWebRxReceiverClient.config_keys)
