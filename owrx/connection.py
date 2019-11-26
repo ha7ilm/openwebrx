@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Client(object):
     def __init__(self, conn):
         self.conn = conn
-        self.multiprocessingPipe = Queue()
+        self.multiprocessingPipe = Queue(100)
 
         def mp_passthru():
             run = True
