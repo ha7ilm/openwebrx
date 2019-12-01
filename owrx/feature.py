@@ -29,7 +29,7 @@ class FeatureDetector(object):
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
-        "packet": ["direwolf"],
+        "packet": ["direwolf", "sox"],
     }
 
     def feature_availability(self):
