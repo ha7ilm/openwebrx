@@ -1,9 +1,4 @@
 (function(){
-    var protocol = 'ws';
-    if (window.location.toString().startsWith('https://')) {
-        protocol = 'wss';
-    }
-
     var query = window.location.search.replace(/^\?/, '').split('&').map(function(v){
         var s = v.split('=');
         var r = {};
@@ -18,10 +13,19 @@
     var expectedLocator;
     if (query.locator) expectedLocator = query.locator;
 
-    var base = protocol + "://" + (window.location.href.split("://")[1]);
-    base = base.replace(/\/map$/, '');
-    if (!base.endsWith('/')) base += '/';
-    var ws_url = base + "ws/"; //guess automatically -> now default behaviour
+    var protocol = window.location.protocol == 'https' ? 'wss' : 'ws';
+
+    var href = window.location.href;
+    var index = href.lastIndexOf('/');
+    if (index > 0) {
+        href = href.substr(0, index + 1);
+    }
+    href = href.split("://")[1];
+    href = protocol + "://" + href;
+    if (!href.endsWith('/')) {
+        href += '/';
+    }
+    var ws_url = href + "ws/";
 
     var map;
     var markers = {};

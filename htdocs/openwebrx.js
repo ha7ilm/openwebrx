@@ -1523,21 +1523,23 @@ function on_ws_error() {
     divlog("WebSocket error.", 1);
 }
 
-String.prototype.startswith = function (str) {
-    return this.indexOf(str) === 0;
-}; //http://stackoverflow.com/questions/646628/how-to-check-if-a-string-startswith-another-string
-
 var ws;
 
 function open_websocket() {
-    var protocol = 'ws';
-    if (window.location.toString().startsWith('https://')) {
-        protocol = 'wss';
-    }
+    var protocol = window.location.protocol == 'https' ? 'wss' : 'ws';
 
-    var base = protocol + "://" + (window.location.href.split("://")[1]);
-    if (!base.endsWith('/')) base += '/';
-    var ws_url = base + "ws/"; //guess automatically -> now default behaviour
+    var href = window.location.href;
+    var index = href.lastIndexOf('/');
+    if (index > 0) {
+        href = href.substr(0, index + 1);
+    }
+    href = href.split("://")[1];
+    href = protocol + "://" + href;
+    if (!href.endsWith('/')) {
+        href += '/';
+    }
+    var ws_url = href + "ws/";
+
     if (!("WebSocket" in window))
         divlog("Your browser does not support WebSocket, which is required for WebRX to run. Please upgrade to a HTML5 compatible browser.");
     ws = new WebSocket(ws_url);
