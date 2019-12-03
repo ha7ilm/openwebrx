@@ -1239,7 +1239,7 @@ function update_metadata(meta) {
                 mode = "Mode: " + meta['mode'];
                 source = meta['source'] || "";
                 if (meta['lat'] && meta['lon'] && meta['source']) {
-                    source = "<a class=\"openwebrx-maps-pin\" href=\"/map?callsign=" + meta['source'] + "\" target=\"_blank\"></a>" + source;
+                    source = "<a class=\"openwebrx-maps-pin\" href=\"map?callsign=" + meta['source'] + "\" target=\"_blank\"></a>" + source;
                 }
                 up = meta['up'] ? "Up: " + meta['up'] : "";
                 down = meta['down'] ? "Down: " + meta['down'] : "";
@@ -1274,14 +1274,14 @@ function update_wsjt_panel(msg) {
     if (['FT8', 'JT65', 'JT9', 'FT4'].indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] !== 'RR73') {
-            linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
+            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
         } else {
             linkedmsg = html_escape(linkedmsg);
         }
     } else if (msg['mode'] === 'WSPR') {
         matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
         if (matches) {
-            linkedmsg = html_escape(matches[1]) + '<a href="/map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>' + html_escape(matches[3]);
+            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>' + html_escape(matches[3]);
         } else {
             linkedmsg = html_escape(linkedmsg);
         }
@@ -1367,7 +1367,7 @@ function update_packet_panel(msg) {
         'style="' + stylesToString(styles) + '"'
     ].join(' ');
     if (msg.lat && msg.lon) {
-        link = '<a ' + attrs + ' href="/map?callsign=' + source + '" target="_blank">' + overlay + '</a>';
+        link = '<a ' + attrs + ' href="map?callsign=' + source + '" target="_blank">' + overlay + '</a>';
     } else {
         link = '<div ' + attrs + '>' + overlay + '</div>'
     }
