@@ -23,4 +23,7 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 git clone https://github.com/airspy/airspyone_host.git
 cmakebuild airspyone_host
 
+git clone https://github.com/pothosware/SoapyAirspy.git
+cmakebuild SoapyAirspy
+
 apk del .build-deps
