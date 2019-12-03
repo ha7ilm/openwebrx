@@ -13,7 +13,7 @@
     var expectedLocator;
     if (query.locator) expectedLocator = query.locator;
 
-    var protocol = window.location.protocol == 'https' ? 'wss' : 'ws';
+    var protocol = window.location.protocol.match(/https/) ? 'wss' : 'ws';
 
     var href = window.location.href;
     var index = href.lastIndexOf('/');

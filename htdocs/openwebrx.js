@@ -1526,7 +1526,7 @@ function on_ws_error() {
 var ws;
 
 function open_websocket() {
-    var protocol = window.location.protocol == 'https' ? 'wss' : 'ws';
+    var protocol = window.location.protocol.match(/https/) ? 'wss' : 'ws';
 
     var href = window.location.href;
     var index = href.lastIndexOf('/');
