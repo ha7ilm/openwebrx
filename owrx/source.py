@@ -14,7 +14,6 @@ import signal
 import sys
 import socket
 import logging
-from urllib.parse import parse_qs, urlencode
 
 logger = logging.getLogger(__name__)
 
@@ -530,6 +529,27 @@ class SoapyConnectorSource(ConnectorSource):
     def getDriver(self):
         pass
 
+    def parseDeviceString(self, dstr):
+
+        def decodeComponent(c):
+            kv = c.split("=", 1)
+            if len(kv) < 2:
+                return c
+            else:
+                return {kv[0]: kv[1]}
+
+        return [decodeComponent(c) for c in dstr.split(",")]
+
+    def encodeDeviceString(self, dobj):
+
+        def encodeComponent(c):
+            if isinstance(c, str):
+                return c
+            else:
+                return ",".join(["{0}={1}".format(key, value) for key, value in c.items()])
+
+        return ",".join([encodeComponent(c) for c in dobj])
+
     """
     this method always attempts to inject a driver= part into the soapysdr query, depending on what connector was used.
     this prevents the soapy_connector from using the wrong device in scenarios where there's no same-type sdrs.
@@ -537,12 +557,10 @@ class SoapyConnectorSource(ConnectorSource):
     def getCommandValues(self):
         values = super().getCommandValues()
         if "device" in values and values["device"] is not None:
-            parsed = parse_qs(values["device"])
-            # if there's no key, the device string wasn't in a urlencoded format.
-            # that's fine, but we can't update that.
-            if parsed.keys():
-                parsed["driver"] = [self.getDriver()]
-                values["device"] = urlencode(parsed, doseq=True)
+            parsed = self.parseDeviceString(values["device"])
+            parsed = [v for v in parsed if "driver" not in v]
+            parsed += [{"driver": self.getDriver()}]
+            values["device"] = self.encodeDeviceString(parsed)
         else:
             values["device"] = "driver={0}".format(self.getDriver())
         return values
@@ -567,11 +585,9 @@ class SdrplayConnectorSource(SoapyConnectorSource):
     def getCommand(self):
         cmd = (
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
-            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}"'
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}" -d "{device"}'
         )
         values = self.getCommandValues()
-        if "device" in values and values["device"] is not None:
-            cmd += ' -d "{device}"'
         if values["iqswap"]:
             cmd += " -i"
         return cmd
@@ -596,11 +612,9 @@ class AirspyConnectorSource(SoapyConnectorSource):
     def getCommand(self):
         cmd = (
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
-            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm}'
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -d "{device}"'
         )
         values = self.getCommandValues()
-        if "device" in values and values["device"] is not None:
-            cmd += ' -d "{device}"'
         if values["iqswap"]:
             cmd += " -i"
         if values["bias_tee"]:
