@@ -14,6 +14,7 @@ import signal
 import sys
 import socket
 import logging
+import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -241,7 +242,13 @@ class SdrSource(object):
                 self.port,
             )
 
-        self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
+        # don't use shell mode for commands without piping
+        if "|" in cmd:
+            self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
+        else:
+            # preexec_fn can go as soon as there's no piped commands left
+            # the os.killpg call must be replaced with something more reasonable at the same time
+            self.process = subprocess.Popen(shlex.split(cmd), preexec_fn=os.setpgrp)
         logger.info("Started rtl source: " + cmd)
 
         available = False
