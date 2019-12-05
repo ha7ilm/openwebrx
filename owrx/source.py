@@ -585,7 +585,7 @@ class SdrplayConnectorSource(SoapyConnectorSource):
     def getCommand(self):
         cmd = (
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
-            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}" -d "{device"}'
+            + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}" -d "{device}"'
         )
         values = self.getCommandValues()
         if values["iqswap"]:
