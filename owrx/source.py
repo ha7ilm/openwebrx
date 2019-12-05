@@ -14,6 +14,7 @@ import signal
 import sys
 import socket
 import logging
+from urllib.parse import parse_qs, urlencode
 
 logger = logging.getLogger(__name__)
 
@@ -521,7 +522,36 @@ class RtlSdrConnectorSource(ConnectorSource):
         return cmd
 
 
-class SdrplayConnectorSource(ConnectorSource):
+class SoapyConnectorSource(ConnectorSource):
+    """
+    must be implemented by child classes to be able to build a driver-based device selector by default.
+    return value must be the corresponding soapy driver identifier.
+    """
+    def getDriver(self):
+        pass
+
+    """
+    this method always attempts to inject a driver= part into the soapysdr query, depending on what connector was used.
+    this prevents the soapy_connector from using the wrong device in scenarios where there's no same-type sdrs.
+    """
+    def getCommandValues(self):
+        values = super().getCommandValues()
+        if "device" in values and values["device"] is not None:
+            parsed = parse_qs(values["device"])
+            # if there's no key, the device string wasn't in a urlencoded format.
+            # that's fine, but we can't update that.
+            if parsed.keys():
+                parsed["driver"] = [self.getDriver()]
+                values["device"] = urlencode(parsed, doseq=True)
+        else:
+            values["device"] = "driver={0}".format(self.getDriver())
+        return values
+
+
+class SdrplayConnectorSource(SoapyConnectorSource):
+    def getDriver(self):
+        return "sdrplay"
+
     def getEventNames(self):
         return [
             "samp_rate",
@@ -539,14 +569,18 @@ class SdrplayConnectorSource(ConnectorSource):
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
             + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -a "{antenna}"'
         )
-        if "device" in self.rtlProps and self.rtlProps["device"] is not None:
+        values = self.getCommandValues()
+        if "device" in values and values["device"] is not None:
             cmd += ' -d "{device}"'
-        if self.rtlProps["iqswap"]:
+        if values["iqswap"]:
             cmd += " -i"
         return cmd
 
 
-class AirspyConnectorSource(ConnectorSource):
+class AirspyConnectorSource(SoapyConnectorSource):
+    def getDriver(self):
+        return "airspy"
+
     def getEventNames(self):
         return [
             "samp_rate",
@@ -564,11 +598,12 @@ class AirspyConnectorSource(ConnectorSource):
             "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
             + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm}'
         )
-        if "device" in self.rtlProps and self.rtlProps["device"] is not None:
+        values = self.getCommandValues()
+        if "device" in values and values["device"] is not None:
             cmd += ' -d "{device}"'
-        if self.rtlProps["iqswap"]:
+        if values["iqswap"]:
             cmd += " -i"
-        if self.rtlProps["bias_tee"]:
+        if values["bias_tee"]:
             cmd += " -t biastee=true"
         return cmd
 
