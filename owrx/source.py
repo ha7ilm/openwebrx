@@ -629,6 +629,11 @@ class AirspyConnectorSource(SoapyConnectorSource):
         return cmd
 
 
+class AirspyhfConnectorSource(AirspyConnectorSource):
+    def getDriver(self):
+        return "airspyhf"
+
+
 class RtlSdrSource(SdrSource):
     def getCommand(self):
         return "rtl_sdr -s {samp_rate} -f {tuner_freq} -p {ppm} -g {rf_gain} -"

@@ -26,6 +26,7 @@ class FeatureDetector(object):
         "hackrf": ["hackrf_transfer"],
         "airspy": ["airspy_rx"],
         "airspy_connector": ["soapy_connector"],
+        "airspyhf_connector": ["soapy_connector"],
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],

@@ -26,4 +26,10 @@ cmakebuild airspyone_host
 git clone https://github.com/pothosware/SoapyAirspy.git
 cmakebuild SoapyAirspy
 
+git clone https://github.com/airspy/airspyhf.git
+cmakebuild airspyhf
+
+git clone https://github.com/pothosware/SoapyAirspyHF.git
+cmakebuild SoapyAirspyHF
+
 apk del .build-deps
