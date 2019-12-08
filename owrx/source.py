@@ -7,7 +7,7 @@ from owrx.aprs import AprsParser
 from owrx.metrics import Metrics, DirectMetric
 from owrx.socket import getAvailablePort
 import threading
-import csdr
+from csdr import csdr
 import time
 import os
 import signal

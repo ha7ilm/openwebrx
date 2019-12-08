@@ -3,7 +3,7 @@ from owrx.socket import getAvailablePort
 from datetime import datetime, timezone, timedelta
 from owrx.source import SdrService, SdrSource
 from owrx.bands import Bandplan
-from csdr import dsp, output
+from csdr.csdr import dsp, output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.config import PropertyManager

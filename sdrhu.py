@@ -25,7 +25,7 @@ from owrx.sdrhu import SdrHuUpdater
 from owrx.config import PropertyManager
 
 if __name__ == "__main__":
-    pm = PropertyManager.getSharedInstance().loadConfig("config_webrx")
+    pm = PropertyManager.getSharedInstance().loadConfig()
 
     if not "sdrhu_key" in pm:
         exit(1)

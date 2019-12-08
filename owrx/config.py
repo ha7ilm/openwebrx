@@ -1,3 +1,4 @@
+import importlib.util
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,10 @@ class Property(object):
             # happens when already removed before
             pass
         return self
+
+
+class ConfigNotFoundException(Exception):
+    pass
 
 
 class PropertyManager(object):
@@ -128,10 +133,17 @@ class PropertyManager(object):
                 p.setValue(other_pm[key])
         return self
 
-    def loadConfig(self, filename):
-        cfg = __import__(filename)
-        for name, value in cfg.__dict__.items():
-            if name.startswith("__"):
-                continue
-            self[name] = value
-        return self
+    def loadConfig(self):
+        for file in ["/etc/config_webrx.py", "./config_webrx.py"]:
+            try:
+                spec = importlib.util.spec_from_file_location("config_webrx", file)
+                cfg = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(cfg)
+                for name, value in cfg.__dict__.items():
+                    if name.startswith("__"):
+                        continue
+                    self[name] = value
+                return self
+            except FileNotFoundError:
+                logger.debug("not found: %s", file)
+        raise ConfigNotFoundException("no usable config found! please make sure you have a valid configuration file!")
