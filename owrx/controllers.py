@@ -82,7 +82,6 @@ class AssetsController(Controller):
                 (content_type, encoding) = mimetypes.MimeTypes().guess_type(file)
             self.send_response(data, content_type=content_type, last_modified=modified, max_age=3600)
         except FileNotFoundError:
-            logger.debug("404")
             self.send_response("file not found", code=404)
 
     def handle_request(self):
