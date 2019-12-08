@@ -34,10 +34,19 @@ class Bookmarks(object):
         return Bookmarks.sharedInstance
 
     def __init__(self):
-        f = open("bookmarks.json", "r")
-        bookmarks_json = json.load(f)
-        f.close()
-        self.bookmarks = [Bookmark(d) for d in bookmarks_json]
+        self.bookmarks = self.loadBookmarks()
+
+    def loadBookmarks(self):
+        for file in ["/etc/openwebrx/bookmarks.json", "bookmarks.json"]:
+            try:
+                f = open(file, "r")
+                bookmarks_json = json.load(f)
+                f.close()
+                return [Bookmark(d) for d in bookmarks_json]
+            except FileNotFoundError:
+                pass
+        return []
+
 
     def getBookmarks(self, range):
         (lo, hi) = range

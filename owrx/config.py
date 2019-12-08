@@ -134,7 +134,7 @@ class PropertyManager(object):
         return self
 
     def loadConfig(self):
-        for file in ["/etc/config_webrx.py", "./config_webrx.py"]:
+        for file in ["/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
             try:
                 spec = importlib.util.spec_from_file_location("config_webrx", file)
                 cfg = importlib.util.module_from_spec(spec)

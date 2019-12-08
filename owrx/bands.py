@@ -46,10 +46,18 @@ class Bandplan(object):
         return Bandplan.sharedInstance
 
     def __init__(self):
-        f = open("bands.json", "r")
-        bands_json = json.load(f)
-        f.close()
-        self.bands = [Band(d) for d in bands_json]
+        self.bands = self.loadBands()
+
+    def loadBands(self):
+        for file in ["/etc/openwebrx/bands.json", "bands.json"]:
+            try:
+                f = open(file, "r")
+                bands_json = json.load(f)
+                f.close()
+                return [Band(d) for d in bands_json]
+            except FileNotFoundError:
+                pass
+        return []
 
     def findBands(self, freq):
         return [band for band in self.bands if band.inBand(freq)]
