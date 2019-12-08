@@ -7,7 +7,7 @@ setup(
     version=str(strictversion),
     packages=find_namespace_packages(include=["owrx", "csdr", "htdocs"]),
     package_data={
-        "htdocs": glob("htdocs/**/*", recursive=True)
+        "htdocs": [f[len("htdocs/"):] for f in glob("htdocs/**/*", recursive=True)]
     },
     entry_points={"console_scripts": ["openwebrx=owrx.__main__:main"]},
     # use the github page for now
