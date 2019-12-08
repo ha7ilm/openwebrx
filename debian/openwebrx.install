@@ -1,1 +1,2 @@
 config_webrx.py etc/
+systemd/openwebrx.service lib/systemd/system/
