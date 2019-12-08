@@ -8,6 +8,6 @@ Build-Depends: debhelper (>= 10), dh-python, python3 (>= 3.6), dh-systemd (>= 1.
 Package: openwebrx
 Architecture: all
 Depends: python3 (>= 3.6), python3-pkg-resources, csdr (>= 0.15), netcat, owrx-connector (>= 0.1)
-Recommends: digiham (>= 0.2), dsd (>= 1.7), sox
+Recommends: digiham (>= 0.2), dsd (>= 1.7), sox, direwolf (>= 1.4), wsjtx
 Description: multi-user web sdr
  Open source, multi-user SDR receiver with a web interface
