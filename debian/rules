@@ -1,0 +1,5 @@
+#!/usr/bin/make -f
+export PYBUILD_NAME=openwebrx
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild

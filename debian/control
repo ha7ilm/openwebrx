@@ -1,0 +1,12 @@
+Source: openwebrx
+Maintainer: Jakob Ketterl <jakob.ketterl@gmx.de>
+Section: hamradio
+Priority: optional
+Standards-Version: 4.2.0
+Build-Depends: debhelper (>= 10), dh-python, python3 (>= 3.6)
+
+Package: openwebrx
+Architecture: all
+Depends: python3 (>= 3.6), csdr (>= 0.15), netcat,
+Description: multi-user web sdr
+ Open source, multi-user SDR receiver with a web interface
