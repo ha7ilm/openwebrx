@@ -1,3 +1,4 @@
+from glob import glob
 from setuptools import setup, find_namespace_packages
 from owrx.version import strictversion
 
@@ -6,7 +7,7 @@ setup(
     version=str(strictversion),
     packages=find_namespace_packages(include=["owrx", "csdr", "htdocs"]),
     package_data={
-        "htdocs": ["*", "**/*"]
+        "htdocs": glob("htdocs/**/*", recursive=True)
     },
     entry_points={"console_scripts": ["openwebrx=owrx.__main__:main"]},
     # use the github page for now
