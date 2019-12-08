@@ -1,6 +1,7 @@
 import os
 import mimetypes
 import json
+import pkg_resources
 from datetime import datetime
 from string import Template
 from owrx.websocket import WebSocketConnection
@@ -55,17 +56,17 @@ class StatusController(Controller):
 
 
 class AssetsController(Controller):
-    def __init__(self, handler, request, path):
-        if not path.endswith("/"):
-            path += "/"
-        self.path = path
-        super().__init__(handler, request)
+    def getModified(self, file):
+        return None
+
+    def openFile(self, file):
+        pass
 
     def serve_file(self, file, content_type=None):
         try:
-            modified = datetime.fromtimestamp(os.path.getmtime(self.path + file))
+            modified = self.getModified(file)
 
-            if "If-Modified-Since" in self.handler.headers:
+            if modified is not None and "If-Modified-Since" in self.handler.headers:
                 client_modified = datetime.strptime(
                     self.handler.headers["If-Modified-Since"], "%a, %d %b %Y %H:%M:%S %Z"
                 )
@@ -73,7 +74,7 @@ class AssetsController(Controller):
                     self.send_response("", code=304)
                     return
 
-            f = open(self.path + file, "rb")
+            f = self.openFile(file)
             data = f.read()
             f.close()
 
@@ -81,6 +82,7 @@ class AssetsController(Controller):
                 (content_type, encoding) = mimetypes.MimeTypes().guess_type(file)
             self.send_response(data, content_type=content_type, last_modified=modified, max_age=3600)
         except FileNotFoundError:
+            logger.debug("404")
             self.send_response("file not found", code=404)
 
     def handle_request(self):
@@ -89,21 +91,33 @@ class AssetsController(Controller):
 
 
 class OwrxAssetsController(AssetsController):
-    def __init__(self, handler, request):
-        super().__init__(handler, request, "htdocs/")
+    def openFile(self, file):
+        return pkg_resources.resource_stream('htdocs', file)
 
 
 class AprsSymbolsController(AssetsController):
     def __init__(self, handler, request):
         pm = PropertyManager.getSharedInstance()
-        super().__init__(handler, request, pm["aprs_symbols_path"])
+        path = pm["aprs_symbols_path"]
+        if not path.endswith("/"):
+            path += "/"
+        self.path = path
+        super().__init__(handler, request)
+
+    def getFilePath(self, file):
+        return self.path + file
+
+    def getModified(self, file):
+        return datetime.fromtimestamp(os.path.getmtime(self.getFilePath(file)))
+
+    def openFile(self, file):
+        return open(self.getFilePath(file), "rb")
 
 
 class TemplateController(Controller):
     def render_template(self, file, **vars):
-        f = open("htdocs/" + file, "r", encoding="utf-8")
-        template = Template(f.read())
-        f.close()
+        file_content = pkg_resources.resource_string("htdocs", file).decode("utf-8")
+        template = Template(file_content)
 
         return template.safe_substitute(**vars)
 
