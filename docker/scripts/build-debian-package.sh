@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+git clone https://github.com/jketterl/openwebrx.git /openwebrx
+cd /openwebrx
+
 debuild -uc -us
 
 cd ..
