@@ -7,6 +7,7 @@ from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.locator import Locator
 from multiprocessing import Queue
+from queue import Full
 import json
 import threading
 
@@ -39,7 +40,10 @@ class Client(object):
         self.multiprocessingPipe.close()
 
     def mp_send(self, data):
-        self.multiprocessingPipe.put(data, block=False)
+        try:
+            self.multiprocessingPipe.put(data, block=False)
+        except Full:
+            self.close()
 
     def handleTextMessage(self, conn, message):
         pass
