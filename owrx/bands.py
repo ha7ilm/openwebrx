@@ -57,6 +57,9 @@ class Bandplan(object):
                 return [Band(d) for d in bands_json]
             except FileNotFoundError:
                 pass
+            except json.JSONDecodeError:
+                logger.exception("error while parsing bandplan from %s", file)
+                return []
         return []
 
     def findBands(self, freq):

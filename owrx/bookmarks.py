@@ -1,5 +1,9 @@
 import json
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Bookmark(object):
     def __init__(self, j):
@@ -45,6 +49,9 @@ class Bookmarks(object):
                 return [Bookmark(d) for d in bookmarks_json]
             except FileNotFoundError:
                 pass
+            except json.JSONDecodeError:
+                logger.exception("error while parsing bookmarks from %s", file)
+                return []
         return []
 
 
