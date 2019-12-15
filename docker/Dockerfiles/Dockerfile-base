@@ -13,12 +13,7 @@ ADD . /opt/openwebrx
 
 WORKDIR /opt/openwebrx
 
-RUN mkdir -p /tmp/openwebrx && \
-    mv "/opt/openwebrx/config_webrx.py" "/opt/openwebrx/config_webrx.py.orig" && \
-    sed 's/temporary_directory = "\/tmp"/temporary_directory = "\/tmp\/openwebrx"/' < "/opt/openwebrx/config_webrx.py.orig" > "/opt/openwebrx/config_webrx.py" && \
-    rm "/opt/openwebrx/config_webrx.py.orig"
-
-VOLUME /config
+VOLUME /etc/openwebrx
 
 ENTRYPOINT [ "/opt/openwebrx/docker/scripts/run.sh" ]
 EXPOSE 8073
