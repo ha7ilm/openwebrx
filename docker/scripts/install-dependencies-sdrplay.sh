@@ -29,9 +29,12 @@ case $ARCH in
   armv*)
     BINARY=SDRplay_RSP_API-RPi-2.13.1.run
     ;;
+  aarch64)
+    BINARY=SDRplay_RSP_API-ARM64-2.13.1.run
+    ;;
 esac
 
-wget http://www.sdrplay.com/software/$BINARY
+wget https://www.sdrplay.com/software/$BINARY
 sh $BINARY --noexec --target sdrplay
 patch --verbose -Np0 < /install-lib.$ARCH.patch
 

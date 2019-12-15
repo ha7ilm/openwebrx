@@ -9,6 +9,10 @@ case $ARCH in
     ;;
   armv*)
     BASE_IMAGE=arm32v6/alpine
+    ;;
+  aarch64)
+    BASE_IMAGE=alpine
+    ;;
 esac
 
 TAGS=$ARCH
