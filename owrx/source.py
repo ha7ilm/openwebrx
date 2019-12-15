@@ -466,6 +466,18 @@ class ConnectorSource(SdrSource):
         self.controlSocket = None
         self.controlPort = getAvailablePort()
 
+    def getEventNames(self):
+        return [
+            "samp_rate",
+            "center_freq",
+            "ppm",
+            "rf_gain",
+            "device",
+            "iqswap",
+            "lfo_offset",
+            "rtltcp_compat",
+        ]
+
     def sendControlMessage(self, prop, value):
         logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
         self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
@@ -505,17 +517,6 @@ class ConnectorSource(SdrSource):
 
 
 class RtlSdrConnectorSource(ConnectorSource):
-    def getEventNames(self):
-        return [
-            "samp_rate",
-            "center_freq",
-            "ppm",
-            "rf_gain",
-            "device",
-            "iqswap",
-            "lfo_offset",
-        ]
-
     def getCommand(self):
         cmd = (
             "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
@@ -525,6 +526,8 @@ class RtlSdrConnectorSource(ConnectorSource):
             cmd += ' -d "{device}"'
         if self.rtlProps["iqswap"]:
             cmd += " -i"
+        if self.rtlProps["rtltcp_compat"]:
+            cmd += " -r"
         return cmd
 
 
@@ -578,16 +581,7 @@ class SdrplayConnectorSource(SoapyConnectorSource):
         return "sdrplay"
 
     def getEventNames(self):
-        return [
-            "samp_rate",
-            "center_freq",
-            "ppm",
-            "rf_gain",
-            "antenna",
-            "device",
-            "iqswap",
-            "lfo_offset",
-        ]
+        return super().getEventNames() + ["antenna"]
 
     def getCommand(self):
         cmd = (
@@ -597,6 +591,8 @@ class SdrplayConnectorSource(SoapyConnectorSource):
         values = self.getCommandValues()
         if values["iqswap"]:
             cmd += " -i"
+        if self.rtlProps["rtltcp_compat"]:
+            cmd += " -r"
         return cmd
 
 
@@ -605,16 +601,7 @@ class AirspyConnectorSource(SoapyConnectorSource):
         return "airspy"
 
     def getEventNames(self):
-        return [
-            "samp_rate",
-            "center_freq",
-            "ppm",
-            "rf_gain",
-            "device",
-            "iqswap",
-            "lfo_offset",
-            "bias_tee",
-        ]
+        return super().getEventNames() + ["bias_tee"]
 
     def getCommand(self):
         cmd = (
@@ -624,6 +611,8 @@ class AirspyConnectorSource(SoapyConnectorSource):
         values = self.getCommandValues()
         if values["iqswap"]:
             cmd += " -i"
+        if self.rtlProps["rtltcp_compat"]:
+            cmd += " -r"
         if values["bias_tee"]:
             cmd += " -t biastee=true"
         return cmd
