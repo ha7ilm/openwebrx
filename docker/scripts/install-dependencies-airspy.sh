@@ -20,16 +20,16 @@ BUILD_PACKAGES="git libusb-dev cmake make gcc musl-dev g++ linux-headers"
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
-git clone https://github.com/airspy/airspyone_host.git
+git clone --depth 1 https://github.com/airspy/airspyone_host.git
 cmakebuild airspyone_host
 
-git clone https://github.com/pothosware/SoapyAirspy.git
+git clone --depth 1 https://github.com/pothosware/SoapyAirspy.git
 cmakebuild SoapyAirspy
 
-git clone https://github.com/airspy/airspyhf.git
+git clone --depth 1 https://github.com/airspy/airspyhf.git
 cmakebuild airspyhf
 
-git clone https://github.com/pothosware/SoapyAirspyHF.git
+git clone --depth 1 https://github.com/pothosware/SoapyAirspyHF.git
 cmakebuild SoapyAirspyHF
 
 apk del .build-deps

@@ -20,7 +20,7 @@ BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-dev fftw-dev"
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
-git clone https://github.com/mossmann/hackrf.git
+git clone --depth 1 https://github.com/mossmann/hackrf.git
 cd hackrf
 cmakebuild host
 cd ..

@@ -20,7 +20,7 @@ BUILD_PACKAGES="git libusb-dev cmake make gcc musl-dev g++ linux-headers"
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
-git clone https://github.com/osmocom/rtl-sdr.git
+git clone --depth 1 https://github.com/osmocom/rtl-sdr.git
 cmakebuild rtl-sdr
 
 apk del .build-deps

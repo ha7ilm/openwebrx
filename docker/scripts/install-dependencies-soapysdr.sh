@@ -20,10 +20,10 @@ BUILD_PACKAGES="git cmake make patch wget sudo gcc g++"
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
-git clone https://github.com/pothosware/SoapySDR
+git clone --depth 1 https://github.com/pothosware/SoapySDR
 cmakebuild SoapySDR
 
-git clone https://github.com/rxseger/rx_tools
+git clone --depth 1 https://github.com/rxseger/rx_tools
 cmakebuild rx_tools
 
 apk del .build-deps

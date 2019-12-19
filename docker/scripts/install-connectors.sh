@@ -19,7 +19,7 @@ BUILD_PACKAGES="git cmake make gcc g++ musl-dev"
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 
-git clone https://github.com/jketterl/owrx_connector.git
+git clone --depth 1 https://github.com/jketterl/owrx_connector.git
 cmakebuild owrx_connector
 
 apk del .build-deps
