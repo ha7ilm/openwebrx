@@ -31,6 +31,7 @@ class FeatureDetector(object):
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
+        "fifi_sdr": ["alsa"],
     }
 
     def feature_availability(self):
@@ -262,3 +263,10 @@ class FeatureDetector(object):
         on how to build from source.
         """
         return reduce(and_, map(self.command_is_runnable, ["jt9", "wsprd"]), True)
+
+    def has_alsa(self):
+        """
+        Some SDR receivers are identifying themselves as a soundcard. In order to read their data, OpenWebRX relies
+        on the Alsa library. It is available as a package for most Linux distributions.
+        """
+        return self.command_is_runnable("arecord --help")
