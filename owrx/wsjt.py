@@ -150,14 +150,15 @@ class WsjtChopper(threading.Thread):
         decoder = subprocess.Popen(
             self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir, preexec_fn=lambda: os.nice(10)
         )
-        while True:
-            line = decoder.stdout.readline()
-            if line is None or (isinstance(line, bytes) and len(line) == 0):
-                break
+        for line in decoder.stdout.readline():
             self.outputWriter.send(line)
-        rc = decoder.wait()
-        if rc != 0:
-            logger.warning("decoder return code: %i", rc)
+        try:
+            rc = decoder.wait(timeout=10)
+            if rc != 0:
+                logger.warning("decoder return code: %i", rc)
+        except subprocess.TimeoutExpired:
+            logger.warning("subprocess (pid=%i}) did not terminate correctly; sending kill signal.", decoder.pid)
+            decoder.kill()
         os.unlink(file)
 
     def run(self) -> None:
