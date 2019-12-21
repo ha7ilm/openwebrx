@@ -23,7 +23,4 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 git clone --depth 1 https://github.com/pothosware/SoapySDR
 cmakebuild SoapySDR
 
-git clone --depth 1 https://github.com/rxseger/rx_tools
-cmakebuild rx_tools
-
 apk del .build-deps
