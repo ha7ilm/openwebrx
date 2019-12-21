@@ -18,20 +18,20 @@ class UnknownFeatureException(Exception):
 
 class FeatureDetector(object):
     features = {
+        # core features; we won't start without these
         "core": ["csdr", "nmux", "nc"],
-        "rtl_sdr": ["rtl_sdr"],
-        "rtl_sdr_connector": ["rtl_connector"],
-        "sdrplay": ["rx_tools"],
-        "sdrplay_connector": ["soapy_connector"],
+        # different types of sdrs and their requirements
+        "rtl_sdr": ["rtl_connector"],
+        "sdrplay": ["soapy_connector"],
         "hackrf": ["hackrf_transfer"],
-        "airspy": ["airspy_rx"],
-        "airspy_connector": ["soapy_connector"],
-        "airspyhf_connector": ["soapy_connector"],
+        "airspy": ["soapy_connector"],
+        "airspyhf": ["soapy_connector"],
+        "fifi_sdr": ["alsa"],
+        # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
-        "fifi_sdr": ["alsa"],
     }
 
     def feature_availability(self):

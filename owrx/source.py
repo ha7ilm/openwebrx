@@ -524,7 +524,7 @@ class ConnectorSource(SdrSource):
         return False
 
 
-class RtlSdrConnectorSource(ConnectorSource):
+class RtlSdrSource(ConnectorSource):
     def getCommand(self):
         cmd = (
             "rtl_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
@@ -584,7 +584,7 @@ class SoapyConnectorSource(ConnectorSource):
         return values
 
 
-class SdrplayConnectorSource(SoapyConnectorSource):
+class SdrplaySource(SoapyConnectorSource):
     def getDriver(self):
         return "sdrplay"
 
@@ -604,7 +604,7 @@ class SdrplayConnectorSource(SoapyConnectorSource):
         return cmd
 
 
-class AirspyConnectorSource(SoapyConnectorSource):
+class AirspySource(SoapyConnectorSource):
     def getDriver(self):
         return "airspy"
 
@@ -626,17 +626,9 @@ class AirspyConnectorSource(SoapyConnectorSource):
         return cmd
 
 
-class AirspyhfConnectorSource(AirspyConnectorSource):
+class AirspyhfSource(AirspySource):
     def getDriver(self):
         return "airspyhf"
-
-
-class RtlSdrSource(SdrSource):
-    def getCommand(self):
-        return "rtl_sdr -s {samp_rate} -f {tuner_freq} -p {ppm} -g {rf_gain} -"
-
-    def getFormatConversion(self):
-        return "csdr convert_u8_f"
 
 
 class HackrfSource(SdrSource):
@@ -645,38 +637,6 @@ class HackrfSource(SdrSource):
 
     def getFormatConversion(self):
         return "csdr convert_s8_f"
-
-
-class SdrplaySource(SdrSource):
-    def getCommand(self):
-        command = "rx_sdr -F CF32 -s {samp_rate} -f {tuner_freq} -p {ppm}"
-        gainMap = {"rf_gain": "RFGR", "if_gain": "IFGR"}
-        gains = [
-            "{0}={{{1}}}".format(gainMap[name], name)
-            for (name, value) in self.rtlProps.collect("rf_gain", "if_gain").__dict__().items()
-            if value is not None
-        ]
-        if gains:
-            command += " -g {gains}".format(gains=",".join(gains))
-        if self.rtlProps["antenna"] is not None:
-            command += ' -a "{antenna}"'
-        command += " -"
-        return command
-
-    def sleepOnRestart(self):
-        time.sleep(1)
-
-
-class AirspySource(SdrSource):
-    def getCommand(self):
-        frequency = self.props["tuner_freq"] / 1e6
-        command = "airspy_rx"
-        command += " -f{0}".format(frequency)
-        command += " -r /dev/stdout -a{samp_rate} -g {rf_gain}"
-        return command
-
-    def getFormatConversion(self):
-        return "csdr convert_s16_f"
 
 
 class SpectrumThread(csdr.output):
