@@ -45,9 +45,8 @@ wget http://physics.princeton.edu/pulsar/k1jt/$WSJT_TGZ
 tar xvfz $WSJT_TGZ
 cmakebuild $WSJT_DIR
 
-git clone --depth 1 https://github.com/wb2osz/direwolf.git
+git clone --depth 1 -b 1.5 https://github.com/wb2osz/direwolf.git
 cd direwolf
-git checkout 1.5
 patch -Np1 < /direwolf-1.5.patch
 make
 make install
