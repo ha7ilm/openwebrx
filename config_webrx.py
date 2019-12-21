@@ -113,7 +113,7 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 sdrs = {
     "rtlsdr": {
         "name": "RTL-SDR USB Stick",
-        "type": "rtl_sdr_connector",
+        "type": "rtl_sdr",
         "ppm": 0,
         # you can change this if you use an upconverter. formula is:
         # center_freq + lfo_offset = actual frequency on the sdr
@@ -139,7 +139,7 @@ sdrs = {
     },
     "airspy": {
         "name": "Airspy HF+",
-        "type": "airspyhf_connector",
+        "type": "airspyhf",
         "ppm": 0,
         "profiles": {
             "20m": {
@@ -186,7 +186,7 @@ sdrs = {
     },
     "sdrplay": {
         "name": "SDRPlay RSP2",
-        "type": "sdrplay_connector",
+        "type": "sdrplay",
         "ppm": 0,
         "profiles": {
             "20m": {
