@@ -150,7 +150,7 @@ class WsjtChopper(threading.Thread):
         decoder = subprocess.Popen(
             self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir, preexec_fn=lambda: os.nice(10)
         )
-        for line in decoder.stdout.readline():
+        for line in decoder.stdout:
             self.outputWriter.send(line)
         try:
             rc = decoder.wait(timeout=10)
