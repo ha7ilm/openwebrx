@@ -6,7 +6,7 @@ from datetime import datetime
 from string import Template
 from owrx.websocket import WebSocketConnection
 from owrx.config import PropertyManager
-from owrx.source import ClientRegistry
+from owrx.client import ClientRegistry
 from owrx.connection import WebSocketMessageHandler
 from owrx.version import openwebrx_version
 from owrx.feature import FeatureDetector

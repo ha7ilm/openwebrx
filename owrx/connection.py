@@ -1,5 +1,8 @@
 from owrx.config import PropertyManager
-from owrx.source import DspManager, CpuUsageThread, SdrService, ClientRegistry
+from owrx.dsp import DspManager
+from owrx.cpu import CpuUsageThread
+from owrx.sdr import SdrService
+from owrx.client import ClientRegistry
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
 from owrx.bands import Bandplan

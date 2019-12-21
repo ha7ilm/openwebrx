@@ -1,13 +1,14 @@
 import threading
 from owrx.socket import getAvailablePort
 from datetime import datetime, timezone, timedelta
-from owrx.source import SdrService, SdrSource
+from owrx.source import SdrSource
+from owrx.sdr import SdrService
 from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.config import PropertyManager
-from owrx.source import Resampler
+from owrx.source.resampler import Resampler
 from owrx.feature import FeatureDetector
 
 import logging
