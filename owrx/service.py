@@ -110,9 +110,9 @@ class Schedule(object):
 class ServiceScheduler(object):
     def __init__(self, source, schedule):
         self.source = source
+        self.selectionTimer = None
         self.schedule = Schedule.parse(schedule)
         self.source.addClient(self)
-        self.selectionTimer = None
         self.source.getProps().collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
         self.scheduleSelection()
 

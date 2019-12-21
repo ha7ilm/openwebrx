@@ -190,7 +190,11 @@ class SdrSource(object):
         if not available:
             self.failed = True
 
-        self.postStart()
+        try:
+            self.postStart()
+        except Exception:
+            logger.exception("Exception during postStart()")
+            self.failed = True
 
         self.modificationLock.release()
 

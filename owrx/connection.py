@@ -158,7 +158,7 @@ class OpenWebRxReceiverClient(Client):
         next = SdrService.getSource(id)
 
         if next is None:
-            self.handleSdrFailure("sdr device failed")
+            self.handleSdrFailure("sdr device unavailable")
             return
 
         if next == self.sdr:
@@ -207,7 +207,7 @@ class OpenWebRxReceiverClient(Client):
         self.write_sdr_error(message)
 
     def startDsp(self):
-        if self.dsp is None:
+        if self.dsp is None and self.sdr is not None:
             self.dsp = DspManager(self, self.sdr)
             self.dsp.start()
 
