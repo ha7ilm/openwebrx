@@ -1135,7 +1135,9 @@ function on_ws_recv(evt) {
                         bookmarks.replace_bookmarks(json['value'], "server");
                         break;
                     case "sdr_error":
-                        divlog(json['value'], true);
+                        var $overlay = $('#openwebrx-error-overlay');
+                        $overlay.find('.errormessage').text(json['value']);
+                        $overlay.show();
                         break;
                     case 'secondary_demod':
                         secondary_demod_push_data(json['value']);
@@ -1407,6 +1409,7 @@ function waterfall_measure_minmax_do(what) {
 }
 
 function on_ws_opened() {
+    $('#openwebrx-error-overlay').hide();
     ws.send("SERVER DE CLIENT client=openwebrx.js type=receiver");
     divlog("WebSocket opened to " + ws.url);
     if (!networkSpeedMeasurement) {
