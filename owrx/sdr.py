@@ -63,15 +63,19 @@ class SdrService(object):
             )
 
     @staticmethod
-    def getSource(id=None):
+    def getFirstSource():
+        sources = SdrService.getSources()
+        if not sources:
+            return None
+        # TODO: configure default sdr in config? right now it will pick the first one off the list.
+        return sources[list(sources.keys())[0]]
+
+    @staticmethod
+    def getSource(id):
         SdrService.loadProps()
         sources = SdrService.getSources()
         if not sources:
             return None
-        if id is None:
-            # TODO: configure default sdr in config? right now it will pick the first one off the list.
-            id = list(sources.keys())[0]
-
         if not id in sources:
             return None
         return sources[id]

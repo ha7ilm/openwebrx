@@ -146,7 +146,6 @@ class DspManager(csdr.output):
         elif state == SdrSource.STATE_FAILED:
             logger.debug("received STATE_FAILED, shutting down DspSource")
             self.dsp.stop()
-            self.handler.handleSdrFailure("sdr device failed")
 
     def onBusyStateChange(self, state):
         pass

@@ -80,6 +80,9 @@ class SdrSource(object):
         profiles = self.props["profiles"]
         if profile_id is None:
             profile_id = list(profiles.keys())[0]
+        if profile_id not in profiles:
+            logger.warning("invalid profile %s for sdr %s. ignoring", profile_id, self.id)
+            return
         if profile_id == self.profile_id:
             return
         logger.debug("activating profile {0}".format(profile_id))
@@ -274,6 +277,9 @@ class SdrSource(object):
     def writeSpectrumData(self, data):
         for c in self.spectrumClients:
             c.write_spectrum_data(data)
+
+    def getState(self):
+        return self.state
 
     def setState(self, state):
         if state == self.state:

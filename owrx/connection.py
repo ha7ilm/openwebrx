@@ -2,6 +2,7 @@ from owrx.config import PropertyManager
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
+from owrx.source import SdrSource
 from owrx.client import ClientRegistry
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
@@ -107,17 +108,20 @@ class OpenWebRxReceiverClient(Client):
         receiver_details["locator"] = Locator.fromCoordinates(receiver_details["receiver_gps"])
         self.write_receiver_details(receiver_details)
 
+        self.__sendProfiles()
+
+        features = FeatureDetector().feature_availability()
+        self.write_features(features)
+
+        CpuUsageThread.getSharedInstance().add_client(self)
+
+    def __sendProfiles(self):
         profiles = [
             {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
             for (sid, s) in SdrService.getSources().items()
             for (pid, p) in s.getProfiles().items()
         ]
         self.write_profiles(profiles)
-
-        features = FeatureDetector().feature_availability()
-        self.write_features(features)
-
-        CpuUsageThread.getSharedInstance().add_client(self)
 
     def handleTextMessage(self, conn, message):
         try:
@@ -155,24 +159,34 @@ class OpenWebRxReceiverClient(Client):
             logger.warning("message is not json: {0}".format(message))
 
     def setSdr(self, id=None):
-        next = SdrService.getSource(id)
+        while True:
+            next = None
+            if id is not None:
+                next = SdrService.getSource(id)
+            if next is None:
+                next = SdrService.getFirstSource()
+            if next is None:
+                # exit condition: no sdrs available
+                self.handleNoSdrsAvailable()
+                return
 
-        if next is None:
-            self.handleSdrFailure("sdr device unavailable")
-            return
+            # exit condition: no change
+            if next == self.sdr:
+                return
 
-        if next == self.sdr:
-            return
+            self.stopDsp()
 
-        self.stopDsp()
+            if self.configSub is not None:
+                self.configSub.cancel()
+                self.configSub = None
 
-        if self.configSub is not None:
-            self.configSub.cancel()
-            self.configSub = None
+            self.sdr = next
 
-        self.sdr = next
+            self.startDsp()
 
-        self.startDsp()
+            # keep trying until we find a suitable SDR
+            if self.sdr.getState() != SdrSource.STATE_FAILED:
+                break
 
         # send initial config
         self.setDspProperties(self.connectionProperties)
@@ -200,11 +214,12 @@ class OpenWebRxReceiverClient(Client):
 
         self.configSub = configProps.wire(sendConfig)
         sendConfig(None, None)
+        self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
 
-    def handleSdrFailure(self, message):
-        self.write_sdr_error(message)
+    def handleNoSdrsAvailable(self):
+        self.write_sdr_error("No SDR Devices available")
 
     def startDsp(self):
         if self.dsp is None and self.sdr is not None:
