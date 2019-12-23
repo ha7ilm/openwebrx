@@ -1135,6 +1135,7 @@ function on_ws_recv(evt) {
                         bookmarks.replace_bookmarks(json['value'], "server");
                         break;
                     case "sdr_error":
+                        divlog(json['value'], true);
                         var $overlay = $('#openwebrx-error-overlay');
                         $overlay.find('.errormessage').text(json['value']);
                         $overlay.show();
