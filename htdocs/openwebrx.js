@@ -1142,6 +1142,9 @@ function on_ws_recv(evt) {
                     case 'secondary_demod':
                         secondary_demod_push_data(json['value']);
                         break;
+                    case 'log_message':
+                        divlog(json['value'], true);
+                        break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
                 }

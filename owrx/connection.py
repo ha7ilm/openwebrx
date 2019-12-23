@@ -185,7 +185,9 @@ class OpenWebRxReceiverClient(Client):
             self.startDsp()
 
             # keep trying until we find a suitable SDR
-            if self.sdr.getState() != SdrSource.STATE_FAILED:
+            if self.sdr.getState() == SdrSource.STATE_FAILED:
+                self.write_log_message("SDR device \"{0}\" has failed, selecting new device".format(self.sdr.getName()))
+            else:
                 break
 
         # send initial config
@@ -307,6 +309,9 @@ class OpenWebRxReceiverClient(Client):
 
     def write_aprs_data(self, data):
         self.send({"type": "aprs_data", "value": data})
+
+    def write_log_message(self, message):
+        self.send({"type": "log_message", "value": message})
 
     def write_sdr_error(self, message):
         self.send({"type": "sdr_error", "value": message})
