@@ -1,6 +1,6 @@
-from .airspy import AirspySource
+from .soapy import SoapyConnectorSource
 
 
-class AirspyhfSource(AirspySource):
+class AirspyhfSource(SoapyConnectorSource):
     def getDriver(self):
         return "airspyhf"
