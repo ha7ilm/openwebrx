@@ -1,5 +1,4 @@
-ARG BASE_IMAGE
-FROM $BASE_IMAGE
+FROM alpine:3.10
 
 RUN apk add --no-cache bash
 
