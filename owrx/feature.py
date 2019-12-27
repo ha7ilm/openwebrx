@@ -1,6 +1,6 @@
 import subprocess
 from functools import reduce
-from operator import and_
+from operator import and_, or_
 import re
 from distutils.version import LooseVersion
 import inspect
@@ -22,10 +22,10 @@ class FeatureDetector(object):
         "core": ["csdr", "nmux", "nc"],
         # different types of sdrs and their requirements
         "rtl_sdr": ["rtl_connector"],
-        "sdrplay": ["soapy_connector"],
+        "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "hackrf": ["hackrf_transfer"],
-        "airspy": ["soapy_connector"],
-        "airspyhf": ["soapy_connector"],
+        "airspy": ["soapy_connector", "soapy_airspy"],
+        "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "fifi_sdr": ["alsa"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
@@ -125,17 +125,6 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("rtl_sdr --help")
 
-    def has_rx_tools(self):
-        """
-        The rx_tools package can be used to interface with SDR devices compatible with SoapySDR. It is currently used
-        to connect to SDRPlay devices. Please check the following pages for more details:
-
-        * [rx_tools GitHub page](https://github.com/rxseger/rx_tools)
-        * [SoapySDR Project wiki](https://github.com/pothosware/SoapySDR/wiki)
-        * [SDRPlay homepage](https://www.sdrplay.com/)
-        """
-        return self.command_is_runnable("rx_sdr --help")
-
     def has_hackrf_transfer(self):
         """
         To use a HackRF, compile the HackRF host tools from its "stdout" branch:
@@ -218,7 +207,7 @@ class FeatureDetector(object):
         The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
         frequency switching, uses less CPU and can even provide more stability in some cases.
 
-        You can get it here: https://github.com/jketterl/owrx_connector
+        You can get it [here](https://github.com/jketterl/owrx_connector).
         """
         return self._check_connector("rtl_connector")
 
@@ -227,9 +216,43 @@ class FeatureDetector(object):
         The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
         frequency switching, uses less CPU and can even provide more stability in some cases.
 
-        You can get it here: https://github.com/jketterl/owrx_connector
+        You can get it [here](https://github.com/jketterl/owrx_connector).
         """
         return self._check_connector("soapy_connector")
+
+    def _has_soapy_driver(self, driver):
+        process = subprocess.Popen(["SoapySDRUtil", "--info"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        driverRegex = re.compile("^Module found: .*lib(.*)Support.so")
+        def matchLine(line):
+            matches = driverRegex.match(line.decode())
+            return matches is not None and matches.group(1) == driver
+        lines = [matchLine(line) for line in process.stdout]
+        return reduce(or_, lines, False)
+
+    def has_soapy_sdrplay(self):
+        """
+        The SoapySDR module for sdrplay devices is required for interfacing with SDRPlay devices (RSP1*, RSP2*, RSPDuo)
+
+        You can get it [here](https://github.com/pothosware/SoapySDRPlay/wiki).
+        """
+        return self._has_soapy_driver("sdrPlay")
+
+    def has_soapy_airspy(self):
+        """
+        The SoapySDR module for airspy devices is required for interfacing with Airspy devices (Airspy R2, Airspy Mini).
+
+        You can get it [here](https://github.com/pothosware/SoapyAirspy/wiki).
+        """
+        return self._has_soapy_driver("airspy")
+
+    def has_soapy_airspyhf(self):
+        """
+        The SoapySDR module for airspyhf devices is required for interfacing with Airspy HF devices (Airspy HF+,
+        Airspy HF discovery).
+
+        You can get it [here](https://github.com/pothosware/SoapyAirspyHF/wiki).
+        """
+        return self._has_soapy_driver("airspyhf")
 
     def has_dsd(self):
         """
@@ -248,6 +271,11 @@ class FeatureDetector(object):
         return self.command_is_runnable("sox")
 
     def has_direwolf(self):
+        """
+        OpenWebRX uses the [direwolf](https://github.com/wb2osz/direwolf) software modem to decode Packet Radio and
+        report data back to APRS-IS. Direwolf is available from the package manager on many distributions, or you can
+        compile it from source.
+        """
         return self.command_is_runnable("direwolf --help")
 
     def has_airspy_rx(self):
