@@ -8,11 +8,12 @@ class AirspySource(SoapyConnectorSource):
     def getEventNames(self):
         return super().getEventNames() + ["bias_tee"]
 
+    '''
     def getCommand(self):
-        cmd = (
+        cmd = [
                 "soapy_connector -p {port} -c {controlPort}".format(port=self.port, controlPort=self.controlPort)
                 + ' -s {samp_rate} -f {tuner_freq} -g "{rf_gain}" -P {ppm} -d "{device}"'
-        )
+        ]
         values = self.getCommandValues()
         if values["iqswap"]:
             cmd += " -i"
@@ -21,3 +22,4 @@ class AirspySource(SoapyConnectorSource):
         if values["bias_tee"]:
             cmd += " -t biastee=true"
         return cmd
+    '''

@@ -248,7 +248,7 @@ class OpenWebRxReceiverClient(Client):
         # only the keys in the protected property manager can be overridden from the web
         protected = (
             self.sdr.getProps()
-            .collect("samp_rate", "center_freq", "rf_gain", "type", "if_gain")
+            .collect("samp_rate", "center_freq", "rf_gain", "type")
             .defaults(PropertyManager.getSharedInstance())
         )
         for key, value in params.items():

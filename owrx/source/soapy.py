@@ -1,13 +1,28 @@
+from abc import ABCMeta, abstractmethod
+from owrx.command import Option
+
 from .connector import ConnectorSource
 
 
-class SoapyConnectorSource(ConnectorSource):
+class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
+    def __init__(self, id, props, port):
+        super().__init__(id, props, port)
+        self.getCommandMapper().setBase("soapy_connector").setMappings({
+            "antenna": Option("-a")
+        })
+
     """
     must be implemented by child classes to be able to build a driver-based device selector by default.
     return value must be the corresponding soapy driver identifier.
     """
+    @abstractmethod
     def getDriver(self):
         pass
+
+    def getEventNames(self):
+        return super().getEventNames() + [
+            "antenna",
+        ]
 
     def parseDeviceString(self, dstr):
 
