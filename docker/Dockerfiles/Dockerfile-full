@@ -1,5 +1,5 @@
-ARG ARCH
-FROM openwebrx-base:$ARCH
+ARG ARCHTAG
+FROM openwebrx-base:$ARCHTAG
 
 ADD docker/scripts/install-dependencies-*.sh /
 ADD docker/scripts/install-lib.*.patch /
