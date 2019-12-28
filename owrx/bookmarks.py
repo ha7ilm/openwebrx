@@ -54,7 +54,6 @@ class Bookmarks(object):
                 return []
         return []
 
-
     def getBookmarks(self, range):
         (lo, hi) = range
         return [b for b in self.bookmarks if lo <= b.getFrequency() <= hi]

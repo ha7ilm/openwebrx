@@ -7,14 +7,13 @@ from .connector import ConnectorSource
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def __init__(self, id, props, port):
         super().__init__(id, props, port)
-        self.getCommandMapper().setBase("soapy_connector").setMappings({
-            "antenna": Option("-a")
-        })
+        self.getCommandMapper().setBase("soapy_connector").setMappings({"antenna": Option("-a")})
 
     """
     must be implemented by child classes to be able to build a driver-based device selector by default.
     return value must be the corresponding soapy driver identifier.
     """
+
     @abstractmethod
     def getDriver(self):
         pass
@@ -25,7 +24,6 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
         ]
 
     def parseDeviceString(self, dstr):
-
         def decodeComponent(c):
             kv = c.split("=", 1)
             if len(kv) < 2:
@@ -36,7 +34,6 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
         return [decodeComponent(c) for c in dstr.split(",")]
 
     def encodeDeviceString(self, dobj):
-
         def encodeComponent(c):
             if isinstance(c, str):
                 return c
@@ -49,6 +46,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     this method always attempts to inject a driver= part into the soapysdr query, depending on what connector was used.
     this prevents the soapy_connector from using the wrong device in scenarios where there's no same-type sdrs.
     """
+
     def getCommandValues(self):
         values = super().getCommandValues()
         if "device" in values and values["device"] is not None:

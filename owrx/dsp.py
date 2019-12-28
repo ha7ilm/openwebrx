@@ -21,7 +21,7 @@ class DspManager(csdr.output):
 
         self.localProps = (
             self.sdrSource.getProps()
-                .collect(
+            .collect(
                 "audio_compression",
                 "fft_compression",
                 "digimodes_fft_size",
@@ -35,7 +35,7 @@ class DspManager(csdr.output):
                 "temporary_directory",
                 "center_freq",
             )
-                .defaults(PropertyManager.getSharedInstance())
+            .defaults(PropertyManager.getSharedInstance())
         )
 
         self.dsp = csdr.dsp(self)

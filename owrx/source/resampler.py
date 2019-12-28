@@ -33,7 +33,7 @@ class Resampler(DirectSource):
             "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING".format(
                 decimation=self.decimation, ddc_transition_bw=self.transition_bw
             ),
-            self.getNmuxCommand()
+            self.getNmuxCommand(),
         ]
 
     def activateProfile(self, profile_id=None):

@@ -58,7 +58,7 @@ class Option(CommandMapping):
     def map(self, value):
         if value is not None:
             if isinstance(value, str) and " " in value:
-                template = "{0} \"{1}\""
+                template = '{0} "{1}"'
             else:
                 template = "{0} {1}"
             return template.format(self.option, value)

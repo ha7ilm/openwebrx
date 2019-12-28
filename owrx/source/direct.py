@@ -8,7 +8,11 @@ logger = logging.getLogger(__name__)
 
 class DirectSource(SdrSource, metaclass=ABCMeta):
     def onPropertyChange(self, name, value):
-        logger.debug("restarting sdr source due to property change: {0} changed to {1}".format(name, value))
+        logger.debug(
+            "restarting sdr source due to property change: {0} changed to {1}".format(
+                name, value
+            )
+        )
         self.stop()
         self.sleepOnRestart()
         self.start()

@@ -226,6 +226,7 @@ class SdrSource(ABC):
         if self.spectrumThread is None:
             # local import due to circular depencency
             from owrx.fft import SpectrumThread
+
             self.spectrumThread = SpectrumThread(self)
             self.spectrumThread.start()
 

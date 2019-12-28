@@ -223,9 +223,11 @@ class FeatureDetector(object):
     def _has_soapy_driver(self, driver):
         process = subprocess.Popen(["SoapySDRUtil", "--info"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         driverRegex = re.compile("^Module found: .*lib(.*)Support.so")
+
         def matchLine(line):
             matches = driverRegex.match(line.decode())
             return matches is not None and matches.group(1) == driver
+
         lines = [matchLine(line) for line in process.stdout]
         return reduce(or_, lines, False)
 

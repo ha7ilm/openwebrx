@@ -13,17 +13,19 @@ class ConnectorSource(SdrSource):
         super().__init__(id, props, port)
         self.controlSocket = None
         self.controlPort = getAvailablePort()
-        self.getCommandMapper().setMappings({
-            "samp_rate": Option("-s"),
-            "tuner_freq": Option("-f"),
-            "port": Option("-p"),
-            "controlPort": Option("-c"),
-            "device": Option("-d"),
-            "iqswap": Flag("-i"),
-            "rtltcp_compat": Flag("-r"),
-            "ppm": Option("-p"),
-            "rf_gain": Option("-g")
-        })
+        self.getCommandMapper().setMappings(
+            {
+                "samp_rate": Option("-s"),
+                "tuner_freq": Option("-f"),
+                "port": Option("-p"),
+                "controlPort": Option("-c"),
+                "device": Option("-d"),
+                "iqswap": Flag("-i"),
+                "rtltcp_compat": Flag("-r"),
+                "ppm": Option("-p"),
+                "rf_gain": Option("-g"),
+            }
+        )
 
     def getEventNames(self):
         return super().getEventNames() + [
@@ -40,9 +42,9 @@ class ConnectorSource(SdrSource):
         if self.monitor is None:
             return
         if (
-                (prop == "center_freq" or prop == "lfo_offset")
-                and "lfo_offset" in self.rtlProps
-                and self.rtlProps["lfo_offset"] is not None
+            (prop == "center_freq" or prop == "lfo_offset")
+            and "lfo_offset" in self.rtlProps
+            and self.rtlProps["lfo_offset"] is not None
         ):
             freq = self.rtlProps["center_freq"] + self.rtlProps["lfo_offset"]
             self.sendControlMessage("center_freq", freq)

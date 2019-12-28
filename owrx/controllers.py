@@ -91,7 +91,7 @@ class AssetsController(Controller):
 
 class OwrxAssetsController(AssetsController):
     def openFile(self, file):
-        return pkg_resources.resource_stream('htdocs', file)
+        return pkg_resources.resource_stream("htdocs", file)
 
 
 class AprsSymbolsController(AssetsController):

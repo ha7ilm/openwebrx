@@ -186,7 +186,7 @@ class OpenWebRxReceiverClient(Client):
 
             # keep trying until we find a suitable SDR
             if self.sdr.getState() == SdrSource.STATE_FAILED:
-                self.write_log_message("SDR device \"{0}\" has failed, selecting new device".format(self.sdr.getName()))
+                self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
             else:
                 break
 
