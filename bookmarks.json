@@ -1,0 +1,222 @@
+[
+  {
+    "name": "DB0ZU",
+    "frequency": 145725000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0ZM",
+    "frequency": 145750000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DM0ULR",
+    "frequency": 145787500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0EL",
+    "frequency": 439275000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0NJ",
+    "frequency": 438775000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0NJ",
+    "frequency": 439437500,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0UFO",
+    "frequency": 438312500,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0PV",
+    "frequency": 438525000,
+    "modulation": "ysf"
+  },
+  {
+    "name": "DB0BZA",
+    "frequency": 438412500,
+    "modulation": "ysf"
+  },
+  {
+    "name": "DB0OSH",
+    "frequency": 438250000,
+    "modulation": "ysf"
+  },
+  {
+    "name": "DB0ULR",
+    "frequency": 439325000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0ZU",
+    "frequency": 438850000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0ISW",
+    "frequency": 438650000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "Radio DARC",
+    "frequency": 6070000,
+    "modulation": "am"
+  },
+  {
+    "name": "DB0TVM",
+    "frequency": 439575000,
+    "modulation": "dstar"
+  },
+  {
+    "name": "DB0TVM",
+    "frequency": 439800000,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0TR",
+    "frequency": 438700000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0PME",
+    "frequency": 439825000,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0HKN",
+    "frequency": 438300000,
+    "modulation": "dmr"
+  },
+  {
+    "name": "OE2XHM",
+    "frequency": 438825000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DM0WW",
+    "frequency": 438962500,
+    "modulation": "dmr"
+  },
+  {
+    "name": "OE7XXR",
+    "frequency": 438200000,
+    "modulation": "dstar"
+  },
+  {
+    "name": "OE2XZR",
+    "frequency": 439000000,
+    "modulation": "dstar"
+  },
+  {
+    "name": "DB0OAL",
+    "frequency": 439912500,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0AAT",
+    "frequency": 439550000,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0FSG",
+    "frequency": 439937500,
+    "modulation": "dmr"
+  },
+  {
+    "name": "Pocsag",
+    "frequency": 439987500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0ULR",
+    "frequency": 145575000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0RDH",
+    "frequency": 145737500,
+    "modulation": "dstar"
+  },
+  {
+    "name": "DM0GAP",
+    "frequency": 145612500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0XF",
+    "frequency": 145600000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0TOL",
+    "frequency": 145712500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0TTB",
+    "frequency": 439587500,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0TRS",
+    "frequency": 439125000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0OAL",
+    "frequency": 438937500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DM0ULR",
+    "frequency": 439337500,
+    "modulation": "nxdn"
+  },
+  {
+    "name": "DB0MIR",
+    "frequency": 439300000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0PM",
+    "frequency": 439075000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0CP",
+    "frequency": 439025000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "OE7XGR",
+    "frequency": 438925000,
+    "modulation": "dmr"
+  },
+  {
+    "name": "DB0TOL",
+    "frequency": 438725000,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0OAL",
+    "frequency": 438325000,
+    "modulation": "dstar"
+  },
+  {
+    "name": "DB0ROL",
+    "frequency": 439237500,
+    "modulation": "nfm"
+  },
+  {
+    "name": "DB0ABX",
+    "frequency": 439137500,
+    "modulation": "nfm"
+  }
+]

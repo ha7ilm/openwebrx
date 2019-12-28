@@ -1,0 +1,4 @@
+config_webrx.py etc/openwebrx/
+bands.json etc/openwebrx/
+bookmarks.json etc/openwebrx/
+systemd/openwebrx.service lib/systemd/system/

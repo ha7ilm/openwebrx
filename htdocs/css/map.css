@@ -1,0 +1,57 @@
+@import url("openwebrx-header.css");
+@import url("openwebrx-globals.css");
+
+/* expandable photo not implemented on map page */
+#webrx-top-photo-clip {
+    max-height: 67px;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#webrx-top-container {
+    flex: none;
+}
+
+.openwebrx-map {
+    flex: 1 1 auto;
+}
+
+h3 {
+    margin: 10px 0;
+    text-align: center;
+}
+
+ul {
+    margin-block-start: 5px;
+    margin-block-end: 5px;
+    padding-inline-start: 25px;
+}
+
+.openwebrx-map-legend {
+    background-color: #fff;
+    padding: 10px;
+    margin: 10px;
+}
+
+.openwebrx-map-legend ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.openwebrx-map-legend li.square .illustration {
+    display: inline-block;
+    width: 30px;
+    height: 20px;
+    margin-right: 10px;
+    border-width: 2px;
+    border-style: solid;
+}
+
+.openwebrx-map-legend select {
+    background-color: #FFF;
+    border-color: #DDD;
+    padding: 5px;
+}

@@ -1,0 +1,18 @@
+FROM alpine:3.10
+
+RUN apk add --no-cache bash
+
+RUN ln -s /usr/local/lib /usr/local/lib64
+
+ADD docker/scripts/direwolf-1.5.patch /
+ADD docker/scripts/install-dependencies.sh /
+RUN /install-dependencies.sh
+
+ADD . /opt/openwebrx
+
+WORKDIR /opt/openwebrx
+
+VOLUME /etc/openwebrx
+
+ENTRYPOINT [ "/opt/openwebrx/docker/scripts/run.sh" ]
+EXPOSE 8073

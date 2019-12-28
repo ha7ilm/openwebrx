@@ -4,6 +4,7 @@
     This file is part of OpenWebRX, 
     an open-source SDR receiver software with a web UI.
     Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
+    Copyright (c) 2019 by Jakob Ketterl <dd5jfk@darc.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -20,31 +21,12 @@
 
 """
 
-import config_webrx as cfg, time, subprocess
+from owrx.sdrhu import SdrHuUpdater
+from owrx.config import PropertyManager
 
-def run(continuously=True):
-    if not cfg.sdrhu_key: return 
-    firsttime="(Your receiver is soon getting listed on sdr.hu!)"
-    while True:
-        cmd = "wget --timeout=15 -4qO- https://sdr.hu/update --post-data \"url=http://"+cfg.server_hostname+":"+str(cfg.web_port)+"&apikey="+cfg.sdrhu_key+"\" 2>&1"
-        print "[openwebrx-sdrhu]", cmd
-        returned=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
-        returned=returned[0]
-        #print returned
-        if "UPDATE:" in returned:
-            retrytime_mins = 20
-            value=returned.split("UPDATE:")[1].split("\n",1)[0]
-            if value.startswith("SUCCESS"):
-                print "[openwebrx-sdrhu] Update succeeded! "+firsttime
-                firsttime=""
-            else:
-                print "[openwebrx-sdrhu] Update failed, your receiver cannot be listed on sdr.hu! Reason:", value
-        else:
-            retrytime_mins = 2
-            print "[openwebrx-sdrhu] wget failed while updating, your receiver cannot be listed on sdr.hu!"
-        if not continuously: break
-        time.sleep(60*retrytime_mins)
+if __name__ == "__main__":
+    pm = PropertyManager.getSharedInstance().loadConfig()
 
-if __name__=="__main__":
-    run(False)
-
+    if not "sdrhu_key" in pm:
+        exit(1)
+    SdrHuUpdater().update()
