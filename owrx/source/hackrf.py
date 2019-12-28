@@ -22,4 +22,4 @@ class HackrfSource(DirectSource):
         ]
 
     def getFormatConversion(self):
-        return "csdr convert_s8_f"
+        return ["csdr convert_s8_f"]

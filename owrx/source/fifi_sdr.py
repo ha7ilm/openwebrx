@@ -13,4 +13,4 @@ class FifiSdrSource(DirectSource):
         return super().getEventNames() + ["device"]
 
     def getFormatConversion(self):
-        return "csdr convert_s16_f | csdr gain_ff 30"
+        return ["csdr convert_s16_f", "csdr gain_ff 30"]

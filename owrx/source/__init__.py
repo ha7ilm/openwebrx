@@ -135,7 +135,7 @@ class SdrSource(ABC):
                 # preexec_fn can go as soon as there's no piped commands left
                 # the os.killpg call must be replaced with something more reasonable at the same time
                 self.process = subprocess.Popen(shlex.split(cmd), preexec_fn=os.setpgrp)
-            logger.info("Started rtl source: " + cmd)
+            logger.info("Started sdr source: " + cmd)
 
             available = False
 

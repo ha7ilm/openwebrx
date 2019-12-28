@@ -36,21 +36,18 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
                 "These depend on nmux_memory and samp_rate options in config_webrx.py"
             )
 
-        return "nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (
+        return ["nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1" % (
             nmux_bufsize,
             nmux_bufcnt,
             self.port,
-        )
+        )]
 
     def getCommand(self):
-        return super().getCommand() + [
-            self.getFormatConversion(),
-            self.getNmuxCommand(),
-        ]
+        return super().getCommand() + self.getFormatConversion() + self.getNmuxCommand()
 
     # override this in subclasses, if necessary
     def getFormatConversion(self):
-        return None
+        return []
 
     # override this in subclasses, if necessary
     def sleepOnRestart(self):
