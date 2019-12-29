@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class CommandMapper(object):
-    def __init__(self, base=None, mappings={}, static=None):
+    def __init__(self, base=None, mappings=None, static=None):
         self.base = base
-        self.mappings = mappings
+        self.mappings = {} if mappings is None else mappings
         self.static = static
 
     def map(self, values):
