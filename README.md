@@ -16,6 +16,7 @@ Know limitations of the last version:
 - Some specific parts of the DSP code could be improved for better SNR.
 
 Even though these limitations are probably acceptable in an amateur radio project, I would not build critical infrastructure on it.  
+
 For commercial inquiries (e.g. if someone wants me to develop an improved version without these limitations), I'm still open, [drop me an e-mail](mailto:randras@sdr.hu).
 
 ----
