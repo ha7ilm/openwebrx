@@ -1,9 +1,25 @@
-OpenWebRX
-=========
-
-[:floppy_disk: Setup guide for Ubuntu](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html)  |  [:blue_book: Knowledge base on the Wiki](https://github.com/simonyiszk/openwebrx/wiki/)  |  [:earth_americas: Receivers on SDR.hu](http://sdr.hu/) 
+# OpenWebRX
 
 OpenWebRX is a multi-user SDR receiver software with a web interface.
+
+----
+
+### ⚠️ From 2019-12-29 OpenWebRX development is discontinued.⚠️
+
+I'm would like to say a big thanks to everyone who supported me during this project, including those who contributed either code or donations. It has been a very fruitful 5 years, but now it's time to move on to other projects. See also my [blog](https://blog.sdr.hu) about that.  
+(@simonyiszk, please keep this GitHub repo for historic purposes.)
+
+Know limitations of the last version:
+
+- Python 2.7, a main dependency of the project, will be not be officially maintained from 1 January 2020. By time, probably it will not be secure to use this version on public servers, unless someone still provides security patches for Python 2. 
+- Some specific parts of the DSP code could be improved for better SNR.
+
+Even though these limitations are probably acceptable in an amateur radio project, I would not build critical infrastructure on it.  
+For commercial inquiries (e.g. if someone wants me to develop an improved version without these limitations), I'm still open, [drop me an e-mail](mailto:randras@sdr.hu).
+
+----
+
+[:floppy_disk: Setup guide for Ubuntu](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html)  |  [:blue_book: Knowledge base on the Wiki](https://github.com/simonyiszk/openwebrx/wiki/)  |  [:earth_americas: Receivers on SDR.hu](http://sdr.hu/) 
 
 ![OpenWebRX](http://blog.sdr.hu/images/openwebrx/screenshot.png)
 
