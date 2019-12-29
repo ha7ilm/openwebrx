@@ -3,6 +3,9 @@ set -euxo pipefail
 
 function cmakebuild() {
   cd $1
+  if [[ ! -z "${2:-}" ]]; then
+    git checkout $2
+  fi
   mkdir build
   cd build
   cmake ..
@@ -20,24 +23,25 @@ BUILD_PACKAGES="git libsndfile-dev fftw-dev cmake ca-certificates make gcc musl-
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
-git clone --depth 1 https://git.code.sf.net/p/itpp/git itpp
-cmakebuild itpp
+git clone https://git.code.sf.net/p/itpp/git itpp
+cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
 
-git clone --depth 1 https://github.com/jketterl/csdr.git
+git clone https://github.com/jketterl/csdr.git
 cd csdr
+git checkout e8453446fc4795abaa2b3c8ee20fd954b36ada6e
 make
 make install
 cd ..
 rm -rf csdr
 
-git clone --depth 1 https://github.com/szechyjs/mbelib.git
-cmakebuild mbelib
+git clone https://github.com/szechyjs/mbelib.git
+cmakebuild mbelib 9a04ed5c78176a9965f3d43f7aa1b1f5330e771f
 
-git clone --depth 1 https://github.com/jketterl/digiham.git
-cmakebuild digiham
+git clone https://github.com/jketterl/digiham.git
+cmakebuild digiham 01e1121d7de4d5acdd118c9b4c1c6509535db975
 
-git clone --depth 1 https://github.com/f4exb/dsd.git
-cmakebuild dsd
+git clone https://github.com/f4exb/dsd.git
+cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7
 
 WSJT_DIR=wsjtx-2.1.2
 WSJT_TGZ=${WSJT_DIR}.tgz
@@ -53,6 +57,9 @@ make install
 cd ..
 rm -rf direwolf
 
-git clone --depth 1 https://github.com/hessu/aprs-symbols /opt/aprs-symbols
+git clone https://github.com/hessu/aprs-symbols /opt/aprs-symbols
+pushd /opt/aprs-symbols
+git checkout 5c2abe2658ee4d2563f3c73b90c6f59124839802
+popd
 
 apk del .build-deps

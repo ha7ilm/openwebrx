@@ -3,6 +3,9 @@ set -euxo pipefail
 
 function cmakebuild() {
   cd $1
+  if [[ ! -z "${2:-}" ]]; then
+    git checkout $2
+  fi
   mkdir build
   cd build
   cmake ..
@@ -44,7 +47,7 @@ cd ..
 rm -rf sdrplay
 rm $BINARY
 
-git clone --depth 1 https://github.com/pothosware/SoapySDRPlay.git
-cmakebuild SoapySDRPlay
+git clone https://github.com/pothosware/SoapySDRPlay.git
+cmakebuild SoapySDRPlay 14ec39e4ff0dab7ae7fdf1afbbd2d28b49b0ffae
 
 apk del .build-deps

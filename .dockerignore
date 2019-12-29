@@ -3,3 +3,4 @@
 .idea
 **/*.pyc
 **/*.swp
+black-env
