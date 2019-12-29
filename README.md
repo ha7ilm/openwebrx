@@ -102,7 +102,7 @@ This is based off the Raspbian Lite distribution, so [their installation instruc
 
 Please note: I have not updated this to include the Raspberry Pi 4 yet. (It seems to be impossible to build Rasbpian Buster images on x86 hardware right now. Stay tuned!)
 
-Once you have booted a Raspberry with the SD Card, it will appear in your network with the hostname "openwebrx", which should make it available as https://openwebrx:8073/ on most networks. This may vary depending on your specific setup.
+Once you have booted a Raspberry with the SD Card, it will appear in your network with the hostname "openwebrx", which should make it available as https://openwebrx/ on most networks. This may vary depending on your specific setup.
 
 For Digital voice, the minimum requirement right now seems to be a Rasbperry Pi 3B+. I would like to work on optimizing this for lower specs, but at this point I am not sure how much can be done. 
 
