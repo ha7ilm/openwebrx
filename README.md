@@ -9,7 +9,7 @@ OpenWebRX is a multi-user SDR receiver software with a web interface.
 
 It has the following features:
 
-- [csdr](https://github.com/simonyiszk/csdr) based demodulators (AM/FM/SSB/CW/BPSK31),
+- [csdr](https://github.com/jketterl/csdr) based demodulators (AM/FM/SSB/CW/BPSK31),
 - filter passband can be set from GUI,
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and Canvas
 - it works in Google Chrome, Chromium and Mozilla Firefox
@@ -116,7 +116,7 @@ OpenWebRX currently requires Linux and python >= 3.6 to run.
 
 First you will need to install the dependencies:
 
-- [csdr](https://github.com/simonyiszk/csdr)
+- [csdr](https://github.com/jketterl/csdr)
 - [rtl-sdr](http://sdr.osmocom.org/trac/wiki/rtl-sdr)
 
 Optional dependency for improved hardware access (to become mandatory at some point):
