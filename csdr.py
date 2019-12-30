@@ -62,6 +62,8 @@ class dsp:
         self.pipe_names=["bpf_pipe", "shift_pipe", "squelch_pipe", "smeter_pipe", "iqtee_pipe", "iqtee2_pipe"]
         self.secondary_pipe_names=["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
+        self.secondary_dual_paths = True
+        self.secondary_demod_output_HTML = False
 
     def chain(self,which):
         any_chain_base="nc -v 127.0.0.1 {nc_port} | "
@@ -79,7 +81,8 @@ class dsp:
         chain_begin=any_chain_base+"csdr shift_addition_cc --fifo {shift_pipe} | csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING | csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING | csdr squelch_and_smeter_cc --fifo {squelch_pipe} --outfifo {smeter_pipe} 5 1 | "
         if self.secondary_demodulator:
             chain_begin+="csdr tee {iqtee_pipe} | "
-            chain_begin+="csdr tee {iqtee2_pipe} | " 
+            if self.secondary_dual_paths == True:
+                chain_begin+="csdr tee {iqtee2_pipe} | "
         chain_end = ""
         if self.audio_compression=="adpcm":
             chain_end = " | csdr encode_ima_adpcm_i16_u8"
@@ -87,20 +90,49 @@ class dsp:
         elif which == "am": return chain_begin + "csdr amdemod_cf | csdr fastdcblock_ff | csdr old_fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
         elif which == "ssb": return chain_begin + "csdr realpart_cf | csdr old_fractional_decimator_ff {last_decimation} | csdr agc_ff | csdr limit_ff | csdr convert_f_s16"+chain_end
 
-    def secondary_chain(self, which):
+    def secondary_chain(self, demod, which):
         secondary_chain_base="cat {input_pipe} | "
-        if which == "fft":
-            return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
-        elif which == "bpsk31":
-            return secondary_chain_base + "csdr shift_addition_cc --fifo {secondary_shift_pipe} | " + \
-                    "csdr bandpass_fir_fft_cc $(csdr '=-(31.25)/{if_samp_rate}') $(csdr '=(31.25)/{if_samp_rate}') $(csdr '=31.25/{if_samp_rate}') | " + \
-                    "csdr simple_agc_cc 0.001 0.5 | " + \
-                    "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | " + \
-                    "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
+        if demod == "wspr":
+            if which == "fft":
+                fractional_decimate = self.if_samp_rate()/375.0
+                integer_decimate = round(fractional_decimate)
+                if abs(fractional_decimate - integer_decimate) > 1e-15:
+                    # FIXME: fractional_decimator_cc doesn't exist yet (needs to be derived from fractional_decimator_ff)
+                    # so for now WSPR only works with the corresponding demo IQ sample file
+                    secondary_chain_base += "csdr fractional_decimator_cc {decimate} | csdr wspr --fft {{iqtee2_pipe}} 1 ".format(decimate=fractional_decimate)
+                    integer_decimate = 1
+                secondary_chain_base += "csdr wspr --fft {{iqtee2_pipe}} {decimate} ".format(decimate=integer_decimate)
+                return secondary_chain_base + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
+            elif which == "demod":
+                # in this case the demod input_pipe will be connected to the iqtee2_pipe output from the FFT chain
+                #return "cat {input_pipe} | csdr wspr --demod"
+                return "cat {input_pipe}"
+        else:
+            if which == "fft":
+                return secondary_chain_base+"csdr realpart_cf | csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size} | csdr logpower_cf -70 " + (" | csdr compress_fft_adpcm_f_u8 {secondary_fft_size}" if self.fft_compression=="adpcm" else "")
+            elif which == "demod":
+                if demod == "bpsk31":
+                    return secondary_chain_base + "csdr shift_addition_cc --fifo {secondary_shift_pipe} | " + \
+                            "csdr bandpass_fir_fft_cc $(csdr '=-(31.25)/{if_samp_rate}') $(csdr '=(31.25)/{if_samp_rate}') $(csdr '=31.25/{if_samp_rate}') | " + \
+                            "csdr simple_agc_cc 0.001 0.5 | " + \
+                            "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q | " + \
+                            "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8 | " + \
+                            "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8"
 
+    # A "single path" secondary demodulator consists of samples sent to the FFT chain and the iqtee2_pipe setup
+    # as a bridge between the FFT and demod chains. No IQ samples are sent to the demod chain.
+    # Used when the demodulator needs to be a monolithic routine on a single chain but still produces
+    # FFT and demod text output.
     def set_secondary_demodulator(self, what):
         self.secondary_demodulator = what
+        if what == "wspr":
+            self.secondary_dual_paths = False
+            self.secondary_pipe_names = ["secondary_shift_pipe", "iqtee2_pipe"];
+            self.secondary_demod_output_HTML = True
+        else:
+            self.secondary_dual_paths = True
+            self.secondary_pipe_names = ["secondary_shift_pipe"];
+            self.secondary_demod_output_HTML = False
 
     def secondary_fft_block_size(self):
         return (self.samp_rate/self.decimation)/(self.fft_fps*2) #*2 is there because we do FFT on real signal here
@@ -130,15 +162,17 @@ class dsp:
     def start_secondary_demodulator(self):
         if(not self.secondary_demodulator): return
         print "[openwebrx] starting secondary demodulator from IF input sampled at %d"%self.if_samp_rate()
-        secondary_command_fft=self.secondary_chain("fft")
-        secondary_command_demod=self.secondary_chain(self.secondary_demodulator)
+        secondary_command_fft=self.secondary_chain(self.secondary_demodulator, "fft")
+        secondary_command_demod=self.secondary_chain(self.secondary_demodulator, "demod")
         self.try_create_pipes(self.secondary_pipe_names, secondary_command_demod + secondary_command_fft)
 
         secondary_command_fft=secondary_command_fft.format( \
             input_pipe=self.iqtee_pipe, \
+            iqtee2_pipe=self.iqtee2_pipe, \
             secondary_fft_input_size=self.secondary_fft_size, \
             secondary_fft_size=self.secondary_fft_size, \
             secondary_fft_block_size=self.secondary_fft_block_size(), \
+            if_samp_rate=self.if_samp_rate()
             )
         secondary_command_demod=secondary_command_demod.format( \
             input_pipe=self.iqtee2_pipe, \
@@ -176,7 +210,7 @@ class dsp:
 
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq=value
-        if self.secondary_processes_running:
+        if self.secondary_processes_running and self.secondary_shift_pipe != None:
             self.secondary_shift_pipe_file.write("%g\n"%(-float(self.secondary_offset_freq)/self.if_samp_rate()))
             self.secondary_shift_pipe_file.flush()
 
@@ -199,6 +233,9 @@ class dsp:
     def set_secondary_fft_size(self,secondary_fft_size):
         #to change this, restart is required
         self.secondary_fft_size=secondary_fft_size
+
+    def get_secondary_demod_output_HTML(self):
+        return self.secondary_demod_output_HTML
 
     def set_audio_compression(self,what):
         self.audio_compression = what

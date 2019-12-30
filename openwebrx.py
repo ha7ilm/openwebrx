@@ -143,6 +143,13 @@ def main():
                 break
     except:
         pass
+    
+    if cfg.sdr_source == "IQ_file" and os.path.isfile(cfg.file) == False:
+        print "decompressing IQ data file:", cfg.file
+        if os.system("xz -d {0}.xz".format(cfg.file)) == 32512:
+            print "You need to install the 'xz' utility to decompress the %s.xz IQ data file" % cfg.file
+            print "tukaani.org/xz has 32/64-bit x86 binaries of xz for Windows"
+            return
 
     #Start rtl thread
     if os.system("csdr 2> /dev/null") == 32512: #check for csdr
@@ -457,7 +464,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         return
                     myclient.ws_started=True
                     #send default parameters
-                    rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients))
+                    rxws.send(self, "MSG center_freq={0} bandwidth={1} fft_size={2} fft_fps={3} audio_compression={4} fft_compression={5} max_clients={6} sdr_source={7} setup".format(str(cfg.shown_center_freq),str(cfg.samp_rate),cfg.fft_size,cfg.fft_fps,cfg.audio_compression,cfg.fft_compression,cfg.max_clients,cfg.sdr_source))
 
                     # ========= Initialize DSP =========
                     dsp=csdr.dsp()
@@ -534,7 +541,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                                     myclient.loopstat=423
                                     if len(secondary_demod_data) == 0: break
                                     # print "len(secondary_demod_data)", len(secondary_demod_data), secondary_demod_data #TODO digimodes
-                                    rxws.send(self, secondary_demod_data, "DAT ")
+                                    rxws.send(self, secondary_demod_data, "DAT " if dsp.get_secondary_demod_output_HTML() == False else "HTML")
                                 except: break
 
                         # ========= process commands =========

@@ -74,6 +74,8 @@ fft_voverlap_factor=0.3 #If fft_voverlap_factor is above 0, multiple FFTs will b
 # samp_rate = 250000
 samp_rate = 2400000
 center_freq = 144250000
+start_freq = 0
+start_mod = "nfm" #nfm, am, lsb, usb, cw
 rf_gain = 5 #in dB. For an RTL-SDR, rf_gain=0 will set the tuner to auto gain mode, else it will be in manual gain mode.
 ppm = 0
 
@@ -102,15 +104,17 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #################################################################################################
 
 # You can use other SDR hardware as well, by giving your own command that outputs the I/Q samples... Some examples of configuration are available here (default is RTL-SDR):
+sdr_source = "IQ_file"  # use one of: "rtl_sdr" "rx_sdr" "gr-osmosdr" "sound_card" "noise_source" "IQ_file"
 
 # >> RTL-SDR via rtl_sdr
-start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-format_conversion="csdr convert_u8_f"
-
-#lna_gain=8
-#rf_amp=1
-#start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm, rf_amp=rf_amp, lna_gain=lna_gain)
-#format_conversion="csdr convert_s8_f"
+if sdr_source == "rtl_sdr":
+    start_rtl_command="rtl_sdr -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+    format_conversion="csdr convert_u8_f"
+    
+    #lna_gain=8
+    #rf_amp=1
+    #start_rtl_command="hackrf_transfer -s {samp_rate} -f {center_freq} -g {rf_gain} -l{lna_gain} -a{rf_amp} -r-".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm, rf_amp=rf_amp, lna_gain=lna_gain)
+    #format_conversion="csdr convert_s8_f"
 """
 To use a HackRF, compile the HackRF host tools from its "stdout" branch:
  git clone https://github.com/mossmann/hackrf/
@@ -127,19 +131,44 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 
 # >> Sound card SDR (needs ALSA)
 # I did not have the chance to properly test it.
-#samp_rate = 96000
-#start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
-#format_conversion="csdr convert_s16_f | csdr gain_ff 30"
+if sdr_source == "sound_card":
+    samp_rate = 96000
+    start_rtl_command="arecord -f S16_LE -r {samp_rate} -c2 -".format(samp_rate=samp_rate)
+    format_conversion="csdr convert_s16_f | csdr gain_ff 30"
 
 # >> /dev/urandom test signal source
-# samp_rate = 2400000
-# start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
-# format_conversion="csdr convert_u8_f"
+if sdr_source == "noise_source":
+    samp_rate = 2400000
+    start_rtl_command="cat /dev/urandom | (pv -qL `python -c 'print int({samp_rate} * 2.2)'` 2>&1)".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate)
+    format_conversion="csdr convert_u8_f"
 
 # >> Pre-recorded raw I/Q file as signal source
-# You will have to correctly specify: samp_rate, center_freq, format_conversion in order to correctly play an I/Q file.
-#start_rtl_command="(while true; do cat my_iq_file.raw; done) | csdr flowcontrol {sr} 20 ".format(sr=samp_rate*2*1.05)
-#format_conversion="csdr convert_u8_f"
+# You will have to correctly specify: samp_rate, center_freq, bytes_per_sample, format_conversion in order to correctly play an I/Q file.
+if sdr_source == "IQ_file":
+    # select one:
+    #sample_file = "CQWW"
+    sample_file = "WSPR_demo"
+
+    if sample_file == "CQWW":
+        file = "CQWW_CW_2005.fs96k.cf7040.iq.s16.dat"
+        samp_rate = 96000
+        center_freq = 7040000
+        bytes_per_sample = 4
+        start_rtl_command="(while true; do cat {fn}; done) | csdr flowcontrol {sr} 20 ".format(fn=file,sr=samp_rate*bytes_per_sample*1.05)
+        format_conversion="csdr convert_s16_f --bigendian | csdr iq_swap_ff"
+        start_mod = "lsb"
+
+    if sample_file == "WSPR_demo":
+        file = "wspr.fs12k.cf7040100.iq.f.dat"
+        samp_rate = 12000
+        center_freq = 7040100
+        bytes_per_sample = 8
+        start_rtl_command="csdr wspr --file {fn} {sr} 20 ".format(fn=file,sr=samp_rate*bytes_per_sample*1.05)
+        format_conversion=""
+        start_mod = "cw"
+        start_freq = center_freq - 750
+
+    #format_conversion="csdr convert_u8_f"
 
 #>> The rx_sdr command works with a variety of SDR harware: RTL-SDR, HackRF, SDRplay, UHD, Airspy, Red Pitaya, audio devices, etc. 
 # It will auto-detect your SDR hardware if the following tools are installed:
@@ -147,12 +176,14 @@ To use a HackRF, compile the HackRF host tools from its "stdout" branch:
 # * the vendor-specific SoapySDR wrapper library, 
 # * and SoapySDR itself.
 # Check out this article on the OpenWebRX Wiki: https://github.com/simonyiszk/openwebrx/wiki/Using-rx_tools-with-OpenWebRX/
-#start_rtl_command="rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
-#format_conversion=""
+if sdr_source == "rx_sdr":
+    start_rtl_command="rx_sdr -F CF32 -s {samp_rate} -f {center_freq} -p {ppm} -g {rf_gain} -".format(rf_gain=rf_gain, center_freq=center_freq, samp_rate=samp_rate, ppm=ppm)
+    format_conversion=""
 
 # >> gr-osmosdr signal source using GNU Radio (follow this guide: https://github.com/simonyiszk/openwebrx/wiki/Using-GrOsmoSDR-as-signal-source)
-#start_rtl_command="cat /tmp/osmocom_fifo"
-#format_conversion=""
+if sdr_source == "gr-osmosdr":
+    start_rtl_command="cat /tmp/osmocom_fifo"
+    format_conversion=""
 
 # ==== Misc settings ====
 
@@ -163,8 +194,8 @@ client_audio_buffer_size = 5
 # - also increase the latency
 # - decrease the chance of audio underruns
 
-start_freq = center_freq
-start_mod = "nfm" #nfm, am, lsb, usb, cw
+if start_freq == 0:
+    start_freq = center_freq
 
 iq_server_port = 4951 #TCP port for ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
 
