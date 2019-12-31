@@ -36,7 +36,18 @@ config_webrx: configuration options for OpenWebRX
 
 # ==== Server settings ====
 web_port=8073
-server_hostname="localhost" # If this contains an incorrect value, the web UI may freeze on load (it can't open websocket)
+
+# Set server_url to the (externally-visible) URL of the service,
+# without a method (ie, without http://)
+# (this need not have a trailing slash, though having it does no harm).
+#
+# When running locally, this will be simply localhost+port, but if the
+# service is running behind a reverse proxy, this must be the
+# externally visible URI.
+#
+# If this contains an incorrect value, the web UI may freeze on load (it can't open websocket)
+server_url="localhost:" + web_port
+
 max_clients=20
 
 # ==== Web GUI configuration ====
@@ -207,10 +218,10 @@ csdr_through = False # Setting this True will print out how much data is going i
 
 nmux_memory = 50 #in megabytes. This sets the approximate size of the circular buffer used by nmux.
 
-#Look up external IP address automatically from icanhazip.com, and use it as [server_hostname]
+#Look up external IP address automatically from icanhazip.com, and use it as [server_url]
 """
 print "[openwebrx-config] Detecting external IP address..."
 import urllib2
-server_hostname=urllib2.urlopen("http://icanhazip.com").read()[:-1]
-print "[openwebrx-config] External IP address detected:", server_hostname
+server_url=urllib2.urlopen("http://icanhazip.com").read()[:-1]
+print "[openwebrx-config] External IP address detected:", server_url
 """

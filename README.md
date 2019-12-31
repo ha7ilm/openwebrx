@@ -104,7 +104,7 @@ If you have any problems installing OpenWebRX, you should check out the <a href=
 
 Sometimes the actual error message is not at the end of the terminal output, you may have to look at the whole output to find it.
 
-If you want to run OpenWebRX on a remote server instead of *localhost*, do not forget to set *server_hostname* in `config_webrx.py`.
+If you want to run OpenWebRX on a remote server instead of *localhost*, do not forget to set *server_url* in `config_webrx.py`.
 
 ## Licensing
 

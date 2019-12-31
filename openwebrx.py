@@ -407,7 +407,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
     def send_302(self,what):
         self.send_response(302)
         self.send_header('Content-type','text/html')
-        self.send_header("Location", "http://{0}:{1}/{2}".format(cfg.server_hostname,cfg.web_port,what))
+        self.send_header("Location", "http://{0}/{1}".format(cfg.server_url,what))
         self.end_headers()
         self.wfile.write("<html><body><h1>Object moved</h1>Please <a href=\"/{0}\">click here</a> to continue.</body></html>".format(what))
 
@@ -670,7 +670,7 @@ class WebRXHandler(BaseHTTPRequestHandler):
                     replace_dictionary=(
                         ("%[RX_PHOTO_DESC]",cfg.photo_desc),
                         ("%[CLIENT_ID]", generate_client_id(self.client_address[0])) if "%[CLIENT_ID]" in data else "",
-                        ("%[WS_URL]","ws://"+cfg.server_hostname+":"+str(cfg.web_port)+"/ws/"),
+                        ("%[WS_URL]","ws://"+cfg.server_url+"/ws/"),
                         ("%[RX_TITLE]",cfg.receiver_name),
                         ("%[RX_LOC]",cfg.receiver_location),
                         ("%[RX_QRA]",cfg.receiver_qra),
