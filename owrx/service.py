@@ -120,6 +120,8 @@ class ServiceScheduler(object):
         self.source.removeClient(self)
 
     def scheduleSelection(self, time=None):
+        if self.source.getState() == SdrSource.STATE_FAILED:
+            return
         seconds = 10
         if time is not None:
             delta = time - datetime.utcnow()
@@ -199,6 +201,8 @@ class ServiceHandler(object):
         elif state == SdrSource.STATE_FAILED:
             logger.debug("sdr source failed; stopping services.")
             self.stopServices()
+            if self.scheduler:
+                self.scheduler.shutdown()
 
     def onBusyStateChange(self, state):
         pass
@@ -385,7 +389,9 @@ class Services(object):
         if not PropertyManager.getSharedInstance()["services_enabled"]:
             return
         for source in SdrService.getSources().values():
-            Services.handlers.append(ServiceHandler(source))
+            props = source.getProps()
+            if "services" not in props or props["services"] != False:
+                Services.handlers.append(ServiceHandler(source))
 
     @staticmethod
     def stop():
