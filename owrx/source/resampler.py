@@ -15,7 +15,7 @@ class Resampler(DirectSource):
     def onPropertyChange(self, name, value):
         logger.warning("Resampler is unable to handle property change ({0} changed to {1})".format(name, value))
 
-    def __init__(self, props, port, sdr):
+    def __init__(self, props, sdr):
         sdrProps = sdr.getProps()
         self.shift = (sdrProps["center_freq"] - props["center_freq"]) / sdrProps["samp_rate"]
         self.decimation = int(float(sdrProps["samp_rate"]) / props["samp_rate"])
@@ -24,7 +24,7 @@ class Resampler(DirectSource):
         props["samp_rate"] = if_samp_rate
 
         self.sdr = sdr
-        super().__init__(None, props, port)
+        super().__init__(None, props)
 
     def getCommand(self):
         return [

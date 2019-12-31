@@ -1,6 +1,5 @@
 from owrx.config import PropertyManager
 from owrx.feature import FeatureDetector, UnknownFeatureException
-import sys
 
 import logging
 
@@ -11,18 +10,6 @@ class SdrService(object):
     sdrProps = None
     sources = {}
     lastPort = None
-
-    @staticmethod
-    def getNextPort():
-        pm = PropertyManager.getSharedInstance()
-        (start, end) = pm["iq_port_range"]
-        if SdrService.lastPort is None:
-            SdrService.lastPort = start
-        else:
-            SdrService.lastPort += 1
-            if SdrService.lastPort > end:
-                raise IndexError("no more available ports to start more sdrs")
-        return SdrService.lastPort
 
     @staticmethod
     def loadProps():
@@ -90,5 +77,5 @@ class SdrService(object):
                 className = "".join(x for x in sdrType.title() if x.isalnum()) + "Source"
                 module = __import__("owrx.source.{0}".format(sdrType), fromlist=[className])
                 cls = getattr(module, className)
-                SdrService.sources[id] = cls(id, props, SdrService.getNextPort())
+                SdrService.sources[id] = cls(id, props)
         return {key: s for key, s in SdrService.sources.items() if not s.isFailed()}

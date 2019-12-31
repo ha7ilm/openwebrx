@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectorSource(SdrSource):
-    def __init__(self, id, props, port):
-        super().__init__(id, props, port)
+    def __init__(self, id, props):
+        super().__init__(id, props)
         self.controlSocket = None
         self.controlPort = getAvailablePort()
         self.getCommandMapper().setMappings(

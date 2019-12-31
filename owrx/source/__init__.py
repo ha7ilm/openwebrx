@@ -8,6 +8,7 @@ import time
 import signal
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
+from owrx.socket import getAvailablePort
 
 import logging
 
@@ -29,7 +30,7 @@ class SdrSource(ABC):
     CLIENT_BACKGROUND = 1
     CLIENT_USER = 2
 
-    def __init__(self, id, props, port):
+    def __init__(self, id, props):
         self.id = id
         self.props = props
         self.profile_id = None
@@ -38,7 +39,10 @@ class SdrSource(ABC):
         self.wireEvents()
         self.commandMapper = CommandMapper()
 
-        self.port = port
+        if "port" in props and props["port"] is not None:
+            self.port = props["port"]
+        else:
+            self.port = getAvailablePort()
         self.monitor = None
         self.clients = []
         self.spectrumClients = []

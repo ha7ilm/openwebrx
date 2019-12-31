@@ -2,6 +2,6 @@ from .connector import ConnectorSource
 
 
 class RtlSdrSource(ConnectorSource):
-    def __init__(self, id, props, port):
-        super().__init__(id, props, port)
+    def __init__(self, id, props):
+        super().__init__(id, props)
         self.getCommandMapper().setBase("rtl_connector")

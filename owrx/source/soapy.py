@@ -5,8 +5,8 @@ from .connector import ConnectorSource
 
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
-    def __init__(self, id, props, port):
-        super().__init__(id, props, port)
+    def __init__(self, id, props):
+        super().__init__(id, props)
         self.getCommandMapper().setBase("soapy_connector").setMappings({"antenna": Option("-a")})
 
     """

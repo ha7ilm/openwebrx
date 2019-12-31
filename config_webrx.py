@@ -237,13 +237,6 @@ sdrs = {
     },
 }
 
-# ==== Misc settings ====
-
-iq_port_range = [
-    4950,
-    4960,
-]  # TCP port for range ncat to listen on. It will send I/Q data over its connections, for internal use in OpenWebRX. It is only accessible from the localhost by default.
-
 # ==== Color themes ====
 
 # A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
