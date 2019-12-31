@@ -21,7 +21,7 @@ class FifiSdrSource(DirectSource):
         return ["csdr convert_s16_f", "csdr gain_ff 30"]
 
     def sendRockProgFrequency(self, frequency):
-        process = Popen(["echo", "--vco", "-w", "--", "freq={}".format(frequency / 1E6)])
+        process = Popen(["rockprog", "--vco", "-w", "--", "freq={}".format(frequency / 1E6)])
         process.communicate()
         rc = process.wait()
         if rc != 0:
