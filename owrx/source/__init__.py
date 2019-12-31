@@ -125,6 +125,11 @@ class SdrSource(ABC):
             if self.monitor:
                 return
 
+            try:
+                self.preStart()
+            except Exception:
+                logger.exception("Exception during preStart()")
+
             cmd = self.getCommand()
             cmd = [c for c in cmd if c is not None]
 
@@ -176,7 +181,16 @@ class SdrSource(ABC):
 
         self.setState(SdrSource.STATE_FAILED if self.failed else SdrSource.STATE_RUNNING)
 
+    def preStart(self):
+        """
+        override this method in subclasses if there's anything to be done before starting up the actual SDR
+        """
+        pass
+
     def postStart(self):
+        """
+        override this method in subclasses if there's things to do after the actual SDR has started up
+        """
         pass
 
     def isAvailable(self):
