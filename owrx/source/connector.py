@@ -10,10 +10,12 @@ logger = logging.getLogger(__name__)
 
 class ConnectorSource(SdrSource):
     def __init__(self, id, props):
-        super().__init__(id, props)
         self.controlSocket = None
         self.controlPort = getAvailablePort()
-        self.getCommandMapper().setMappings(
+        super().__init__(id, props)
+
+    def getCommandMapper(self):
+        return super().getCommandMapper().setMappings(
             {
                 "samp_rate": Option("-s"),
                 "tuner_freq": Option("-f"),

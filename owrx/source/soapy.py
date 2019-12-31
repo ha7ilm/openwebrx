@@ -5,9 +5,8 @@ from .connector import ConnectorSource
 
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
-    def __init__(self, id, props):
-        super().__init__(id, props)
-        self.getCommandMapper().setBase("soapy_connector").setMappings({"antenna": Option("-a")})
+    def getCommandMapper(self):
+        return super().getCommandMapper().setBase("soapy_connector").setMappings({"antenna": Option("-a")})
 
     """
     must be implemented by child classes to be able to build a driver-based device selector by default.

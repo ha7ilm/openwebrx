@@ -37,7 +37,7 @@ class SdrSource(ABC):
         self.activateProfile()
         self.rtlProps = self.props.collect(*self.getEventNames()).defaults(PropertyManager.getSharedInstance())
         self.wireEvents()
-        self.commandMapper = CommandMapper()
+        self.commandMapper = None
 
         if "port" in props and props["port"] is not None:
             self.port = props["port"]
@@ -53,6 +53,12 @@ class SdrSource(ABC):
         self.state = SdrSource.STATE_STOPPED
         self.busyState = SdrSource.BUSYSTATE_IDLE
 
+        if self.isAlwaysOn():
+            self.start()
+
+    def isAlwaysOn(self):
+        return "always-on" in self.props and self.props["always-on"]
+
     def getEventNames(self):
         return [
             "samp_rate",
@@ -63,6 +69,8 @@ class SdrSource(ABC):
         ]
 
     def getCommandMapper(self):
+        if self.commandMapper is None:
+            self.commandMapper = CommandMapper()
         return self.commandMapper
 
     @abstractmethod
@@ -232,6 +240,10 @@ class SdrSource(ABC):
             self.clients.remove(c)
         except ValueError:
             pass
+
+        # no need to check for users if we are always-on
+        if self.isAlwaysOn():
+            return
 
         hasUsers = self.hasClients(SdrSource.CLIENT_USER)
         hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)

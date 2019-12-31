@@ -8,9 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class FifiSdrSource(DirectSource):
-    def __init__(self, id, props):
-        super().__init__(id, props)
-        self.getCommandMapper().setBase("arecord").setMappings(
+    def getCommandMapper(self):
+        return super().getCommandMapper().setBase("arecord").setMappings(
             {"device": Option("-D"), "samp_rate": Option("-r")}
         ).setStatic("-f S16_LE -c2 -")
 

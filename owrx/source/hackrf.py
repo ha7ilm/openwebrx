@@ -3,9 +3,8 @@ from owrx.command import Flag, Option
 
 
 class HackrfSource(DirectSource):
-    def __init__(self, id, props):
-        super().__init__(id, props)
-        self.getCommandMapper().setBase("hackrf_transfer").setMappings(
+    def getCommandMapper(self):
+        return super().getCommandMapper().setBase("hackrf_transfer").setMappings(
             {
                 "samp_rate": Option("-s"),
                 "tuner_freq": Option("-f"),
