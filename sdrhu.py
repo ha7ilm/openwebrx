@@ -27,7 +27,7 @@ def run(continuously=True):
     firsttime="(Your receiver is soon getting listed on sdr.hu!)"
     while True:
         cmd = "wget --timeout=15 -4qO- https://sdr.hu/update --post-data \"url=http://"+cfg.server_hostname+":"+str(cfg.web_port)+"&apikey="+cfg.sdrhu_key+"\" 2>&1"
-        print "[openwebrx-sdrhu]", cmd
+        print("[openwebrx-sdrhu]", cmd)
         returned=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
         returned=returned[0]
         #print returned
@@ -35,13 +35,13 @@ def run(continuously=True):
             retrytime_mins = 20
             value=returned.split("UPDATE:")[1].split("\n",1)[0]
             if value.startswith("SUCCESS"):
-                print "[openwebrx-sdrhu] Update succeeded! "+firsttime
+                print("[openwebrx-sdrhu] Update succeeded! "+firsttime)
                 firsttime=""
             else:
-                print "[openwebrx-sdrhu] Update failed, your receiver cannot be listed on sdr.hu! Reason:", value
+                print("[openwebrx-sdrhu] Update failed, your receiver cannot be listed on sdr.hu! Reason:", value)
         else:
             retrytime_mins = 2
-            print "[openwebrx-sdrhu] wget failed while updating, your receiver cannot be listed on sdr.hu!"
+            print("[openwebrx-sdrhu] wget failed while updating, your receiver cannot be listed on sdr.hu!")
         if not continuously: break
         time.sleep(60*retrytime_mins)
 
