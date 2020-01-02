@@ -30,8 +30,8 @@ class WebSocketException(Exception):
 
 def handshake(myself):
     my_client_id=myself.path[4:]
-    my_headers=myself.headers.items()
-    my_header_keys=map(lambda x:x[0],my_headers)
+    my_headers=list(myself.headers.items())
+    my_header_keys=[x[0] for x in my_headers]
     h_key_exists=lambda x:my_header_keys.count(x)
     h_value=lambda x:my_headers[my_header_keys.index(x)][1]
     #print "The Lambdas(tm)"
@@ -106,14 +106,14 @@ def readsock(myself,size,blocking):
 def recv(myself, blocking=False, debug=False):
     bufsize=70000
     #myself.connection.setblocking(blocking) #umm... we cannot do that with rfile
-    if debug: print "ws_recv begin"
+    if debug: print("ws_recv begin")
     try:
         data=readsock(myself,6,blocking)
         #print "rxws.recv bytes:",xxd(data) 
     except:
-        if debug: print "ws_recv error" 
+        if debug: print("ws_recv error") 
         return ""
-    if debug: print "ws_recv recved"
+    if debug: print("ws_recv recved")
     if(len(data)==0): return ""
     fin=ord(data[0])&128!=0
     is_text_frame=ord(data[0])&15==1
@@ -156,14 +156,14 @@ def send(myself, data, begin_id="", debug=0):
             flush(myself)
             myself.wfile.write(header+data_to_send)
             flush(myself)
-            if debug: print "rxws.send ==================== #1 if branch :: from={0} to={1} dlen={2} hlen={3}".format(counter,counter+base_frame_size-len(begin_id),len(data_to_send),len(header))
+            if debug: print("rxws.send ==================== #1 if branch :: from={0} to={1} dlen={2} hlen={3}".format(counter,counter+base_frame_size-len(begin_id),len(data_to_send),len(header)))
         else:
             data_to_send=begin_id+data[counter:]
             header=get_header(len(data_to_send))
             flush(myself)
             myself.wfile.write(header+data_to_send)
             flush(myself)
-            if debug: print "rxws.send :: #2 else branch :: dlen={0} hlen={1}".format(len(data_to_send),len(header))
+            if debug: print("rxws.send :: #2 else branch :: dlen={0} hlen={1}".format(len(data_to_send),len(header)))
             #if debug: print "header:\n"+xxdg(header)+"\n\nws data:\n"+xxdg(data_to_send)
             break
         counter+=base_frame_size-len(begin_id)
