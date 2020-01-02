@@ -21,7 +21,7 @@ rxws: WebSocket methods implemented for OpenWebRX
 """
 
 import base64
-import sha
+import hashlib
 import select
 import code
 
@@ -41,7 +41,7 @@ def handshake(myself):
     if (not h_key_exists("upgrade")) or not (h_value("upgrade")=="websocket") or (not h_key_exists("sec-websocket-key")):
         raise WebSocketException
     ws_key=h_value("sec-websocket-key")
-    ws_key_toreturn=base64.b64encode(sha.new(ws_key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").digest())
+    ws_key_toreturn=base64.b64encode(hashlib.sha1(ws_key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").digest())
     #A sample list of keys we get: [('origin', 'http://localhost:8073'), ('upgrade', 'websocket'), ('sec-websocket-extensions', 'x-webkit-deflate-frame'), ('sec-websocket-version', '13'), ('host', 'localhost:8073'), ('sec-websocket-key', 't9J1rgy4fc9fg2Hshhnkmg=='), ('connection', 'Upgrade'), ('pragma', 'no-cache'), ('cache-control', 'no-cache')]
     myself.wfile.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: "+ws_key_toreturn+"\r\nCQ-CQ-de: HA5KFU\r\n\r\n")
 
