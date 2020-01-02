@@ -36,7 +36,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 import fcntl
 import time
-import md5
+import hashlib
 import random
 import threading
 import sys
@@ -368,7 +368,7 @@ def generate_client_id(ip):
     #add a client
     global clients
     new_client=namedtuple("ClientStruct", "id gen_time ws_started sprectum_queue ip closed bcastmsg dsp loopstat")
-    new_client.id=md5.md5(str(random.random())).hexdigest()
+    new_client.id=hashlib.md5(str(random.random())).hexdigest()
     new_client.gen_time=time.time()
     new_client.ws_started=False # to check whether client has ever tried to open the websocket
     new_client.spectrum_queue=queue.Queue(1000)
