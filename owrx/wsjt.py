@@ -148,7 +148,11 @@ class WsjtChopper(threading.Thread):
 
     def decode(self, file):
         decoder = subprocess.Popen(
-            self.decoder_commandline(file), stdout=subprocess.PIPE, cwd=self.tmp_dir, preexec_fn=lambda: os.nice(10)
+            self.decoder_commandline(file),
+            stdout=subprocess.PIPE,
+            cwd=self.tmp_dir,
+            preexec_fn=lambda: os.nice(10),
+            close_fds=True,
         )
         for line in decoder.stdout:
             self.outputWriter.send(line)
