@@ -1,6 +1,12 @@
 from glob import glob
-from setuptools import setup, find_namespace_packages
+from setuptools import setup
 from owrx.version import strictversion
+
+try:
+    from setuptools import find_namespace_packages
+except ImportError:
+    from setuptools import PEP420PackageFinder
+    find_namespace_packages = PEP420PackageFinder.find
 
 setup(
     name="OpenWebRX",
