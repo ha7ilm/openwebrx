@@ -29,7 +29,7 @@ var center_freq;
 var fft_size;
 var fft_fps;
 var fft_compression = "none";
-var fft_codec = new sdrjs.ImaAdpcm();
+var fft_codec;
 var waterfall_setup_done = 0;
 var secondary_fft_size;
 var rx_photo_state = 1;
@@ -1942,6 +1942,7 @@ function openwebrx_init() {
     } else {
         audioEngine.start(onAudioStart);
     }
+    fft_codec = new ImaAdpcmCodec();
     initProgressBars();
     init_rx_photo();
     open_websocket();

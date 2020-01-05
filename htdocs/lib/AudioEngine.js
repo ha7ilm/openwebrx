@@ -230,10 +230,14 @@ AudioEngine.prototype.getBuffersize = function() {
 };
 
 function ImaAdpcmCodec() {
+    this.reset();
+}
+
+ImaAdpcmCodec.prototype.reset = function() {
     this.stepIndex = 0;
     this.predictor = 0;
     this.step = 0;
-}
+};
 
 ImaAdpcmCodec.imaIndexTable = [ -1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8 ];
 
