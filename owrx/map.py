@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import threading, time
 from owrx.config import PropertyManager
 from owrx.bands import Band
+import sys
 
 import logging
 
@@ -15,11 +16,13 @@ class Location(object):
 
 class Map(object):
     sharedInstance = None
+    creationLock = threading.Lock()
 
     @staticmethod
     def getSharedInstance():
-        if Map.sharedInstance is None:
-            Map.sharedInstance = Map()
+        with Map.creationLock:
+            if Map.sharedInstance is None:
+                Map.sharedInstance = Map()
         return Map.sharedInstance
 
     def __init__(self):
@@ -111,9 +114,11 @@ class Map(object):
             self.removeLocation(callsign)
 
     def rebuildPositions(self):
+        logger.debug("rebuilding map storage; size before: %i", sys.getsizeof(self.positions))
         with self.positionsLock:
             p = {key: value for key, value in self.positions.items()}
             self.positions = p
+        logger.debug("rebuild complete; size after: %i", sys.getsizeof(self.positions))
 
 
 class LatLngLocation(Location):
