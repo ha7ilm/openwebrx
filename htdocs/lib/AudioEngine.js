@@ -14,7 +14,7 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.allowed = this.audioContext.state === 'running';
     this.started = false;
 
-    this.audioCodec = new sdrjs.ImaAdpcm();
+    this.audioCodec = new ImaAdpcmCodec();
     this.compression = 'none';
 
     this.setupResampling();
@@ -227,4 +227,51 @@ AudioEngine.prototype.getBuffersize = function() {
     // only available when using ScriptProcessorNode
     if (!this.audioBuffers) return 0;
     return this.audioBuffers.map(function(b){ return b.length; }).reduce(function(a, b){ return a + b; }, 0);
+};
+
+function ImaAdpcmCodec() {
+    this.stepIndex = 0;
+    this.predictor = 0;
+    this.step = 0;
+}
+
+ImaAdpcmCodec.imaIndexTable = [ -1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8 ];
+
+ImaAdpcmCodec.imaStepTable = [
+                               7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
+                               19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+                               50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
+                               130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
+                               337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
+                               876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
+                               2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
+                               5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
+                               15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+                             ];
+
+ImaAdpcmCodec.prototype.decode = function(data) {
+    var output = new Int16Array(data.length * 2);
+    for (var i = 0; i < data.length; i++) {
+        output[i * 2] = this.decodeNibble(data[i] & 0x0F);
+        output[i * 2 + 1] = this.decodeNibble((data[i] >> 4) & 0x0F);
+    }
+    return output;
+};
+
+ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
+    this.stepIndex += ImaAdpcmCodec.imaIndexTable[nibble];
+    this.stepIndex = Math.min(Math.max(this.stepIndex, 0), 88);
+
+    var diff = this.step >> 3;
+    if (nibble & 1) diff += this.step >> 2;
+    if (nibble & 2) diff += this.step >> 1;
+    if (nibble & 4) diff += this.step;
+    if (nibble & 8) diff = -diff;
+
+    this.predictor += diff;
+    this.predictor = Math.min(Math.max(this.predictor, -32768), 32767);
+
+    this.step = ImaAdpcmCodec.imaStepTable[this.stepIndex];
+
+    return this.predictor;
 };
