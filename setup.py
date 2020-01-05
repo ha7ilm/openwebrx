@@ -15,5 +15,5 @@ setup(
     maintainer="Jakob Ketterl",
     maintainer_email="jakob.ketterl@gmx.de",
     license="GAGPL",
-    python_requires=">=3.6",
+    python_requires=">=3.5",
 )
