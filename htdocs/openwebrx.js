@@ -2160,6 +2160,7 @@ function demodulator_digital_replace(subtype) {
             demodulators[0].set();
             break;
         case "packet":
+        case "pocsag":
             secondary_demod_start(subtype);
             demodulator_analog_replace('nfm', true);
             break;

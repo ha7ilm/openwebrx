@@ -32,6 +32,7 @@ class FeatureDetector(object):
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
+        "pocsag": ["digiham", "sox"],
     }
 
     def feature_availability(self):
@@ -181,6 +182,8 @@ class FeatureDetector(object):
                     "mbe_synthesizer",
                     "gfsk_demodulator",
                     "digitalvoice_filter",
+                    "fsk_demodulator",
+                    "pocsag_decoder",
                 ],
             ),
             True,

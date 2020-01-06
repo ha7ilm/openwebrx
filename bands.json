@@ -160,7 +160,10 @@
   {
     "name": "70cm",
     "lower_bound": 430000000,
-    "upper_bound": 440000000
+    "upper_bound": 440000000,
+    "frequencies": {
+      "pocsag": 439987500
+    }
   },
   {
     "name": "23cm",

@@ -244,6 +244,11 @@ class dsp(object):
             if self.last_decimation != 1.0:
                 chain += ["csdr fractional_decimator_ff {last_decimation}"]
             return chain + ["csdr convert_f_s16", "direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h - 1>&2"]
+        elif which == "pocsag":
+            chain += ["csdr fmdemod_quadri_cf"]
+            if self.last_decimation != 1.0:
+                chain += ["csdr fractional_decimator_ff {last_decimation}"]
+            return chain + ["fsk_demodulator", "pocsag_decoder"]
 
     def set_secondary_demodulator(self, what):
         if self.get_secondary_demodulator() == what:
@@ -448,6 +453,8 @@ class dsp(object):
             return 48000
         elif self.isWsjtMode():
             return 12000
+        elif self.isPocsag():
+            return 12000
         return self.get_output_rate()
 
     def isDigitalVoice(self, demodulator=None):
@@ -464,6 +471,11 @@ class dsp(object):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
         return demodulator == "packet"
+
+    def isPocsag(self, demodulator=None):
+        if demodulator is None:
+            demodulator = self.get_secondary_demodulator()
+        return demodulator == "pocsag"
 
     def set_output_rate(self, output_rate):
         if self.output_rate == output_rate:
@@ -528,7 +540,7 @@ class dsp(object):
     def set_squelch_level(self, squelch_level):
         self.squelch_level = squelch_level
         # no squelch required on digital voice modes
-        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() else self.squelch_level
+        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() else self.squelch_level
         if self.running:
             self.modification_lock.acquire()
             self.squelch_pipe_file.write("%g\n" % (self.convertToLinear(actual_squelch)))

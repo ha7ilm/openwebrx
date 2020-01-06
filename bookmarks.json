@@ -130,11 +130,6 @@
     "modulation": "dmr"
   },
   {
-    "name": "Pocsag",
-    "frequency": 439987500,
-    "modulation": "nfm"
-  },
-  {
     "name": "DB0ULR",
     "frequency": 145575000,
     "modulation": "nfm"
