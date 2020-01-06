@@ -18,7 +18,6 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.compression = 'none';
 
     this.setupResampling();
-    //this.resampler = new sdrjs.RationalResamplerFF(this.resamplingFactor, 1);
     this.resampler = new Interpolator(this.resamplingFactor);
 
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
@@ -283,6 +282,7 @@ ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
 
 function Interpolator(factor) {
     this.factor = factor;
+    this.lowpass = new Lowpass(factor)
 }
 
 Interpolator.prototype.process = function(data) {
@@ -290,5 +290,65 @@ Interpolator.prototype.process = function(data) {
     for (var i = 0; i < data.length; i++) {
         output[i * this.factor] = (data[i] + 0.5) / 32768;
     }
-    return output;
+    return this.lowpass.process(output);
+};
+
+function Lowpass(interpolation) {
+    var transitionBandwidth = 0.05;
+    this.numtaps = Math.round(4 / transitionBandwidth);
+    if (this.numtaps % 2 == 0) this.numtaps += 1;
+
+    var cutoff = 1 / interpolation;
+    this.coefficients = this.getCoefficients(cutoff / 2);
+
+    this.delay = new Float32Array(this.numtaps);
+    for (var i = 0; i < this.numtaps; i++){
+        this.delay[i] = 0;
+    }
+    this.delayIndex = 0;
 }
+
+Lowpass.prototype.getCoefficients = function(cutoffRate) {
+    var middle = Math.floor(this.numtaps / 2);
+    // hamming window
+    var window_function = function(r){
+        var rate = 0.5 + r / 2;
+        return 0.54 - 0.46 * Math.cos(2 * Math.PI * rate);
+    }
+    var output = [];
+    output[middle] = 2 * Math.PI * cutoffRate * window_function(0);
+    for (var i = 1; i <= middle; i++) {
+        output[middle - i] = output[middle + i] = (Math.sin(2 * Math.PI * cutoffRate * i) / i) * window_function(i / middle);
+    }
+    return this.normalizeCoefficients(output);
+};
+
+Lowpass.prototype.normalizeCoefficients = function(input) {
+    var sum = 0;
+    var output = [];
+    for (var i = 0; i < input.length; i++) {
+        sum += input[i];
+    }
+    for (var i = 0; i < input.length; i++) {
+        output[i] = input[i] / sum;
+    }
+    return output;
+};
+
+Lowpass.prototype.process = function(input) {
+    output = new Float32Array(input.length);
+    for (var oi = 0; oi < input.length; oi++) {
+        this.delay[this.delayIndex] = input[oi];
+        this.delayIndex = (this.delayIndex + 1) % this.numtaps;
+
+        var acc = 0;
+        var index = this.delayIndex;
+        for (var i = 0; i < this.numtaps; ++i) {
+            var index = index != 0 ? index - 1 : this.numtaps - 1;
+            acc += this.delay[index] * this.coefficients[i];
+            if (isNaN(acc)) debugger;
+        }
+        output[oi] = acc;
+    }
+    return output;
+};
