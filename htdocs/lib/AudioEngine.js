@@ -18,7 +18,8 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.compression = 'none';
 
     this.setupResampling();
-    this.resampler = new sdrjs.RationalResamplerFF(this.resamplingFactor, 1);
+    //this.resampler = new sdrjs.RationalResamplerFF(this.resamplingFactor, 1);
+    this.resampler = new Interpolator(this.resamplingFactor);
 
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
 }
@@ -203,7 +204,7 @@ AudioEngine.prototype.pushAudio = function(data) {
     } else {
         buffer = new Int16Array(data);
     }
-    buffer = this.resampler.process(sdrjs.ConvertI16_F(buffer));
+    buffer = this.resampler.process(buffer);
     if (this.audioNode.port) {
         // AudioWorklets supported
         this.audioNode.port.postMessage(buffer);
@@ -279,3 +280,15 @@ ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {
 
     return this.predictor;
 };
+
+function Interpolator(factor) {
+    this.factor = factor;
+}
+
+Interpolator.prototype.process = function(data) {
+    var output = new Float32Array(data.length * this.factor);
+    for (var i = 0; i < data.length; i++) {
+        output[i * this.factor] = (data[i] + 0.5) / 32768;
+    }
+    return output;
+}
