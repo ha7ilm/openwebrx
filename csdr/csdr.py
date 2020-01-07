@@ -248,7 +248,7 @@ class dsp(object):
             chain += ["csdr fmdemod_quadri_cf"]
             if self.last_decimation != 1.0:
                 chain += ["csdr fractional_decimator_ff {last_decimation}"]
-            return chain + ["fsk_demodulator", "pocsag_decoder"]
+            return chain + ["fsk_demodulator -i", "pocsag_decoder"]
 
     def set_secondary_demodulator(self, what):
         if self.get_secondary_demodulator() == what:
