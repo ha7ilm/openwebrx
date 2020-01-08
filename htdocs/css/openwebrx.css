@@ -1081,9 +1081,14 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt9"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="ft4"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="pocsag"] #openwebrx-digimode-select-channel
 {
     display: none;
+}
+
+#openwebrx-panel-digimodes[data-mode="pocsag"]    #openwebrx-digimode-content-container {
+    height: 200px;
 }
 
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-canvas-container,
@@ -1091,8 +1096,9 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="jt9"]    #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="ft4"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-canvas-container,
 {
     height: 200px;
     margin: -10px;
 }
+
