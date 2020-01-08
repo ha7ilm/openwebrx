@@ -42,9 +42,9 @@
         <script src="sdr.js"></script>
 		<script src="mathbox-bundle.min.js"></script>
         <script src="openwebrx.js"></script>
-        <script src="jquery-3.2.1.min.js"></script>
-        <script src="jquery.nanoscroller.js"></script>
-        <link rel="stylesheet" type="text/css" href="nanoscroller.css" />
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.nanoscroller/0.8.7/javascripts/jquery.nanoscroller.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jquery.nanoscroller/0.8.7/css/nanoscroller.css" />
         <link rel="stylesheet" type="text/css" href="openwebrx.css" />
         <meta charset="utf-8">
     </head>
