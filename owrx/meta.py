@@ -6,6 +6,7 @@ import logging
 import threading
 from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan
+from owrx.parser import Parser
 
 logger = logging.getLogger(__name__)
 
@@ -83,17 +84,10 @@ class YsfMetaEnricher(object):
         return None
 
 
-class MetaParser(object):
+class MetaParser(Parser):
     def __init__(self, handler):
-        self.handler = handler
+        super().__init__(handler)
         self.enrichers = {"DMR": DmrMetaEnricher(), "YSF": YsfMetaEnricher(self)}
-        self.band = None
-
-    def setDialFrequency(self, freq):
-        self.band = Bandplan.getSharedInstance().findBand(freq)
-
-    def getBand(self):
-        return self.band
 
     def parse(self, meta):
         fields = meta.split(";")

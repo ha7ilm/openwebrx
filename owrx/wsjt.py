@@ -11,6 +11,7 @@ from owrx.config import PropertyManager
 from owrx.bands import Bandplan
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
 from owrx.pskreporter import PskReporter
+from owrx.parser import Parser
 
 import logging
 
@@ -258,12 +259,7 @@ class Ft4Chopper(WsjtChopper):
         return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
 
 
-class WsjtParser(object):
-    def __init__(self, handler):
-        self.handler = handler
-        self.dial_freq = None
-        self.band = None
-
+class WsjtParser(Parser):
     modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4"}
 
     def parse(self, data):
@@ -311,10 +307,6 @@ class WsjtParser(object):
             metrics.addMetric(name, metric)
 
         metric.inc()
-
-    def setDialFrequency(self, freq):
-        self.dial_freq = freq
-        self.band = Bandplan.getSharedInstance().findBand(freq)
 
 
 class Decoder(object):

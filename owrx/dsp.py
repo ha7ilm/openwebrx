@@ -2,6 +2,7 @@ from owrx.config import PropertyManager
 from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
+from owrx.pocsag import PocsagParser
 from owrx.source import SdrSource
 from csdr import csdr
 import threading
@@ -15,9 +16,12 @@ class DspManager(csdr.output):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
-        self.metaParser = MetaParser(self.handler)
-        self.wsjtParser = WsjtParser(self.handler)
-        self.aprsParser = AprsParser(self.handler)
+        self.parsers = {
+            "meta": MetaParser(self.handler),
+            "wsjt_demod": WsjtParser(self.handler),
+            "packet_demod": AprsParser(self.handler),
+            "pocsag_demod": PocsagParser(self.handler),
+        }
 
         self.localProps = (
             self.sdrSource.getProps()
@@ -53,9 +57,8 @@ class DspManager(csdr.output):
 
         def set_dial_freq(key, value):
             freq = self.localProps["center_freq"] + self.localProps["offset_freq"]
-            self.wsjtParser.setDialFrequency(freq)
-            self.aprsParser.setDialFrequency(freq)
-            self.metaParser.setDialFrequency(freq)
+            for parser in self.parsers.values():
+                parser.setDialFrequency(freq)
 
         self.subscriptions = [
             self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression),
@@ -115,10 +118,10 @@ class DspManager(csdr.output):
             "smeter": self.handler.write_s_meter_level,
             "secondary_fft": self.handler.write_secondary_fft,
             "secondary_demod": self.handler.write_secondary_demod,
-            "meta": self.metaParser.parse,
-            "wsjt_demod": self.wsjtParser.parse,
-            "packet_demod": self.aprsParser.parse,
         }
+        for demod, parser in self.parsers.items():
+            writers[demod] = parser.parse
+
         write = writers[t]
 
         threading.Thread(target=self.pump(read_fn, write)).start()

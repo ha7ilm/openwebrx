@@ -2,6 +2,7 @@ from owrx.kiss import KissDeframer
 from owrx.map import Map, LatLngLocation
 from owrx.bands import Bandplan
 from owrx.metrics import Metrics, CounterMetric
+from owrx.parser import Parser
 from datetime import datetime, timezone
 import re
 import logging
@@ -148,18 +149,15 @@ class AprsLocation(LatLngLocation):
         return res
 
 
-class AprsParser(object):
+class AprsParser(Parser):
     def __init__(self, handler):
+        super().__init__(handler)
         self.ax25parser = Ax25Parser()
         self.deframer = KissDeframer()
-        self.dial_freq = None
-        self.band = None
-        self.handler = handler
         self.metric = self.getMetric()
 
     def setDialFrequency(self, freq):
-        self.dial_freq = freq
-        self.band = Bandplan.getSharedInstance().findBand(freq)
+        super().setDialFrequency(freq)
         self.metric = self.getMetric()
 
     def getMetric(self):
