@@ -2086,6 +2086,7 @@ function secondary_demod_close_window() {
     toggle_panel("openwebrx-panel-digimodes", false);
     toggle_panel("openwebrx-panel-wsjt-message", false);
     toggle_panel("openwebrx-panel-packet-message", false);
+    toggle_panel("openwebrx-panel-pocsag-message", false);
 }
 
 function secondary_demod_waterfall_add(data) {
