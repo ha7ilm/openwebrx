@@ -316,6 +316,9 @@ class OpenWebRxReceiverClient(Client):
     def write_sdr_error(self, message):
         self.send({"type": "sdr_error", "value": message})
 
+    def write_pocsag_data(self, data):
+        self.send({"type": "pocsag_data", "value": data})
+
 
 class MapConnection(Client):
     def __init__(self, conn):

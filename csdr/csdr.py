@@ -355,6 +355,8 @@ class dsp(object):
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_port)
             self.output.send_output("packet_demod", kiss.read)
+        elif self.isPocsag():
+            self.output.send_output("pocsag_demod", self.secondary_process_demod.stdout.readline)
         else:
             self.output.send_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
 

@@ -1146,6 +1146,9 @@ function on_ws_recv(evt) {
                     case 'log_message':
                         divlog(json['value'], true);
                         break;
+                    case 'pocsag_data':
+                        update_pocsag_panel(json['value']);
+                        break
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
                 }
@@ -1384,6 +1387,17 @@ function update_packet_panel(msg) {
         '<td class="callsign">' + source + '</td>' +
         '<td class="coord">' + link + '</td>' +
         '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
+}
+
+function update_pocsag_panel(msg) {
+    var $b = $('#openwebrx-panel-pocsag-message').find('tbody');
+    $b.append($(
+        '<tr>' +
+        '<td class="address">' + msg.address + '</td>' +
+        '<td class="message">' + msg.message + '</td>' +
         '</tr>'
     ));
     $b.scrollTop($b[0].scrollHeight);
@@ -2176,6 +2190,7 @@ function demodulator_digital_replace(subtype) {
     toggle_panel("openwebrx-panel-digimodes", true);
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
     toggle_panel("openwebrx-panel-packet-message", subtype === "packet");
+    toggle_panel("openwebrx-panel-pocsag-message", subtype === "pocsag");
 }
 
 function secondary_demod_create_canvas() {
