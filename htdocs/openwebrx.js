@@ -2166,8 +2166,8 @@ function demodulator_digital_replace(subtype) {
         case "pocsag":
             secondary_demod_start(subtype);
             demodulator_analog_replace('nfm', true);
-            demodulators[0].low_cut = -6000;
-            demodulators[0].high_cut = 6000;
+            demodulators[0].low_cut = -10000;
+            demodulators[0].high_cut = 10000;
             demodulators[0].set();
             break;
     }
