@@ -449,11 +449,9 @@ class dsp(object):
         return self.output_rate
 
     def get_audio_rate(self):
-        if self.isDigitalVoice() or self.isPacket():
+        if self.isDigitalVoice() or self.isPacket() or self.isPocsag():
             return 48000
         elif self.isWsjtMode():
-            return 12000
-        elif self.isPocsag():
             return 12000
         return self.get_output_rate()
 
