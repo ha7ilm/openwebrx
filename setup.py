@@ -16,8 +16,8 @@ setup(
     entry_points={"console_scripts": ["openwebrx=owrx.__main__:main"]},
     # use the github page for now
     url="https://github.com/jketterl/openwebrx",
-    author="András Retzler, Jakob Ketterl",
-    author_email="randras@sdr.hu, jakob.ketterl@gmx.de",
+    author="Jakob Ketterl",
+    author_email="jakob.ketterl@gmx.de",
     maintainer="Jakob Ketterl",
     maintainer_email="jakob.ketterl@gmx.de",
     license="GAGPL",
