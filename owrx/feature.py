@@ -153,9 +153,9 @@ class FeatureDetector(object):
 
         Please note: there is close interaction between digiham and openwebrx, so older versions will probably not work.
         If you have an older verison of digiham installed, please update it along with openwebrx.
-        As of now, we require version 0.2 of digiham.
+        As of now, we require version 0.3 of digiham.
         """
-        required_version = LooseVersion("0.2")
+        required_version = LooseVersion("0.3")
 
         digiham_version_regex = re.compile("^digiham version (.*)$")
 
