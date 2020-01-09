@@ -294,6 +294,7 @@ Interpolator.prototype.process = function(data) {
 };
 
 function Lowpass(interpolation) {
+    this.interpolation = interpolation;
     var transitionBandwidth = 0.05;
     this.numtaps = Math.round(4 / transitionBandwidth);
     if (this.numtaps % 2 == 0) this.numtaps += 1;
@@ -348,7 +349,8 @@ Lowpass.prototype.process = function(input) {
             acc += this.delay[index] * this.coefficients[i];
             if (isNaN(acc)) debugger;
         }
-        output[oi] = acc;
+        // gain by interpolation
+        output[oi] = this.interpolation * acc;
     }
     return output;
 };
