@@ -24,7 +24,6 @@
     <head>
         <title>OpenWebRX | Open Source SDR Web App for Everyone!</title>
         <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico" />
-		<script src="static/mathbox-bundle.min.js"></script>
         <script src="static/openwebrx.js"></script>
         <script src="static/lib/jquery-3.2.1.min.js"></script>
         <script src="static/lib/jquery.nanoscroller.js"></script>
@@ -45,7 +44,6 @@
             <canvas id="openwebrx-scale-canvas" width="0" height="0"></canvas>
         </div>
     </div>
-    <div id="openwebrx-mathbox-container"> </div>
     <div id="webrx-canvas-background">
         <div id="webrx-canvas-container">
             <!-- add canvas here by javascript -->
@@ -214,7 +212,6 @@
                     <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"> <img src="static/gfx/openwebrx-zoom-out.png" /></div>
                     <div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><img src="static/gfx/openwebrx-zoom-in-total.png" /></div>
                     <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><img src="static/gfx/openwebrx-zoom-out-total.png" /></div>
-                    <div class="openwebrx-button openwebrx-square-button" onclick="mathbox_toggle();" title="Toggle 3D view"><img src="static/gfx/openwebrx-3d-spectrum.png" /></div>
                     <div id="openwebrx-smeter-db">0 dB</div>
                 </div>
                 <div class="openwebrx-panel-line">

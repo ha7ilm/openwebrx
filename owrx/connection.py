@@ -74,9 +74,6 @@ class OpenWebRxReceiverClient(Client):
         "start_mod",
         "start_freq",
         "center_freq",
-        "mathbox_waterfall_colors",
-        "mathbox_waterfall_history_length",
-        "mathbox_waterfall_frequency_resolution",
         "initial_squelch_level",
         "profile_id",
     ]

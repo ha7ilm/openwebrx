@@ -261,20 +261,6 @@ waterfall_auto_level_margin = (5, 40)
 #        \_waterfall_auto_level_margin[0]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin[1]_/
 #                                                      current_max_power_level __|
 
-# 3D view settings
-mathbox_waterfall_frequency_resolution = 128  # bins
-mathbox_waterfall_history_length = 10  # seconds
-mathbox_waterfall_colors = [
-    0x000000FF,
-    0x2E6893FF,
-    0x69A5D0FF,
-    0x214B69FF,
-    0x9DC4E0FF,
-    0xFFF775FF,
-    0xFF8A8AFF,
-    0xB20000FF,
-]
-
 # === Experimental settings ===
 # Warning! The settings below are very experimental.
 csdr_dynamic_bufsize = False  # This allows you to change the buffering mode of csdr.

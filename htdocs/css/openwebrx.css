@@ -288,13 +288,6 @@ input[type=range]:focus::-ms-fill-upper
     height: 200px;
 }
 
-#openwebrx-mathbox-container
-{
-    flex-grow: 1;
-	overflow: none;
-	display: none;
-}
-
 #openwebrx-log-scroll
 {
     /*overflow-y:auto;*/

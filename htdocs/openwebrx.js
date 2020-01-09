@@ -1054,9 +1054,6 @@ function on_ws_recv(evt) {
                         fft_compression = config['fft_compression'];
                         divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
                         clientProgressBar.setMaxClients(config['max_clients']);
-                        mathbox_waterfall_colors = config['mathbox_waterfall_colors'];
-                        mathbox_waterfall_frequency_resolution = config['mathbox_waterfall_frequency_resolution'];
-                        mathbox_waterfall_history_length = config['mathbox_waterfall_history_length'];
                         var sql = Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150;
                         $("#openwebrx-panel-squelch").val(sql);
                         updateSquelch();
@@ -1625,7 +1622,6 @@ function add_canvas() {
 
 function init_canvas_container() {
     canvas_container = e("webrx-canvas-container");
-    mathbox_container = e("openwebrx-mathbox-container");
     canvas_container.addEventListener("mouseleave", canvas_container_mouseleave, false);
     canvas_container.addEventListener("mousemove", canvas_mousemove, false);
     canvas_container.addEventListener("mouseup", canvas_mouseup, false);
@@ -1663,27 +1659,6 @@ function waterfall_init() {
     waterfall_setup_done = 1;
 }
 
-var mathbox_shift = function () {
-    if (mathbox_data_current_depth < mathbox_data_max_depth) mathbox_data_current_depth++;
-    if (mathbox_data_index + 1 >= mathbox_data_max_depth) mathbox_data_index = 0;
-    else mathbox_data_index++;
-    mathbox_data_global_index++;
-};
-
-var mathbox_clear_data = function () {
-    mathbox_data_index = 50;
-    mathbox_data_current_depth = 0;
-};
-
-var mathbox_get_data_line = function (x) {
-    return (mathbox_data_max_depth + mathbox_data_index + x - 1) % mathbox_data_max_depth;
-};
-
-var mathbox_data_index_valid = function (x) {
-    return x > mathbox_data_max_depth - mathbox_data_current_depth;
-};
-
-
 function waterfall_add(data) {
     if (!waterfall_setup_done) return;
     var w = fft_size;
@@ -1695,26 +1670,18 @@ function waterfall_add(data) {
         waterfallColorsAuto();
     }
 
-    if (mathbox_mode === MATHBOX_MODES.WATERFALL) {
-        //Handle mathbox
-        for (var i = 0; i < fft_size; i++) mathbox_data[i + mathbox_data_index * fft_size] = data[i];
-        mathbox_shift();
-    } else {
-        //Add line to waterfall image
-        var oneline_image = canvas_context.createImageData(w, 1);
-        for (var x = 0; x < w; x++) {
-            var color = waterfall_mkcolor(data[x]);
-            for (i = 0; i < 4; i++)
-                oneline_image.data[x * 4 + i] = ((color >>> 0) >> ((3 - i) * 8)) & 0xff;
-        }
-
-        //Draw image
-        canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
-        shift_canvases();
-        if (canvas_actual_line < 0) add_canvas();
+    //Add line to waterfall image
+    var oneline_image = canvas_context.createImageData(w, 1);
+    for (var x = 0; x < w; x++) {
+        var color = waterfall_mkcolor(data[x]);
+        for (i = 0; i < 4; i++)
+            oneline_image.data[x * 4 + i] = ((color >>> 0) >> ((3 - i) * 8)) & 0xff;
     }
 
-
+    //Draw image
+    canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
+    shift_canvases();
+    if (canvas_actual_line < 0) add_canvas();
 }
 
 function check_top_bar_congestion() {
@@ -1730,167 +1697,6 @@ function check_top_bar_congestion() {
         else wet.style.opacity = wed.style.opacity = "1";
     });
 
-}
-
-var MATHBOX_MODES =
-    {
-        UNINITIALIZED: 0,
-        NONE: 1,
-        WATERFALL: 2,
-        CONSTELLATION: 3
-    };
-var mathbox_mode = MATHBOX_MODES.UNINITIALIZED;
-var mathbox;
-var mathbox_element;
-var mathbox_waterfall_colors;
-var mathbox_waterfall_frequency_resolution;
-var mathbox_waterfall_history_length;
-var mathbox_correction_for_z;
-var mathbox_data_max_depth;
-var mathbox_data_current_depth;
-var mathbox_data_index;
-var mathbox_data;
-var mathbox_data_global_index;
-var mathbox_container;
-
-function mathbox_init() {
-    //mathbox_waterfall_history_length is defined in the config
-    mathbox_data_max_depth = fft_fps * mathbox_waterfall_history_length; //how many lines can the buffer store
-    mathbox_data_current_depth = 0; //how many lines are in the buffer currently
-    mathbox_data_index = 0; //the index of the last empty line / the line to be overwritten
-    mathbox_data = new Float32Array(fft_size * mathbox_data_max_depth);
-    mathbox_data_global_index = 0;
-    mathbox_correction_for_z = 0;
-
-    mathbox = mathBox({
-        plugins: ['core', 'controls', 'cursor', 'stats'],
-        controls: {klass: THREE.OrbitControls}
-    });
-    var three = mathbox.three;
-    if (typeof three === "undefined") divlog("3D waterfall cannot be initialized because WebGL is not supported in your browser.", true);
-
-    three.renderer.setClearColor(new THREE.Color(0x808080), 1.0);
-    mathbox_container.appendChild((mathbox_element = three.renderer.domElement));
-    var view = mathbox
-        .set({
-            scale: 1080,
-            focus: 3
-        })
-        .camera({
-            proxy: true,
-            position: [-2, 1, 3]
-        })
-        .cartesian({
-            range: [[-1, 1], [0, 1], [0, 1]],
-            scale: [2, 2 / 3, 1]
-        });
-
-    view.axis({
-        axis: 1,
-        width: 3,
-        color: "#fff"
-    });
-    view.axis({
-        axis: 2,
-        width: 3,
-        color: "#fff"
-        //offset: [0, 0, 0],
-    });
-    view.axis({
-        axis: 3,
-        width: 3,
-        color: "#fff"
-    });
-
-    view.grid({
-        width: 2,
-        opacity: 0.5,
-        axes: [1, 3],
-        zOrder: 1,
-        color: "#fff"
-    });
-
-    var remap = function (x, z, t) {
-        var currentTimePos = mathbox_data_global_index / (fft_fps * 1.0);
-        var realZAdd = (-(t - currentTimePos) / mathbox_waterfall_history_length);
-        var zAdd = realZAdd - mathbox_correction_for_z;
-        if (zAdd < -0.2 || zAdd > 0.2) {
-            mathbox_correction_for_z = realZAdd;
-        }
-
-        var xIndex = Math.trunc(((x + 1) / 2.0) * fft_size); //x: frequency
-        var zIndex = Math.trunc(z * (mathbox_data_max_depth - 1)); //z: time
-        var realZIndex = mathbox_get_data_line(zIndex);
-        if (!mathbox_data_index_valid(zIndex)) return {y: undefined, dBValue: undefined, zAdd: 0};
-        var index = Math.trunc(xIndex + realZIndex * fft_size);
-        var dBValue = mathbox_data[index];
-        var y;
-        if (dBValue > waterfall_max_level) y = 1;
-        else if (dBValue < waterfall_min_level) y = 0;
-        else y = (dBValue - waterfall_min_level) / (waterfall_max_level - waterfall_min_level);
-        if (!y) y = 0;
-        return {y: y, dBValue: dBValue, zAdd: zAdd};
-    };
-
-    view.area({
-        expr: function (emit, x, z, i, j, t) {
-            var y;
-            var remapResult = remap(x, z, t);
-            if ((y = remapResult.y) === undefined) return;
-            emit(x, y, z + remapResult.zAdd);
-        },
-        width: mathbox_waterfall_frequency_resolution,
-        height: mathbox_data_max_depth - 1,
-        channels: 3,
-        axes: [1, 3]
-    });
-
-    view.area({
-        expr: function (emit, x, z, i, j, t) {
-            var dBValue;
-            if ((dBValue = remap(x, z, t).dBValue) === undefined) return;
-            var color = waterfall_mkcolor(dBValue, mathbox_waterfall_colors);
-            var b = (color & 0xff) / 255.0;
-            var g = ((color & 0xff00) >> 8) / 255.0;
-            var r = ((color & 0xff0000) >> 16) / 255.0;
-            emit(r, g, b, 1.0);
-        },
-        width: mathbox_waterfall_frequency_resolution,
-        height: mathbox_data_max_depth - 1,
-        channels: 4,
-        axes: [1, 3]
-    });
-
-    view.surface({
-        shaded: true,
-        points: '<<',
-        colors: '<',
-        color: 0xFFFFFF
-    });
-
-    view.surface({
-        fill: false,
-        lineX: false,
-        lineY: false,
-        points: '<<',
-        colors: '<',
-        color: 0xFFFFFF,
-        width: 2,
-        blending: 'add',
-        opacity: .25,
-        zBias: 5
-    });
-    mathbox_mode = MATHBOX_MODES.NONE;
-
-}
-
-function mathbox_toggle() {
-
-    if (mathbox_mode === MATHBOX_MODES.UNINITIALIZED) mathbox_init();
-    mathbox_mode = (mathbox_mode === MATHBOX_MODES.NONE) ? MATHBOX_MODES.WATERFALL : MATHBOX_MODES.NONE;
-    mathbox_container.style.display = (mathbox_mode === MATHBOX_MODES.WATERFALL) ? "block" : "none";
-    mathbox_clear_data();
-    waterfall_clear();
 }
 
 function waterfall_clear() {
