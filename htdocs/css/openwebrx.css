@@ -982,6 +982,7 @@ img.openwebrx-mirror-img
 
 #openwebrx-panel-packet-message .message {
     width: 410px;
+    max-width: 410px;
 }
 
 #openwebrx-panel-packet-message .callsign {
@@ -998,7 +999,9 @@ img.openwebrx-mirror-img
 }
 
 #openwebrx-panel-pocsag-message .message {
-    width: 400px;
+    width: 486px;
+    max-width: 486px;
+    white-space: pre;
 }
 
 .aprs-symbol {
