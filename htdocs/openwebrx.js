@@ -1145,7 +1145,12 @@ function on_ws_recv(evt) {
                         break;
                     case 'pocsag_data':
                         update_pocsag_panel(json['value']);
-                        break
+                        break;
+                    case 'backoff':
+                        divlog("Server is currently busy: " + json['reason'], true);
+                        // set a higher reconnection timeout right away to avoid additional load
+                        reconnect_timeout = 16000;
+                        break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
                 }

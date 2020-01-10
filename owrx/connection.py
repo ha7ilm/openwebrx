@@ -3,7 +3,7 @@ from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
 from owrx.source import SdrSource
-from owrx.client import ClientRegistry
+from owrx.client import ClientRegistry, TooManyClientsException
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
@@ -86,7 +86,12 @@ class OpenWebRxReceiverClient(Client):
         self.configSub = None
         self.connectionProperties = {}
 
-        ClientRegistry.getSharedInstance().addClient(self)
+        try:
+            ClientRegistry.getSharedInstance().addClient(self)
+        except TooManyClientsException:
+            self.write_backoff_message("too many clients")
+            self.close()
+            raise
 
         pm = PropertyManager.getSharedInstance()
 
@@ -315,6 +320,9 @@ class OpenWebRxReceiverClient(Client):
 
     def write_pocsag_data(self, data):
         self.send({"type": "pocsag_data", "value": data})
+
+    def write_backoff_message(self, reason):
+        self.send({"type": "backoff", "reason": reason})
 
 
 class MapConnection(Client):
