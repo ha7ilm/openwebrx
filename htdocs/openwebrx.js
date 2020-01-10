@@ -1148,6 +1148,9 @@ function on_ws_recv(evt) {
                         break;
                     case 'backoff':
                         divlog("Server is currently busy: " + json['reason'], true);
+                        var $overlay = $('#openwebrx-error-overlay');
+                        $overlay.find('.errormessage').text(json['reason']);
+                        $overlay.show();
                         // set a higher reconnection timeout right away to avoid additional load
                         reconnect_timeout = 16000;
                         break;

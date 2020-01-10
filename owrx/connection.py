@@ -89,7 +89,7 @@ class OpenWebRxReceiverClient(Client):
         try:
             ClientRegistry.getSharedInstance().addClient(self)
         except TooManyClientsException:
-            self.write_backoff_message("too many clients")
+            self.write_backoff_message("Too many clients")
             self.close()
             raise
 
