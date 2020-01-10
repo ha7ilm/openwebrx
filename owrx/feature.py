@@ -26,6 +26,7 @@ class FeatureDetector(object):
         "hackrf": ["hackrf_transfer"],
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
+        "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
         "fifi_sdr": ["alsa"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
@@ -261,6 +262,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyAirspyHF/wiki).
         """
         return self._has_soapy_driver("airspyhf")
+
+    def has_soapy_lime_sdr(self):
+        """
+        The Lime Suite installs - amongst others - a Soapy driver for the LimeSDR device series.
+
+        You can get it [here](https://github.com/myriadrf/LimeSuite).
+        """
+        return self._has_soapy_driver("LMS7")
 
     def has_dsd(self):
         """
