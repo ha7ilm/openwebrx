@@ -239,7 +239,7 @@ class FeatureDetector(object):
         except FileNotFoundError:
             return False
 
-    def has_soapy_sdrplay(self):
+    def has_soapy_rtl_sdr(self):
         """
         The SoapySDR module for rtl-sdr devices can be used as an alternative to the rtl_connector. It provides
         additional support for the direct sampling mod.
@@ -248,7 +248,7 @@ class FeatureDetector(object):
         """
         return self._has_soapy_driver("rtlsdr")
 
-    def has_soapy_rtl_sdr(self):
+    def has_soapy_sdrplay(self):
         """
         The SoapySDR module for sdrplay devices is required for interfacing with SDRPlay devices (RSP1*, RSP2*, RSPDuo)
 
