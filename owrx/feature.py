@@ -22,6 +22,7 @@ class FeatureDetector(object):
         "core": ["csdr", "nmux", "nc"],
         # different types of sdrs and their requirements
         "rtl_sdr": ["rtl_connector"],
+        "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "hackrf": ["hackrf_transfer"],
         "airspy": ["soapy_connector", "soapy_airspy"],
@@ -239,6 +240,15 @@ class FeatureDetector(object):
             return False
 
     def has_soapy_sdrplay(self):
+        """
+        The SoapySDR module for rtl-sdr devices can be used as an alternative to the rtl_connector. It provides
+        additional support for the direct sampling mod.
+
+        You can get it [here](https://github.com/pothosware/SoapyRTLSDR/wiki).
+        """
+        return self._has_soapy_driver("rtlsdr")
+
+    def has_soapy_rtl_sdr(self):
         """
         The SoapySDR module for sdrplay devices is required for interfacing with SDRPlay devices (RSP1*, RSP2*, RSPDuo)
 
