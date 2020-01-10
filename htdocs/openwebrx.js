@@ -366,8 +366,18 @@ function Demodulator_default_analog(offset_frequency, subtype) {
     this.subtype = subtype;
     this.filter = {
         min_passband: 100,
-        high_cut_limit: (audioEngine.getOutputRate() / 2) - 1,
-        low_cut_limit: (-audioEngine.getOutputRate() / 2) + 1
+        getLimits: function() {
+            var max_bw;
+            if (secondary_demod === 'pocsag') {
+                max_bw = 12500;
+            } else {
+                max_bw = (audioEngine.getOutputRate() / 2) - 1;
+            }
+            return {
+                high: max_bw,
+                low: -max_bw
+            };
+        }
     };
     //Subtypes only define some filter parameters and the mod string sent to server,
     //so you may set these parameters in your custom child class.
@@ -417,8 +427,7 @@ function Demodulator_default_analog(offset_frequency, subtype) {
                 timeout_this.wait_for_timer = false;
                 if (timeout_this.set_after) timeout_this.set();
             }, demodulator_response_time);
-        }
-        else {
+        } else {
             this.set_after = true;
         }
     };
@@ -431,6 +440,7 @@ function Demodulator_default_analog(offset_frequency, subtype) {
         };
         if (first_time) params.mod = this.server_mod;
         ws.send(JSON.stringify({"type": "dspcontrol", "params": params}));
+        mkenvelopes(get_visible_freq_range());
     };
     this.doset(true); //we set parameters on object creation
 
@@ -476,7 +486,7 @@ function Demodulator_default_analog(offset_frequency, subtype) {
         //frequency.
         if (this.dragged_range === dr.beginning || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
             //we don't let low_cut go beyond its limits
-            if ((new_value = this.drag_origin.low_cut + minus * freq_change) < this.parent.filter.low_cut_limit) return true;
+            if ((new_value = this.drag_origin.low_cut + minus * freq_change) < this.parent.filter.getLimits().low) return true;
             //nor the filter passband be too small
             if (this.parent.high_cut - new_value < this.parent.filter.min_passband) return true;
             //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
@@ -485,7 +495,7 @@ function Demodulator_default_analog(offset_frequency, subtype) {
         }
         if (this.dragged_range === dr.ending || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
             //we don't let high_cut go beyond its limits
-            if ((new_value = this.drag_origin.high_cut + minus * freq_change) > this.parent.filter.high_cut_limit) return true;
+            if ((new_value = this.drag_origin.high_cut + minus * freq_change) > this.parent.filter.getLimits().high) return true;
             //nor the filter passband be too small
             if (new_value - this.parent.low_cut < this.parent.filter.min_passband) return true;
             //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
