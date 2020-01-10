@@ -54,13 +54,18 @@ class Flag(CommandMapping):
 class Option(CommandMapping):
     def __init__(self, option):
         self.option = option
+        self.spacer = " "
 
     def map(self, value):
         if value is not None:
             if isinstance(value, str) and " " in value:
-                template = '{0} "{1}"'
+                template = '{option}{spacer}"{value}"'
             else:
-                template = "{0} {1}"
-            return template.format(self.option, value)
+                template = "{option}{spacer}{value}"
+            return template.format(option=self.option, spacer=self.spacer, value=value)
         else:
             return ""
+
+    def setSpacer(self, spacer):
+        self.spacer = spacer
+        return self
