@@ -1981,6 +1981,7 @@ function demodulator_digital_replace_last() {
 function demodulator_digital_replace(subtype) {
     switch (subtype) {
         case "bpsk31":
+        case "bpsk63":
         case "rtty":
         case "ft8":
         case "jt65":

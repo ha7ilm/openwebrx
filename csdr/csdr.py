@@ -225,7 +225,7 @@ class dsp(object):
             if self.fft_compression == "adpcm":
                 chain += ["csdr compress_fft_adpcm_f_u8 {secondary_fft_size}"]
             return chain
-        elif which == "bpsk31":
+        elif which == "bpsk31" or which == "bpsk63":
             return chain + [
                 "csdr shift_addition_cc --fifo {secondary_shift_pipe}",
                 "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_cutoff}",
@@ -268,21 +268,29 @@ class dsp(object):
     def secondary_bpf_cutoff(self):
         if self.secondary_demodulator == "bpsk31":
             return 31.25 / self.if_samp_rate()
+        elif self.secondary_demodulator == "bpsk63":
+            return 62.5 / self.if_samp_rate()
         return 0
 
     def secondary_bpf_transition_bw(self):
         if self.secondary_demodulator == "bpsk31":
             return 31.25 / self.if_samp_rate()
+        elif self.secondary_demodulator == "bpsk63":
+            return 62.5 / self.if_samp_rate()
         return 0
 
     def secondary_samples_per_bits(self):
         if self.secondary_demodulator == "bpsk31":
             return int(round(self.if_samp_rate() / 31.25)) & ~3
+        elif self.secondary_demodulator == "bpsk63":
+            return int(round(self.if_samp_rate() / 62.5)) & ~3
         return 0
 
     def secondary_bw(self):
         if self.secondary_demodulator == "bpsk31":
             return 31.25
+        elif self.secondary_demodulator == "bpsk63":
+            return 62.5
 
     def start_secondary_demodulator(self):
         if not self.secondary_demodulator:
