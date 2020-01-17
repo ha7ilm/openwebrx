@@ -29,6 +29,7 @@ class FeatureDetector(object):
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
         "fifi_sdr": ["alsa"],
+        "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -280,6 +281,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/myriadrf/LimeSuite).
         """
         return self._has_soapy_driver("LMS7")
+
+    def has_soapy_pluto_sdr(self):
+        """
+        The SoapySDR module for PlutoSDR devices is required for interfacing with PlutoSDR devices.
+
+        You can get it [here](https://github.com/photosware/SoapyPlutoSDR).
+        """
+        return self._has_soapy_driver("PlutoSDR")
 
     def has_dsd(self):
         """
