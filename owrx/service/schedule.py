@@ -1,6 +1,8 @@
 from datetime import datetime, timezone, timedelta
 from owrx.source import SdrSource
+from owrx.config import PropertyManager
 import threading
+import math
 from abc import ABC, ABCMeta, abstractmethod
 
 import logging
@@ -101,8 +103,55 @@ class SunlightSchedule(TimerangeSchedule):
     def __init__(self, scheduleDict):
         self.schedule = scheduleDict
 
+    def getSunTimes(self, date):
+        pm = PropertyManager.getSharedInstance()
+        lat, lng = pm["receiver_gps"]
+        degtorad = math.pi / 180
+        radtodeg = 180 / math.pi
+
+        nDays = date.timetuple().tm_yday #Number of days since 01/01
+
+        # Longitudinal correction
+        longCorr = 4 * lng
+
+        B = 2 * math.pi * (nDays - 81) / 365 # I have no idea
+
+        # Equation of Time Correction
+        EoTCorr = 9.87 * math.sin(2 * B) - 7.53 * math.cos(B) - 1.5 * math.sin(B)
+
+        # Solar correction
+        solarCorr = longCorr + EoTCorr
+
+        # Solar declination
+        delta = math.asin(math.sin(23.45 * degtorad) * math.sin(B)) * radtodeg
+
+        sunrise = 12 - math.acos(-math.tan(lat * degtorad) * math.tan(delta * degtorad)) * radtodeg / 15 - solarCorr / 60
+        sunset = 12 + math.acos(-math.tan(lat * degtorad) * math.tan(delta * degtorad)) * radtodeg / 15 - solarCorr / 60
+
+        midnight = datetime.combine(date, datetime.min.time())
+        sunrise = midnight + timedelta(hours=sunrise)
+        sunset = midnight + timedelta(hours=sunset)
+
+        return sunrise, sunset
+
+    def getEntry(self, t, profile):
+        now = datetime.utcnow()
+        date = now.date()
+        if t == "day":
+            sunrise, sunset = self.getSunTimes(date)
+            if sunset < now:
+                sunrise, sunset = self.getSunTimes(date + timedelta(days=1))
+            return ScheduleEntry(sunrise.time(), sunset.time(), profile)
+        elif t == "night":
+            sunrise, _ = self.getSunTimes(date)
+            _, sunset = self.getSunTimes(date - timedelta(days=1))
+            if sunrise < now:
+                sunrise, _ = self.getSunTimes(date + timedelta(days=1))
+                _, sunset = self.getSunTimes(date)
+            return ScheduleEntry(sunset.time(), sunrise.time(), profile)
+
     def getEntries(self):
-        return []
+        return [self.getEntry(t, profile) for t, profile in self.schedule.items()]
 
 
 class ServiceScheduler(object):
@@ -168,6 +217,7 @@ class ServiceScheduler(object):
         self.scheduleSelection(entry.getScheduledEnd())
 
         try:
+            logger.debug("scheduler is activating profile %s", entry.getProfile())
             self.source.activateProfile(entry.getProfile())
             self.source.start()
         except KeyError:
