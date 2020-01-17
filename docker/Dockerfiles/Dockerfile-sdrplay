@@ -4,6 +4,8 @@ FROM openwebrx-soapysdr-base:$ARCHTAG
 ADD docker/scripts/install-dependencies-sdrplay.sh /
 ADD docker/scripts/install-lib.*.patch /
 RUN /install-dependencies-sdrplay.sh
+RUN rm /install-dependencies-sdrplay.sh
 
 ADD docker/scripts/install-connectors.sh /
 RUN /install-connectors.sh
+RUN rm /install-connectors.sh

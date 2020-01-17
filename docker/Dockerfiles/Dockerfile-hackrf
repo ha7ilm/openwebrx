@@ -3,4 +3,5 @@ FROM openwebrx-base:$ARCHTAG
 
 ADD docker/scripts/install-dependencies-hackrf.sh /
 RUN /install-dependencies-hackrf.sh
+RUN rm /install-dependencies-hackrf.sh
 
