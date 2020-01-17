@@ -145,13 +145,13 @@ class SdrSource(ABC):
             if len(cmd) > 1:
                 # multiple commands with pipes
                 cmd = "|".join(cmd)
-                self.process = subprocess.Popen(cmd, shell=True, preexec_fn=os.setpgrp)
+                self.process = subprocess.Popen(cmd, shell=True, start_new_session=True)
             else:
                 # single command
                 cmd = cmd[0]
-                # preexec_fn can go as soon as there's no piped commands left
+                # start_new_session can go as soon as there's no piped commands left
                 # the os.killpg call must be replaced with something more reasonable at the same time
-                self.process = subprocess.Popen(shlex.split(cmd), preexec_fn=os.setpgrp)
+                self.process = subprocess.Popen(shlex.split(cmd), start_new_session=True)
             logger.info("Started sdr source: " + cmd)
 
             available = False
