@@ -7,11 +7,13 @@ ALL_ARCHS="x86_64 armv7l aarch64"
 TAG="latest"
 ARCHTAG="$TAG-$ARCH"
 
-for image in openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airspy openwebrx-full openwebrx; do
+IMAGES="openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airspy openwebrx-rtlsdr-soapy openwebrx-full openwebrx"
+
+for image in ${IMAGES}; do
   docker push jketterl/$image:$ARCHTAG
 done
 
-for image in openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airspy openwebrx-full openwebrx; do
+for image in ${IMAGES}; do
   # there's no docker manifest rm command, and the create --amend does not work, so we have to clean up manually
   rm -rf "${HOME}/.docker/manifests/docker.io_jketterl_${image}-${TAG}"
   IMAGE_LIST=""

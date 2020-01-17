@@ -3,4 +3,5 @@ FROM openwebrx-base:$ARCHTAG
 
 ADD docker/scripts/install-dependencies-soapysdr.sh /
 RUN /install-dependencies-soapysdr.sh
+RUN rm /install-dependencies-soapysdr.sh
 
