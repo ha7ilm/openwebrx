@@ -565,7 +565,7 @@ function demodulator_analog_replace(subtype, for_digital) { //this function shou
     update_digitalvoice_panels("openwebrx-panel-metadata-" + subtype);
 }
 
-function demodulator_set_offset_frequency(which, to_what) {
+function demodulator_set_offset_frequency(to_what) {
     if (to_what > bandwidth / 2 || to_what < -bandwidth / 2) return;
     demodulators[0].offset_frequency = Math.round(to_what);
     demodulators[0].set();
@@ -588,9 +588,7 @@ var tunedFrequencyDisplay;
 var mouseFrequencyDisplay;
 
 function scale_setup() {
-    tunedFrequencyDisplay = new FrequencyDisplay($('#webrx-actual-freq'));
     tunedFrequencyDisplay.setFrequency(canvas_get_frequency(window.innerWidth / 2));
-    mouseFrequencyDisplay = new FrequencyDisplay($('#webrx-mouse-freq'));
     scale_canvas = e("openwebrx-scale-canvas");
     scale_ctx = scale_canvas.getContext("2d");
     scale_canvas.addEventListener("mousedown", scale_canvas_mousedown, false);
@@ -637,7 +635,7 @@ function scale_canvas_mousemove(evt) {
     else if (scale_canvas_drag_params.drag) {
         //call the drag_move for all demodulators (and they will decide if they're dragged)
         for (i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.drag_move(evt.pageX);
-        if (!event_handled) demodulator_set_offset_frequency(0, scale_offset_freq_from_px(evt.pageX));
+        if (!event_handled) demodulator_set_offset_frequency(scale_offset_freq_from_px(evt.pageX));
     }
 
 }
@@ -653,7 +651,7 @@ function scale_canvas_end_drag(x) {
     scale_canvas_drag_params.mouse_down = false;
     var event_handled = false;
     for (var i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.drag_end();
-    if (!event_handled) demodulator_set_offset_frequency(0, scale_offset_freq_from_px(x));
+    if (!event_handled) demodulator_set_offset_frequency(scale_offset_freq_from_px(x));
 }
 
 function scale_canvas_mouseup(evt) {
@@ -934,7 +932,7 @@ function canvas_mouseup(evt) {
     var relativeX = get_relative_x(evt);
 
     if (!canvas_drag) {
-        demodulator_set_offset_frequency(0, canvas_get_freq_offset(relativeX));
+        demodulator_set_offset_frequency(canvas_get_freq_offset(relativeX));
     }
     else {
         canvas_end_drag();
@@ -1792,6 +1790,11 @@ function openwebrx_init() {
     secondary_demod_init();
     digimodes_init();
     initPanels();
+    tunedFrequencyDisplay = new TuneableFrequencyDisplay($('#webrx-actual-freq'));
+    tunedFrequencyDisplay.onFrequencyChange(function(f) {
+        demodulator_set_offset_frequency(f - center_freq);
+    });
+    mouseFrequencyDisplay = new FrequencyDisplay($('#webrx-mouse-freq'));
     window.addEventListener("resize", openwebrx_resize);
     check_top_bar_congestion();
     init_header();
