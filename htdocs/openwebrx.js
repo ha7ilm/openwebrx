@@ -512,7 +512,7 @@ function Demodulator_default_analog(offset_frequency, subtype) {
         mkenvelopes(this.visible_range);
         this.parent.set();
         //will have to change this when changing to multi-demodulator mode:
-        e("webrx-actual-freq").innerHTML = format_frequency("{x} MHz", center_freq + this.parent.offset_frequency, 1e6, 4);
+        tunedFrequencyDisplay.setFrequency(center_freq + this.parent.offset_frequency);
         return true;
     };
 
@@ -570,7 +570,7 @@ function demodulator_set_offset_frequency(which, to_what) {
     demodulators[0].offset_frequency = Math.round(to_what);
     demodulators[0].set();
     mkenvelopes(get_visible_freq_range());
-    $("#webrx-actual-freq").html(format_frequency("{x} MHz", center_freq + to_what, 1e6, 4));
+    tunedFrequencyDisplay.setFrequency(center_freq + to_what);
 }
 
 function waterfallWidth() {
@@ -584,9 +584,13 @@ function waterfallWidth() {
 
 var scale_ctx;
 var scale_canvas;
+var tunedFrequencyDisplay;
+var mouseFrequencyDisplay;
 
 function scale_setup() {
-    e("webrx-actual-freq").innerHTML = format_frequency("{x} MHz", canvas_get_frequency(window.innerWidth / 2), 1e6, 4);
+    tunedFrequencyDisplay = new FrequencyDisplay($('#webrx-actual-freq'));
+    tunedFrequencyDisplay.setFrequency(canvas_get_frequency(window.innerWidth / 2));
+    mouseFrequencyDisplay = new FrequencyDisplay($('#webrx-mouse-freq'));
     scale_canvas = e("openwebrx-scale-canvas");
     scale_ctx = scale_canvas.getContext("2d");
     scale_canvas.addEventListener("mousedown", scale_canvas_mousedown, false);
@@ -640,7 +644,7 @@ function scale_canvas_mousemove(evt) {
 
 function frequency_container_mousemove(evt) {
     var frequency = center_freq + scale_offset_freq_from_px(evt.pageX);
-    e("webrx-mouse-freq").innerHTML = format_frequency("{x} MHz", frequency, 1e6, 4);
+    mouseFrequencyDisplay.setFrequency(frequency);
 }
 
 function scale_canvas_end_drag(x) {
@@ -916,8 +920,9 @@ function canvas_mousemove(evt) {
             mkscale();
             bookmarks.position();
         }
+    } else {
+        mouseFrequencyDisplay.setFrequency(canvas_get_frequency(relativeX));
     }
-    else e("webrx-mouse-freq").innerHTML = format_frequency("{x} MHz", canvas_get_frequency(relativeX), 1e6, 4);
 }
 
 function canvas_container_mouseleave() {
@@ -1534,7 +1539,7 @@ function initialize_demodulator() {
     demodulator_analog_replace(starting_mod);
     if (starting_offset_frequency) {
         demodulators[0].offset_frequency = starting_offset_frequency;
-        e("webrx-actual-freq").innerHTML = format_frequency("{x} MHz", center_freq + starting_offset_frequency, 1e6, 4);
+        tunedFrequencyDisplay.setFrequency(center_freq + starting_offset_frequency);
         demodulators[0].set();
         mkscale();
     }
