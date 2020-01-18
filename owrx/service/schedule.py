@@ -114,23 +114,25 @@ class SunlightSchedule(TimerangeSchedule):
         # Longitudinal correction
         longCorr = 4 * lng
 
-        B = 2 * math.pi * (nDays - 81) / 365 # I have no idea
+        # calibrate for solstice
+        b = 2 * math.pi * (nDays - 81) / 365
 
         # Equation of Time Correction
-        EoTCorr = 9.87 * math.sin(2 * B) - 7.53 * math.cos(B) - 1.5 * math.sin(B)
+        eoTCorr = 9.87 * math.sin(2 * b) - 7.53 * math.cos(b) - 1.5 * math.sin(b)
 
         # Solar correction
-        solarCorr = longCorr + EoTCorr
+        solarCorr = longCorr + eoTCorr
 
         # Solar declination
-        delta = math.asin(math.sin(23.45 * degtorad) * math.sin(B)) * radtodeg
+        delta = math.asin(math.sin(23.45 * degtorad) * math.sin(b))
 
-        sunrise = 12 - math.acos(-math.tan(lat * degtorad) * math.tan(delta * degtorad)) * radtodeg / 15 - solarCorr / 60
-        sunset = 12 + math.acos(-math.tan(lat * degtorad) * math.tan(delta * degtorad)) * radtodeg / 15 - solarCorr / 60
+        sunrise = 12 - math.acos(-math.tan(lat * degtorad) * math.tan(delta)) * radtodeg / 15 - solarCorr / 60
+        sunset = 12 + math.acos(-math.tan(lat * degtorad) * math.tan(delta)) * radtodeg / 15 - solarCorr / 60
 
         midnight = datetime.combine(date, datetime.min.time())
         sunrise = midnight + timedelta(hours=sunrise)
         sunset = midnight + timedelta(hours=sunset)
+        logger.debug("for {date} sunrise: {sunrise} sunset {sunset}".format(date=date, sunrise=sunrise, sunset=sunset))
 
         return sunrise, sunset
 
