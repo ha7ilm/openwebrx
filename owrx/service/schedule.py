@@ -128,6 +128,8 @@ class StaticSchedule(TimerangeSchedule):
 
 
 class DaylightSchedule(TimerangeSchedule):
+    greyLineTime = timedelta(hours=1)
+
     def __init__(self, scheduleDict):
         self.schedule = scheduleDict
 
@@ -137,13 +139,14 @@ class DaylightSchedule(TimerangeSchedule):
         degtorad = math.pi / 180
         radtodeg = 180 / math.pi
 
-        nDays = date.timetuple().tm_yday #Number of days since 01/01
+        #Number of days since 01/01
+        days = date.timetuple().tm_yday
 
         # Longitudinal correction
         longCorr = 4 * lng
 
         # calibrate for solstice
-        b = 2 * math.pi * (nDays - 81) / 365
+        b = 2 * math.pi * (days - 81) / 365
 
         # Equation of Time Correction
         eoTCorr = 9.87 * math.sin(2 * b) - 7.53 * math.cos(b) - 1.5 * math.sin(b)
@@ -152,10 +155,10 @@ class DaylightSchedule(TimerangeSchedule):
         solarCorr = longCorr + eoTCorr
 
         # Solar declination
-        delta = math.asin(math.sin(23.45 * degtorad) * math.sin(b))
+        declination = math.asin(math.sin(23.45 * degtorad) * math.sin(b))
 
-        sunrise = 12 - math.acos(-math.tan(lat * degtorad) * math.tan(delta)) * radtodeg / 15 - solarCorr / 60
-        sunset = 12 + math.acos(-math.tan(lat * degtorad) * math.tan(delta)) * radtodeg / 15 - solarCorr / 60
+        sunrise = 12 - math.acos(-math.tan(lat * degtorad) * math.tan(declination)) * radtodeg / 15 - solarCorr / 60
+        sunset = 12 + math.acos(-math.tan(lat * degtorad) * math.tan(declination)) * radtodeg / 15 - solarCorr / 60
 
         midnight = datetime.combine(date, datetime.min.time())
         sunrise = midnight + timedelta(hours=sunrise)
@@ -164,24 +167,48 @@ class DaylightSchedule(TimerangeSchedule):
 
         return sunrise, sunset
 
-    def getEntry(self, t, profile):
+    def getEntry(self, t, profile, useGreyline):
         now = datetime.utcnow()
         date = now.date()
         if t == "day":
             sunrise, sunset = self.getSunTimes(date)
             if sunset < now:
                 sunrise, sunset = self.getSunTimes(date + timedelta(days=1))
-            return DatetimeScheduleEntry(sunrise, sunset, profile)
+            if useGreyline:
+                sunrise += DaylightSchedule.greyLineTime
+                sunset -= DaylightSchedule.greyLineTime
+            return [ DatetimeScheduleEntry(sunrise, sunset, profile) ]
         elif t == "night":
             sunrise, _ = self.getSunTimes(date)
             _, sunset = self.getSunTimes(date - timedelta(days=1))
             if sunrise < now:
                 sunrise, _ = self.getSunTimes(date + timedelta(days=1))
                 _, sunset = self.getSunTimes(date)
-            return DatetimeScheduleEntry(sunset, sunrise, profile)
+            if useGreyline:
+                sunrise -= DaylightSchedule.greyLineTime
+                sunset += DaylightSchedule.greyLineTime
+            return [ DatetimeScheduleEntry(sunset, sunrise, profile) ]
+        elif t == "greyline":
+            sunrise, sunset = self.getSunTimes(date)
+            if sunrise < now + DaylightSchedule.greyLineTime:
+                sunrise, _ = self.getSunTimes(date + timedelta(days=1))
+            if sunset < now + DaylightSchedule.greyLineTime:
+                _, sunset = self.getSunTimes(date + timedelta(days=1))
+            return [
+                DatetimeScheduleEntry(
+                    sunrise - DaylightSchedule.greyLineTime, sunrise + DaylightSchedule.greyLineTime, profile
+                ),
+                DatetimeScheduleEntry(
+                    sunset - DaylightSchedule.greyLineTime, sunset + DaylightSchedule.greyLineTime, profile
+                ),
+            ]
 
     def getEntries(self):
-        return [self.getEntry(t, profile) for t, profile in self.schedule.items()]
+        # greyline is optional, it its set it will shorten the other profiles
+        useGreyline = "greyline" in self.schedule
+        entries = [e for t, profile in self.schedule.items() for e in self.getEntry(t, profile, useGreyline)]
+        logger.debug([str(e) for e in entries])
+        return entries
 
 
 class ServiceScheduler(object):
