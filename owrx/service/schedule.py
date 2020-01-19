@@ -167,46 +167,26 @@ class DaylightSchedule(TimerangeSchedule):
 
         return sunrise, sunset
 
-    def getEntry(self, t, profile, useGreyline):
-        now = datetime.utcnow()
-        date = now.date()
-        if t == "day":
-            sunrise, sunset = self.getSunTimes(date)
-            if sunset < now:
-                sunrise, sunset = self.getSunTimes(date + timedelta(days=1))
-            if useGreyline:
-                sunrise += DaylightSchedule.greyLineTime
-                sunset -= DaylightSchedule.greyLineTime
-            return [ DatetimeScheduleEntry(sunrise, sunset, profile) ]
-        elif t == "night":
-            sunrise, _ = self.getSunTimes(date)
-            _, sunset = self.getSunTimes(date - timedelta(days=1))
-            if sunrise < now:
-                sunrise, _ = self.getSunTimes(date + timedelta(days=1))
-                _, sunset = self.getSunTimes(date)
-            if useGreyline:
-                sunrise -= DaylightSchedule.greyLineTime
-                sunset += DaylightSchedule.greyLineTime
-            return [ DatetimeScheduleEntry(sunset, sunrise, profile) ]
-        elif t == "greyline":
-            sunrise, sunset = self.getSunTimes(date)
-            if sunrise < now + DaylightSchedule.greyLineTime:
-                sunrise, _ = self.getSunTimes(date + timedelta(days=1))
-            if sunset < now + DaylightSchedule.greyLineTime:
-                _, sunset = self.getSunTimes(date + timedelta(days=1))
-            return [
-                DatetimeScheduleEntry(
-                    sunrise - DaylightSchedule.greyLineTime, sunrise + DaylightSchedule.greyLineTime, profile
-                ),
-                DatetimeScheduleEntry(
-                    sunset - DaylightSchedule.greyLineTime, sunset + DaylightSchedule.greyLineTime, profile
-                ),
-            ]
-
     def getEntries(self):
+        date = datetime.utcnow().date()
         # greyline is optional, it its set it will shorten the other profiles
         useGreyline = "greyline" in self.schedule
-        entries = [e for t, profile in self.schedule.items() for e in self.getEntry(t, profile, useGreyline)]
+        entries = []
+
+        sunrise, sunset = self.getSunTimes(date)
+        delta = DaylightSchedule.greyLineTime if useGreyline else timedelta()
+
+        entries += [
+            DatetimeScheduleEntry(datetime.combine(date, datetime.min.time()), sunrise - delta, self.schedule["night"]),
+            DatetimeScheduleEntry(sunrise + delta, sunset - delta, self.schedule["day"]),
+            DatetimeScheduleEntry(sunset + delta, datetime.combine(date, datetime.max.time()), self.schedule["night"]),
+        ]
+        if useGreyline:
+            entries += [
+                DatetimeScheduleEntry(sunrise - delta, sunrise + delta, self.schedule["greyline"]),
+                DatetimeScheduleEntry(sunset - delta, sunrise + delta, self.schedule["greyline"]),
+            ]
+
         logger.debug([str(e) for e in entries])
         return entries
 
