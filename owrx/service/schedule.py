@@ -10,20 +10,38 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ScheduleEntry(object):
+class ScheduleEntry(ABC):
     def __init__(self, startTime, endTime, profile):
         self.startTime = startTime
         self.endTime = endTime
         self.profile = profile
 
-    def isCurrent(self, time):
+    def getProfile(self):
+        return self.profile
+
+    def __str__(self):
+        return "{0} - {1}: {2}".format(self.startTime, self.endTime, self.profile)
+
+    @abstractmethod
+    def isCurrent(self, dt):
+        pass
+
+    @abstractmethod
+    def getScheduledEnd(self):
+        pass
+
+    @abstractmethod
+    def getNextActivation(self):
+        pass
+
+
+class TimeScheduleEntry(ScheduleEntry):
+    def isCurrent(self, dt):
+        time = dt.time()
         if self.startTime < self.endTime:
             return self.startTime <= time < self.endTime
         else:
             return self.startTime <= time or time < self.endTime
-
-    def getProfile(self):
-        return self.profile
 
     def getScheduledEnd(self):
         now = datetime.utcnow()
@@ -40,6 +58,16 @@ class ScheduleEntry(object):
         return start
 
 
+class DatetimeScheduleEntry(ScheduleEntry):
+    def isCurrent(self, dt):
+        return self.startTime <= dt < self.endTime
+
+    def getScheduledEnd(self):
+        return self.endTime
+
+    def getNextActivation(self):
+        return self.startTime
+
 class Schedule(ABC):
     @staticmethod
     def parse(props):
@@ -51,8 +79,8 @@ class Schedule(ABC):
             t = sc["type"] if "type" in sc else "static"
             if t == "static":
                 return StaticSchedule(sc["schedule"])
-            elif t == "sunlight":
-                return SunlightSchedule(sc["schedule"])
+            elif t == "daylight":
+                return DaylightSchedule(sc["schedule"])
             else:
                 logger.warning("Invalid scheduler type: %s", t)
 
@@ -71,7 +99,7 @@ class TimerangeSchedule(Schedule, metaclass=ABCMeta):
         pass
 
     def getCurrentEntry(self):
-        current = [p for p in self.getEntries() if p.isCurrent(datetime.utcnow().time())]
+        current = [p for p in self.getEntries() if p.isCurrent(datetime.utcnow())]
         if current:
             return current[0]
         return None
@@ -93,13 +121,13 @@ class StaticSchedule(TimerangeSchedule):
 
             startTime = datetime.strptime(time[0:4], "%H%M").replace(tzinfo=timezone.utc).time()
             endTime = datetime.strptime(time[5:9], "%H%M").replace(tzinfo=timezone.utc).time()
-            self.entries.append(ScheduleEntry(startTime, endTime, profile))
+            self.entries.append(TimeScheduleEntry(startTime, endTime, profile))
 
     def getEntries(self):
         return self.entries
 
 
-class SunlightSchedule(TimerangeSchedule):
+class DaylightSchedule(TimerangeSchedule):
     def __init__(self, scheduleDict):
         self.schedule = scheduleDict
 
@@ -143,14 +171,14 @@ class SunlightSchedule(TimerangeSchedule):
             sunrise, sunset = self.getSunTimes(date)
             if sunset < now:
                 sunrise, sunset = self.getSunTimes(date + timedelta(days=1))
-            return ScheduleEntry(sunrise.time(), sunset.time(), profile)
+            return DatetimeScheduleEntry(sunrise, sunset, profile)
         elif t == "night":
             sunrise, _ = self.getSunTimes(date)
             _, sunset = self.getSunTimes(date - timedelta(days=1))
             if sunrise < now:
                 sunrise, _ = self.getSunTimes(date + timedelta(days=1))
                 _, sunset = self.getSunTimes(date)
-            return ScheduleEntry(sunset.time(), sunrise.time(), profile)
+            return DatetimeScheduleEntry(sunset, sunrise, profile)
 
     def getEntries(self):
         return [self.getEntry(t, profile) for t, profile in self.schedule.items()]
@@ -215,11 +243,10 @@ class ServiceScheduler(object):
                 self.scheduleSelection(nextEntry.getNextActivation())
             return
 
-        logger.debug("scheduling end for current profile: %s", entry.getScheduledEnd())
+        logger.debug("selected profile %s until %s", entry.getProfile(), entry.getScheduledEnd())
         self.scheduleSelection(entry.getScheduledEnd())
 
         try:
-            logger.debug("scheduler is activating profile %s", entry.getProfile())
             self.source.activateProfile(entry.getProfile())
             self.source.start()
         except KeyError:
