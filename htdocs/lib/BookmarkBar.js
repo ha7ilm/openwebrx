@@ -9,7 +9,7 @@ function BookmarkBar() {
         me.$container.find('.bookmark').removeClass('selected');
         var b = $bookmark.data();
         if (!b || !b.frequency || (!b.modulation && !b.digital_modulation)) return;
-        demodulator_set_offset_frequency(0, b.frequency - center_freq);
+        demodulators[0].set_offset_frequency(b.frequency - center_freq);
         if (b.modulation) {
             demodulator_analog_replace(b.modulation);
         } else if (b.digital_modulation) {
