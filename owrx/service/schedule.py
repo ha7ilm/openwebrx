@@ -184,7 +184,7 @@ class DaylightSchedule(TimerangeSchedule):
         if useGreyline:
             entries += [
                 DatetimeScheduleEntry(sunrise - delta, sunrise + delta, self.schedule["greyline"]),
-                DatetimeScheduleEntry(sunset - delta, sunrise + delta, self.schedule["greyline"]),
+                DatetimeScheduleEntry(sunset - delta, sunset + delta, self.schedule["greyline"]),
             ]
 
         logger.debug([str(e) for e in entries])
