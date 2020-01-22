@@ -304,34 +304,9 @@ input[type=range]:focus::-ms-fill-upper
 	color: #ff6262;
 }
 
-/*#webrx-freq-show
-{
-	visibility: hidden;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	padding: 5px;
-	font-weight: bold;
-	border-radius: 10px;
-	-moz-border-radius: 10px;
-	background-color: #999999;
-	color: White;
-	z-index:9999; /*should be higher?
-
-}*/
-
-/* removed non-free fonts like that: */
-/*@font-face {
-    font-family: 'unibody_8_pro_regregular';
-    src: url('../gfx/unibody8pro-regular-webfont.eot');
-    src: url('../gfx/unibody8pro-regular-webfont.ttf');
-    font-weight: normal;
-    font-style: normal;
-}*/
-
 @font-face {
-    font-family: 'expletus-sans-medium';
-    src: url('../gfx/font-expletus-sans/ExpletusSans-Medium.ttf');
+    font-family: 'roboto-mono';
+    src: url('../fonts/RobotoMono-Regular.ttf');
     font-weight: normal;
     font-style: normal;
 }
@@ -341,7 +316,7 @@ input[type=range]:focus::-ms-fill-upper
 	width: 100%;
 	text-align: left;
 	font-size: 16pt;
-	font-family: 'expletus-sans-medium';
+	font-family: 'roboto-mono';
 	padding: 0;
 	margin: 0;
 	line-height:22px;
@@ -354,7 +329,7 @@ input[type=range]:focus::-ms-fill-upper
 	text-align: left;
 	font-size: 10pt;
 	color: #AAA;
-	font-family: 'expletus-sans-medium';
+	font-family: 'roboto-mono';
 	margin-bottom: 5px;
 }
 
@@ -646,7 +621,7 @@ img.openwebrx-mirror-img
 	float: right;
 	margin-right: 5px;
 	margin-top: 24px;
-	font-family: 'expletus-sans-medium';
+	font-family: 'roboto-mono';
 }
 
 .openwebrx-overlay {

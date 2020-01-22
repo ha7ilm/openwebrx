@@ -329,7 +329,7 @@ class dsp(object):
             logger.debug("secondary command (fft) = %s", secondary_command_fft)
 
             self.secondary_process_fft = subprocess.Popen(
-                secondary_command_fft, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setpgrp, env=my_env
+                secondary_command_fft, stdout=subprocess.PIPE, shell=True, start_new_session=True, env=my_env
             )
             self.output.send_output(
                 "secondary_fft",
@@ -341,7 +341,7 @@ class dsp(object):
         # it would block if not read. by piping it to devnull, we avoid a potential pitfall here.
         secondary_output = subprocess.DEVNULL if self.isPacket() else subprocess.PIPE
         self.secondary_process_demod = subprocess.Popen(
-            secondary_command_demod, stdout=secondary_output, shell=True, preexec_fn=os.setpgrp, env=my_env
+            secondary_command_demod, stdout=secondary_output, shell=True, start_new_session=True, env=my_env
         )
         self.secondary_processes_running = True
 
@@ -669,7 +669,7 @@ class dsp(object):
             my_env["CSDR_PRINT_BUFSIZES"] = "1"
 
         out = subprocess.PIPE if self.output.supports_type("audio") else subprocess.DEVNULL
-        self.process = subprocess.Popen(command, stdout=out, shell=True, preexec_fn=os.setpgrp, env=my_env)
+        self.process = subprocess.Popen(command, stdout=out, shell=True, start_new_session=True, env=my_env)
 
         def watch_thread():
             rc = self.process.wait()
