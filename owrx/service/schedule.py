@@ -168,24 +168,36 @@ class DaylightSchedule(TimerangeSchedule):
         return sunrise, sunset
 
     def getEntries(self):
-        date = datetime.utcnow().date()
+        now = datetime.utcnow()
+        date = now.date()
         # greyline is optional, it its set it will shorten the other profiles
         useGreyline = "greyline" in self.schedule
         entries = []
 
-        sunrise, sunset = self.getSunTimes(date)
         delta = DaylightSchedule.greyLineTime if useGreyline else timedelta()
+        events = []
+        # we need to start yesterday for longitudes close to the date line
+        offset = -1
+        while len(events) < 1:
+            sunrise, sunset = self.getSunTimes(date + timedelta(days=offset))
+            offset += 1
+            events += [{"type": "sunrise", "time": sunrise}, {"type": "sunset", "time": sunset}]
+            # keep only events in the future
+            events = [v for v in events if v["time"] + delta > now]
+        events.sort(key=lambda e: e["time"])
 
-        entries += [
-            DatetimeScheduleEntry(datetime.combine(date, datetime.min.time()), sunrise - delta, self.schedule["night"]),
-            DatetimeScheduleEntry(sunrise + delta, sunset - delta, self.schedule["day"]),
-            DatetimeScheduleEntry(sunset + delta, datetime.combine(date, datetime.max.time()), self.schedule["night"]),
-        ]
-        if useGreyline:
-            entries += [
-                DatetimeScheduleEntry(sunrise - delta, sunrise + delta, self.schedule["greyline"]),
-                DatetimeScheduleEntry(sunset - delta, sunset + delta, self.schedule["greyline"]),
-            ]
+        previousEvent = None
+        for event in events:
+            # night profile _until_ sunrise, day profile _until_ sunset
+            stype = "night" if event["type"] == "sunrise" else "day"
+            if previousEvent is not None or event["time"] - delta > now:
+                start = now if previousEvent is None else previousEvent
+                entries.append(DatetimeScheduleEntry(start, event["time"] - delta, self.schedule[stype]))
+            if useGreyline:
+                entries.append(
+                    DatetimeScheduleEntry(event["time"] - delta, event["time"] + delta, self.schedule["greyline"])
+                )
+            previousEvent = event["time"] + delta
 
         logger.debug([str(e) for e in entries])
         return entries
