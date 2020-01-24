@@ -197,7 +197,11 @@ class dsp(object):
         elif which == "am":
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
-            chain += ["csdr agc_ff", "csdr limit_ff", "csdr convert_f_s16"]
+            chain += [
+                "csdr agc_ff 160000 0.8 0.001 0.0000001 50",
+                "csdr limit_ff",
+                "csdr convert_f_s16",
+            ]
         elif which == "ssb":
             chain += ["csdr realpart_cf"]
             chain += last_decimation_block
