@@ -549,13 +549,15 @@ function demodulator_analog_replace(subtype, for_digital) { //this function shou
         secondary_demod_close_window();
         secondary_demod_listbox_update();
     }
-    last_analog_demodulator_subtype = subtype;
-    var temp_offset = 0;
-    if (demodulators.length) {
-        temp_offset = demodulators[0].offset_frequency;
-        demodulator_remove(0);
+    if (!demodulators || !demodulators[0] || demodulators[0].subtype !== subtype) {
+        last_analog_demodulator_subtype = subtype;
+        var temp_offset = 0;
+        if (demodulators.length) {
+            temp_offset = demodulators[0].offset_frequency;
+            demodulator_remove(0);
+        }
+        demodulator_add(new Demodulator_default_analog(temp_offset, subtype));
     }
-    demodulator_add(new Demodulator_default_analog(temp_offset, subtype));
     demodulator_buttons_update();
     update_digitalvoice_panels("openwebrx-panel-metadata-" + subtype);
     updateHash();
@@ -1533,11 +1535,16 @@ function validateHash() {
 
 function updateHash() {
     var demod = demodulators[0];
+    if (!demod) return;
     window.location.hash = $.map({
         freq: demod.get_offset_frequency() + center_freq,
-        mod: demod.subtype
+        mod: demod.subtype,
+        secondary_mod: secondary_demod
     }, function(value, key){
+        if (!value) return undefined;
         return key + '=' + value;
+    }).filter(function(v) {
+        return !!v;
     }).join(',');
 }
 
@@ -1559,7 +1566,9 @@ function onAudioStart(success, apiType){
 function initialize_demodulator(initialParams) {
     mkscale();
     var params = $.extend(initialParams || {}, validateHash());
-    if (params.mod) {
+    if (params.secondary_mod) {
+        demodulator_digital_replace(params.secondary_mod);
+    } else if (params.mod) {
         demodulator_analog_replace(params.mod);
     }
     if (params.offset_frequency) {
@@ -1951,6 +1960,7 @@ function initPanels() {
 
 function demodulator_buttons_update() {
     $(".openwebrx-demodulator-button").removeClass("highlighted");
+    if (!demodulators.length) return;
     if (secondary_demod) {
         $("#openwebrx-button-dig").addClass("highlighted");
         $('#openwebrx-secondary-demod-listbox').val(secondary_demod);
@@ -2013,6 +2023,7 @@ function demodulator_digital_replace_last() {
 }
 
 function demodulator_digital_replace(subtype) {
+    if (secondary_demod === subtype) return;
     switch (subtype) {
         case "bpsk31":
         case "bpsk63":
@@ -2050,6 +2061,7 @@ function demodulator_digital_replace(subtype) {
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
     toggle_panel("openwebrx-panel-packet-message", subtype === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", subtype === "pocsag");
+    updateHash();
 }
 
 function secondary_demod_create_canvas() {
