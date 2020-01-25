@@ -558,6 +558,7 @@ function demodulator_analog_replace(subtype, for_digital) { //this function shou
     demodulator_add(new Demodulator_default_analog(temp_offset, subtype));
     demodulator_buttons_update();
     update_digitalvoice_panels("openwebrx-panel-metadata-" + subtype);
+    updateHash();
 }
 
 Demodulator.prototype.set_offset_frequency = function(to_what) {
@@ -566,6 +567,11 @@ Demodulator.prototype.set_offset_frequency = function(to_what) {
     this.set();
     mkenvelopes(get_visible_freq_range());
     tunedFrequencyDisplay.setFrequency(center_freq + to_what);
+    updateHash();
+}
+
+Demodulator.prototype.get_offset_frequency = function() {
+    return this.offset_frequency;
 }
 
 function waterfallWidth() {
@@ -1525,6 +1531,16 @@ function validateHash() {
     return params;
 }
 
+function updateHash() {
+    var demod = demodulators[0];
+    window.location.hash = $.map({
+        freq: demod.get_offset_frequency() + center_freq,
+        mod: demod.subtype
+    }, function(value, key){
+        return key + '=' + value;
+    }).join(',');
+}
+
 function onAudioStart(success, apiType){
     divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
 
@@ -1543,11 +1559,12 @@ function onAudioStart(success, apiType){
 function initialize_demodulator(initialParams) {
     mkscale();
     var params = $.extend(initialParams || {}, validateHash());
-    console.info(params);
-    if (!params.mod) return;
-    demodulator_analog_replace(params.mod);
-    if (!params.offset_frequency) return;
-    demodulators[0].set_offset_frequency(params.offset_frequency);
+    if (params.mod) {
+        demodulator_analog_replace(params.mod);
+    }
+    if (params.offset_frequency) {
+        demodulators[0].set_offset_frequency(params.offset_frequency);
+    }
 }
 
 var reconnect_timeout = false;
@@ -1807,6 +1824,9 @@ function openwebrx_init() {
     init_header();
     bookmarks = new BookmarkBar();
     initSliders();
+    window.addEventListener('hashchange', function() {
+        initialize_demodulator();
+    });
 }
 
 function initSliders() {
