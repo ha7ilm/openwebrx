@@ -1050,8 +1050,11 @@ function on_ws_recv(evt) {
                         waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
                         waterfallColorsDefault();
 
-                        starting_mod = config['start_mod'];
-                        starting_offset_frequency = config['start_offset_freq'];
+                        var initial_demodulator_params = {
+                            mod: config['start_mod'],
+                            offset_frequency: config['start_offset_freq']
+                        };
+
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'];
                         fft_size = config['fft_size'];
@@ -1067,7 +1070,7 @@ function on_ws_recv(evt) {
                         updateSquelch();
 
                         waterfall_init();
-                        initialize_demodulator();
+                        initialize_demodulator(initial_demodulator_params);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();
@@ -1489,28 +1492,37 @@ function webrx_set_param(what, value) {
     ws.send(JSON.stringify({"type": "dspcontrol", "params": params}));
 }
 
-var starting_offset_frequency;
-var starting_mod;
-
 function parseHash() {
-    var h;
-    if (h = window.location.hash) {
-        h.substring(1).split(",").forEach(function (x) {
-            var harr = x.split("=");
-            if (harr[0] === "mute") toggleMute();
-            else if (harr[0] === "mod") starting_mod = harr[1];
-            else if (harr[0] === "sql") {
-                e("openwebrx-panel-squelch").value = harr[1];
-                updateSquelch();
-            }
-            else if (harr[0] === "freq") {
-                console.log(parseInt(harr[1]));
-                console.log(center_freq);
-                starting_offset_frequency = parseInt(harr[1]) - center_freq;
-            }
-        });
-
+    if (!window.location.hash) {
+        return {};
     }
+    return window.location.hash.substring(1).split(",").map(function(x) {
+        var harr = x.split('=');
+        return [harr[0], harr.slice(1).join('=')];
+    }).reduce(function(params, p){
+        params[p[0]] = p[1];
+        return params;
+    }, {});
+}
+
+function validateHash() {
+    var params = parseHash();
+    params = Object.keys(params).filter(function(key) {
+        if (key == 'freq') {
+            return Math.abs(params[key] - center_freq) < bandwidth;
+        }
+        return true;
+    }).reduce(function(p, key) {
+        p[key] = params[key];
+        return p;
+    }, {});
+
+    if (params['freq']) {
+        params['offset_frequency'] = params['freq'] - center_freq;
+        delete params['freq'];
+    }
+
+    return params;
 }
 
 function onAudioStart(success, apiType){
@@ -1528,14 +1540,14 @@ function onAudioStart(success, apiType){
     updateVolume();
 }
 
-function initialize_demodulator() {
-    demodulator_analog_replace(starting_mod);
-    if (starting_offset_frequency) {
-        demodulators[0].offset_frequency = starting_offset_frequency;
-        tunedFrequencyDisplay.setFrequency(center_freq + starting_offset_frequency);
-        demodulators[0].set();
-        mkscale();
-    }
+function initialize_demodulator(initialParams) {
+    mkscale();
+    var params = $.extend(initialParams || {}, validateHash());
+    console.info(params);
+    if (!params.mod) return;
+    demodulator_analog_replace(params.mod);
+    if (!params.offset_frequency) return;
+    demodulators[0].set_offset_frequency(params.offset_frequency);
 }
 
 var reconnect_timeout = false;
@@ -1794,7 +1806,6 @@ function openwebrx_init() {
     check_top_bar_congestion();
     init_header();
     bookmarks = new BookmarkBar();
-    parseHash();
     initSliders();
 }
 
