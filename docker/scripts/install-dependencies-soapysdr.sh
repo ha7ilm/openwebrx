@@ -24,6 +24,6 @@ apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 git clone https://github.com/pothosware/SoapySDR
-cmakebuild SoapySDR a489f3dca9d3ccd9b276b95a608ac3ef0299f635
+cmakebuild SoapySDR f722f9ce5b629c3c44401a9bf628b3f8e67a9695
 
 apk del .build-deps

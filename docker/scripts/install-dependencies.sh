@@ -38,7 +38,7 @@ git clone https://github.com/szechyjs/mbelib.git
 cmakebuild mbelib 9a04ed5c78176a9965f3d43f7aa1b1f5330e771f
 
 git clone https://github.com/jketterl/digiham.git
-cmakebuild digiham b229990927922e977cecaa9369740790cff5c31e
+cmakebuild digiham e5e11ce9611e3d8f5f9dce7dee97f86a31af107c
 
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7
