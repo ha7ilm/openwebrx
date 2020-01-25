@@ -549,15 +549,18 @@ function demodulator_analog_replace(subtype, for_digital) { //this function shou
         secondary_demod_close_window();
         secondary_demod_listbox_update();
     }
-    last_analog_demodulator_subtype = subtype;
-    var temp_offset = 0;
-    if (demodulators.length) {
-        temp_offset = demodulators[0].offset_frequency;
-        demodulator_remove(0);
+    if (!demodulators || !demodulators[0] || demodulators[0].subtype !== subtype) {
+        last_analog_demodulator_subtype = subtype;
+        var temp_offset = 0;
+        if (demodulators.length) {
+            temp_offset = demodulators[0].offset_frequency;
+            demodulator_remove(0);
+        }
+        demodulator_add(new Demodulator_default_analog(temp_offset, subtype));
     }
-    demodulator_add(new Demodulator_default_analog(temp_offset, subtype));
     demodulator_buttons_update();
     update_digitalvoice_panels("openwebrx-panel-metadata-" + subtype);
+    updateHash();
 }
 
 Demodulator.prototype.set_offset_frequency = function(to_what) {
@@ -566,6 +569,11 @@ Demodulator.prototype.set_offset_frequency = function(to_what) {
     this.set();
     mkenvelopes(get_visible_freq_range());
     tunedFrequencyDisplay.setFrequency(center_freq + to_what);
+    updateHash();
+}
+
+Demodulator.prototype.get_offset_frequency = function() {
+    return this.offset_frequency;
 }
 
 function waterfallWidth() {
@@ -1050,8 +1058,11 @@ function on_ws_recv(evt) {
                         waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
                         waterfallColorsDefault();
 
-                        starting_mod = config['start_mod'];
-                        starting_offset_frequency = config['start_offset_freq'];
+                        var initial_demodulator_params = {
+                            mod: config['start_mod'],
+                            offset_frequency: config['start_offset_freq']
+                        };
+
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'];
                         fft_size = config['fft_size'];
@@ -1067,7 +1078,7 @@ function on_ws_recv(evt) {
                         updateSquelch();
 
                         waterfall_init();
-                        initialize_demodulator();
+                        initialize_demodulator(initial_demodulator_params);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();
@@ -1489,28 +1500,52 @@ function webrx_set_param(what, value) {
     ws.send(JSON.stringify({"type": "dspcontrol", "params": params}));
 }
 
-var starting_offset_frequency;
-var starting_mod;
-
 function parseHash() {
-    var h;
-    if (h = window.location.hash) {
-        h.substring(1).split(",").forEach(function (x) {
-            var harr = x.split("=");
-            if (harr[0] === "mute") toggleMute();
-            else if (harr[0] === "mod") starting_mod = harr[1];
-            else if (harr[0] === "sql") {
-                e("openwebrx-panel-squelch").value = harr[1];
-                updateSquelch();
-            }
-            else if (harr[0] === "freq") {
-                console.log(parseInt(harr[1]));
-                console.log(center_freq);
-                starting_offset_frequency = parseInt(harr[1]) - center_freq;
-            }
-        });
-
+    if (!window.location.hash) {
+        return {};
     }
+    return window.location.hash.substring(1).split(",").map(function(x) {
+        var harr = x.split('=');
+        return [harr[0], harr.slice(1).join('=')];
+    }).reduce(function(params, p){
+        params[p[0]] = p[1];
+        return params;
+    }, {});
+}
+
+function validateHash() {
+    var params = parseHash();
+    params = Object.keys(params).filter(function(key) {
+        if (key == 'freq') {
+            return Math.abs(params[key] - center_freq) < bandwidth;
+        }
+        return true;
+    }).reduce(function(p, key) {
+        p[key] = params[key];
+        return p;
+    }, {});
+
+    if (params['freq']) {
+        params['offset_frequency'] = params['freq'] - center_freq;
+        delete params['freq'];
+    }
+
+    return params;
+}
+
+function updateHash() {
+    var demod = demodulators[0];
+    if (!demod) return;
+    window.location.hash = $.map({
+        freq: demod.get_offset_frequency() + center_freq,
+        mod: demod.subtype,
+        secondary_mod: secondary_demod
+    }, function(value, key){
+        if (!value) return undefined;
+        return key + '=' + value;
+    }).filter(function(v) {
+        return !!v;
+    }).join(',');
 }
 
 function onAudioStart(success, apiType){
@@ -1528,13 +1563,16 @@ function onAudioStart(success, apiType){
     updateVolume();
 }
 
-function initialize_demodulator() {
-    demodulator_analog_replace(starting_mod);
-    if (starting_offset_frequency) {
-        demodulators[0].offset_frequency = starting_offset_frequency;
-        tunedFrequencyDisplay.setFrequency(center_freq + starting_offset_frequency);
-        demodulators[0].set();
-        mkscale();
+function initialize_demodulator(initialParams) {
+    mkscale();
+    var params = $.extend(initialParams || {}, validateHash());
+    if (params.secondary_mod) {
+        demodulator_digital_replace(params.secondary_mod);
+    } else if (params.mod) {
+        demodulator_analog_replace(params.mod);
+    }
+    if (params.offset_frequency) {
+        demodulators[0].set_offset_frequency(params.offset_frequency);
     }
 }
 
@@ -1794,8 +1832,10 @@ function openwebrx_init() {
     check_top_bar_congestion();
     init_header();
     bookmarks = new BookmarkBar();
-    parseHash();
     initSliders();
+    window.addEventListener('hashchange', function() {
+        initialize_demodulator();
+    });
 }
 
 function initSliders() {
@@ -1920,6 +1960,7 @@ function initPanels() {
 
 function demodulator_buttons_update() {
     $(".openwebrx-demodulator-button").removeClass("highlighted");
+    if (!demodulators.length) return;
     if (secondary_demod) {
         $("#openwebrx-button-dig").addClass("highlighted");
         $('#openwebrx-secondary-demod-listbox').val(secondary_demod);
@@ -1982,6 +2023,7 @@ function demodulator_digital_replace_last() {
 }
 
 function demodulator_digital_replace(subtype) {
+    if (secondary_demod === subtype) return;
     switch (subtype) {
         case "bpsk31":
         case "bpsk63":
@@ -2019,6 +2061,7 @@ function demodulator_digital_replace(subtype) {
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
     toggle_panel("openwebrx-panel-packet-message", subtype === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", subtype === "pocsag");
+    updateHash();
 }
 
 function secondary_demod_create_canvas() {

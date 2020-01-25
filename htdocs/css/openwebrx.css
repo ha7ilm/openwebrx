@@ -311,16 +311,25 @@ input[type=range]:focus::-ms-fill-upper
     font-style: normal;
 }
 
-#webrx-actual-freq
-{
+#webrx-actual-freq {
 	width: 100%;
 	text-align: left;
-	font-size: 16pt;
-	font-family: 'roboto-mono';
 	padding: 0;
 	margin: 0;
-	line-height:22px;
+}
 
+#webrx-actual-freq input {
+    font-family: 'roboto-mono';
+    width: 98%;
+    box-sizing: border-box;
+    border: 0;
+    padding: 0;
+}
+
+#webrx-actual-freq, #webrx-actual-freq input {
+	font-size: 16pt;
+	font-family: 'roboto-mono';
+	line-height: 22px;
 }
 
 #webrx-mouse-freq

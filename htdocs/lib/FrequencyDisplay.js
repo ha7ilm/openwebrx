@@ -1,11 +1,16 @@
 function FrequencyDisplay(element) {
     this.element = $(element);
     this.digits = [];
-    this.digitContainer = $('<span>');
-    this.element.html([this.digitContainer, $('<span> MHz</span>')]);
-    this.decimalSeparator = (0.1).toLocaleString().substring(1, 2);
+    this.setupElements();
     this.setFrequency(0);
 }
+
+FrequencyDisplay.prototype.setupElements = function() {
+    this.displayContainer = $('<div>');
+    this.digitContainer = $('<span>');
+    this.displayContainer.html([this.digitContainer, $('<span> MHz</span>')]);
+    this.element.html(this.displayContainer);
+};
 
 FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.frequency = freq;
@@ -36,9 +41,18 @@ function TuneableFrequencyDisplay(element) {
 
 TuneableFrequencyDisplay.prototype = new FrequencyDisplay();
 
+TuneableFrequencyDisplay.prototype.setupElements = function() {
+    FrequencyDisplay.prototype.setupElements.call(this);
+    this.input = $('<input>');
+    this.input.hide();
+    this.element.append(this.input);
+};
+
 TuneableFrequencyDisplay.prototype.setupEvents = function() {
     var me = this;
-    this.element.on('wheel', function(e){
+    me.listeners = [];
+
+    me.element.on('wheel', function(e){
         e.preventDefault();
         e.stopPropagation();
 
@@ -53,7 +67,29 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
             l(newFrequency);
         });
     });
-    this.listeners = [];
+
+    var submit = function(){
+        var freq = parseInt(me.input.val());
+        if (!isNaN(freq)) {
+            me.listeners.forEach(function(l) {
+                l(freq);
+            });
+        }
+        me.input.hide();
+        me.displayContainer.show();
+    };
+    me.input.on('blur', submit).on('keyup', function(e){
+        if (e.keyCode == 13) return submit();
+    });
+    me.input.on('click', function(e){
+        e.stopPropagation();
+    });
+    me.element.on('click', function(){
+        me.input.val(me.frequency);
+        me.input.show();
+        me.displayContainer.hide();
+        me.input.focus();
+    });
 };
 
 TuneableFrequencyDisplay.prototype.onFrequencyChange = function(listener){
