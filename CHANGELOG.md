@@ -9,6 +9,7 @@
 - Clicking on the frequency now opens an input for direct frequency selection
 - URL hashes have been fixed and improved: They are now updated automatically, so a shared URL will include frequency
   and demodulator, which allows for improved sharing and linking.
+- New daylight scheduler for background decoding, allows profiles to be selected by local sunrise / sunset times
 - New devices supported:
   - LimeSDR (`"type": "lime_sdr"`)
   - PlutoSDR (`"type": "pluto_sdr"`)
