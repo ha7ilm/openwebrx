@@ -15,7 +15,7 @@
   - PlutoSDR (`"type": "pluto_sdr"`)
   - RTL_SDR via Soapy (`"type": "rtl_sdr_soapy"`) on special request to allow use of the direct sampling mode
 
-**2019-01-04**
+**2020-01-04**
 - The [owrx_connector](https://github.com/jketterl/owrx_connector) is now the default way of communicating with sdr
   devices. The old sdr types have been replaced, all `_connector` suffixes on the type must be removed!
 - The sources have been refactored, making it a lot easier to add support for other devices
