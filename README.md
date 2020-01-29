@@ -21,19 +21,24 @@ It has the following features:
 
 ### Raspberry Pi SD Card Images
 
-Probably the quickest way to get started is to download the [latest Raspberry Pi SD Card Image](https://s3.eu-central-1.amazonaws.com/de.dd5jfk.openwebrx/2019-11-24-OpenWebRX-full.zip). It contains all the depencencies out of the box, and should work on all Raspberries up to the 3B+.
+Probably the quickest way to get started is to download the latest Raspberry Pi SD Card Image. It contains all the
+depencencies out of the box, and should work on all Raspberry Pis. It is based off the Raspbian Lite distribution,
+so [their installation instructions](https://www.raspberrypi.org/documentation/installation/installing-images/) apply.
 
-This is based off the Raspbian Lite distribution, so [their installation instructions](https://www.raspberrypi.org/documentation/installation/installing-images/) apply.
+You can find the latest images [here](https://s3.eu-central-1.amazonaws.com/de.dd5jfk.openwebrx/index.html). You can
+also checkout the `nightly` folder, which has the most recent builds, albeit untested.
 
-Please note: I have not updated this to include the Raspberry Pi 4 yet. (It seems to be impossible to build Rasbpian Buster images on x86 hardware right now. Stay tuned!)
+Once you have booted a Raspberry with the SD Card, it will appear in your network with the hostname "openwebrx", which
+should make it available as https://openwebrx/ on most networks. This may vary depending on your specific setup.
 
-Once you have booted a Raspberry with the SD Card, it will appear in your network with the hostname "openwebrx", which should make it available as https://openwebrx/ on most networks. This may vary depending on your specific setup.
-
-For Digital voice, the minimum requirement right now seems to be a Rasbperry Pi 3B+. I would like to work on optimizing this for lower specs, but at this point I am not sure how much can be done. 
+For Digital voice, the minimum requirement right now seems to be a Rasbperry Pi 3B+. I would like to work on optimizing
+this for lower specs, but at this point I am not sure how much can be done. 
 
 ### Docker Images
 
-For those familiar with docker, I am providing [recent builds and Releases for both x86 and arm processors on the Docker hub](https://hub.docker.com/r/jketterl/openwebrx). You can find a short introduction there.
+For those familiar with docker, I am providing
+[recent builds and Releases for both x86 and arm processors on the Docker hub](https://hub.docker.com/r/jketterl/openwebrx).
+You can find a short introduction there.
 
 ### Manual Installation
 
@@ -75,14 +80,10 @@ The filter envelope can be dragged at its ends and moved around to set the passb
 
 However, if you hold down the shift key, you can drag the center line (BFO) or the whole passband (PBS).
 
-## Setup tips
-
-If you have any problems installing OpenWebRX, you should check out the <a href="https://github.com/simonyiszk/openwebrx/wiki">Wiki</a> about it, which has a page on the <a href="https://github.com/simonyiszk/openwebrx/wiki/Common-problems-and-their-solutions">common problems and their solutions</a>.
-
-Sometimes the actual error message is not at the end of the terminal output, you may have to look at the whole output to find it.
-
 ## Licensing
 
-OpenWebRX is available under Affero GPL v3 license (<a href="https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)">summary</a>).
+OpenWebRX is available under Affero GPL v3 license
+([summary](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)).
 
-OpenWebRX is also available under a commercial license on request. Please contact me at the address *&lt;randras@sdr.hu&gt;* for licensing options. 
+OpenWebRX is also available under a commercial license on request. Please contact me at the address
+*&lt;randras@sdr.hu&gt;* for licensing options. 
