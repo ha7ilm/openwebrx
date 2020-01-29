@@ -1,5 +1,42 @@
+**unreleased**
+- Compression, resampling and filtering in the frontend have been rewritten in javascript, sdr.js has been removed
+- Decoding of Pocsag modulation is now possible
+- Removed the 3D waterfall since it had no real application and required ~1MB of javascript code to be downloaded
+- Improved the frontend handling of the "too many users" scenario
+- PSK63 digimode is now available (same decoding pipeline as PSK31, but with adopted parameters)
+- The frequency can now be manipulated with the mousewheel, which should allow the user to tune more precise. The tuning
+  step size is determined by the digit the mouse cursor is hovering over.
+- Clicking on the frequency now opens an input for direct frequency selection
+- URL hashes have been fixed and improved: They are now updated automatically, so a shared URL will include frequency
+  and demodulator, which allows for improved sharing and linking.
+- New devices supported:
+  - LimeSDR (`"type": "lime_sdr"`)
+  - PlutoSDR (`"type": "pluto_sdr"`)
+  - RTL_SDR via Soapy (`"type": "rtl_sdr_soapy"`) on special request to allow use of the direct sampling mode
+
+**2019-01-04**
+- The [owrx_connector](https://github.com/jketterl/owrx_connector) is now the default way of communicating with sdr
+  devices. The old sdr types have been replaced, all `_connector` suffixes on the type must be removed!
+- The sources have been refactored, making it a lot easier to add support for other devices
+- SDR device failure handling has been improved, including user feedback
+- New devices supported:
+  - FiFiSDR (`"type": "fifi_sdr"`)
+
+**2019-12-15**
+- wsjt-x updated to 2.1.2
+- The rtl_tcp compatibility mode of the owrx_connector is now configurable using the `rtltcp_compat` flag
+
+**2019-12-10**
+- added support for airspyhf devices (Airspy HF+ / Discovery)
+
+**2019-12-05**
+- explicit device filter for soapy devices for multi-device setups
+
+**2019-12-03**
+- compatibility fixes for safari browsers (ios and mac)
+
 **2019-11-24**
-- There is now a new way to interface with SDR hardware, [owrx_connectors](https://github.com/jketterl/owrx_connector).
+- There is now a new way to interface with SDR hardware, .
   They talk directly to the hardware (no rtl_sdr / rx_sdr necessary) and offer I/Q data on a socket, just like nmux
   did before. They additionally offer a control socket that allows openwebrx to control the SDR parameters directly,
   without the need for repeated restarts. This allows for quicker profile changes, and also reduces the risk of your
