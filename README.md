@@ -1,29 +1,21 @@
 OpenWebRX
 =========
 
-[:floppy_disk: Setup guide for Ubuntu](http://blog.sdr.hu/2015/06/30/quick-setup-openwebrx.html)  |  [:blue_book: Knowledge base on the Wiki](https://github.com/simonyiszk/openwebrx/wiki/)  |  [:earth_americas: Receivers on SDR.hu](http://sdr.hu/) 
-
 OpenWebRX is a multi-user SDR receiver software with a web interface.
 
 ![OpenWebRX](http://blog.sdr.hu/images/openwebrx/screenshot.png)
 
 It has the following features:
 
-- [csdr](https://github.com/jketterl/csdr) based demodulators (AM/FM/SSB/CW/BPSK31),
-- filter passband can be set from GUI,
+- [csdr](https://github.com/jketterl/csdr) based demodulators (AM/FM/SSB/CW/BPSK31/BPSK63)
+- filter passband can be set from GUI
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and Canvas
 - it works in Google Chrome, Chromium and Mozilla Firefox
-- currently supports RTL-SDR, HackRF, SDRplay, AirSpy
+- currently supports RTL-SDR, HackRF, SDRplay, AirSpy, LimeSDR, PlutoSDR
 - Multiple SDR devices can be used simultaneously
-- [digiham](https://github.com/jketterl/digiham) based demodularors (DMR, YSF)
+- [digiham](https://github.com/jketterl/digiham) based demodularors (DMR, YSF, Pocsag)
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
-
-## OpenWebRX servers on SDR.hu
-
-[SDR.hu](http://sdr.hu) is a site which lists the active, public OpenWebRX servers. Your receiver [can also be part of it](http://sdr.hu/openwebrx), if you want.
-
-![sdr.hu](http://blog.sdr.hu/images/openwebrx/screenshot-sdrhu.png)
 
 ## Setup
 
@@ -51,9 +43,6 @@ First you will need to install the dependencies:
 
 - [csdr](https://github.com/jketterl/csdr)
 - [rtl-sdr](http://sdr.osmocom.org/trac/wiki/rtl-sdr)
-
-Optional dependency for improved hardware access (to become mandatory at some point):
-
 - [owrx_connector](https://github.com/jketterl/owrx_connector)
 
 Optional dependencies if you want to be able to listen do digital voice:
@@ -65,15 +54,13 @@ Optional dependency if you want to decode WSJT-X modes:
 
 - [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html)
 
+[Detailed installation instructions in the Wiki](https://github.com/jketterl/openwebrx/wiki/Manual-Package-installation-(including-digital-voice))
+
 After cloning this repository and connecting an RTL-SDR dongle to your computer, you can run the server:
 
 	./openwebrx.py
 	
 You can now open the GUI at <a href="http://localhost:8073">http://localhost:8073</a>.
-
-Please note that the server is also listening on the following ports (on localhost only):
-
-- ports 4950 to 4960 for the multi-user I/Q servers.
 
 Now the next step is to customize the parameters of your server in `config_webrx.py`.
 
