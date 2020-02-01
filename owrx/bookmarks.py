@@ -50,7 +50,10 @@ class Bookmarks(object):
             except FileNotFoundError:
                 pass
             except json.JSONDecodeError:
-                logger.exception("error while parsing bookmarks from %s", file)
+                logger.exception("error while parsing bookmarks file %s", file)
+                return []
+            except Exception:
+                logger.exception("error while processing bookmarks from %s", file)
                 return []
         return []
 

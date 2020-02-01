@@ -58,7 +58,10 @@ class Bandplan(object):
             except FileNotFoundError:
                 pass
             except json.JSONDecodeError:
-                logger.exception("error while parsing bandplan from %s", file)
+                logger.exception("error while parsing bandplan file %s", file)
+                return []
+            except Exception:
+                logger.exception("error while processing bandplan from %s", file)
                 return []
         return []
 

@@ -145,5 +145,5 @@ class PropertyManager(object):
                     self[name] = value
                 return self
             except FileNotFoundError:
-                logger.debug("not found: %s", file)
+                pass
         raise ConfigNotFoundException("no usable config found! please make sure you have a valid configuration file!")
