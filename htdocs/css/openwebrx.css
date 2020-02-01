@@ -316,14 +316,22 @@ input[type=range]:focus::-ms-fill-upper
 	text-align: left;
 	padding: 0;
 	margin: 0;
+	display: flex;
+	flex-direction: row;
+}
+
+#webrx-actual-freq > * {
+    flex: 1;
 }
 
 #webrx-actual-freq input {
     font-family: 'roboto-mono';
-    width: 98%;
+    width: 0;
     box-sizing: border-box;
     border: 0;
     padding: 0;
+    background-color: inherit;
+    color: inherit;
 }
 
 #webrx-actual-freq, #webrx-actual-freq input {
