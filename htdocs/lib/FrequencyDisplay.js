@@ -80,6 +80,10 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
     };
     me.input.on('blur', submit).on('keyup', function(e){
         if (e.keyCode == 13) return submit();
+        if (e.keyCode == 27) {
+            me.input.hide();
+            me.displayContainer.show();
+        }
     });
     me.input.on('click', function(e){
         e.stopPropagation();
