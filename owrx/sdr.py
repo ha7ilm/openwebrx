@@ -44,7 +44,7 @@ class SdrService(object):
                 name: loadIntoPropertyManager(value) for (name, value) in pm["sdrs"].items() if sdrTypeAvailable(value)
             }
             logger.info(
-                "SDR sources loaded. Availables SDRs: {0}".format(
+                "SDR sources loaded. Available SDRs: {0}".format(
                     ", ".join(map(lambda x: x["name"], SdrService.sdrProps.values()))
                 )
             )
