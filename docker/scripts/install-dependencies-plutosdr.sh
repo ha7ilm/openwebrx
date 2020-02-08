@@ -8,7 +8,7 @@ function cmakebuild() {
   fi
   mkdir build
   cd build
-  cmake ..
+  cmake .. ${3:-}
   make
   make install
   cd ../..
@@ -24,7 +24,7 @@ apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 git clone https://github.com/analogdevicesinc/libiio.git
-cmakebuild libiio 4e22517c60f3c5e691320871956edede15459ae3
+cmakebuild libiio 4e22517c60f3c5e691320871956edede15459ae3 -DCMAKE_INSTALL_PREFIX=/usr/local
 
 git clone https://github.com/analogdevicesinc/libad9361-iio.git
 cmakebuild libad9361-iio 8ac95f3325c18c2e34cd9cfd49c7b63d69a0a9d2
