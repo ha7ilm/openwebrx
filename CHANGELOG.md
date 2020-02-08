@@ -1,4 +1,4 @@
-**unreleased**
+**2020-02-08**
 - Compression, resampling and filtering in the frontend have been rewritten in javascript, sdr.js has been removed
 - Decoding of Pocsag modulation is now possible
 - Removed the 3D waterfall since it had no real application and required ~1MB of javascript code to be downloaded
