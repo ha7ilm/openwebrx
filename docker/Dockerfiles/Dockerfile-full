@@ -10,6 +10,7 @@ RUN /install-dependencies-soapysdr.sh
 RUN /install-dependencies-sdrplay.sh
 RUN /install-dependencies-airspy.sh
 RUN /install-dependencies-rtlsdr-soapy.sh
+RUN /install-dependencies-plutosdr.sh
 RUN rm /install-dependencies-*.sh
 
 ADD docker/scripts/install-connectors.sh /
