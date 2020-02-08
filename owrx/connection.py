@@ -247,10 +247,14 @@ class OpenWebRxReceiverClient(Client):
             self.sdr.removeSpectrumClient(self)
 
     def setParams(self, params):
+        # allow direct configuration only if enabled in the config
+        keys = PropertyManager.getSharedInstance()["configurable_keys"]
+        if not keys:
+            return
         # only the keys in the protected property manager can be overridden from the web
         protected = (
             self.sdr.getProps()
-            .collect("samp_rate", "center_freq", "rf_gain", "type")
+            .collect(*keys)
             .defaults(PropertyManager.getSharedInstance())
         )
         for key, value in params.items():
