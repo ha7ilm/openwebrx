@@ -17,8 +17,8 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb"
-BUILD_PACKAGES="git libusb-dev cmake make gcc musl-dev g++ linux-headers"
+STATIC_PACKAGES="libusb libxml2"
+BUILD_PACKAGES="git libusb-dev cmake make gcc musl-dev g++ linux-headers libxml2-dev flex bison"
 
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
