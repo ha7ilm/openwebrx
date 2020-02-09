@@ -1,5 +1,6 @@
 from owrx.controllers import (
     StatusController,
+    StatusJsonController,
     IndexController,
     OwrxAssetsController,
     WebSocketController,
@@ -41,6 +42,7 @@ class Router(object):
     mappings = [
         {"route": "/", "controller": IndexController},
         {"route": "/status", "controller": StatusController},
+        {"route": "/status.json", "controller": StatusJsonController},
         {"regex": "/static/(.+)", "controller": OwrxAssetsController},
         {"regex": "/aprs-symbols/(.+)", "controller": AprsSymbolsController},
         {"route": "/ws/", "controller": WebSocketController},

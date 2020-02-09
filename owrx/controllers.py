@@ -11,13 +11,15 @@ from owrx.connection import WebSocketMessageHandler
 from owrx.version import openwebrx_version
 from owrx.feature import FeatureDetector
 from owrx.metrics import Metrics
+from owrx.sdr import SdrService
+from abc import ABC, abstractmethod
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Controller(object):
+class Controller(ABC):
     def __init__(self, handler, request):
         self.handler = handler
         self.request = request
@@ -34,6 +36,10 @@ class Controller(object):
         if type(content) == str:
             content = content.encode()
         self.handler.wfile.write(content)
+
+    @abstractmethod
+    def handle_request(self):
+        pass
 
 
 class StatusController(Controller):
@@ -53,6 +59,42 @@ class StatusController(Controller):
             "avatar_ctime": os.path.getctime("htdocs/gfx/openwebrx-avatar.png"),
         }
         self.send_response("\n".join(["{key}={value}".format(key=key, value=value) for key, value in vars.items()]))
+
+
+class StatusJsonController(Controller):
+    def getProfileStats(self, profile):
+        return {
+            "name": profile["name"],
+            "center_freq": profile["center_freq"],
+            "sample_rate": profile["samp_rate"],
+        }
+
+    def getReceiverStats(self, receiver):
+        stats = {
+            "name": receiver.getName(),
+            # TODO would be better to have types from the config here
+            "type": type(receiver).__name__,
+            "profiles": [self.getProfileStats(p) for p in receiver.getProfiles().values()]
+        }
+        return stats
+
+    def handle_request(self):
+        pm = PropertyManager.getSharedInstance()
+
+        gps = pm["receiver_gps"]
+        status = {
+            "receiver": {
+                "name": pm["receiver_name"],
+                "admin": pm["receiver_admin"],
+                "gps": {"lat": gps[0], "lon": gps[1]},
+                "asl": pm["receiver_asl"],
+                "location": pm["receiver_location"],
+            },
+            "max_clients": pm["max_clients"],
+            "version": openwebrx_version,
+            "sdrs": [self.getReceiverStats(r) for r in SdrService.getSources().values()]
+        }
+        self.send_response(json.dumps(status), content_type="application/json")
 
 
 class AssetsController(Controller):
