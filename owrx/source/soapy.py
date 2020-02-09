@@ -41,18 +41,21 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
 
         return ",".join([encodeComponent(c) for c in dobj])
 
-    """
-    this method always attempts to inject a driver= part into the soapysdr query, depending on what connector was used.
-    this prevents the soapy_connector from using the wrong device in scenarios where there's no same-type sdrs.
-    """
+    def buildSoapyDeviceParameters(self, parsed, values):
+        """
+        this method always attempts to inject a driver= part into the soapysdr query, depending on what connector was used.
+        this prevents the soapy_connector from using the wrong device in scenarios where there's no same-type sdrs.
+        """
+        parsed = [v for v in parsed if "driver" not in v]
+        parsed += [{"driver": self.getDriver()}]
+        return parsed
 
     def getCommandValues(self):
         values = super().getCommandValues()
         if "device" in values and values["device"] is not None:
             parsed = self.parseDeviceString(values["device"])
-            parsed = [v for v in parsed if "driver" not in v]
-            parsed += [{"driver": self.getDriver()}]
-            values["device"] = self.encodeDeviceString(parsed)
         else:
-            values["device"] = "driver={0}".format(self.getDriver())
+            parsed = []
+        modified = self.buildSoapyDeviceParameters(parsed, values)
+        values["device"] = self.encodeDeviceString(modified)
         return values

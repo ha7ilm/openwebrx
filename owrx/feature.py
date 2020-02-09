@@ -30,6 +30,7 @@ class FeatureDetector(object):
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
         "fifi_sdr": ["alsa"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
+        "soapy_remote": ["soapy_connector", "soapy_remote"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -289,6 +290,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/photosware/SoapyPlutoSDR).
         """
         return self._has_soapy_driver("PlutoSDR")
+
+    def has_soapy_remote(self):
+        """
+        The SoapyRemote allows the usage of remote SDR devices using the SoapySDRServer.
+
+        You can get the code and find additional information [here](https://github.com/pothosware/SoapyRemote/wiki).
+        """
+        return self._has_soapy_driver("remote")
 
     def has_dsd(self):
         """

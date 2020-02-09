@@ -1,3 +1,6 @@
+**unreleased**
+- Support for SoapyRemote
+
 **2020-02-08**
 - Compression, resampling and filtering in the frontend have been rewritten in javascript, sdr.js has been removed
 - Decoding of Pocsag modulation is now possible
