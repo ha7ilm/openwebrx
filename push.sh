@@ -7,7 +7,7 @@ ALL_ARCHS="x86_64 armv7l aarch64"
 TAG="latest"
 ARCHTAG="$TAG-$ARCH"
 
-IMAGES="openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airspy openwebrx-rtlsdr-soapy openwebrx-plutosdr openwebrx-limesdr openwebrx-full openwebrx"
+IMAGES="openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airspy openwebrx-rtlsdr-soapy openwebrx-plutosdr openwebrx-limesdr openwebrx-soapyremote openwebrx-full openwebrx"
 
 for image in ${IMAGES}; do
   docker push jketterl/$image:$ARCHTAG

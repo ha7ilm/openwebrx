@@ -15,4 +15,5 @@ docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-airspy:$ARCHTAG 
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-rtlsdr-soapy:$ARCHTAG -f docker/Dockerfiles/Dockerfile-rtlsdr-soapy .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-plutosdr:$ARCHTAG -f docker/Dockerfiles/Dockerfile-plutosdr .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-limesdr:$ARCHTAG -f docker/Dockerfiles/Dockerfile-limesdr .
+docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-soapyremote:$ARCHTAG -f docker/Dockerfiles/Dockerfile-soapyremote .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-full:$ARCHTAG -t jketterl/openwebrx:$ARCHTAG -f docker/Dockerfiles/Dockerfile-full .

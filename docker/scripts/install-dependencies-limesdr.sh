@@ -1,20 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-function cmakebuild() {
-  cd $1
-  if [[ ! -z "${2:-}" ]]; then
-    git checkout $2
-  fi
-  mkdir build
-  cd build
-  cmake ..
-  make
-  make install
-  cd ../..
-  rm -rf $1
-}
-
 cd /tmp
 
 STATIC_PACKAGES="libusb"

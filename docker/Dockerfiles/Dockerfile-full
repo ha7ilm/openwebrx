@@ -12,6 +12,7 @@ RUN /install-dependencies-airspy.sh
 RUN /install-dependencies-rtlsdr-soapy.sh
 RUN /install-dependencies-plutosdr.sh
 RUN /install-dependencies-limesdr.sh
+RUN /install-dependencies-soapyremote.sh
 RUN rm /install-dependencies-*.sh
 
 ADD docker/scripts/install-connectors.sh /
