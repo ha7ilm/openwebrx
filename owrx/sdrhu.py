@@ -1,7 +1,7 @@
 import threading
-import subprocess
 import time
 from owrx.config import PropertyManager
+from urllib import request, parse
 
 import logging
 
@@ -14,24 +14,28 @@ class SdrHuUpdater(threading.Thread):
         super().__init__(daemon=True)
 
     def update(self):
-        pm = PropertyManager.getSharedInstance()
-        cmd = 'wget --timeout=15 -4qO- https://sdr.hu/update --post-data "url=http://{server_hostname}:{web_port}&apikey={sdrhu_key}" 2>&1'.format(
-            **pm.__dict__()
-        )
-        logger.debug(cmd)
-        returned = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
-        returned = returned[0].decode("utf-8")
-        if "UPDATE:" in returned:
-            retrytime_mins = 20
-            value = returned.split("UPDATE:")[1].split("\n", 1)[0]
-            if value.startswith("SUCCESS"):
-                logger.info("Update succeeded!")
-            else:
-                logger.warning("Update failed, your receiver cannot be listed on sdr.hu! Reason: %s", value)
+        pm = PropertyManager.getSharedInstance().collect("server_hostname", "web_port", "sdrhu_key")
+        data = parse.urlencode({
+            "url": "http://{server_hostname}:{web_port}".format(**pm.__dict__()),
+            "apikey": pm["sdrhu_key"]
+        }).encode()
+
+        res = request.urlopen("https://sdr.hu/update", data=data)
+        if res.getcode() < 200 or res.getcode() >= 300:
+            logger.warning('sdr.hu update failed with error code %i', res.getcode())
+            return 2
+
+        returned = res.read().decode("utf-8")
+        if "UPDATE:" not in returned:
+            logger.warning("Update failed, your receiver cannot be listed on sdr.hu!")
+            return 2
+
+        value = returned.split("UPDATE:")[1].split("\n", 1)[0]
+        if value.startswith("SUCCESS"):
+            logger.info("Update succeeded!")
         else:
-            retrytime_mins = 2
-            logger.warning("wget failed while updating, your receiver cannot be listed on sdr.hu!")
-        return retrytime_mins
+            logger.warning("Update failed, your receiver cannot be listed on sdr.hu! Reason: %s", value)
+        return 20
 
     def run(self):
         while self.doRun:

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 """
 
     This file is part of OpenWebRX, 
@@ -24,9 +24,17 @@
 from owrx.sdrhu import SdrHuUpdater
 from owrx.config import PropertyManager
 
+import logging
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 if __name__ == "__main__":
     pm = PropertyManager.getSharedInstance().loadConfig()
 
-    if not "sdrhu_key" in pm:
+    if "sdrhu_public_listing" not in pm or not pm["sdrhu_public_listing"]:
+        logger.error('Public listing on sdr.hu is not activated. Please check "sdrhu_public_listing" in your config.')
+        exit(1)
+    if "sdrhu_key" not in pm or pm["sdrhu_key"] is None or pm["sdrhu_key"] == "":
+        logger.error('Missing "sdrhu_key" in your config. Aborting')
         exit(1)
     SdrHuUpdater().update()

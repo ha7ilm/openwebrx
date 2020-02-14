@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import logging
 import threading
 from owrx.map import Map, LatLngLocation
-from owrx.bands import Bandplan
 from owrx.parser import Parser
 
 logger = logging.getLogger(__name__)
