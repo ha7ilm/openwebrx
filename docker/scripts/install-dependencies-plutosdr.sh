@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export MAKEFLAGS="-j4"
 
 function cmakebuild() {
   cd $1

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export MAKEFLAGS="-j4"
 
 cd /tmp
 
