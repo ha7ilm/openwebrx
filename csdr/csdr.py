@@ -243,7 +243,7 @@ class dsp(object):
             chain += ["csdr fmdemod_quadri_cf"]
             if self.last_decimation != 1.0:
                 chain += ["csdr fractional_decimator_ff {last_decimation}"]
-            return chain + ["csdr convert_f_s16", "direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h - 1>&2"]
+            return chain + ["csdr convert_f_s16", "direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h 1>&2"]
         elif which == "pocsag":
             chain += ["csdr fmdemod_quadri_cf"]
             if self.last_decimation != 1.0:

@@ -18,6 +18,7 @@ class DirewolfConfig(object):
 
         config = """
 ACHANNELS 1
+ADEVICE stdin null
 
 CHANNEL 0
 MYCALL {callsign}
