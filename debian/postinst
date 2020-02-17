@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euxo pipefail
+
+adduser --system --group --no-create-home --home /nonexistant openwebrx
