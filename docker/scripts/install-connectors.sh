@@ -24,6 +24,6 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 
 git clone https://github.com/jketterl/owrx_connector.git
-cmakebuild owrx_connector df35e33e42c2e4527853ca18bf04981848860317
+cmakebuild owrx_connector 22a34fe649a0121a79262f54e99e9aa864b1536f
 
 apk del .build-deps

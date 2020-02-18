@@ -29,7 +29,7 @@ cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
 
 git clone https://github.com/jketterl/csdr.git
 cd csdr
-git checkout 43c36df5dcd92d3bdb322f9d53f99ca0c7c816a4
+git checkout fe0b042d9cdc2605a817ca7fdd3a23c48bf07563
 make
 make install
 cd ..
@@ -39,7 +39,7 @@ git clone https://github.com/szechyjs/mbelib.git
 cmakebuild mbelib 9a04ed5c78176a9965f3d43f7aa1b1f5330e771f
 
 git clone https://github.com/jketterl/digiham.git
-cmakebuild digiham e5e11ce9611e3d8f5f9dce7dee97f86a31af107c
+cmakebuild digiham 95206501be89b38d0267bf6c29a6898e7c65656f
 
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7
