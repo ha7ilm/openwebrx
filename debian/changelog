@@ -70,4 +70,4 @@ openwebrx (0.18.0) buster; urgency=low
     - FiFiSDR (`"type": "fifi_sdr"`)
     - airspyhf devices (Airspy HF+ / Discovery) (`"type": "airspyhf"`)
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 08 Dec 2019 12:35:48 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 18 Feb 2020 20:09:00 +0000
