@@ -1,71 +1,95 @@
 openwebrx (0.18.0) buster; urgency=low
 
-  * Compression, resampling and filtering in the frontend have been rewritten in javascript, sdr.js has been removed
+  * Compression, resampling and filtering in the frontend have been rewritten
+    in javascript, sdr.js has been removed
   * Decoding of Pocsag modulation is now possible
-  * Removed the 3D waterfall since it had no real application and required ~1MB of javascript code to be downloaded
+  * Removed the 3D waterfall since it had no real application and required ~1MB
+    of javascript code to be downloaded
   * Improved the frontend handling of the "too many users" scenario
-  * PSK63 digimode is now available (same decoding pipeline as PSK31, but with adopted parameters)
-  * The frequency can now be manipulated with the mousewheel, which should allow the user to tune more precise. The
-    tuning step size is determined by the digit the mouse cursor is hovering over.
+  * PSK63 digimode is now available (same decoding pipeline as PSK31, but with
+    adopted parameters)
+  * The frequency can now be manipulated with the mousewheel, which should
+    allow the user to tune more precise. The tuning step size is determined by
+    the digit the mouse cursor is hovering over.
   * Clicking on the frequency now opens an input for direct frequency selection
-  * URL hashes have been fixed and improved: They are now updated automatically, so a shared URL will include frequency
-    and demodulator, which allows for improved sharing and linking.
-  * New daylight scheduler for background decoding, allows profiles to be selected by local sunrise / sunset times
-  * The owrx_connector is now the default way of communicating with sdr devices. The old sdr types have been replaced,
-    all `_connector` suffixes on the type must be removed!
-  * The sources have been refactored, making it a lot easier to add support for other devices
+  * URL hashes have been fixed and improved: They are now updated
+    automatically, so a shared URL will include frequency and demodulator,
+    which allows for improved sharing and linking.
+  * New daylight scheduler for background decoding, allows profiles to be
+    selected by local sunrise / sunset times
+  * The owrx_connector is now the default way of communicating with sdr
+    devices. The old sdr types have been replaced, all `_connector` suffixes on
+    the type must be removed!
+  * The sources have been refactored, making it a lot easier to add support for
+    other devices
   * SDR device failure handling has been improved, including user feedback
   * New devices supported:
   * wsjt-x updated to 2.1.2
-  * The rtl_tcp compatibility mode of the owrx_connector is now configurable using the `rtltcp_compat` flag
+  * The rtl_tcp compatibility mode of the owrx_connector is now configurable
+    using the `rtltcp_compat` flag
   * explicit device filter for soapy devices for multi-device setups
   * compatibility fixes for safari browsers (ios and mac)
-  * Offset tuning using the `lfo_offset` has been reworked in a way that `center_freq` has to be set to the frequency
-    you actually want to listen to. If you're using an `lfo_offset` already, you will probably need to change its sign.
+  * Offset tuning using the `lfo_offset` has been reworked in a way that
+    `center_freq` has to be set to the frequency you actually want to listen
+    to. If you're using an `lfo_offset` already, you will probably need to
+    change its sign.
   * `initial_squelch_level` can now be set on each profile.
   * Part of the frontend code has been reworked
-    - Audio buffer minimums have been completely stripped. As a result, you should get better latency. Unfortunately,
-      this also means there will be some skipping when audio starts.
+    - Audio buffer minimums have been completely stripped. As a result, you
+      should get better latency. Unfortunately, this also means there will be
+      some skipping when audio starts.
     - Now also supports AudioWorklets (for those browser that have it).
     - Mousewheel controls for the receiver sliders
   * Error handling for failed SDR devices
-  * One of the most-requested features is finally coming to OpenWebRX: Bookmarks (sometimes also referred to as labels).
+  * One of the most-requested features is finally coming to OpenWebRX:
+    Bookmarks (sometimes also referred to as labels).
     There's two kinds of bookmarks available:
-    - Serverside bookmarks that are set up by the receiver administrator. Check the file `bookmarks.json` for examples!
-    - Clientside bookmarks which every user can store for themselves. They are stored in the browser's localStorage.
-  * Automatic reporting of spots to [pskreporter](https://pskreporter.info/) is now possible. Please have a look at the
-    configuration on how to set it up.
-  * Websocket communication has been overhauled in large parts. It should now be more reliable, and failing connections
-    should now have no impact on other users.
-  * Profile scheduling allows to set up band-hopping if you are running background services.
-  * APRS now has the ability to show symbols on the map, if a corresponding symbol set has been installed. Check the
-    config!
-  * Debug logging has been disabled in a handful of modules, expect vastly reduced output on the shell.
+    - Serverside bookmarks that are set up by the receiver administrator.
+      Check the file `bookmarks.json` for examples!
+    - Clientside bookmarks which every user can store for themselves. They are
+      stored in the browser's localStorage.
+  * Automatic reporting of spots to [pskreporter](https://pskreporter.info/) is
+    now possible. Please have a look at the configuration on how to set it up.
+  * Websocket communication has been overhauled in large parts. It should now
+    be more reliable, and failing connections should now have no impact on
+    other users.
+  * Profile scheduling allows to set up band-hopping if you are running
+    background services.
+  * APRS now has the ability to show symbols on the map, if a corresponding
+    symbol set has been installed. Check the config!
+  * Debug logging has been disabled in a handful of modules, expect vastly
+    reduced output on the shell.
   * New set of APRS-related features
-    - Decode Packet transmissions using [direwolf](https://github.com/wb2osz/direwolf) (1k2 only for now)
-    - APRS packets are mostly decoded and shown both in a new panel and on the map
+    - Decode Packet transmissions using direwolf (1k2 only for now)
+    - APRS packets are mostly decoded and shown both in a new panel and on the
+      map
     - APRS is also available as a background service
-    - direwolfs I-gate functionality can be enabled, which allows your receiver to work as a receive-only I-gate for the
-      APRS network in the background
-  * Demodulation for background services has been optimized to use less total bandwidth, saving CPU
-  * More metrics have been added; they can be used together with collectd and its curl_json plugin for now, with some
-    limitations.
-  * New bandplan feature, the first thing visible is the "dial" indicator that brings you right to the
-    dial frequency for digital modes
+    - direwolfs I-gate functionality can be enabled, which allows your receiver
+      to work as a receive-only I-gate for the APRS network in the background
+  * Demodulation for background services has been optimized to use less total
+    bandwidth, saving CPU
+  * More metrics have been added; they can be used together with collectd and
+    its curl_json plugin for now, with some limitations.
+  * New bandplan feature, the first thing visible is the "dial" indicator that
+    brings you right to the dial frequency for digital modes
   * fixed some bugs in the websocket communication which broke the map
   * WSJT-X integration (FT8, FT4, WSPR, JT65, JT9 using wsjt-x demodulators)
-  * New Map Feature that shows both decoded grid squares from FT8 and Locations decoded from YSF digital voice
+  * New Map Feature that shows both decoded grid squares from FT8 and Locations
+    decoded from YSF digital voice
   * New Feature report that will show what functionality is available
   * major rework on the openwebrx core
   * Support of multiple SDR devices simultaneously
-  * Support for multiple profiles per SDR that allow the user to listen to different frequencies
+  * Support for multiple profiles per SDR that allow the user to listen to
+    different frequencies
   * Support for digital voice decoding
-  * Feature detection that will disable functionality when dependencies are not available (if you're missing the digital
+  * Feature detection that will disable functionality when dependencies are not
+    available (if you're missing the digital
     buttons, this is probably why)
   * Support added for the following SDR sources:
     - LimeSDR (`"type": "lime_sdr"`)
     - PlutoSDR (`"type": "pluto_sdr"`)
-    - RTL_SDR via Soapy (`"type": "rtl_sdr_soapy"`) on special request to allow use of the direct sampling mode
+    - RTL_SDR via Soapy (`"type": "rtl_sdr_soapy"`) on special request to allow
+      use of the direct sampling mode
     - SoapyRemote (`"type": "soapy_remote"`)
     - FiFiSDR (`"type": "fifi_sdr"`)
     - airspyhf devices (Airspy HF+ / Discovery) (`"type": "airspyhf"`)
