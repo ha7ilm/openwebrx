@@ -1,10 +1,6 @@
 #!/bin/bash
 set -euxo pipefail
-
-ARCH=$(uname -m)
-
-TAG=${TAG:-"latest"}
-ARCHTAG="$TAG-$ARCH"
+. docker/env
 
 docker build --pull -t openwebrx-base:$ARCHTAG -f docker/Dockerfiles/Dockerfile-base .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-rtlsdr:$ARCHTAG -f docker/Dockerfiles/Dockerfile-rtlsdr .
