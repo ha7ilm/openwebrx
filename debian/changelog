@@ -1,4 +1,4 @@
-openwebrx (0.18) UNRELEASED; urgency=low
+openwebrx (0.18.0) buster; urgency=low
 
   * Compression, resampling and filtering in the frontend have been rewritten in javascript, sdr.js has been removed
   * Decoding of Pocsag modulation is now possible
