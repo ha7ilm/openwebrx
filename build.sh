@@ -3,7 +3,7 @@ set -euxo pipefail
 
 ARCH=$(uname -m)
 
-TAG="latest"
+TAG=${TAG:-"latest"}
 ARCHTAG="$TAG-$ARCH"
 
 docker build --pull -t openwebrx-base:$ARCHTAG -f docker/Dockerfiles/Dockerfile-base .
