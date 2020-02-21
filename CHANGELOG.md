@@ -1,4 +1,4 @@
-**unreleased**
+**0.18.0**
 - Support for SoapyRemote
 
 **2020-02-08**
