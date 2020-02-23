@@ -1,15 +1,19 @@
-from owrx.controllers import (
-    StatusController,
+from owrx.controllers.status import (
     StatusJsonController,
-    IndexController,
-    OwrxAssetsController,
-    WebSocketController,
-    MapController,
-    FeatureController,
-    ApiController,
-    MetricsController,
-    AprsSymbolsController,
+    StatusController
 )
+from owrx.controllers.template import (
+    IndexController,
+    MapController,
+    FeatureController
+)
+from owrx.controllers.assets import (
+    OwrxAssetsController,
+    AprsSymbolsController
+)
+from owrx.controllers.websocket import WebSocketController
+from owrx.controllers.api import ApiController
+from owrx.controllers.metrics import MetricsController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import re
