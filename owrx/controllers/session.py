@@ -2,9 +2,6 @@ from .template import WebpageController
 from urllib.parse import parse_qs
 from uuid import uuid4
 from http.cookies import SimpleCookie
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class SessionStorage(object):
@@ -43,14 +40,13 @@ class SessionController(WebpageController):
     def processLoginAction(self):
         data = parse_qs(self.get_body().decode("utf-8"))
         data = {k: v[0] for k, v in data.items()}
-        logger.debug(data)
         if "user" in data and "password" in data:
             # TODO actually check user and password
             if data["user"] == "admin" and data["password"] == "password":
                 # TODO pass the final destination
                 key = SessionStorage.getSharedInstance().startSession({"user": data["user"]})
                 cookie = SimpleCookie()
-                cookie["session"] = key
+                cookie["owrx-session"] = key
                 self.send_redirect("/settings", cookies=cookie)
             else:
                 self.send_redirect("/login")

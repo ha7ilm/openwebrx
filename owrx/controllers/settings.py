@@ -1,8 +1,12 @@
 from . import Controller
+from .session import SessionStorage
 
 
 class Authentication(object):
     def isAuthenticated(self, request):
+        if "owrx-session" in request.cookies:
+            session = SessionStorage.getSharedInstance().getSession(request.cookies["owrx-session"].value)
+            return session is not None
         return False
 
 

@@ -17,6 +17,7 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import re
 from abc import ABC, abstractmethod
+from http.cookies import SimpleCookie
 
 import logging
 
@@ -40,11 +41,12 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 class Request(object):
-    def __init__(self, url, method):
+    def __init__(self, url, method, cookies):
         self.path = url.path
         self.query = parse_qs(url.query)
         self.matches = None
         self.method = method
+        self.cookies = cookies
 
     def setMatches(self, matches):
         self.matches = matches
@@ -111,7 +113,10 @@ class Router(object):
 
     def route(self, handler, method):
         url = urlparse(handler.path)
-        request = Request(url, method)
+        cookies = SimpleCookie()
+        if "Cookie" in handler.headers:
+            cookies.load(handler.headers["Cookie"])
+        request = Request(url, method, cookies)
         route = self.find_route(request)
         if route is not None:
             controller = route.controller
