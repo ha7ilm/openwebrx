@@ -11,6 +11,8 @@ from owrx.controllers.assets import (
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
+from owrx.controllers.settings import SettingsController
+from owrx.controllers.session import SessionController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import re
@@ -91,6 +93,9 @@ class Router(object):
             StaticRoute("/features", FeatureController),
             StaticRoute("/api/features", ApiController),
             StaticRoute("/metrics", MetricsController),
+            StaticRoute("/settings", SettingsController),
+            StaticRoute("/login", SessionController, {"action": "loginAction"}),
+            StaticRoute("/logout", SessionController, {"action": "logoutAction"}),
         ]
 
     def find_route(self, request):

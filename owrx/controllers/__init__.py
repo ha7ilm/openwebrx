@@ -21,6 +21,11 @@ class Controller(ABC):
             content = content.encode()
         self.handler.wfile.write(content)
 
+    def send_redirect(self, location, code=303):
+        self.handler.send_response(code)
+        self.handler.send_header("Location", location)
+        self.handler.end_headers()
+
     def handle_request(self):
         action = "indexAction"
         if "action" in self.options:
