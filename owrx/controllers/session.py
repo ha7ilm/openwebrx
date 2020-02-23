@@ -1,9 +1,9 @@
-from . import Controller
+from .template import WebpageController
 
 
-class SessionController(Controller):
+class SessionController(WebpageController):
     def loginAction(self):
-        self.send_response("login happening here")
+        self.serve_template("login.html", **self.template_variables())
 
     def logoutAction(self):
         self.send_redirect("logout happening here")
