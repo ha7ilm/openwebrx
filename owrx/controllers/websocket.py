@@ -4,7 +4,7 @@ from owrx.connection import WebSocketMessageHandler
 
 
 class WebSocketController(Controller):
-    def handle_request(self):
+    def indexAction(self):
         conn = WebSocketConnection(self.handler, WebSocketMessageHandler())
         # enter read loop
         conn.handle()

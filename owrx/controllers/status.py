@@ -8,7 +8,7 @@ import json
 
 
 class StatusController(Controller):
-    def handle_request(self):
+    def indexAction(self):
         pm = PropertyManager.getSharedInstance()
         # TODO keys that have been left out since they are no longer simple strings: sdr_hw, bands, antenna
         vars = {
@@ -25,8 +25,6 @@ class StatusController(Controller):
         }
         self.send_response("\n".join(["{key}={value}".format(key=key, value=value) for key, value in vars.items()]))
 
-
-class StatusJsonController(Controller):
     def getProfileStats(self, profile):
         return {
             "name": profile["name"],
@@ -43,7 +41,7 @@ class StatusJsonController(Controller):
         }
         return stats
 
-    def handle_request(self):
+    def jsonAction(self):
         pm = PropertyManager.getSharedInstance()
 
         gps = pm["receiver_gps"]

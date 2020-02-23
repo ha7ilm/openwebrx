@@ -25,16 +25,16 @@ class WebpageController(TemplateController, metaclass=ABCMeta):
 
 
 class IndexController(WebpageController):
-    def handle_request(self):
+    def indexAction(self):
         self.serve_template("index.html", **self.template_variables())
 
 
 class MapController(WebpageController):
-    def handle_request(self):
+    def indexAction(self):
         # TODO check if we have a google maps api key first?
         self.serve_template("map.html", **self.template_variables())
 
 
 class FeatureController(WebpageController):
-    def handle_request(self):
+    def indexAction(self):
         self.serve_template("features.html", **self.template_variables())

@@ -4,6 +4,6 @@ import json
 
 
 class ApiController(Controller):
-    def handle_request(self):
+    def indexAction(self):
         data = json.dumps(FeatureDetector().feature_report())
         self.send_response(data, content_type="application/json")

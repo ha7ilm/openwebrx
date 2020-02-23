@@ -1,7 +1,4 @@
-from owrx.controllers.status import (
-    StatusJsonController,
-    StatusController
-)
+from owrx.controllers.status import StatusController
 from owrx.controllers.template import (
     IndexController,
     MapController,
@@ -48,8 +45,9 @@ class Request(object):
 
 
 class Route(ABC):
-    def __init__(self, controller):
+    def __init__(self, controller, controllerOptions = None):
         self.controller = controller
+        self.controllerOptions = controllerOptions if controllerOptions is not None else {}
 
     @abstractmethod
     def matches(self, request):
@@ -57,18 +55,18 @@ class Route(ABC):
 
 
 class StaticRoute(Route):
-    def __init__(self, route, controller):
+    def __init__(self, route, controller, controllerOptions = None):
         self.route = route
-        super().__init__(controller)
+        super().__init__(controller, controllerOptions)
 
     def matches(self, request):
         return request.path == self.route
 
 
 class RegexRoute(Route):
-    def __init__(self, regex, controller):
+    def __init__(self, regex, controller, controllerOptions = None):
         self.regex = re.compile(regex)
-        super().__init__(controller)
+        super().__init__(controller, controllerOptions)
 
     def matches(self, request):
         matches = self.regex.match(request.path)
@@ -82,7 +80,7 @@ class Router(object):
         self.routes = [
             StaticRoute("/", IndexController),
             StaticRoute("/status", StatusController),
-            StaticRoute("/status.json", StatusJsonController),
+            StaticRoute("/status.json", StatusController, {"action": "jsonAction"}),
             RegexRoute("/static/(.+)", OwrxAssetsController),
             RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
             StaticRoute("/ws/", WebSocketController),
@@ -106,6 +104,6 @@ class Router(object):
         route = self.find_route(request)
         if route is not None:
             controller = route.controller
-            controller(handler, request).handle_request()
+            controller(handler, request, route.controllerOptions).handle_request()
         else:
             handler.send_error(404, "Not Found", "The page you requested could not be found.")

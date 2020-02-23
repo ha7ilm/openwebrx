@@ -35,7 +35,7 @@ class AssetsController(Controller):
         except FileNotFoundError:
             self.send_response("file not found", code=404)
 
-    def handle_request(self):
+    def indexAction(self):
         filename = self.request.matches.group(1)
         self.serve_file(filename)
 

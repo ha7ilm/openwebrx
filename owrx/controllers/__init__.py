@@ -3,9 +3,10 @@ from datetime import datetime
 
 
 class Controller(ABC):
-    def __init__(self, handler, request):
+    def __init__(self, handler, request, options):
         self.handler = handler
         self.request = request
+        self.options = options
 
     def send_response(self, content, code=200, content_type="text/html", last_modified: datetime = None, max_age=None):
         self.handler.send_response(code)
@@ -20,6 +21,8 @@ class Controller(ABC):
             content = content.encode()
         self.handler.wfile.write(content)
 
-    @abstractmethod
     def handle_request(self):
-        pass
+        action = "indexAction"
+        if "action" in self.options:
+            action = self.options["action"]
+        getattr(self, action)()
