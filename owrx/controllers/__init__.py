@@ -20,8 +20,10 @@ class Controller(object):
             content = content.encode()
         self.handler.wfile.write(content)
 
-    def send_redirect(self, location, code=303, cookies=[]):
+    def send_redirect(self, location, code=303, cookies=None):
         self.handler.send_response(code)
+        if cookies is not None:
+            self.handler.send_header("Set-Cookie", cookies.output(header=''))
         self.handler.send_header("Location", location)
         self.handler.end_headers()
 
