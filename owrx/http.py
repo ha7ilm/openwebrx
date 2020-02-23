@@ -33,23 +33,28 @@ class RequestHandler(BaseHTTPRequestHandler):
         logger.debug("%s - - [%s] %s", self.address_string(), self.log_date_time_string(), format % args)
 
     def do_GET(self):
-        self.router.route(self)
+        self.router.route(self, "GET")
+
+    def do_POST(self):
+        self.router.route(self, "POST")
 
 
 class Request(object):
-    def __init__(self, url):
+    def __init__(self, url, method):
         self.path = url.path
         self.query = parse_qs(url.query)
         self.matches = None
+        self.method = method
 
     def setMatches(self, matches):
         self.matches = matches
 
 
 class Route(ABC):
-    def __init__(self, controller, controllerOptions = None):
+    def __init__(self, controller, method="GET", options=None):
         self.controller = controller
-        self.controllerOptions = controllerOptions if controllerOptions is not None else {}
+        self.controllerOptions = options if options is not None else {}
+        self.method = method
 
     @abstractmethod
     def matches(self, request):
@@ -57,24 +62,24 @@ class Route(ABC):
 
 
 class StaticRoute(Route):
-    def __init__(self, route, controller, controllerOptions = None):
+    def __init__(self, route, controller, method="GET", options=None):
         self.route = route
-        super().__init__(controller, controllerOptions)
+        super().__init__(controller, method, options)
 
     def matches(self, request):
-        return request.path == self.route
+        return request.path == self.route and self.method == request.method
 
 
 class RegexRoute(Route):
-    def __init__(self, regex, controller, controllerOptions = None):
+    def __init__(self, regex, controller, method="GET", options=None):
         self.regex = re.compile(regex)
-        super().__init__(controller, controllerOptions)
+        super().__init__(controller, method, options)
 
     def matches(self, request):
         matches = self.regex.match(request.path)
         # this is probably not the cleanest way to do it...
         request.setMatches(matches)
-        return matches is not None
+        return matches is not None and self.method == request.method
 
 
 class Router(object):
@@ -82,7 +87,7 @@ class Router(object):
         self.routes = [
             StaticRoute("/", IndexController),
             StaticRoute("/status", StatusController),
-            StaticRoute("/status.json", StatusController, {"action": "jsonAction"}),
+            StaticRoute("/status.json", StatusController, options={"action": "jsonAction"}),
             RegexRoute("/static/(.+)", OwrxAssetsController),
             RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
             StaticRoute("/ws/", WebSocketController),
@@ -94,8 +99,9 @@ class Router(object):
             StaticRoute("/api/features", ApiController),
             StaticRoute("/metrics", MetricsController),
             StaticRoute("/settings", SettingsController),
-            StaticRoute("/login", SessionController, {"action": "loginAction"}),
-            StaticRoute("/logout", SessionController, {"action": "logoutAction"}),
+            StaticRoute("/login", SessionController, options={"action": "loginAction"}),
+            StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
+            StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),
         ]
 
     def find_route(self, request):
@@ -103,9 +109,9 @@ class Router(object):
             if r.matches(request):
                 return r
 
-    def route(self, handler):
+    def route(self, handler, method):
         url = urlparse(handler.path)
-        request = Request(url)
+        request = Request(url, method)
         route = self.find_route(request)
         if route is not None:
             controller = route.controller
