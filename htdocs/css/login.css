@@ -1,0 +1,37 @@
+@import url("openwebrx-header.css");
+@import url("openwebrx-globals.css");
+
+/* expandable photo not implemented on login page */
+#webrx-top-photo-clip {
+    max-height: 67px;
+}
+
+
+body {
+    background-color: #2e2e2e;
+}
+
+.login {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 500px;
+
+    background-color: #ddd;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #575757;
+}
+
+.login .btn {
+    width: 100%;
+}
+
+.btn-login {
+    color: #FFF;
+    background-color: #2e2e2e;
+    border-color: #2e2e2e;
+    height: 50px;
+}

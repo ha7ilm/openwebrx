@@ -1,6 +1,6 @@
 // this controls if the new AudioWorklet API should be used if available.
 // the engine will still fall back to the ScriptProcessorNode if this is set to true but not available in the browser.
-var useAudioWorklets = true;
+var useAudioWorklets = false;
 
 function AudioEngine(maxBufferLength, audioReporter) {
     this.audioReporter = audioReporter;
