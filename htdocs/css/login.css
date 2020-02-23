@@ -23,6 +23,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     border: 1px solid #575757;
+    box-shadow: 0 0 20px #000;
 }
 
 .login .btn {
