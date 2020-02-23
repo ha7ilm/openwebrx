@@ -1,10 +1,9 @@
 from . import Controller
 import pkg_resources
 from string import Template
-from abc import ABCMeta
 
 
-class TemplateController(Controller, metaclass=ABCMeta):
+class TemplateController(Controller):
     def render_template(self, file, **vars):
         file_content = pkg_resources.resource_string("htdocs", file).decode("utf-8")
         template = Template(file_content)
@@ -18,7 +17,7 @@ class TemplateController(Controller, metaclass=ABCMeta):
         return {}
 
 
-class WebpageController(TemplateController, metaclass=ABCMeta):
+class WebpageController(TemplateController):
     def template_variables(self):
         header = self.render_template("include/header.include.html")
         return {"header": header}

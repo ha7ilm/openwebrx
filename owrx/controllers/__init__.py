@@ -1,8 +1,7 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-class Controller(ABC):
+class Controller(object):
     def __init__(self, handler, request, options):
         self.handler = handler
         self.request = request
