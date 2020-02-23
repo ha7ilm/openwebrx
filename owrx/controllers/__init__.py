@@ -20,10 +20,16 @@ class Controller(object):
             content = content.encode()
         self.handler.wfile.write(content)
 
-    def send_redirect(self, location, code=303):
+    def send_redirect(self, location, code=303, cookies=[]):
         self.handler.send_response(code)
         self.handler.send_header("Location", location)
         self.handler.end_headers()
+
+    def get_body(self):
+        if "Content-Length" not in self.handler.headers:
+            return None
+        length = int(self.handler.headers["Content-Length"])
+        return self.handler.rfile.read(length)
 
     def handle_request(self):
         action = "indexAction"
