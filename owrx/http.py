@@ -17,6 +17,7 @@ from owrx.controllers.metrics import MetricsController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import re
+from abc import ABC, abstractmethod
 
 import logging
 
@@ -37,46 +38,74 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 class Request(object):
-    def __init__(self, query=None, matches=None):
-        self.query = query
+    def __init__(self, url):
+        self.path = url.path
+        self.query = parse_qs(url.query)
+        self.matches = None
+
+    def setMatches(self, matches):
         self.matches = matches
 
 
-class Router(object):
-    mappings = [
-        {"route": "/", "controller": IndexController},
-        {"route": "/status", "controller": StatusController},
-        {"route": "/status.json", "controller": StatusJsonController},
-        {"regex": "/static/(.+)", "controller": OwrxAssetsController},
-        {"regex": "/aprs-symbols/(.+)", "controller": AprsSymbolsController},
-        {"route": "/ws/", "controller": WebSocketController},
-        {"regex": "(/favicon.ico)", "controller": OwrxAssetsController},
-        # backwards compatibility for the sdr.hu portal
-        {"regex": "/(gfx/openwebrx-avatar.png)", "controller": OwrxAssetsController},
-        {"route": "/map", "controller": MapController},
-        {"route": "/features", "controller": FeatureController},
-        {"route": "/api/features", "controller": ApiController},
-        {"route": "/metrics", "controller": MetricsController},
-    ]
+class Route(ABC):
+    def __init__(self, controller):
+        self.controller = controller
 
-    def find_controller(self, path):
-        for m in Router.mappings:
-            if "route" in m:
-                if m["route"] == path:
-                    return (m["controller"], None)
-            if "regex" in m:
-                regex = re.compile(m["regex"])
-                matches = regex.match(path)
-                if matches:
-                    return (m["controller"], matches)
+    @abstractmethod
+    def matches(self, request):
+        pass
+
+
+class StaticRoute(Route):
+    def __init__(self, route, controller):
+        self.route = route
+        super().__init__(controller)
+
+    def matches(self, request):
+        return request.path == self.route
+
+
+class RegexRoute(Route):
+    def __init__(self, regex, controller):
+        self.regex = re.compile(regex)
+        super().__init__(controller)
+
+    def matches(self, request):
+        matches = self.regex.match(request.path)
+        # this is probably not the cleanest way to do it...
+        request.setMatches(matches)
+        return matches is not None
+
+
+class Router(object):
+    def __init__(self):
+        self.routes = [
+            StaticRoute("/", IndexController),
+            StaticRoute("/status", StatusController),
+            StaticRoute("/status.json", StatusJsonController),
+            RegexRoute("/static/(.+)", OwrxAssetsController),
+            RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
+            StaticRoute("/ws/", WebSocketController),
+            RegexRoute("(/favicon.ico)", OwrxAssetsController),
+            # backwards compatibility for the sdr.hu portal
+            RegexRoute("(/gfx/openwebrx-avatar.png)", OwrxAssetsController),
+            StaticRoute("/map", MapController),
+            StaticRoute("/features", FeatureController),
+            StaticRoute("/api/features", ApiController),
+            StaticRoute("/metrics", MetricsController),
+        ]
+
+    def find_route(self, request):
+        for r in self.routes:
+            if r.matches(request):
+                return r
 
     def route(self, handler):
         url = urlparse(handler.path)
-        res = self.find_controller(url.path)
-        if res is not None:
-            (controller, matches) = res
-            query = parse_qs(url.query)
-            request = Request(query, matches)
+        request = Request(url)
+        route = self.find_route(request)
+        if route is not None:
+            controller = route.controller
             controller(handler, request).handle_request()
         else:
             handler.send_error(404, "Not Found", "The page you requested could not be found.")
