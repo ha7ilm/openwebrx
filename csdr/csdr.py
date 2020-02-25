@@ -104,6 +104,8 @@ class dsp(object):
             "iqtee2_pipe",
             "dmr_control_pipe",
         ]
+        self.pipes = {}
+        self.pipe_files = {}
         self.secondary_pipe_names = ["secondary_shift_pipe"]
         self.secondary_offset_freq = 1000
         self.unvoiced_quality = 1
@@ -301,8 +303,8 @@ class dsp(object):
         self.try_create_configs(secondary_command_demod)
 
         secondary_command_demod = secondary_command_demod.format(
-            input_pipe=self.iqtee2_pipe,
-            secondary_shift_pipe=self.secondary_shift_pipe,
+            input_pipe=self.pipes["iqtee2_pipe"],
+            secondary_shift_pipe=self.pipes["secondary_shift_pipe"],
             secondary_decimation=self.secondary_decimation(),
             secondary_samples_per_bits=self.secondary_samples_per_bits(),
             secondary_bpf_cutoff=self.secondary_bpf_cutoff(),
@@ -321,7 +323,7 @@ class dsp(object):
         if self.output.supports_type("secondary_fft"):
             secondary_command_fft = " | ".join(self.secondary_chain("fft"))
             secondary_command_fft = secondary_command_fft.format(
-                input_pipe=self.iqtee_pipe,
+                input_pipe=self.pipes["iqtee_pipe"],
                 secondary_fft_input_size=self.secondary_fft_size,
                 secondary_fft_size=self.secondary_fft_size,
                 secondary_fft_block_size=self.secondary_fft_block_size(),
@@ -347,6 +349,7 @@ class dsp(object):
 
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
+            chopper = None
             if smd == "ft8":
                 chopper = Ft8Chopper(self.secondary_process_demod.stdout)
             elif smd == "wspr":
@@ -357,8 +360,9 @@ class dsp(object):
                 chopper = Jt9Chopper(self.secondary_process_demod.stdout)
             elif smd == "ft4":
                 chopper = Ft4Chopper(self.secondary_process_demod.stdout)
-            chopper.start()
-            self.output.send_output("wsjt_demod", chopper.read)
+            if chopper is not None:
+                chopper.start()
+                self.output.send_output("wsjt_demod", chopper.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_port)
@@ -369,18 +373,18 @@ class dsp(object):
             self.output.send_output("secondary_demod", partial(self.secondary_process_demod.stdout.read, 1))
 
         # open control pipes for csdr and send initialization data
-        if self.secondary_shift_pipe != None:  # TODO digimodes
-            self.secondary_shift_pipe_file = open(self.secondary_shift_pipe, "w")  # TODO digimodes
+        if self.has_pipe("secondary_shift_pipe"):  # TODO digimodes
+            self.pipe_files["secondary_shift_pipe"] = open(self.pipes["secondary_shift_pipe"], "w")  # TODO digimodes
             self.set_secondary_offset_freq(self.secondary_offset_freq)  # TODO digimodes
 
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq = value
-        if self.secondary_processes_running and hasattr(self, "secondary_shift_pipe_file"):
-            self.secondary_shift_pipe_file.write("%g\n" % (-float(self.secondary_offset_freq) / self.if_samp_rate()))
-            self.secondary_shift_pipe_file.flush()
+        if self.secondary_processes_running and self.has_pipe("secondary_shift_pipe"):
+            self.pipe_files["secondary_shift_pipe"].write("%g\n" % (-float(self.secondary_offset_freq) / self.if_samp_rate()))
+            self.pipe_files["secondary_shift_pipe"].flush()
 
     def stop_secondary_demodulator(self):
-        if self.secondary_processes_running == False:
+        if not self.secondary_processes_running:
             return
         self.try_delete_pipes(self.secondary_pipe_names)
         self.try_delete_configs()
@@ -447,7 +451,7 @@ class dsp(object):
             decimation += 1
         fraction = float(input_rate / decimation) / output_rate
         intermediate_rate = input_rate / decimation
-        return (decimation, fraction, intermediate_rate)
+        return decimation, fraction, intermediate_rate
 
     def if_samp_rate(self):
         return self.samp_rate / self.decimation
@@ -524,8 +528,8 @@ class dsp(object):
         self.offset_freq = offset_freq
         if self.running:
             self.modification_lock.acquire()
-            self.shift_pipe_file.write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
-            self.shift_pipe_file.flush()
+            self.pipe_files["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
+            self.pipe_files["shift_pipe"].flush()
             self.modification_lock.release()
 
     def set_bpf(self, low_cut, high_cut):
@@ -533,10 +537,10 @@ class dsp(object):
         self.high_cut = high_cut
         if self.running:
             self.modification_lock.acquire()
-            self.bpf_pipe_file.write(
+            self.pipe_files["bpf_pipe"].write(
                 "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
             )
-            self.bpf_pipe_file.flush()
+            self.pipe_files["bpf_pipe"].flush()
             self.modification_lock.release()
 
     def get_bpf(self):
@@ -551,8 +555,8 @@ class dsp(object):
         actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() else self.squelch_level
         if self.running:
             self.modification_lock.acquire()
-            self.squelch_pipe_file.write("%g\n" % (self.convertToLinear(actual_squelch)))
-            self.squelch_pipe_file.flush()
+            self.pipe_files["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
+            self.pipe_files["squelch_pipe"].flush()
             self.modification_lock.release()
 
     def set_unvoiced_quality(self, q):
@@ -563,9 +567,9 @@ class dsp(object):
         return self.unvoiced_quality
 
     def set_dmr_filter(self, filter):
-        if self.dmr_control_pipe_file:
-            self.dmr_control_pipe_file.write("{0}\n".format(filter))
-            self.dmr_control_pipe_file.flush()
+        if self.has_pipe("dmr_control_pipe"):
+            self.pipe_files["dmr_control_pipe"].write("{0}\n".format(filter))
+            self.pipe_files["dmr_control_pipe"].flush()
 
     def mkfifo(self, path):
         try:
@@ -580,15 +584,19 @@ class dsp(object):
     def try_create_pipes(self, pipe_names, command_base):
         for pipe_name in pipe_names:
             if "{" + pipe_name + "}" in command_base:
-                setattr(self, pipe_name, self.pipe_base_path + pipe_name)
-                self.mkfifo(getattr(self, pipe_name))
+                p = self.pipe_base_path + pipe_name
+                self.pipes[pipe_name] = p
+                self.mkfifo(p)
             else:
-                setattr(self, pipe_name, None)
+                self.pipes[pipe_name] = None
+
+    def has_pipe(self, name):
+        return name in self.pipes and self.pipes[name] is not None
 
     def try_delete_pipes(self, pipe_names):
         for pipe_name in pipe_names:
-            pipe_path = getattr(self, pipe_name, None)
-            if pipe_path:
+            if self.has_pipe(pipe_name):
+                pipe_path = self.pipes[pipe_name]
                 try:
                     os.unlink(pipe_path)
                 except FileNotFoundError:
@@ -596,6 +604,8 @@ class dsp(object):
                     pass
                 except Exception:
                     logger.exception("try_delete_pipes()")
+                finally:
+                    self.pipes[pipe_name] = None
 
     def try_create_configs(self, command):
         if "{direwolf_config}" in command:
@@ -637,8 +647,14 @@ class dsp(object):
 
         # run the command
         command = command_base.format(
-            bpf_pipe=self.bpf_pipe,
-            shift_pipe=self.shift_pipe,
+            bpf_pipe=self.pipes["bpf_pipe"],
+            shift_pipe=self.pipes["shift_pipe"],
+            squelch_pipe=self.pipes["squelch_pipe"],
+            smeter_pipe=self.pipes["smeter_pipe"],
+            meta_pipe=self.pipes["meta_pipe"],
+            iqtee_pipe=self.pipes["iqtee_pipe"],
+            iqtee2_pipe=self.pipes["iqtee2_pipe"],
+            dmr_control_pipe=self.pipes["dmr_control_pipe"],
             decimation=self.decimation,
             last_decimation=self.last_decimation,
             fft_size=self.fft_size,
@@ -649,15 +665,9 @@ class dsp(object):
             flowcontrol=int(self.samp_rate * 2),
             start_bufsize=self.base_bufsize * self.decimation,
             nc_port=self.nc_port,
-            squelch_pipe=self.squelch_pipe,
-            smeter_pipe=self.smeter_pipe,
-            meta_pipe=self.meta_pipe,
-            iqtee_pipe=self.iqtee_pipe,
-            iqtee2_pipe=self.iqtee2_pipe,
             output_rate=self.get_output_rate(),
             smeter_report_every=int(self.if_samp_rate() / 6000),
             unvoiced_quality=self.get_unvoiced_quality(),
-            dmr_control_pipe=self.dmr_control_pipe,
             audio_rate=self.get_audio_rate(),
         )
 
@@ -690,40 +700,37 @@ class dsp(object):
             )
 
         # open control pipes for csdr
-        if self.bpf_pipe:
-            self.bpf_pipe_file = open(self.bpf_pipe, "w")
-        if self.shift_pipe:
-            self.shift_pipe_file = open(self.shift_pipe, "w")
-        if self.squelch_pipe:
-            self.squelch_pipe_file = open(self.squelch_pipe, "w")
+        for p in ["bpf_pipe", "shift_pipe", "squelch_pipe"]:
+            if self.has_pipe(p):
+                self.pipe_files[p] = open(self.pipes[p], "w")
         self.start_secondary_demodulator()
 
         self.modification_lock.release()
 
         # send initial config through the pipes
-        if self.squelch_pipe:
+        if self.has_pipe("squelch_pipe"):
             self.set_squelch_level(self.squelch_level)
-        if self.shift_pipe:
+        if self.has_pipe("shift_pipe"):
             self.set_offset_freq(self.offset_freq)
-        if self.bpf_pipe:
+        if self.has_pipe("bpf_pipe"):
             self.set_bpf(self.low_cut, self.high_cut)
-        if self.smeter_pipe:
-            self.smeter_pipe_file = open(self.smeter_pipe, "r")
+        if self.has_pipe("smeter_pipe"):
+            self.pipe_files["smeter_pipe"] = open(self.pipes["smeter_pipe"], "r")
 
             def read_smeter():
-                raw = self.smeter_pipe_file.readline()
+                raw = self.pipe_files["smeter_pipe"].readline()
                 if len(raw) == 0:
                     return None
                 else:
                     return float(raw.rstrip("\n"))
 
             self.output.send_output("smeter", read_smeter)
-        if self.meta_pipe != None:
+        if self.has_pipe("meta_pipe"):
             # TODO make digiham output unicode and then change this here
-            self.meta_pipe_file = open(self.meta_pipe, "r", encoding="cp437")
+            self.pipe_files["meta_pipe"] = open(self.pipes["meta_pipe"], "r", encoding="cp437")
 
             def read_meta():
-                raw = self.meta_pipe_file.readline()
+                raw = self.pipe_files["meta_pipe"].readline()
                 if len(raw) == 0:
                     return None
                 else:
@@ -731,8 +738,8 @@ class dsp(object):
 
             self.output.send_output("meta", read_meta)
 
-        if self.dmr_control_pipe:
-            self.dmr_control_pipe_file = open(self.dmr_control_pipe, "w")
+        if self.has_pipe("dmr_control_pipe"):
+            self.pipe_files["dmr_control_pipe"] = open(self.pipes["dmr_control_pipe"], "w")
 
     def stop(self):
         self.modification_lock.acquire()
