@@ -46,13 +46,13 @@ class OwrxAssetsController(AssetsController):
 
 
 class AprsSymbolsController(AssetsController):
-    def __init__(self, handler, request):
+    def __init__(self, handler, request, options):
         pm = PropertyManager.getSharedInstance()
         path = pm["aprs_symbols_path"]
         if not path.endswith("/"):
             path += "/"
         self.path = path
-        super().__init__(handler, request)
+        super().__init__(handler, request, options)
 
     def getFilePath(self, file):
         return self.path + file
