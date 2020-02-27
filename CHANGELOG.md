@@ -1,5 +1,6 @@
 **unreleased**
 - Fix direwolf connection setup by implementing a retry loop
+- Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connectorgit
 
 **0.18.0**
 - Support for SoapyRemote
