@@ -66,10 +66,6 @@ class SpectrumThread(csdr.output):
         return t == "audio"
 
     def receive_output(self, type, read_fn):
-        if self.props["csdr_dynamic_bufsize"]:
-            read_fn(8)  # dummy read to skip bufsize & preamble
-            logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
-
         threading.Thread(target=self.pump(read_fn, self.sdrSource.writeSpectrumData)).start()
 
     def stop(self):
