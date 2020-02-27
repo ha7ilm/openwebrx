@@ -115,6 +115,7 @@ class dsp(object):
         self.is_service = False
         self.direwolf_config = None
         self.direwolf_port = None
+        self.process = None
 
     def set_service(self, flag=True):
         self.is_service = flag
@@ -744,9 +745,10 @@ class dsp(object):
     def stop(self):
         self.modification_lock.acquire()
         self.running = False
-        if hasattr(self, "process"):
+        if self.process is not None:
             try:
                 os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+                self.process = None
             except ProcessLookupError:
                 # been killed by something else, ignore
                 pass
@@ -764,4 +766,3 @@ class dsp(object):
 
     def __del__(self):
         self.stop()
-        del self.process
