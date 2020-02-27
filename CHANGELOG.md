@@ -1,3 +1,6 @@
+**unreleased**
+- Fix direwolf connection setup by implementing a retry loop
+
 **0.18.0**
 - Support for SoapyRemote
 
