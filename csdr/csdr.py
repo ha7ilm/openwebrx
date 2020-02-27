@@ -755,6 +755,8 @@ class dsp(object):
             self.start_secondary_demodulator()
 
         # send initial config through the pipes
+        # the sequencing here is essential; the pipes must be opened in the order that they appear in the command,
+        # otherwise deadlocks will occur.
         if self.has_pipe("bpf_pipe"):
             self.set_bpf(self.low_cut, self.high_cut)
         if self.has_pipe("shift_pipe"):
@@ -779,6 +781,8 @@ class dsp(object):
                     return raw.rstrip("\n")
 
             self.output.send_output("meta", read_meta)
+        if self.has_pipe("dmr_control_pipe"):
+            self.set_dmr_filter(3)
 
         if self.csdr_dynamic_bufsize:
             self.process.stdout.read(8)  # dummy read to skip bufsize & preamble
