@@ -69,9 +69,19 @@ class KissClient(object):
                 pass
 
     def __init__(self, port):
-        time.sleep(1)
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect(("localhost", port))
+        delay = .5
+        retries = 0
+        while True:
+            try:
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket.connect(("localhost", port))
+                break
+            except ConnectionError:
+                if retries > 20:
+                    logger.error("maximum number of connection attempts reached. did direwolf start up correctly?")
+                    raise
+                retries += 1
+            time.sleep(delay)
 
     def read(self):
         return self.socket.recv(1)
