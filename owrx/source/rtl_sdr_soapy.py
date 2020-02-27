@@ -11,3 +11,9 @@ class RtlSdrSoapySource(SoapyConnectorSource):
 
     def getEventNames(self):
         return super().getEventNames() + ["direct_sampling"]
+
+    def onPropertyChange(self, prop, value):
+        if prop == "direct_sampling":
+            prop = "settings"
+            value = "direct_samp={0}".format(value)
+        super().onPropertyChange(prop, value)
