@@ -110,14 +110,35 @@ class Pipe(object):
 
 class WritingPipe(Pipe):
     def __init__(self, path, encoding=None):
+        self.queue = []
+        self.queueLock = threading.Lock()
         super().__init__(path, "w", encoding=encoding)
+        self.open()
+
+    def open_and_dequeue(self):
+        super().open()
+        with self.queueLock:
+            for i in self.queue:
+                self.file.write(i)
+            self.file.flush()
+            self.queue = None
+
+    def open(self):
+        threading.Thread(target=self.open_and_dequeue).start()
 
     def write(self, data):
         if self.file is None:
-            self.open()
-        r =self.file.write(data)
+            with self.queueLock:
+                self.queue.append(data)
+            return
+        r = self.file.write(data)
         self.file.flush()
         return r
+
+    def close(self):
+        if self.file is None:
+            logger.warning("queue %s never successfully opened - thread leak!", self.path)
+        super().close()
 
 
 class ReadingPipe(Pipe):
