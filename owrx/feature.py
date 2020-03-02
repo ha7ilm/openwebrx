@@ -194,7 +194,7 @@ class FeatureDetector(object):
         )
 
     def _check_connector(self, command):
-        required_version = LooseVersion("0.1")
+        required_version = LooseVersion("0.2")
 
         owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
 
