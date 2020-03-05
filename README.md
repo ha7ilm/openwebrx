@@ -26,7 +26,14 @@ The following methods of setting up a receiver are currently available:
 - Docker images
 - Manual installation
 
-Please checkout the [setup guide on the wiki](https://github.com/jketterl/openwebrx/wiki/Setup-Guide) for more details on the respective methods.
+Please checkout the [setup guide on the wiki](https://github.com/jketterl/openwebrx/wiki/Setup-Guide) for more details
+on the respective methods.
+
+## Community
+
+If you have trouble setting up or configuring your receiver, you have some great idea you want to see implemented, or
+you just generally want to have some OpenWebRX-related chat, come visit us over on
+[our groups.io group](https://groups.io/g/openwebrx).
 
 ## Usage tips
 
