@@ -4,12 +4,52 @@
     <title>OpenWebRX Settings</title>
     <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="static/css/login.css" />
+    <link rel="stylesheet" type="text/css" href="static/css/admin.css" />
     <meta charset="utf-8">
 </head>
 <body>
 ${header}
-<div>
-    Admin-only area!
+<div class="container">
+    <div class="col-12">
+        <h1>Settings</h1>
+    </div>
+    <div class="col-12 settings-category">
+        <h3 class="settings-header">
+            General Settings
+        </h3>
+        <form class="settings-body">
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="receiver_name">Receiver name</label>
+                <input type="text" class="form-control form-control-sm col-9" id="receiver_name" name="receiver_name" placeholder="Receiver name">
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="receiver_location">Receiver location</label>
+                <input type="text" class="form-control form-control-sm col-9" id="receiver_location" name="receiver_location" placeholder="Receiver location">
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="receiver_asl">Receiver elevation</label>
+                <div class="col-9 p-0">
+                    <input type="text" class="form-control form-control-sm" id="receiver_asl" name="receiver_asl" placeholder="Receiver elevation">
+                    <small class="form-text text-muted">Elevation in meters above mean see level</small>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="receiver_admin">Receiver admin</label>
+                <input type="text" class="form-control form-control-sm col-9" id="receiver_admin" name="receiver_admin" placeholder="Receiver admin">
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="receiver_gps">Receiver coordinates</label>
+                <div class="col-9">Placeholder for a map widget to select receiver location</div>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="photo_title">Photo title</label>
+                <input type="text" class="form-control form-control-sm col-9" id="photo_title" name="photo_title" placeholder="Photo title">
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3" for="photo_desc">Photo description</label>
+                <textarea class="form-control form-control-sm col-9" id="photo_desc" name="photo_desc"></textarea>
+            </div>
+        </form>
+    </div>
 </div>
 </body>
