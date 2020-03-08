@@ -1,4 +1,4 @@
-from . import Controller
+from .template import WebpageController
 from .session import SessionStorage
 
 
@@ -10,7 +10,7 @@ class Authentication(object):
         return False
 
 
-class SettingsController(Controller):
+class AdminController(WebpageController):
     def __init__(self, handler, request, options):
         self.authentication = Authentication()
         super().__init__(handler, request, options)
@@ -22,4 +22,4 @@ class SettingsController(Controller):
             self.send_redirect("/login")
 
     def indexAction(self):
-        self.send_response("actual content here")
+        self.serve_template("admin.html", **self.template_variables())

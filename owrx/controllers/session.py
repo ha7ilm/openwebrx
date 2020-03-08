@@ -47,7 +47,7 @@ class SessionController(WebpageController):
                 key = SessionStorage.getSharedInstance().startSession({"user": data["user"]})
                 cookie = SimpleCookie()
                 cookie["owrx-session"] = key
-                self.send_redirect("/settings", cookies=cookie)
+                self.send_redirect("/admin", cookies=cookie)
             else:
                 self.send_redirect("/login")
         else:
