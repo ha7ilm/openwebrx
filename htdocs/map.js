@@ -215,13 +215,39 @@
                     case "config":
                         var config = json.value;
                         if (!map) $.getScript("https://maps.googleapis.com/maps/api/js?key=" + config.google_maps_api_key).done(function(){
-                            map = new google.maps.Map($('.openwebrx-map')[0], {
-                                center: {
-                                    lat: config.receiver_gps[0],
-                                    lng: config.receiver_gps[1]
-                                },
-                                zoom: 5
-                            });
+                            if (config.google_maps_api_key){
+                                map = new google.maps.Map($('.openwebrx-map')[0], {
+                                    center: {
+                                        lat: config.receiver_gps[0],
+                                        lng: config.receiver_gps[1]
+                                    },
+                                    zoom: 5
+                                });
+                            } else {
+                                var mapTypeIds = [];
+                                for(var type in google.maps.MapTypeId) {
+                                    mapTypeIds.push(google.maps.MapTypeId[type]);
+                                }
+                                mapTypeIds.push("OSM");
+
+                                map = new google.maps.Map($('.openwebrx-map')[0], {
+                                    center: {
+                                        lat: config.receiver_gps[0],
+                                        lng: config.receiver_gps[1]
+                                    },
+                                    zoom: 5,
+                                    mapTypeId: "OSM"
+                                });
+
+                                map.mapTypes.set("OSM", new google.maps.ImageMapType({
+                                    getTileUrl: function(coord, zoom) {
+                                        return "https://maps.wikimedia.org/osm-intl/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
+                                    },
+                                    tileSize: new google.maps.Size(256, 256),
+                                    name: "OpenStreetMap",
+                                    maxZoom: 18
+                                }));
+                            }
                             $.getScript("static/lib/nite-overlay.js").done(function(){
                                 nite.init(map);
                                 setInterval(function() { nite.refresh() }, 10000); // every 10s
