@@ -1,6 +1,7 @@
 **unreleased**
 - Fix direwolf connection setup by implementing a retry loop
 - Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connectorgit
+- OSM maps instead of Google when google_maps_api_key is not set (thanks @jquagga)
 
 **0.18.0**
 - Support for SoapyRemote
