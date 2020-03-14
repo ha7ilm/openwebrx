@@ -1,12 +1,16 @@
 from abc import ABCMeta, abstractmethod
 from owrx.command import Option
-
 from .connector import ConnectorSource
 
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def getCommandMapper(self):
-        return super().getCommandMapper().setBase("soapy_connector").setMappings({"antenna": Option("-a")})
+        return super().getCommandMapper().setBase("soapy_connector").setMappings(
+            {
+                "antenna": Option("-a"),
+                "soapy_settings": Option("-t"),
+            }
+        )
 
     """
     must be implemented by child classes to be able to build a driver-based device selector by default.
@@ -20,7 +24,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def getEventNames(self):
         return super().getEventNames() + [
             "antenna",
-        ]
+        ] + list(self.getSoapySettingsMappings().keys())
 
     def parseDeviceString(self, dstr):
         def decodeComponent(c):
@@ -50,6 +54,16 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
         parsed += [{"driver": self.getDriver()}]
         return parsed
 
+    def getSoapySettingsMappings(self):
+        return {}
+
+    def buildSoapySettings(self, values):
+        settings = {}
+        for k, v in self.getSoapySettingsMappings().items():
+            if k in values:
+                settings[v] = values[k]
+        return settings
+
     def getCommandValues(self):
         values = super().getCommandValues()
         if "device" in values and values["device"] is not None:
@@ -58,4 +72,14 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
             parsed = []
         modified = self.buildSoapyDeviceParameters(parsed, values)
         values["device"] = self.encodeDeviceString(modified)
+        settings = ",".join(["{0}={1}".format(k, v) for k, v in self.buildSoapySettings(values).items()])
+        if len(settings):
+            values["soapy_settings"] = settings
         return values
+
+    def onPropertyChange(self, prop, value):
+        mappings = self.getSoapySettingsMappings()
+        if prop in mappings.keys():
+            value = "{0}={1}".format(mappings[prop], value)
+            prop = "settings"
+        super().onPropertyChange(prop, value)
