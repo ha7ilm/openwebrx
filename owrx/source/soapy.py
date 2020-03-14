@@ -60,7 +60,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def buildSoapySettings(self, values):
         settings = {}
         for k, v in self.getSoapySettingsMappings().items():
-            if k in values:
+            if k in values and values[k] is not None:
                 settings[v] = values[k]
         return settings
 
