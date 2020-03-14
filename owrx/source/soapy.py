@@ -61,8 +61,13 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
         settings = {}
         for k, v in self.getSoapySettingsMappings().items():
             if k in values and values[k] is not None:
-                settings[v] = values[k]
+                settings[v] = self.convertSoapySettingsValue(values[k])
         return settings
+
+    def convertSoapySettingsValue(self, value):
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        return value
 
     def getCommandValues(self):
         values = super().getCommandValues()
@@ -80,6 +85,6 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def onPropertyChange(self, prop, value):
         mappings = self.getSoapySettingsMappings()
         if prop in mappings.keys():
-            value = "{0}={1}".format(mappings[prop], value)
+            value = "{0}={1}".format(mappings[prop], self.convertSoapySettingsValue(value))
             prop = "settings"
         super().onPropertyChange(prop, value)
