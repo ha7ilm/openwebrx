@@ -99,13 +99,17 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #################################################################################################
 
 # Currently supported types of sdr receivers:
-# "rtl_sdr", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr"
+# "rtl_sdr", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr", "perseussdr"
 #
 # In order to use rtl_sdr, you will need to install librtlsdr-dev and the connector.
 # In order to use sdrplay, airspy or airspyhf, you will need to install soapysdr, the corresponding driver, and the
 # connector.
 #
 # https://github.com/jketterl/owrx_connector
+#
+# In order to use Perseus HF you need to install the libperseus-sdr
+#
+# https://github.com/Microtelecom/libperseus-sdr
 #
 # NOTE: The connector sources have replaced the old piped nmux style of reading input. If you still have any sdrs
 # configured that have type endin in "_connector", simply remove that suffix.
@@ -134,6 +138,53 @@ sdrs = {
                 "samp_rate": 2400000,
                 "start_freq": 145725000,
                 "start_mod": "nfm",
+            },
+        },
+    },
+    "perseussdr": {
+        "name": "Microtelecom Perseus HF receiver",
+        "type": "perseussdr",
+        "ppm": 0,
+        "profiles": {
+            "40m": {
+                "name": "40m",
+                "center_freq": 7150000,
+                "rf_gain": 0,
+                "samp_rate": 500000,
+                "start_freq": 7050000,
+                "start_mod": "lsb",
+            },
+            "20m": {
+                "name": "20m",
+                "center_freq": 14150000,
+                "rf_gain": 0,
+                "samp_rate": 500000,
+                "start_freq": 14070000,
+                "start_mod": "usb",
+            },
+            "30m": {
+                "name": "30m",
+                "center_freq": 10125000,
+                "rf_gain": 0,
+                "samp_rate": 192000,
+                "start_freq": 10142000,
+                "start_mod": "usb",
+            },
+            "80m": {
+                "name": "80m",
+                "center_freq": 3650000,
+                "rf_gain": 0,
+                "samp_rate": 500000,
+                "start_freq": 3570000,
+                "start_mod": "usb",
+            },
+            "49m": {
+                "name": "49m Broadcast",
+                "center_freq": 6000000,
+                "rf_gain": 0,
+                "samp_rate": 500000,
+                "start_freq": 6070000,
+                "start_mod": "am",
             },
         },
     },

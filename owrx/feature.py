@@ -25,6 +25,7 @@ class FeatureDetector(object):
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "hackrf": ["hackrf_transfer"],
+        "perseussdr": ["perseustest"],
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
@@ -149,6 +150,26 @@ class FeatureDetector(object):
         # TODO i don't have a hackrf, so somebody doublecheck this.
         # TODO also check if it has the stdout feature
         return self.command_is_runnable("hackrf_transfer --help")
+
+    def has_perseustest(self):
+        """
+        To use a Microtelecom Perseus HF receiver, compile and
+        install the libperseus-sdr:
+        ```
+         sudo apt install libusb-1.0-0-dev
+         cd /tmp
+         wget https://github.com/Microtelecom/libperseus-sdr/releases/download/v0.7.5/libperseus_sdr-0.7.5.tar.gz
+         tar -zxvf libperseus_sdr-0.7.5.tar.gz
+         cd libperseus_sdr-0.7.5/
+         ./configure
+         make
+         sudo make install
+         sudo ldconfig
+         perseustest
+        ```
+        """
+        return self.command_is_runnable("perseustest -d -1 -a -t 1")
+
 
     def has_digiham(self):
         """
