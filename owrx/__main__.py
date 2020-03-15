@@ -8,6 +8,7 @@ from owrx.sdrhu import SdrHuUpdater
 from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.pskreporter import PskReporter
+from owrx.version import openwebrx_version
 
 import logging
 
@@ -30,6 +31,8 @@ Author contact info:    Jakob Ketterl, DD5JFK <dd5jfk@darc.de>
 
     """
     )
+
+    logger.info("OpenWebRX version {0} starting up...".format(openwebrx_version))
 
     pm = PropertyManager.getSharedInstance().loadConfig()
 
