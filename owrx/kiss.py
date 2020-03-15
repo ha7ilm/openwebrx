@@ -40,8 +40,12 @@ IGLOGIN {callsign} {password}
 
             if pm["aprs_igate_beacon"]:
                 (lat, lon) = pm["receiver_gps"]
-                lat = "{0}^{1:.2f}{2}".format(int(lat), (lat - int(lat)) * 60, "N" if lat > 0 else "S")
-                lon = "{0}^{1:.2f}{2}".format(int(lon), (lon - int(lon)) * 60, "E" if lon > 0 else "W")
+                direction_ns = "N" if lat > 0 else "S"
+                direction_we = "E" if lon > 0 else "W"
+                lat = abs(lat)
+                lon = abs(lon)
+                lat = "{0:02d}^{1:05.2f}{2}".format(int(lat), (lat - int(lat)) * 60, direction_ns)
+                lon = "{0:03d}^{1:05.2f}{2}".format(int(lon), (lon - int(lon)) * 60, direction_we)
 
                 config += """
 PBEACON sendto=IG delay=0:30 every=60:00 symbol="igate" overlay=R lat={lat} long={lon} comment="OpenWebRX APRS gateway"
