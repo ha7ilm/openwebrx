@@ -158,9 +158,9 @@ class FeatureDetector(object):
         ```
          sudo apt install libusb-1.0-0-dev
          cd /tmp
-         wget https://github.com/Microtelecom/libperseus-sdr/releases/download/v0.7.5/libperseus_sdr-0.7.5.tar.gz
-         tar -zxvf libperseus_sdr-0.7.5.tar.gz
-         cd libperseus_sdr-0.7.5/
+         wget https://github.com/Microtelecom/libperseus-sdr/releases/download/v0.8.2/libperseus_sdr-0.8.2.tar.gz
+         tar -zxvf libperseus_sdr-0.8.2.tar.gz
+         cd libperseus_sdr-0.8.2/
          ./configure
          make
          sudo make install
@@ -168,7 +168,7 @@ class FeatureDetector(object):
          perseustest
         ```
         """
-        return self.command_is_runnable("perseustest -d -1 -a -t 1")
+        return self.command_is_runnable("perseustest -h")
 
 
     def has_digiham(self):
