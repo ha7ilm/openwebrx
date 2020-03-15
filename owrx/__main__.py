@@ -28,6 +28,8 @@ OpenWebRX - Open Source SDR Web App for Everyone!  | for license see LICENSE fil
 _________________________________________________________________________________________________
 
 Author contact info:    Jakob Ketterl, DD5JFK <dd5jfk@darc.de>
+Documentation:          https://github.com/jketterl/openwebrx/wiki
+Support and info:       https://groups.io/g/openwebrx
 
     """
     )
