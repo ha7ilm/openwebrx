@@ -1770,7 +1770,7 @@ function openwebrx_resize() {
 }
 
 function init_header() {
-    $('#openwebrx-main-buttons').find('li[data-toggle-panel]').click(function () {
+    $('#openwebrx-main-buttons').find('[data-toggle-panel]').click(function () {
         toggle_panel($(this).data('toggle-panel'));
     });
 }

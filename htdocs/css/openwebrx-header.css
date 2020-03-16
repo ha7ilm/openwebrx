@@ -121,18 +121,14 @@
     display:none;
 }
 
-#openwebrx-main-buttons ul
-{
-    margin:0;
-    padding: 0;
-}
-
-
-#openwebrx-main-buttons ul li
-{
-    display: inline-block;
+#openwebrx-main-buttons .button {
+    display: block;
     width: 55px;
     cursor:pointer;
+}
+
+#openwebrx-main-buttons .button img {
+    height: 38px;
 }
 
 #openwebrx-main-buttons a {
@@ -140,12 +136,12 @@
     text-decoration: inherit;
 }
 
-#openwebrx-main-buttons li:hover
+#openwebrx-main-buttons .button:hover
 {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
-#openwebrx-main-buttons li:active
+#openwebrx-main-buttons .button:active
 {
     background-color: rgba(255, 255, 255, 0.55);
 }
@@ -153,6 +149,9 @@
 
 #openwebrx-main-buttons
 {
+    padding: 5px 0;
+    display: flex;
+    list-style: none;
     float: right;
     margin:0;
     color: white;
