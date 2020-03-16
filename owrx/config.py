@@ -1,5 +1,6 @@
 import importlib.util
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -147,3 +148,36 @@ class PropertyManager(object):
             except FileNotFoundError:
                 pass
         raise ConfigNotFoundException("no usable config found! please make sure you have a valid configuration file!")
+
+
+class ConfigError(object):
+    def __init__(self, key, message):
+        self.key = key
+        self.message = message
+
+    def __str__(self):
+        return "Configuration Error (key: {0}): {1}".format(self.key, self.message)
+
+
+class Config:
+    @staticmethod
+    def validateConfig():
+        pm = PropertyManager.getSharedInstance()
+        errors = [
+            Config.checkTempDirectory(pm)
+        ]
+
+        return [e for e in errors if e is not None]
+
+    @staticmethod
+    def checkTempDirectory(pm: PropertyManager):
+        key = "temporary_directory"
+        if not key in pm or pm[key] is None:
+            return ConfigError(key, "temporary directory is not set")
+        if not os.path.exists(pm[key]):
+            return ConfigError(key, "temporary directory doesn't exist")
+        if not os.path.isdir(pm[key]):
+            return ConfigError(key, "temporary directory path is not a directory")
+        if not os.access(pm[key], os.W_OK):
+            return ConfigError(key, "temporary directory is not writable")
+        return None
