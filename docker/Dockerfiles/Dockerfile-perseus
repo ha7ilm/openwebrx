@@ -1,0 +1,7 @@
+ARG ARCHTAG
+FROM openwebrx-base:$ARCHTAG
+
+ADD docker/scripts/install-dependencies-perseus.sh /
+RUN /install-dependencies-perseus.sh &&\
+    rm /install-dependencies-perseus.sh
+

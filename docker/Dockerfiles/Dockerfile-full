@@ -14,7 +14,7 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-limesdr.sh &&\
     /install-dependencies-soapyremote.sh &&\
     rm /install-dependencies-*.sh &&\
-    rm /install-libp.*.patch
+    rm /install-lib.*.patch
 
 ADD docker/scripts/install-connectors.sh /
 RUN /install-connectors.sh &&\
