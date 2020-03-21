@@ -6,7 +6,3 @@ ADD docker/scripts/install-lib.*.patch /
 RUN /install-dependencies-sdrplay.sh
 RUN rm /install-dependencies-sdrplay.sh
 RUN rm /install-lib.*.patch
-
-ADD docker/scripts/install-connectors.sh /
-RUN /install-connectors.sh
-RUN rm /install-connectors.sh

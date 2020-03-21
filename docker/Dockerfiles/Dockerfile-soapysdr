@@ -5,3 +5,6 @@ ADD docker/scripts/install-dependencies-soapysdr.sh /
 RUN /install-dependencies-soapysdr.sh
 RUN rm /install-dependencies-soapysdr.sh
 
+ADD docker/scripts/install-connectors.sh /
+RUN /install-connectors.sh
+RUN rm /install-connectors.sh
