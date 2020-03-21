@@ -1,7 +1,10 @@
 **unreleased**
 - Fix direwolf connection setup by implementing a retry loop
-- Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connectorgit
+- Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connector
 - OSM maps instead of Google when google_maps_api_key is not set (thanks @jquagga)
+- Improved logic to pass parameters to soapy devices.
+  - `rtl_sdr_soapy`: added support for `bias_tee`
+  - `sdrplay`: added support for `bias_tee`, `rf_notch` and `dab_notch`
 
 **0.18.0**
 - Support for SoapyRemote
