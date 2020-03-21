@@ -99,13 +99,20 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #################################################################################################
 
 # Currently supported types of sdr receivers:
-# "rtl_sdr", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr"
+# "rtl_sdr", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr", "perseussdr"
 #
 # In order to use rtl_sdr, you will need to install librtlsdr-dev and the connector.
 # In order to use sdrplay, airspy or airspyhf, you will need to install soapysdr, the corresponding driver, and the
 # connector.
 #
 # https://github.com/jketterl/owrx_connector
+#
+# In order to use Perseus HF you need to install the libperseus-sdr
+#
+# https://github.com/Microtelecom/libperseus-sdr
+#
+# and do the proper changes to the sdrs object below
+# (see also Wiki in https://github.com/jketterl/openwebrx/wiki/Sample-configuration-for-Perseus-HF-receiver).
 #
 # NOTE: The connector sources have replaced the old piped nmux style of reading input. If you still have any sdrs
 # configured that have type endin in "_connector", simply remove that suffix.
