@@ -6,6 +6,7 @@
   - `rtl_sdr_soapy`: added support for `bias_tee`
   - `sdrplay`: added support for `bias_tee`, `rf_notch` and `dab_notch`
   - `airspy`: added support for `bitpack`
+- Added support for Perseus-SDR devices, (thanks @amontefusco)
 
 **0.18.0**
 - Support for SoapyRemote
