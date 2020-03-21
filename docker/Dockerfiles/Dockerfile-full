@@ -4,17 +4,18 @@ FROM openwebrx-base:$ARCHTAG
 ADD docker/scripts/install-dependencies-*.sh /
 ADD docker/scripts/install-lib.*.patch /
 
-RUN /install-dependencies-rtlsdr.sh
-RUN /install-dependencies-hackrf.sh
-RUN /install-dependencies-soapysdr.sh
-RUN /install-dependencies-sdrplay.sh
-RUN /install-dependencies-airspy.sh
-RUN /install-dependencies-rtlsdr-soapy.sh
-RUN /install-dependencies-plutosdr.sh
-RUN /install-dependencies-limesdr.sh
-RUN /install-dependencies-soapyremote.sh
-RUN rm /install-dependencies-*.sh
+RUN /install-dependencies-rtlsdr.sh &&\
+    /install-dependencies-hackrf.sh &&\
+    /install-dependencies-soapysdr.sh &&\
+    /install-dependencies-sdrplay.sh &&\
+    /install-dependencies-airspy.sh &&\
+    /install-dependencies-rtlsdr-soapy.sh &&\
+    /install-dependencies-plutosdr.sh &&\
+    /install-dependencies-limesdr.sh &&\
+    /install-dependencies-soapyremote.sh &&\
+    rm /install-dependencies-*.sh &&\
+    rm /install-libp.*.patch
 
 ADD docker/scripts/install-connectors.sh /
-RUN /install-connectors.sh
-RUN rm /install-connectors.sh
+RUN /install-connectors.sh &&\
+    rm /install-connectors.sh

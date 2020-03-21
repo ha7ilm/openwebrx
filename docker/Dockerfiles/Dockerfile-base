@@ -6,8 +6,8 @@ RUN ln -s /usr/local/lib /usr/local/lib64
 
 ADD docker/scripts/direwolf-1.5.patch /
 ADD docker/scripts/install-dependencies.sh /
-RUN /install-dependencies.sh
-RUN rm /install-dependencies.sh
+RUN /install-dependencies.sh && \
+    rm /install-dependencies.sh
 
 ADD . /opt/openwebrx
 
