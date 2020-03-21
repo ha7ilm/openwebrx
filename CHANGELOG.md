@@ -5,6 +5,7 @@
 - Improved logic to pass parameters to soapy devices.
   - `rtl_sdr_soapy`: added support for `bias_tee`
   - `sdrplay`: added support for `bias_tee`, `rf_notch` and `dab_notch`
+  - `airspy`: added support for `bitpack`
 
 **0.18.0**
 - Support for SoapyRemote
