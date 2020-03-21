@@ -1,4 +1,4 @@
-from owrx.config import PropertyManager
+from owrx.config import Config
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
@@ -93,7 +93,7 @@ class OpenWebRxReceiverClient(Client):
             self.close()
             raise
 
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
 
         self.setSdr()
 
@@ -198,7 +198,7 @@ class OpenWebRxReceiverClient(Client):
         configProps = (
             self.sdr.getProps()
             .collect(*OpenWebRxReceiverClient.config_keys)
-            .defaults(PropertyManager.getSharedInstance())
+            .defaults(Config.get())
         )
 
         def sendConfig(key, value):
@@ -247,15 +247,16 @@ class OpenWebRxReceiverClient(Client):
             self.sdr.removeSpectrumClient(self)
 
     def setParams(self, params):
+        config = Config.get()
         # allow direct configuration only if enabled in the config
-        keys = PropertyManager.getSharedInstance()["configurable_keys"]
+        keys = config["configurable_keys"]
         if not keys:
             return
         # only the keys in the protected property manager can be overridden from the web
         protected = (
             self.sdr.getProps()
             .collect(*keys)
-            .defaults(PropertyManager.getSharedInstance())
+            .defaults(config)
         )
         for key, value in params.items():
             protected[key] = value
@@ -333,7 +334,7 @@ class MapConnection(Client):
     def __init__(self, conn):
         super().__init__(conn)
 
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
         self.write_config(pm.collect("google_maps_api_key", "receiver_gps", "map_position_retention_time").__dict__())
 
         Map.getSharedInstance().addClient(self)

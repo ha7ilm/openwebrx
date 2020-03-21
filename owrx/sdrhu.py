@@ -1,6 +1,6 @@
 import threading
 import time
-from owrx.config import PropertyManager
+from owrx.config import Config
 from urllib import request, parse
 
 import logging
@@ -14,7 +14,7 @@ class SdrHuUpdater(threading.Thread):
         super().__init__(daemon=True)
 
     def update(self):
-        pm = PropertyManager.getSharedInstance().collect("server_hostname", "web_port", "sdrhu_key")
+        pm = Config.get().collect("server_hostname", "web_port", "sdrhu_key")
         data = parse.urlencode({
             "url": "http://{server_hostname}:{web_port}".format(**pm.__dict__()),
             "apikey": pm["sdrhu_key"]

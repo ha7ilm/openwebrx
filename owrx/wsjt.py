@@ -7,8 +7,7 @@ from multiprocessing.connection import Pipe
 from owrx.map import Map, LocatorLocation
 import re
 from queue import Queue, Full
-from owrx.config import PropertyManager
-from owrx.bands import Bandplan
+from owrx.config import Config
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
 from owrx.pskreporter import PskReporter
 from owrx.parser import Parser
@@ -45,7 +44,7 @@ class WsjtQueue(Queue):
     def getSharedInstance():
         with WsjtQueue.creationLock:
             if WsjtQueue.sharedInstance is None:
-                pm = PropertyManager.getSharedInstance()
+                pm = Config.get()
                 WsjtQueue.sharedInstance = WsjtQueue(maxsize=pm["wsjt_queue_length"], workers=pm["wsjt_queue_workers"])
         return WsjtQueue.sharedInstance
 
@@ -89,7 +88,7 @@ class WsjtQueue(Queue):
 class WsjtChopper(threading.Thread):
     def __init__(self, source):
         self.source = source
-        self.tmp_dir = PropertyManager.getSharedInstance()["temporary_directory"]
+        self.tmp_dir = Config.get()["temporary_directory"]
         (self.wavefilename, self.wavefile) = self.getWaveFile()
         self.switchingLock = threading.Lock()
         self.timer = None
@@ -193,7 +192,7 @@ class WsjtChopper(threading.Thread):
             return None
 
     def decoding_depth(self, mode):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
         # mode-specific setting?
         if "wsjt_decoding_depths" in pm and mode in pm["wsjt_decoding_depths"]:
             return pm["wsjt_decoding_depths"][mode]

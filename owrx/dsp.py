@@ -1,4 +1,4 @@
-from owrx.config import PropertyManager
+from owrx.config import Config
 from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
@@ -39,7 +39,7 @@ class DspManager(csdr.output):
                 "temporary_directory",
                 "center_freq",
             )
-            .defaults(PropertyManager.getSharedInstance())
+            .defaults(Config.get())
         )
 
         self.dsp = csdr.dsp(self)

@@ -5,9 +5,10 @@ from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
-from owrx.config import PropertyManager
+from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.feature import FeatureDetector
+from owrx.property import PropertyManager
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
 
@@ -96,7 +97,7 @@ class ServiceHandler(object):
         # this looks overly complicated... but i'd like modes with no requirements to be always available without
         # being listed in the hash above
         unavailable = [mode for mode, req in requirements.items() if not fd.is_available(req)]
-        configured = PropertyManager.getSharedInstance()["services_decoders"]
+        configured = Config.get()["services_decoders"]
         available = [mode for mode in configured if mode not in unavailable]
 
         return mode in available
@@ -260,7 +261,7 @@ class Services(object):
 
     @staticmethod
     def start():
-        if not PropertyManager.getSharedInstance()["services_enabled"]:
+        if not Config.get()["services_enabled"]:
             return
         for source in SdrService.getSources().values():
             props = source.getProps()

@@ -1,4 +1,4 @@
-from owrx.config import PropertyManager
+from owrx.config import Config
 from csdr import csdr
 import threading
 from owrx.source import SdrSource
@@ -23,7 +23,7 @@ class SpectrumThread(csdr.output):
             "csdr_print_bufsizes",
             "csdr_through",
             "temporary_directory",
-        ).defaults(PropertyManager.getSharedInstance())
+        ).defaults(Config.get())
 
         self.dsp = dsp = csdr.dsp(self)
         dsp.nc_port = self.sdrSource.getPort()

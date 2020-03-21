@@ -4,7 +4,7 @@ from operator import and_, or_
 import re
 from distutils.version import LooseVersion
 import inspect
-from owrx.config import PropertyManager
+from owrx.config import Config
 import shlex
 
 import logging
@@ -95,7 +95,7 @@ class FeatureDetector(object):
         return inspect.getdoc(self._get_requirement_method(requirement))
 
     def command_is_runnable(self, command):
-        tmp_dir = PropertyManager.getSharedInstance()["temporary_directory"]
+        tmp_dir = Config.get()["temporary_directory"]
         cmd = shlex.split(command)
         try:
             process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir)

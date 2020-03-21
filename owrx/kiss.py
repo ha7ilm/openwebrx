@@ -2,7 +2,7 @@ import socket
 import time
 import logging
 import random
-from owrx.config import PropertyManager
+from owrx.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ TFESC = 0xDD
 
 class DirewolfConfig(object):
     def getConfig(self, port, is_service):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
 
         config = """
 ACHANNELS 1

@@ -22,14 +22,14 @@
 """
 
 from owrx.sdrhu import SdrHuUpdater
-from owrx.config import PropertyManager
+from owrx.config import Config
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    pm = PropertyManager.getSharedInstance().loadConfig()
+    pm = Config.get()
 
     if "sdrhu_public_listing" not in pm or not pm["sdrhu_public_listing"]:
         logger.error('Public listing on sdr.hu is not activated. Please check "sdrhu_public_listing" in your config.')

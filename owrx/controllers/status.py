@@ -2,14 +2,14 @@ from . import Controller
 from owrx.client import ClientRegistry
 from owrx.version import openwebrx_version
 from owrx.sdr import SdrService
-from owrx.config import PropertyManager
+from owrx.config import Config
 import os
 import json
 
 
 class StatusController(Controller):
     def indexAction(self):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
         # TODO keys that have been left out since they are no longer simple strings: sdr_hw, bands, antenna
         vars = {
             "status": "active",
@@ -42,7 +42,7 @@ class StatusController(Controller):
         return stats
 
     def jsonAction(self):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
 
         gps = pm["receiver_gps"]
         status = {

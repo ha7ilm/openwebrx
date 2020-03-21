@@ -1,5 +1,5 @@
 from . import Controller
-from owrx.config import PropertyManager
+from owrx.config import Config
 from datetime import datetime
 import mimetypes
 import os
@@ -47,7 +47,7 @@ class OwrxAssetsController(AssetsController):
 
 class AprsSymbolsController(AssetsController):
     def __init__(self, handler, request, options):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
         path = pm["aprs_symbols_path"]
         if not path.endswith("/"):
             path += "/"

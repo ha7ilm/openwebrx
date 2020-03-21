@@ -1,4 +1,4 @@
-from owrx.config import PropertyManager
+from owrx.config import Config
 import threading
 import subprocess
 import os
@@ -35,7 +35,7 @@ class SdrSource(ABC):
         self.props = props
         self.profile_id = None
         self.activateProfile()
-        self.rtlProps = self.props.collect(*self.getEventNames()).defaults(PropertyManager.getSharedInstance())
+        self.rtlProps = self.props.collect(*self.getEventNames()).defaults(Config.get())
         self.wireEvents()
         self.commandMapper = None
 

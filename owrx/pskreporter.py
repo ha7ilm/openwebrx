@@ -5,7 +5,7 @@ import random
 import socket
 from functools import reduce
 from operator import and_
-from owrx.config import PropertyManager
+from owrx.config import Config
 from owrx.version import openwebrx_version
 from owrx.locator import Locator
 from owrx.metrics import Metrics, CounterMetric
@@ -36,7 +36,7 @@ class PskReporter(object):
     def getSharedInstance():
         with PskReporter.creationLock:
             if PskReporter.sharedInstance is None:
-                if PropertyManager.getSharedInstance()["pskreporter_enabled"]:
+                if Config.get()["pskreporter_enabled"]:
                     PskReporter.sharedInstance = PskReporter()
                 else:
                     PskReporter.sharedInstance = PskReporterDummy()
@@ -181,7 +181,7 @@ class Uploader(object):
         )
 
     def getReceiverInformation(self):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
         callsign = pm["pskreporter_callsign"]
         locator = Locator.fromCoordinates(pm["receiver_gps"])
         decodingSoftware = "OpenWebRX " + openwebrx_version

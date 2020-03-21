@@ -1,6 +1,6 @@
 from http.server import HTTPServer
 from owrx.http import RequestHandler
-from owrx.config import PropertyManager, Config
+from owrx.config import Config
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
@@ -36,7 +36,7 @@ Support and info:       https://groups.io/g/openwebrx
 
     logger.info("OpenWebRX version {0} starting up...".format(openwebrx_version))
 
-    pm = PropertyManager.getSharedInstance().loadConfig()
+    pm = Config.get()
 
     configErrors = Config.validateConfig()
     if configErrors:

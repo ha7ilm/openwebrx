@@ -1,4 +1,5 @@
-from owrx.config import PropertyManager
+from owrx.config import Config
+from owrx.property import PropertyManager
 from owrx.feature import FeatureDetector, UnknownFeatureException
 
 import logging
@@ -14,7 +15,7 @@ class SdrService(object):
     @staticmethod
     def loadProps():
         if SdrService.sdrProps is None:
-            pm = PropertyManager.getSharedInstance()
+            pm = Config.get()
             featureDetector = FeatureDetector()
 
             def loadIntoPropertyManager(dict: dict):
