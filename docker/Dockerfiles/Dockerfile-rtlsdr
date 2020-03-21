@@ -8,3 +8,5 @@ RUN /install-dependencies-rtlsdr.sh &&\
     rm /install-dependencies-rtlsdr.sh &&\
     /install-connectors.sh &&\
     rm /install-connectors.sh
+
+ADD . /opt/openwebrx

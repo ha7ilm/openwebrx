@@ -9,8 +9,6 @@ ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh && \
     rm /install-dependencies.sh
 
-ADD . /opt/openwebrx
-
 WORKDIR /opt/openwebrx
 
 VOLUME /etc/openwebrx

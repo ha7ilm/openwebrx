@@ -4,3 +4,5 @@ FROM openwebrx-soapysdr-base:$ARCHTAG
 ADD docker/scripts/install-dependencies-limesdr.sh /
 RUN /install-dependencies-limesdr.sh &&\
     rm /install-dependencies-limesdr.sh
+
+ADD . /opt/openwebrx

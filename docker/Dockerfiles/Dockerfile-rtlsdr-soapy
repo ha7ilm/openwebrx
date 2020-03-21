@@ -4,3 +4,5 @@ FROM openwebrx-soapysdr-base:$ARCHTAG
 ADD docker/scripts/install-dependencies-rtlsdr-soapy.sh /
 RUN /install-dependencies-rtlsdr-soapy.sh &&\
     rm /install-dependencies-rtlsdr-soapy.sh
+
+ADD . /opt/openwebrx

@@ -5,3 +5,4 @@ ADD docker/scripts/install-dependencies-hackrf.sh /
 RUN /install-dependencies-hackrf.sh &&\
     rm /install-dependencies-hackrf.sh
 
+ADD . /opt/openwebrx

@@ -5,3 +5,4 @@ ADD docker/scripts/install-dependencies-perseus.sh /
 RUN /install-dependencies-perseus.sh &&\
     rm /install-dependencies-perseus.sh
 
+ADD . /opt/openwebrx

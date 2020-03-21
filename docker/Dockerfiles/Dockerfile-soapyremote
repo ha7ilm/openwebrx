@@ -4,3 +4,5 @@ FROM openwebrx-soapysdr-base:$ARCHTAG
 ADD docker/scripts/install-dependencies-soapyremote.sh /
 RUN /install-dependencies-soapyremote.sh &&\
     rm /install-dependencies-soapyremote.sh
+
+ADD . /opt/openwebrx

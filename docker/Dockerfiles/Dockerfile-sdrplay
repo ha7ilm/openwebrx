@@ -6,3 +6,5 @@ ADD docker/scripts/install-lib.*.patch /
 RUN /install-dependencies-sdrplay.sh &&\
     rm /install-dependencies-sdrplay.sh &&\
     rm /install-lib.*.patch
+
+ADD . /opt/openwebrx
