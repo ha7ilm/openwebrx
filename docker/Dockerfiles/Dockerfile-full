@@ -13,6 +13,7 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-plutosdr.sh &&\
     /install-dependencies-limesdr.sh &&\
     /install-dependencies-soapyremote.sh &&\
+    /install-dependencies-perseus.sh &&\
     rm /install-dependencies-*.sh &&\
     rm /install-lib.*.patch
 

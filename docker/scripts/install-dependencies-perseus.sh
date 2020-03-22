@@ -5,7 +5,7 @@ export MAKEFLAGS="-j4"
 cd /tmp
 
 STATIC_PACKAGES="libusb udev"
-BUILD_PACKAGES="git make gcc autoconf automake libtool musl-dev libusb-dev shadow"
+BUILD_PACKAGES="git make gcc autoconf automake libtool musl-dev libusb-dev shadow vim"
 
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
