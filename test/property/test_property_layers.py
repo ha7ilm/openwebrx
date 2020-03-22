@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from owrx.property import PropertyManager, PropertyLayers
 
 
-class TestPropertyMock(TestCase):
+class TestPropertyLayers(TestCase):
     def testLayer(self):
         om = PropertyLayers()
         pm = PropertyManager()
