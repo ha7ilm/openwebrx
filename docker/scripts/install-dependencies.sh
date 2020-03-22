@@ -49,6 +49,7 @@ WSJT_TGZ=${WSJT_DIR}.tgz
 wget http://physics.princeton.edu/pulsar/k1jt/$WSJT_TGZ
 tar xvfz $WSJT_TGZ
 cmakebuild $WSJT_DIR
+rm $WSJT_TGZ
 
 git clone --depth 1 -b 1.5 https://github.com/wb2osz/direwolf.git
 cd direwolf
