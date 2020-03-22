@@ -119,3 +119,25 @@ class PropertyManager(object):
             if p.getValue() is None:
                 p.setValue(other_pm[key])
         return self
+
+
+class PropertyLayers(object):
+    def __init__(self):
+        self.layers = []
+
+    def addLayer(self, priority: int, pm: PropertyManager):
+        """
+        highest priority = 0
+        """
+        self.layers.append({"priority": priority, "props": pm})
+
+    def removeLayer(self, pm: PropertyManager):
+        for layer in self.layers:
+            if layer["props"] == pm:
+                self.layers.remove(layer)
+
+    def __getitem__(self, item):
+        layers = [la["props"] for la in sorted(self.layers, key=lambda l: l["priority"])]
+        for m in layers:
+            if item in m:
+                return m[item]
