@@ -144,12 +144,22 @@ class PropertyStack(PropertyManager):
         """
         self.layers.append({"priority": priority, "props": pm})
 
+        def eventClosure(name, value):
+            self.receiveEvent(pm, name, value)
+
+        pm.wire(eventClosure)
+
+    def receiveEvent(self, layer, name, value):
+        if layer != self._getTopLayer(name):
+            return
+        self._fireCallbacks(name, value)
+
     def removeLayer(self, pm: PropertyManager):
         for layer in self.layers:
             if layer["props"] == pm:
                 self.layers.remove(layer)
 
-    def _getLayer(self, item):
+    def _getTopLayer(self, item):
         layers = [la["props"] for la in sorted(self.layers, key=lambda l: l["priority"])]
         for m in layers:
             if item in m:
@@ -158,15 +168,15 @@ class PropertyStack(PropertyManager):
         return layers[0]
 
     def __getitem__(self, item):
-        layer = self._getLayer(item)
+        layer = self._getTopLayer(item)
         return layer.__getitem__(item)
 
     def __setitem__(self, key, value):
-        layer = self._getLayer(key)
+        layer = self._getTopLayer(key)
         return layer.__setitem__(key, value)
 
     def __contains__(self, item):
-        layer = self._getLayer(item)
+        layer = self._getTopLayer(item)
         return layer.__contains__(item)
 
     def __dict__(self):
