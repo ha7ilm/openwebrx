@@ -106,7 +106,7 @@ class OpenWebRxReceiverClient(Client):
             "photo_title",
             "photo_desc",
         ]
-        receiver_details = dict((key, pm.getPropertyValue(key)) for key in receiver_keys)
+        receiver_details = dict((key, pm[key]) for key in receiver_keys)
         receiver_details["locator"] = Locator.fromCoordinates(receiver_details["receiver_gps"])
         self.write_receiver_details(receiver_details)
 
