@@ -75,17 +75,9 @@ class PropertyManager(ABC):
 
 
 class PropertyLayer(PropertyManager):
-    def __init__(self, properties=None):
+    def __init__(self):
         super().__init__()
         self.properties = {}
-        if properties is not None:
-            for (name, prop) in properties.items():
-                self._add(name, prop)
-
-    def _add(self, name, prop):
-        self.properties[name] = prop
-        self._fireCallbacks(name, prop.getValue())
-        return self
 
     def __contains__(self, name):
         return name in self.properties
