@@ -9,6 +9,7 @@ import signal
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
+from owrx.property import PropertyStack
 
 import logging
 
@@ -35,7 +36,10 @@ class SdrSource(ABC):
         self.props = props
         self.profile_id = None
         self.activateProfile()
-        self.rtlProps = self.props.collect(*self.getEventNames()).defaults(Config.get())
+        stack = PropertyStack()
+        stack.addLayer(0, self.props)
+        stack.addLayer(1, Config.get())
+        self.rtlProps = stack.collect(*self.getEventNames())
         self.wireEvents()
         self.commandMapper = None
 

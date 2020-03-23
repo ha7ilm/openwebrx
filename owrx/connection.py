@@ -10,6 +10,7 @@ from owrx.bands import Bandplan
 from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.locator import Locator
+from owrx.property import PropertyStack
 from multiprocessing import Queue
 from queue import Full
 import json
@@ -195,14 +196,14 @@ class OpenWebRxReceiverClient(Client):
         # send initial config
         self.setDspProperties(self.connectionProperties)
 
-        configProps = (
-            self.sdr.getProps()
-            .collect(*OpenWebRxReceiverClient.config_keys)
-            .defaults(Config.get())
-        )
+        stack = PropertyStack()
+        stack.addLayer(0, self.sdr.getProps())
+        stack.addLayer(1, Config.get())
+        configProps = stack.collect(*OpenWebRxReceiverClient.config_keys)
 
         def sendConfig(key, value):
-            config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
+            #config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
+            config = configProps.__dict__()
             # TODO mathematical properties? hmmmm
             config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
             # TODO this is a hack to support multiple sdrs
@@ -253,11 +254,10 @@ class OpenWebRxReceiverClient(Client):
         if not keys:
             return
         # only the keys in the protected property manager can be overridden from the web
-        protected = (
-            self.sdr.getProps()
-            .collect(*keys)
-            .defaults(config)
-        )
+        stack = PropertyStack()
+        stack.addLayer(0, self.sdr.getProps())
+        stack.addLayer(1, config)
+        protected = stack.collect(*keys)
         for key, value in params.items():
             protected[key] = value
 

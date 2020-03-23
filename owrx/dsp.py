@@ -4,6 +4,7 @@ from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
 from owrx.source import SdrSource
+from owrx.property import PropertyStack
 from csdr import csdr
 import threading
 
@@ -23,23 +24,30 @@ class DspManager(csdr.output):
             "pocsag_demod": PocsagParser(self.handler),
         }
 
-        self.localProps = (
-            self.sdrSource.getProps()
-            .collect(
-                "audio_compression",
-                "fft_compression",
-                "digimodes_fft_size",
-                "csdr_dynamic_bufsize",
-                "csdr_print_bufsizes",
-                "csdr_through",
-                "digimodes_enable",
-                "samp_rate",
-                "digital_voice_unvoiced_quality",
-                "dmr_filter",
-                "temporary_directory",
-                "center_freq",
-            )
-            .defaults(Config.get())
+        stack = PropertyStack()
+        stack.addLayer(0, self.sdrSource.getProps())
+        stack.addLayer(1, Config.get())
+        self.localProps = stack.collect(
+            "audio_compression",
+            "fft_compression",
+            "digimodes_fft_size",
+            "csdr_dynamic_bufsize",
+            "csdr_print_bufsizes",
+            "csdr_through",
+            "digimodes_enable",
+            "samp_rate",
+            "digital_voice_unvoiced_quality",
+            "dmr_filter",
+            "temporary_directory",
+            "center_freq",
+
+            # TODO: following properties are set from the client
+            "output_rate",
+            "squelch_level",
+            "secondary_mod",
+            "low_cut",
+            "high_cut",
+            "offset_freq",
         )
 
         self.dsp = csdr.dsp(self)
@@ -61,19 +69,19 @@ class DspManager(csdr.output):
                 parser.setDialFrequency(freq)
 
         self.subscriptions = [
-            self.localProps.getProperty("audio_compression").wire(self.dsp.set_audio_compression),
-            self.localProps.getProperty("fft_compression").wire(self.dsp.set_fft_compression),
-            self.localProps.getProperty("digimodes_fft_size").wire(self.dsp.set_secondary_fft_size),
-            self.localProps.getProperty("samp_rate").wire(self.dsp.set_samp_rate),
-            self.localProps.getProperty("output_rate").wire(self.dsp.set_output_rate),
-            self.localProps.getProperty("offset_freq").wire(self.dsp.set_offset_freq),
-            self.localProps.getProperty("squelch_level").wire(self.dsp.set_squelch_level),
-            self.localProps.getProperty("low_cut").wire(set_low_cut),
-            self.localProps.getProperty("high_cut").wire(set_high_cut),
-            self.localProps.getProperty("mod").wire(self.dsp.set_demodulator),
-            self.localProps.getProperty("digital_voice_unvoiced_quality").wire(self.dsp.set_unvoiced_quality),
-            self.localProps.getProperty("dmr_filter").wire(self.dsp.set_dmr_filter),
-            self.localProps.getProperty("temporary_directory").wire(self.dsp.set_temporary_directory),
+            self.localProps.wireProperty("audio_compression", self.dsp.set_audio_compression),
+            self.localProps.wireProperty("fft_compression", self.dsp.set_fft_compression),
+            self.localProps.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
+            self.localProps.wireProperty("samp_rate", self.dsp.set_samp_rate),
+            self.localProps.wireProperty("output_rate", self.dsp.set_output_rate),
+            self.localProps.wireProperty("offset_freq", self.dsp.set_offset_freq),
+            self.localProps.wireProperty("squelch_level", self.dsp.set_squelch_level),
+            self.localProps.wireProperty("low_cut", set_low_cut),
+            self.localProps.wireProperty("high_cut", set_high_cut),
+            self.localProps.wireProperty("mod", self.dsp.set_demodulator),
+            self.localProps.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
+            self.localProps.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
+            self.localProps.wireProperty("temporary_directory", self.dsp.set_temporary_directory),
             self.localProps.collect("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
@@ -99,8 +107,8 @@ class DspManager(csdr.output):
                     )
 
             self.subscriptions += [
-                self.localProps.getProperty("secondary_mod").wire(set_secondary_mod),
-                self.localProps.getProperty("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq),
+                self.localProps.collect("secondary_mod").wire(set_secondary_mod),
+                self.localProps.collect("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq),
             ]
 
         self.sdrSource.addClient(self)
@@ -134,7 +142,7 @@ class DspManager(csdr.output):
         self.subscriptions = []
 
     def setProperty(self, prop, value):
-        self.localProps.getProperty(prop).setValue(value)
+        self.localProps[prop] = value
 
     def getClientClass(self):
         return SdrSource.CLIENT_USER

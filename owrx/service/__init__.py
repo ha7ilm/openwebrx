@@ -8,7 +8,7 @@ from owrx.aprs import AprsParser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.feature import FeatureDetector
-from owrx.property import PropertyManager
+from owrx.property import PropertyLayer
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
 
@@ -164,7 +164,7 @@ class ServiceHandler(object):
                     cf = (min + max) / 2
                     bw = max - min
                     logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
-                    resampler_props = PropertyManager()
+                    resampler_props = PropertyLayer()
                     resampler_props["center_freq"] = cf
                     # TODO the + 24000 is a temporary fix since the resampling optimizer does not account for required bandwidths
                     resampler_props["samp_rate"] = bw + 24000

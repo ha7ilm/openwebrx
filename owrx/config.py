@@ -1,4 +1,4 @@
-from owrx.property import PropertyManager
+from owrx.property import PropertyLayer
 import importlib.util
 import os
 import logging
@@ -24,7 +24,7 @@ class Config:
 
     @staticmethod
     def _loadConfig():
-        pm = PropertyManager()
+        pm = PropertyLayer()
         for file in ["/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
             try:
                 spec = importlib.util.spec_from_file_location("config_webrx", file)
@@ -55,7 +55,7 @@ class Config:
         return [e for e in errors if e is not None]
 
     @staticmethod
-    def checkTempDirectory(pm: PropertyManager):
+    def checkTempDirectory(pm: PropertyLayer):
         key = "temporary_directory"
         if key not in pm or pm[key] is None:
             return ConfigError(key, "temporary directory is not set")

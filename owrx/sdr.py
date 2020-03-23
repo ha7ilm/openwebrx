@@ -1,5 +1,5 @@
 from owrx.config import Config
-from owrx.property import PropertyManager
+from owrx.property import PropertyLayer
 from owrx.feature import FeatureDetector, UnknownFeatureException
 
 import logging
@@ -19,7 +19,7 @@ class SdrService(object):
             featureDetector = FeatureDetector()
 
             def loadIntoPropertyManager(dict: dict):
-                propertyManager = PropertyManager()
+                propertyManager = PropertyLayer()
                 for (name, value) in dict.items():
                     propertyManager[name] = value
                 return propertyManager
