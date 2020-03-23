@@ -41,13 +41,15 @@ class DspManager(csdr.output):
             "temporary_directory",
             "center_freq",
 
-            # TODO: following properties are set from the client
+            # TODO: following properties are set from the client; check if it's really necessary to have the Properties
             "output_rate",
             "squelch_level",
             "secondary_mod",
             "low_cut",
             "high_cut",
             "offset_freq",
+            "mod",
+            "secondary_offset_freq",
         )
 
         self.dsp = csdr.dsp(self)
@@ -107,8 +109,8 @@ class DspManager(csdr.output):
                     )
 
             self.subscriptions += [
-                self.localProps.collect("secondary_mod").wire(set_secondary_mod),
-                self.localProps.collect("secondary_offset_freq").wire(self.dsp.set_secondary_offset_freq),
+                self.localProps.wireProperty("secondary_mod", set_secondary_mod),
+                self.localProps.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
             ]
 
         self.sdrSource.addClient(self)

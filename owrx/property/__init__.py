@@ -94,6 +94,8 @@ class PropertyLayer(PropertyManager):
         return self.properties[name]
 
     def __setitem__(self, name, value):
+        if name in self.properties and self.properties[name] == value:
+            return
         logger.debug("property change: %s => %s", name, value)
         self.properties[name] = value
         self._fireCallbacks(name, value)

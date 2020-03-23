@@ -50,3 +50,11 @@ class PropertyLayerTest(TestCase):
         mock.method.assert_not_called()
         pm["testkey"] = "newvalue"
         mock.method.assert_called_once_with("newvalue")
+
+    def testEventPreventedWhenValueUnchanged(self):
+        pm = PropertyLayer()
+        pm["testkey"] = "testvalue"
+        mock = Mock()
+        pm.wire(mock.method)
+        pm["testkey"] = "testvalue"
+        mock.method.assert_not_called()
