@@ -174,6 +174,8 @@ class dsp(object):
         self.demodulator = "nfm"
         self.name = "csdr"
         self.base_bufsize = 512
+        self.decimation = None
+        self.last_decimation = None
         self.nc_port = None
         self.csdr_dynamic_bufsize = False
         self.csdr_print_bufsizes = False
