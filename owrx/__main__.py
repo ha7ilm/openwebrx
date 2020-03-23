@@ -66,7 +66,7 @@ Support and info:       https://groups.io/g/openwebrx
     Services.start()
 
     try:
-        server = ThreadedHttpServer(("0.0.0.0", pm.getPropertyValue("web_port")), RequestHandler)
+        server = ThreadedHttpServer(("0.0.0.0", pm["web_port"]), RequestHandler)
         server.serve_forever()
     except KeyboardInterrupt:
         WebSocketConnection.closeAll()
