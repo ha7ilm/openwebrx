@@ -65,3 +65,74 @@ class PropertyStackTest(TestCase):
         mock.method.assert_not_called()
         high_layer["testkey"] = "modified high value"
         mock.method.assert_called_once_with("testkey", "modified high value")
+
+    def testPropertyEventOnLayerAdd(self):
+        low_layer = PropertyLayer()
+        low_layer["testkey"] = "low value"
+        stack = PropertyStack()
+        stack.addLayer(1, low_layer)
+        mock = Mock()
+        stack.wireProperty("testkey", mock.method)
+        mock.reset_mock()
+        high_layer = PropertyLayer()
+        high_layer["testkey"] = "high value"
+        stack.addLayer(0, high_layer)
+        mock.method.assert_called_once_with("high value")
+
+    def testNoEventOnExistingValue(self):
+        low_layer = PropertyLayer()
+        low_layer["testkey"] = "same value"
+        stack = PropertyStack()
+        stack.addLayer(1, low_layer)
+        mock = Mock()
+        stack.wireProperty("testkey", mock.method)
+        mock.reset_mock()
+        high_layer = PropertyLayer()
+        high_layer["testkey"] = "same value"
+        stack.addLayer(0, high_layer)
+        mock.method.assert_not_called()
+
+    def testEventOnLayerWithNewProperty(self):
+        low_layer = PropertyLayer()
+        low_layer["existingkey"] = "existing value"
+        stack = PropertyStack()
+        stack.addLayer(1, low_layer)
+        mock = Mock()
+        stack.wireProperty("newkey", mock.method)
+        high_layer = PropertyLayer()
+        high_layer["newkey"] = "new value"
+        stack.addLayer(0, high_layer)
+        mock.method.assert_called_once_with("new value")
+
+    def testEventOnLayerRemoval(self):
+        low_layer = PropertyLayer()
+        high_layer = PropertyLayer()
+        stack = PropertyStack()
+        stack.addLayer(1, low_layer)
+        stack.addLayer(0, high_layer)
+        low_layer["testkey"] = "low value"
+        high_layer["testkey"] = "high value"
+
+        mock = Mock()
+        stack.wireProperty("testkey", mock.method)
+        mock.method.assert_called_once_with("high value")
+        mock.reset_mock()
+        stack.removeLayer(high_layer)
+        mock.method.assert_called_once_with("low value")
+
+    def testNoneOnKeyRemoval(self):
+        low_layer = PropertyLayer()
+        high_layer = PropertyLayer()
+        stack = PropertyStack()
+        stack.addLayer(1, low_layer)
+        stack.addLayer(0, high_layer)
+        low_layer["testkey"] = "low value"
+        high_layer["testkey"] = "high value"
+        high_layer["unique key"] = "unique value"
+
+        mock = Mock()
+        stack.wireProperty("unique key", mock.method)
+        mock.method.assert_called_once_with("unique value")
+        mock.reset_mock()
+        stack.removeLayer(high_layer)
+        mock.method.assert_called_once_with(None)

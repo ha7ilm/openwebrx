@@ -40,6 +40,10 @@ class PropertyManager(ABC):
     def __dict__(self):
         pass
 
+    @abstractmethod
+    def keys(self):
+        pass
+
     def collect(self, *props):
         return PropertyFilter(self, *props)
 
@@ -95,6 +99,9 @@ class PropertyLayer(PropertyManager):
     def __dict__(self):
         return {k: v for k, v in self.properties.items()}
 
+    def keys(self):
+        return self.properties.keys()
+
 
 class PropertyFilter(PropertyManager):
     def __init__(self, pm: PropertyManager, *props: str):
@@ -126,6 +133,9 @@ class PropertyFilter(PropertyManager):
     def __dict__(self):
         return {k: v for k, v in self.pm.__dict__().items() if k in self.props}
 
+    def keys(self):
+        return [k for k in self.pm.keys() if k in self.props]
+
 
 class PropertyStack(PropertyManager):
     def __init__(self):
@@ -136,6 +146,10 @@ class PropertyStack(PropertyManager):
         """
         highest priority = 0
         """
+        for key in pm.keys():
+            if key not in self or self[key] != pm[key]:
+                self._fireCallbacks(key, pm[key])
+
         self.layers.append({"priority": priority, "props": pm})
 
         def eventClosure(name, value):
@@ -152,6 +166,12 @@ class PropertyStack(PropertyManager):
         for layer in self.layers:
             if layer["props"] == pm:
                 self.layers.remove(layer)
+                for key in pm.keys():
+                    if key in self:
+                        if self[key] != pm[key]:
+                            self._fireCallbacks(key, self[key])
+                    else:
+                        self._fireCallbacks(key, None)
 
     def _getTopLayer(self, item):
         layers = [la["props"] for la in sorted(self.layers, key=lambda l: l["priority"])]
@@ -159,7 +179,8 @@ class PropertyStack(PropertyManager):
             if item in m:
                 return m
         # return top layer by default
-        return layers[0]
+        if layers:
+            return layers[0]
 
     def __getitem__(self, item):
         layer = self._getTopLayer(item)
@@ -171,8 +192,12 @@ class PropertyStack(PropertyManager):
 
     def __contains__(self, item):
         layer = self._getTopLayer(item)
-        return layer.__contains__(item)
+        if layer:
+            return layer.__contains__(item)
+        return False
 
     def __dict__(self):
-        keys = [key for l in self.layers for key in l["props"].__dict__().keys()]
-        return {k: self.__getitem__(k) for k in keys}
+        return {k: self.__getitem__(k) for k in self.keys()}
+
+    def keys(self):
+        return set([key for l in self.layers for key in l["props"].keys()])
