@@ -45,10 +45,10 @@ class ConnectorSource(SdrSource):
             return
         if (
             (prop == "center_freq" or prop == "lfo_offset")
-            and "lfo_offset" in self.rtlProps
-            and self.rtlProps["lfo_offset"] is not None
+            and "lfo_offset" in self.sdrProps
+            and self.sdrProps["lfo_offset"] is not None
         ):
-            freq = self.rtlProps["center_freq"] + self.rtlProps["lfo_offset"]
+            freq = self.sdrProps["center_freq"] + self.sdrProps["lfo_offset"]
             self.sendControlMessage("center_freq", freq)
         else:
             self.sendControlMessage(prop, value)

@@ -38,7 +38,7 @@ class SdrSource(ABC):
         # layer 0 reserved for profile properties
         self.props.addLayer(1, props)
         self.props.addLayer(2, Config.get())
-        self.rtlProps = self.props.filter(*self.getEventNames())
+        self.sdrProps = self.props.filter(*self.getEventNames())
 
         self.profile_id = None
         self.activateProfile()
@@ -84,7 +84,7 @@ class SdrSource(ABC):
         pass
 
     def wireEvents(self):
-        self.rtlProps.wire(self.onPropertyChange)
+        self.sdrProps.wire(self.onPropertyChange)
 
     def getCommand(self):
         return [self.getCommandMapper().map(self.getCommandValues())]
@@ -130,7 +130,7 @@ class SdrSource(ABC):
         return self.port
 
     def getCommandValues(self):
-        dict = self.rtlProps.__dict__()
+        dict = self.sdrProps.__dict__()
         if "lfo_offset" in dict and dict["lfo_offset"] is not None:
             dict["tuner_freq"] = dict["center_freq"] + dict["lfo_offset"]
         else:
