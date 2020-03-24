@@ -17,7 +17,7 @@ class SpectrumThread(csdr.output):
         stack = PropertyStack()
         stack.addLayer(0, self.sdrSource.props)
         stack.addLayer(1, Config.get())
-        self.props = props = stack.collect(
+        self.props = props = stack.filter(
             "samp_rate",
             "fft_size",
             "fft_fps",
@@ -51,7 +51,7 @@ class SpectrumThread(csdr.output):
             props.wireProperty("fft_fps", dsp.set_fft_fps),
             props.wireProperty("fft_compression", dsp.set_fft_compression),
             props.wireProperty("temporary_directory", dsp.set_temporary_directory),
-            props.collect("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages),
+            props.filter("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages),
         ]
 
         set_fft_averages(None, None)

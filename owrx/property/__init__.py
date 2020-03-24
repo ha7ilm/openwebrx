@@ -44,7 +44,7 @@ class PropertyManager(ABC):
     def keys(self):
         pass
 
-    def collect(self, *props):
+    def filter(self, *props):
         return PropertyFilter(self, *props)
 
     def wire(self, callback):

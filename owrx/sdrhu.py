@@ -14,7 +14,7 @@ class SdrHuUpdater(threading.Thread):
         super().__init__(daemon=True)
 
     def update(self):
-        pm = Config.get().collect("server_hostname", "web_port", "sdrhu_key")
+        pm = Config.get().filter("server_hostname", "web_port", "sdrhu_key")
         data = parse.urlencode({
             "url": "http://{server_hostname}:{web_port}".format(**pm.__dict__()),
             "apikey": pm["sdrhu_key"]

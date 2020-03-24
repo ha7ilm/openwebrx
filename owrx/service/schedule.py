@@ -210,7 +210,7 @@ class ServiceScheduler(object):
         self.source.addClient(self)
         props = self.source.getProps()
         self.schedule = Schedule.parse(props)
-        props.collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         self.scheduleSelection()
 
     def shutdown(self):

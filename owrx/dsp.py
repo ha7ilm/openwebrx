@@ -26,7 +26,7 @@ class DspManager(csdr.output):
 
         self.props = PropertyStack()
         # local demodulator properties not forwarded to the sdr
-        self.props.addLayer(0, PropertyLayer().collect(
+        self.props.addLayer(0, PropertyLayer().filter(
             "output_rate",
             "squelch_level",
             "secondary_mod",
@@ -37,7 +37,7 @@ class DspManager(csdr.output):
             "secondary_offset_freq",
         ))
         # properties that we inherit from the sdr
-        self.props.addLayer(1, self.sdrSource.getProps().collect(
+        self.props.addLayer(1, self.sdrSource.getProps().filter(
             "audio_compression",
             "fft_compression",
             "digimodes_fft_size",
@@ -84,7 +84,7 @@ class DspManager(csdr.output):
             self.props.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
             self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
             self.props.wireProperty("temporary_directory", self.dsp.set_temporary_directory),
-            self.props.collect("center_freq", "offset_freq").wire(set_dial_freq),
+            self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
         self.dsp.set_offset_freq(0)

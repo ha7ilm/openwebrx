@@ -57,7 +57,7 @@ class ServiceHandler(object):
         self.startupTimer = None
         self.source.addClient(self)
         props = self.source.getProps()
-        props.collect("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         if self.source.isAvailable():
             self.scheduleServiceStartup()
         self.scheduler = None

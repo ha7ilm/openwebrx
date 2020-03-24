@@ -38,7 +38,7 @@ class SdrSource(ABC):
         # layer 0 reserved for profile properties
         self.props.addLayer(1, props)
         self.props.addLayer(2, Config.get())
-        self.rtlProps = self.props.collect(*self.getEventNames())
+        self.rtlProps = self.props.filter(*self.getEventNames())
 
         self.profile_id = None
         self.activateProfile()

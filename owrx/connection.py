@@ -199,7 +199,7 @@ class OpenWebRxReceiverClient(Client):
         stack = PropertyStack()
         stack.addLayer(0, self.sdr.getProps())
         stack.addLayer(1, Config.get())
-        configProps = stack.collect(*OpenWebRxReceiverClient.config_keys)
+        configProps = stack.filter(*OpenWebRxReceiverClient.config_keys)
 
         def sendConfig(key, value):
             #config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
@@ -257,7 +257,7 @@ class OpenWebRxReceiverClient(Client):
         stack = PropertyStack()
         stack.addLayer(0, self.sdr.getProps())
         stack.addLayer(1, config)
-        protected = stack.collect(*keys)
+        protected = stack.filter(*keys)
         for key, value in params.items():
             protected[key] = value
 
@@ -335,7 +335,7 @@ class MapConnection(Client):
         super().__init__(conn)
 
         pm = Config.get()
-        self.write_config(pm.collect("google_maps_api_key", "receiver_gps", "map_position_retention_time").__dict__())
+        self.write_config(pm.filter("google_maps_api_key", "receiver_gps", "map_position_retention_time").__dict__())
 
         Map.getSharedInstance().addClient(self)
 
