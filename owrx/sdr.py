@@ -28,7 +28,7 @@ class SdrService(object):
                 try:
                     if not featureDetector.is_available(value["type"]):
                         logger.error(
-                            'The RTL source type "{0}" is not available. please check requirements.'.format(
+                            'The SDR source type "{0}" is not available. please check requirements.'.format(
                                 value["type"]
                             )
                         )
@@ -36,7 +36,7 @@ class SdrService(object):
                     return True
                 except UnknownFeatureException:
                     logger.error(
-                        'The RTL source type "{0}" is invalid. Please check your configuration'.format(value["type"])
+                        'The SDR source type "{0}" is invalid. Please check your configuration'.format(value["type"])
                     )
                     return False
 
