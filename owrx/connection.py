@@ -202,7 +202,6 @@ class OpenWebRxReceiverClient(Client):
         configProps = stack.filter(*OpenWebRxReceiverClient.config_keys)
 
         def sendConfig(key, value):
-            #config = dict((key, configProps[key]) for key in OpenWebRxReceiverClient.config_keys)
             config = configProps.__dict__()
             # TODO mathematical properties? hmmmm
             config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
