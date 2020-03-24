@@ -9,7 +9,7 @@ import signal
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
-from owrx.property import PropertyStack
+from owrx.property import PropertyStack, PropertyLayer
 
 import logging
 
@@ -33,13 +33,15 @@ class SdrSource(ABC):
 
     def __init__(self, id, props):
         self.id = id
-        self.props = props
+
+        self.props = PropertyStack()
+        # layer 0 reserved for profile properties
+        self.props.addLayer(1, props)
+        self.props.addLayer(2, Config.get())
+        self.rtlProps = self.props.collect(*self.getEventNames())
+
         self.profile_id = None
         self.activateProfile()
-        stack = PropertyStack()
-        stack.addLayer(0, self.props)
-        stack.addLayer(1, Config.get())
-        self.rtlProps = stack.collect(*self.getEventNames())
         self.wireEvents()
         self.commandMapper = None
 
@@ -97,14 +99,17 @@ class SdrSource(ABC):
         if profile_id == self.profile_id:
             return
         logger.debug("activating profile {0}".format(profile_id))
-        self.profile_id = profile_id
-        profile = profiles[profile_id]
         self.props["profile_id"] = profile_id
+        profile = profiles[profile_id]
+        self.profile_id = profile_id
+
+        layer = PropertyLayer()
         for (key, value) in profile.items():
             # skip the name, that would overwrite the source name.
             if key == "name":
                 continue
-            self.props[key] = value
+            layer[key] = value
+        self.props.replaceLayer(0, layer)
 
     def getId(self):
         return self.id
@@ -125,7 +130,7 @@ class SdrSource(ABC):
         return self.port
 
     def getCommandValues(self):
-        dict = self.rtlProps.collect(*self.getEventNames()).__dict__()
+        dict = self.rtlProps.__dict__()
         if "lfo_offset" in dict and dict["lfo_offset"] is not None:
             dict["tuner_freq"] = dict["center_freq"] + dict["lfo_offset"]
         else:

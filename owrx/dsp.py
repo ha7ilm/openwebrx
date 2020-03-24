@@ -4,7 +4,7 @@ from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
 from owrx.source import SdrSource
-from owrx.property import PropertyStack
+from owrx.property import PropertyStack, PropertyLayer
 from csdr import csdr
 import threading
 
@@ -24,10 +24,20 @@ class DspManager(csdr.output):
             "pocsag_demod": PocsagParser(self.handler),
         }
 
-        stack = PropertyStack()
-        stack.addLayer(0, self.sdrSource.getProps())
-        stack.addLayer(1, Config.get())
-        self.localProps = stack.collect(
+        self.props = PropertyStack()
+        # local demodulator properties not forwarded to the sdr
+        self.props.addLayer(0, PropertyLayer().collect(
+            "output_rate",
+            "squelch_level",
+            "secondary_mod",
+            "low_cut",
+            "high_cut",
+            "offset_freq",
+            "mod",
+            "secondary_offset_freq",
+        ))
+        # properties that we inherit from the sdr
+        self.props.addLayer(1, self.sdrSource.getProps().collect(
             "audio_compression",
             "fft_compression",
             "digimodes_fft_size",
@@ -40,17 +50,7 @@ class DspManager(csdr.output):
             "dmr_filter",
             "temporary_directory",
             "center_freq",
-
-            # TODO: following properties are set from the client; check if it's really necessary to have the Properties
-            "output_rate",
-            "squelch_level",
-            "secondary_mod",
-            "low_cut",
-            "high_cut",
-            "offset_freq",
-            "mod",
-            "secondary_offset_freq",
-        )
+        ))
 
         self.dsp = csdr.dsp(self)
         self.dsp.nc_port = self.sdrSource.getPort()
@@ -66,34 +66,34 @@ class DspManager(csdr.output):
             self.dsp.set_bpf(*bpf)
 
         def set_dial_freq(key, value):
-            freq = self.localProps["center_freq"] + self.localProps["offset_freq"]
+            freq = self.props["center_freq"] + self.props["offset_freq"]
             for parser in self.parsers.values():
                 parser.setDialFrequency(freq)
 
         self.subscriptions = [
-            self.localProps.wireProperty("audio_compression", self.dsp.set_audio_compression),
-            self.localProps.wireProperty("fft_compression", self.dsp.set_fft_compression),
-            self.localProps.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
-            self.localProps.wireProperty("samp_rate", self.dsp.set_samp_rate),
-            self.localProps.wireProperty("output_rate", self.dsp.set_output_rate),
-            self.localProps.wireProperty("offset_freq", self.dsp.set_offset_freq),
-            self.localProps.wireProperty("squelch_level", self.dsp.set_squelch_level),
-            self.localProps.wireProperty("low_cut", set_low_cut),
-            self.localProps.wireProperty("high_cut", set_high_cut),
-            self.localProps.wireProperty("mod", self.dsp.set_demodulator),
-            self.localProps.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
-            self.localProps.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
-            self.localProps.wireProperty("temporary_directory", self.dsp.set_temporary_directory),
-            self.localProps.collect("center_freq", "offset_freq").wire(set_dial_freq),
+            self.props.wireProperty("audio_compression", self.dsp.set_audio_compression),
+            self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
+            self.props.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
+            self.props.wireProperty("samp_rate", self.dsp.set_samp_rate),
+            self.props.wireProperty("output_rate", self.dsp.set_output_rate),
+            self.props.wireProperty("offset_freq", self.dsp.set_offset_freq),
+            self.props.wireProperty("squelch_level", self.dsp.set_squelch_level),
+            self.props.wireProperty("low_cut", set_low_cut),
+            self.props.wireProperty("high_cut", set_high_cut),
+            self.props.wireProperty("mod", self.dsp.set_demodulator),
+            self.props.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
+            self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
+            self.props.wireProperty("temporary_directory", self.dsp.set_temporary_directory),
+            self.props.collect("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
         self.dsp.set_offset_freq(0)
         self.dsp.set_bpf(-4000, 4000)
-        self.dsp.csdr_dynamic_bufsize = self.localProps["csdr_dynamic_bufsize"]
-        self.dsp.csdr_print_bufsizes = self.localProps["csdr_print_bufsizes"]
-        self.dsp.csdr_through = self.localProps["csdr_through"]
+        self.dsp.csdr_dynamic_bufsize = self.props["csdr_dynamic_bufsize"]
+        self.dsp.csdr_print_bufsizes = self.props["csdr_print_bufsizes"]
+        self.dsp.csdr_through = self.props["csdr_through"]
 
-        if self.localProps["digimodes_enable"]:
+        if self.props["digimodes_enable"]:
 
             def set_secondary_mod(mod):
                 if mod == False:
@@ -102,15 +102,15 @@ class DspManager(csdr.output):
                 if mod is not None:
                     self.handler.write_secondary_dsp_config(
                         {
-                            "secondary_fft_size": self.localProps["digimodes_fft_size"],
+                            "secondary_fft_size": self.props["digimodes_fft_size"],
                             "if_samp_rate": self.dsp.if_samp_rate(),
                             "secondary_bw": self.dsp.secondary_bw(),
                         }
                     )
 
             self.subscriptions += [
-                self.localProps.wireProperty("secondary_mod", set_secondary_mod),
-                self.localProps.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
+                self.props.wireProperty("secondary_mod", set_secondary_mod),
+                self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
             ]
 
         self.sdrSource.addClient(self)
@@ -144,7 +144,7 @@ class DspManager(csdr.output):
         self.subscriptions = []
 
     def setProperty(self, prop, value):
-        self.localProps[prop] = value
+        self.props[prop] = value
 
     def getClientClass(self):
         return SdrSource.CLIENT_USER
