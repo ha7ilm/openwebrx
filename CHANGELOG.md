@@ -7,6 +7,7 @@
   - `sdrplay`: added support for `bias_tee`, `rf_notch` and `dab_notch`
   - `airspy`: added support for `bitpack`
 - Added support for Perseus-SDR devices, (thanks @amontefusco)
+- Property System has been rewritten so that defaults on sdr behave as expected
 
 **0.18.0**
 - Support for SoapyRemote
