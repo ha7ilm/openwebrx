@@ -92,7 +92,6 @@ class PropertyLayer(PropertyManager):
     def __setitem__(self, name, value):
         if name in self.properties and self.properties[name] == value:
             return
-        logger.debug("property change: %s => %s", name, value)
         self.properties[name] = value
         self._fireCallbacks(name, value)
 
@@ -146,32 +145,60 @@ class PropertyStack(PropertyManager):
         """
         highest priority = 0
         """
+        self._fireChanges(self._addLayer(priority, pm))
+
+    def _addLayer(self, priority: int, pm: PropertyManager):
+        changes = {}
         for key in pm.keys():
             if key not in self or self[key] != pm[key]:
-                self._fireCallbacks(key, pm[key])
-
-        self.layers.append({"priority": priority, "props": pm})
+                changes[key] = pm[key]
 
         def eventClosure(name, value):
             self.receiveEvent(pm, name, value)
 
-        pm.wire(eventClosure)
+        sub = pm.wire(eventClosure)
+
+        self.layers.append({"priority": priority, "props": pm, "sub": sub})
+
+        return changes
+
+    def removeLayer(self, pm: PropertyManager):
+        for layer in self.layers:
+            if layer["props"] == pm:
+                self._fireChanges(self._removeLayer(layer))
+
+    def _removeLayer(self, layer):
+        layer["sub"].cancel()
+        self.layers.remove(layer)
+        changes = {}
+        pm = layer["props"]
+        for key in pm.keys():
+            if key in self:
+                if self[key] != pm[key]:
+                    changes[key] = self[key]
+            else:
+                changes[key] = None
+        return changes
+
+    def replaceLayer(self, priority: int, pm: PropertyManager):
+        layers = [x for x in self.layers if x["priority"] == priority]
+        changes = {}
+        if layers:
+            changes = self._removeLayer(layers[0])
+
+        for k, v in self._addLayer(priority, pm).items():
+            changes[k] = v
+
+        self._fireChanges(changes)
+
+    def _fireChanges(self, changes):
+        for k, v in changes.items():
+            self._fireCallbacks(k, v)
 
     def receiveEvent(self, layer, name, value):
         if layer != self._getTopLayer(name):
             return
         self._fireCallbacks(name, value)
-
-    def removeLayer(self, pm: PropertyManager):
-        for layer in self.layers:
-            if layer["props"] == pm:
-                self.layers.remove(layer)
-                for key in pm.keys():
-                    if key in self:
-                        if self[key] != pm[key]:
-                            self._fireCallbacks(key, self[key])
-                    else:
-                        self._fireCallbacks(key, None)
 
     def _getTopLayer(self, item):
         layers = [la["props"] for la in sorted(self.layers, key=lambda l: l["priority"])]

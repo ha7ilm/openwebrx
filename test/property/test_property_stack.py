@@ -136,3 +136,34 @@ class PropertyStackTest(TestCase):
         mock.reset_mock()
         stack.removeLayer(high_layer)
         mock.method.assert_called_once_with(None)
+
+    def testReplaceLayer(self):
+        first_layer = PropertyLayer()
+        first_layer["testkey"] = "old value"
+        second_layer = PropertyLayer()
+        second_layer["testkey"] = "new value"
+
+        stack = PropertyStack()
+        stack.addLayer(0, first_layer)
+
+        mock = Mock()
+        stack.wireProperty("testkey", mock.method)
+        mock.method.assert_called_once_with("old value")
+        mock.reset_mock()
+
+        stack.replaceLayer(0, second_layer)
+        mock.method.assert_called_once_with("new value")
+
+    def testUnwiresEventsOnRemoval(self):
+        layer = PropertyLayer()
+        layer["testkey"] = "before"
+        stack = PropertyStack()
+        stack.addLayer(0, layer)
+        mock = Mock()
+        stack.wire(mock.method)
+        stack.removeLayer(layer)
+        mock.method.assert_called_once_with("testkey", None)
+        mock.reset_mock()
+
+        layer["testkey"] = "after"
+        mock.method.assert_not_called()
