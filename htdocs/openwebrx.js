@@ -1447,8 +1447,11 @@ var waterfall_measure_minmax_min = 1e100;
 var waterfall_measure_minmax_max = -1e100;
 
 function waterfall_measure_minmax_do(what) {
-    waterfall_measure_minmax_min = Math.min(waterfall_measure_minmax_min, Math.min.apply(Math, what));
-    waterfall_measure_minmax_max = Math.max(waterfall_measure_minmax_max, Math.max.apply(Math, what));
+    // this is based on an oversampling factor of about 1,25
+    var ignored = .1 * what.length;
+    var data = what.slice(ignored, -ignored);
+    waterfall_measure_minmax_min = Math.min(waterfall_measure_minmax_min, Math.min.apply(Math, data));
+    waterfall_measure_minmax_max = Math.max(waterfall_measure_minmax_max, Math.max.apply(Math, data));
 }
 
 function on_ws_opened() {
