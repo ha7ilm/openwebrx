@@ -182,12 +182,12 @@ class PropertyStack(PropertyManager):
 
     def replaceLayer(self, priority: int, pm: PropertyManager):
         layers = [x for x in self.layers if x["priority"] == priority]
-        changes = {}
-        if layers:
-            changes = self._removeLayer(layers[0])
 
-        for k, v in self._addLayer(priority, pm).items():
-            changes[k] = v
+        originalState = self.__dict__()
+
+        changes = self._removeLayer(layers[0]) if layers else {}
+        changes = {**changes, **self._addLayer(priority, pm)}
+        changes = {k: v for k, v in changes.items() if k not in originalState or originalState[k] != v}
 
         self._fireChanges(changes)
 

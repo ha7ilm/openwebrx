@@ -167,3 +167,21 @@ class PropertyStackTest(TestCase):
 
         layer["testkey"] = "after"
         mock.method.assert_not_called()
+
+    def testReplaceLayerNoEventWhenValueUnchanged(self):
+        fixed = PropertyLayer()
+        fixed["testkey"] = "fixed value"
+        first_layer = PropertyLayer()
+        first_layer["testkey"] = "same value"
+        second_layer = PropertyLayer()
+        second_layer["testkey"] = "same value"
+
+        stack = PropertyStack()
+        stack.addLayer(1, fixed)
+        stack.addLayer(0, first_layer)
+        mock = Mock()
+        stack.wire(mock.method)
+        mock.method.assert_not_called()
+
+        stack.replaceLayer(0, second_layer)
+        mock.method.assert_not_called()
