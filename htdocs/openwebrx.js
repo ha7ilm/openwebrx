@@ -1739,21 +1739,6 @@ function waterfall_add(data) {
     if (canvas_actual_line < 0) add_canvas();
 }
 
-function check_top_bar_congestion() {
-    var rmf = function (x) {
-        return x.offsetLeft + x.offsetWidth;
-    };
-    var wet = e("webrx-rx-title");
-    var wed = e("webrx-rx-desc");
-    var tl = e("openwebrx-main-buttons");
-
-    [wet, wed].map(function (what) {
-        if (rmf(what) > tl.offsetLeft - 20) what.style.opacity = what.style.opacity = "0";
-        else wet.style.opacity = wed.style.opacity = "1";
-    });
-
-}
-
 function waterfall_clear() {
     while (canvases.length) //delete all canvases
     {
@@ -1766,7 +1751,6 @@ function waterfall_clear() {
 function openwebrx_resize() {
     resize_canvases();
     resize_scale();
-    check_top_bar_congestion();
 }
 
 function init_header() {
@@ -1830,7 +1814,6 @@ function openwebrx_init() {
     });
     mouseFrequencyDisplay = new FrequencyDisplay($('#webrx-mouse-freq'));
     window.addEventListener("resize", openwebrx_resize);
-    check_top_bar_congestion();
     init_header();
     bookmarks = new BookmarkBar();
     initSliders();
