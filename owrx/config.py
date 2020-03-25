@@ -1,4 +1,4 @@
-from owrx.property import PropertyManager
+from owrx.property import PropertyManager, PropertyLayer
 import importlib.util
 import os
 import logging
