@@ -1,4 +1,4 @@
-from owrx.property import PropertyLayer
+from owrx.property import PropertyManager
 import importlib.util
 import os
 import logging
@@ -55,7 +55,7 @@ class Config:
         return [e for e in errors if e is not None]
 
     @staticmethod
-    def checkTempDirectory(pm: PropertyLayer):
+    def checkTempDirectory(pm: PropertyManager):
         key = "temporary_directory"
         if key not in pm or pm[key] is None:
             return ConfigError(key, "temporary directory is not set")
