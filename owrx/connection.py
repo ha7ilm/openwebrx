@@ -98,18 +98,21 @@ class OpenWebRxReceiverClient(Client):
 
         self.setSdr()
 
-        # send receiver info
-        receiver_keys = [
+        receiver_details = pm.filter(
             "receiver_name",
             "receiver_location",
             "receiver_asl",
             "receiver_gps",
             "photo_title",
             "photo_desc",
-        ]
-        receiver_details = dict((key, pm[key]) for key in receiver_keys)
-        receiver_details["locator"] = Locator.fromCoordinates(receiver_details["receiver_gps"])
-        self.write_receiver_details(receiver_details)
+        )
+
+        def send_receiver_info(*args):
+            receiver_info = receiver_details.__dict__()
+            receiver_info["locator"] = Locator.fromCoordinates(receiver_info["receiver_gps"])
+            self.write_receiver_details(receiver_info)
+
+        receiver_details.wire(send_receiver_info)
 
         self.__sendProfiles()
 
