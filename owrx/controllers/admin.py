@@ -20,6 +20,3 @@ class AdminController(WebpageController):
             super().handle_request()
         else:
             self.send_redirect("/login")
-
-    def indexAction(self):
-        self.serve_template("admin.html", **self.template_variables())
