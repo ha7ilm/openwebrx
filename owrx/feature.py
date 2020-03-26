@@ -124,13 +124,6 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("nc --help")
 
-    def has_rtl_sdr(self):
-        """
-        The rtl-sdr command is required to read I/Q data from an RTL SDR USB-Stick. It is available in most
-        distribution package managers.
-        """
-        return self.command_is_runnable("rtl_sdr --help")
-
     def has_hackrf_transfer(self):
         """
         To use a HackRF, compile the HackRF host tools from its "stdout" branch:
