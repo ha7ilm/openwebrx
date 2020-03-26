@@ -13,6 +13,7 @@
 - Bugfix for negative network usage
 - FiFi SDR: prevent arecord from shutting down after 2GB of data has been sent
 - Added support for bias tee control on rtl_sdr devices
+- All connector driven SDRs now support `"rf_gain": "auto"` to enable AGC
 
 **0.18.0**
 - Support for SoapyRemote

@@ -17,6 +17,7 @@ openwebrx (0.19.0) UNRELEASED; urgency=low
   * FiFi SDR: prevent arecord from shutting down after 2GB of data has been
     sent
   * Added support for bias tee control on rtl_sdr devices
+  * All connector driven SDRs now support `"rf_gain": "auto"` to enable AGC
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 20 Feb 2020 21:01:00 +0000
 
