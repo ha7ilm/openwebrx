@@ -1520,8 +1520,8 @@ function parseHash() {
 function validateHash() {
     var params = parseHash();
     params = Object.keys(params).filter(function(key) {
-        if (key == 'freq') {
-            return Math.abs(params[key] - center_freq) < bandwidth;
+        if (key == 'freq' || key == 'mod') {
+            return params.freq && Math.abs(params.freq - center_freq) < bandwidth;
         }
         return true;
     }).reduce(function(p, key) {
