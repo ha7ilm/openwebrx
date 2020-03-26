@@ -10,6 +10,12 @@ openwebrx (0.19.0) UNRELEASED; urgency=low
   * Added support for Perseus-SDR devices, (thanks @amontefusco)
   * Property System has been rewritten so that defaults on sdr behave as
     expected
+  * Waterfall range auto-adjustment now only takes the center 80% of the
+    spectrum into account, which should work better with SDRs that oversample
+    or have rather flat filter curves towards the spectrum edges
+  * Bugfix for negative network usage
+  * FiFi SDR: prevent arecord from shutting down after 2GB of data has been
+    sent
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 20 Feb 2020 21:01:00 +0000
 

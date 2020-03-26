@@ -8,6 +8,10 @@
   - `airspy`: added support for `bitpack`
 - Added support for Perseus-SDR devices, (thanks @amontefusco)
 - Property System has been rewritten so that defaults on sdr behave as expected
+- Waterfall range auto-adjustment now only takes the center 80% of the spectrum into account, which should work better
+  with SDRs that oversample or have rather flat filter curves towards the spectrum edges
+- Bugfix for negative network usage
+- FiFi SDR: prevent arecord from shutting down after 2GB of data has been sent
 
 **0.18.0**
 - Support for SoapyRemote
