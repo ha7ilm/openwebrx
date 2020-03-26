@@ -101,6 +101,7 @@ class Router(object):
             StaticRoute("/api/features", ApiController),
             StaticRoute("/metrics", MetricsController),
             StaticRoute("/admin", SettingsController),
+            StaticRoute("/admin", SettingsController, method="POST", options={"action": "processFormData"}),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),

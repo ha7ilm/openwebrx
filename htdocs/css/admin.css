@@ -10,3 +10,7 @@ body {
     background-color: #2e2e2e;
     color: #DDD;
 }
+
+.buttons {
+    text-align: right;
+}

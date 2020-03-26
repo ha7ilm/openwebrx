@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 from .admin import AdminController
 from owrx.config import Config
+from urllib.parse import parse_qs
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Input(ABC):
@@ -30,6 +34,9 @@ class Input(ABC):
 
     def render(self, config):
         return self.bootstrap_decorate(self.render_input(config[self.id]))
+
+    def validate(self, data):
+        return {self.id: data[self.id][0]} if self.id in data else {}
 
 
 class TextInput(Input):
@@ -69,9 +76,24 @@ class SettingsController(AdminController):
     def render_form(self):
         config = Config.get()
         inputs = "".join([i.render(config) for i in SettingsController.inputs])
-        return "<form class=\"settings-body\">{inputs}</form>".format(inputs=inputs)
+        return """
+            <form class="settings-body" method="POST">
+                {inputs}
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        """.format(inputs=inputs)
 
     def template_variables(self):
         variables = super().template_variables()
         variables["form"] = self.render_form()
         return variables
+
+    def processFormData(self):
+        data = parse_qs(self.get_body().decode("utf-8"))
+        data = {k: v for i in SettingsController.inputs for k, v in i.validate(data).items()}
+        config = Config.get()
+        for k, v in data.items():
+            config[k] = v
+        self.send_redirect("/admin")
