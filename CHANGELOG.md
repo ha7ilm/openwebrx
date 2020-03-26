@@ -12,6 +12,7 @@
   with SDRs that oversample or have rather flat filter curves towards the spectrum edges
 - Bugfix for negative network usage
 - FiFi SDR: prevent arecord from shutting down after 2GB of data has been sent
+- Added support for bias tee control on rtl_sdr devices
 
 **0.18.0**
 - Support for SoapyRemote
