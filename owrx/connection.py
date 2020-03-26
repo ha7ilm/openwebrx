@@ -113,6 +113,7 @@ class OpenWebRxReceiverClient(Client):
             self.write_receiver_details(receiver_info)
 
         receiver_details.wire(send_receiver_info)
+        send_receiver_info()
 
         self.__sendProfiles()
 
