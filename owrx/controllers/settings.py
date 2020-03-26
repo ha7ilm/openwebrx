@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from .admin import AdminController
+from owrx.config import Config
 
 
 class Input(ABC):
@@ -24,31 +25,31 @@ class Input(ABC):
         return " ".join(["form-control", "form-control-sm"])
 
     @abstractmethod
-    def render_input(self):
+    def render_input(self, value):
         pass
 
-    def render(self):
-        return self.bootstrap_decorate(self.render_input())
+    def render(self, config):
+        return self.bootstrap_decorate(self.render_input(config[self.id]))
 
 
 class TextInput(Input):
-    def render_input(self):
+    def render_input(self, value):
         return """
-            <input type="text" class="{classes}" id="{id}" name="{id}" placeholder="{label}">
-        """.format(id=self.id, label=self.label, classes=self.input_classes())
+            <input type="text" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}">
+        """.format(id=self.id, label=self.label, classes=self.input_classes(), value=value)
 
 
 class LocationInput(Input):
-    def render_input(self):
+    def render_input(self, value):
         # TODO make this work and pretty
         return "Placeholder for a map widget to select receiver location"
 
 
 class TextAreaInput(Input):
-    def render_input(self):
+    def render_input(self, value):
         return """
-            <textarea class="{classes}" id="{id}" name="{id}"></textarea>
-        """.format(id=self.id, classes=self.input_classes())
+            <textarea class="{classes}" id="{id}" name="{id}" style="height:200px;">{value}</textarea>
+        """.format(id=self.id, classes=self.input_classes(), value=value)
 
 
 class SettingsController(AdminController):
@@ -66,7 +67,8 @@ class SettingsController(AdminController):
         self.serve_template("admin.html", **self.template_variables())
 
     def render_form(self):
-        inputs = "".join([i.render() for i in SettingsController.inputs])
+        config = Config.get()
+        inputs = "".join([i.render(config) for i in SettingsController.inputs])
         return "<form class=\"settings-body\">{inputs}</form>".format(inputs=inputs)
 
     def template_variables(self):
