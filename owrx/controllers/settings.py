@@ -50,6 +50,26 @@ class TextInput(Input):
         )
 
 
+class NumberInput(Input):
+    def render_input(self, value):
+        return """
+            <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}">
+        """.format(
+            id=self.id, label=self.label, classes=self.input_classes(), value=value
+        )
+
+    def convert_value(self, v):
+        return int(v)
+
+    def parse(self, data):
+        return {k: self.convert_value(v) for k, v in super().parse(data).items()}
+
+
+class FloatInput(NumberInput):
+    def convert_value(self, v):
+        return float(v)
+
+
 class LocationInput(Input):
     def render_input(self, value):
         # TODO make this work and pretty
@@ -147,7 +167,7 @@ class SettingsController(AdminController):
             "General settings",
             TextInput("receiver_name", "Receiver name"),
             TextInput("receiver_location", "Receiver location"),
-            TextInput("receiver_asl", "Receiver elevation", infotext="Elevation in meters above mean see level"),
+            NumberInput("receiver_asl", "Receiver elevation", infotext="Elevation in meters above mean see level"),
             TextInput("receiver_admin", "Receiver admin"),
             LocationInput("receiver_gps", "Receiver coordinates"),
             TextInput("photo_title", "Photo title"),
@@ -155,21 +175,21 @@ class SettingsController(AdminController):
         ),
         Section(
             "Waterfall settings",
-            TextInput(
+            NumberInput(
                 "fft_fps",
                 "FFT frames per second",
                 infotext="This setting specifies how many lines are being added to the waterfall per second. "
                 + "Higher values will give you a faster waterfall, but will also use more CPU.",
             ),
-            TextInput("fft_size", "FFT size"),
-            TextInput(
+            NumberInput("fft_size", "FFT size"),
+            FloatInput(
                 "fft_voverlap_factor",
                 "FFT vertical overlap factor",
                 infotext="If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the "
                 + "diagram.",
             ),
-            TextInput("waterfall_min_level", "Lowest waterfall level"),
-            TextInput("waterfall_max_level", "Highest waterfall level"),
+            NumberInput("waterfall_min_level", "Lowest waterfall level"),
+            NumberInput("waterfall_max_level", "Highest waterfall level"),
         ),
         Section(
             "Compression",
@@ -185,11 +205,11 @@ class SettingsController(AdminController):
         Section(
             "Digimodes",
             CheckboxInput("digimodes_enable", "", checkboxText="Enable Digimodes"),
-            TextInput("digimodes_fft_size", "Digimodes FFT size"),
+            NumberInput("digimodes_fft_size", "Digimodes FFT size"),
         ),
         Section(
             "Digital voice",
-            TextInput(
+            NumberInput(
                 "digital_voice_unvoiced_quality",
                 "Quality of unvoiced sounds in synthesized voice",
                 infotext="Determines the quality, and thus the cpu usage, for the ambe codec used by digital voice"
@@ -231,7 +251,7 @@ class SettingsController(AdminController):
                 + '<a href="https://developers.google.com/maps/documentation/embed/get-api-key" target="_blank">'
                 + "their documentation</a> on how to obtain one."
             ),
-            TextInput(
+            NumberInput(
                 "map_position_retention_time",
                 "Map retention time",
                 infotext="Unit is seconds<br/>Specifies how log markers / grids will remain visible on the map"
@@ -239,9 +259,9 @@ class SettingsController(AdminController):
         ),
         Section(
             "WSJT-X settings",
-            TextInput("wsjt_queue_workers", "Number of WSJT decoding workers"),
-            TextInput("wsjt_queue_length", "Maximum length of WSJT job queue"),
-            TextInput(
+            NumberInput("wsjt_queue_workers", "Number of WSJT decoding workers"),
+            NumberInput("wsjt_queue_length", "Maximum length of WSJT job queue"),
+            NumberInput(
                 "wsjt_decoding_depth",
                 "WSJT decoding depth",
                 infotext="A higher decoding depth will allow more results, but will also consume more cpu"
