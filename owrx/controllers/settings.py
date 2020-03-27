@@ -308,7 +308,7 @@ class SettingsController(AdminController):
                 "sdr.hu key",
                 infotext='Please obtain your personal key on <a href="https://sdr.hu" target="_blank">sdr.hu</a>',
             ),
-            CheckboxInput("sdrhu_public_listing", "List on sdr.hu", "List msy receiver on sdr.hu"),
+            CheckboxInput("sdrhu_public_listing", "List on sdr.hu", "List my receiver on sdr.hu"),
             TextInput("server_hostname", "Hostname"),
         ),
     ]
