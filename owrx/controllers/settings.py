@@ -340,4 +340,5 @@ class SettingsController(AdminController):
         config = Config.get()
         for k, v in data.items():
             config[k] = v
+        Config.store()
         self.send_redirect("/admin")
