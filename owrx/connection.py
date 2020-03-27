@@ -112,6 +112,7 @@ class OpenWebRxReceiverClient(Client):
             receiver_info["locator"] = Locator.fromCoordinates(receiver_info["receiver_gps"])
             self.write_receiver_details(receiver_info)
 
+        # TODO unsubscribe
         receiver_details.wire(send_receiver_info)
         send_receiver_info()
 
