@@ -48,11 +48,19 @@ class TextInput(Input):
 
 
 class NumberInput(Input):
+    def __init__(self, id, label, infotext=None):
+        super().__init__(id, label, infotext)
+        self.step = None
+
     def render_input(self, value):
         return """
-            <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}">
+            <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}" {step}>
         """.format(
-            id=self.id, label=self.label, classes=self.input_classes(), value=value
+            id=self.id,
+            label=self.label,
+            classes=self.input_classes(),
+            value=value,
+            step='step="{0}"'.format(self.step) if self.step else "",
         )
 
     def convert_value(self, v):
@@ -63,6 +71,10 @@ class NumberInput(Input):
 
 
 class FloatInput(NumberInput):
+    def __init__(self, id, label, infotext=None):
+        super().__init__(id, label, infotext)
+        self.step = "any"
+
     def convert_value(self, v):
         return float(v)
 
@@ -70,7 +82,30 @@ class FloatInput(NumberInput):
 class LocationInput(Input):
     def render_input(self, value):
         # TODO make this work and pretty
-        return "Placeholder for a map widget to select receiver location"
+        return """
+            <div class="row">
+                {inputs}
+            </div>
+        """.format(
+            inputs="".join(self.render_sub_input(value, id) for id in ["lat", "lon"])
+        )
+
+    def render_sub_input(self, value, id):
+        return """
+            <div class="col">
+                <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}" step="any">
+            </div>
+        """.format(
+            id="{0}-{1}".format(self.id, id),
+            label=self.label,
+            classes=self.input_classes(),
+            value=value[id],
+        )
+
+    def parse(self, data):
+        return {
+            self.id: {k: float(data["{0}-{1}".format(self.id, k)][0]) for k in ["lat", "lon"]}
+        }
 
 
 class TextAreaInput(Input):
