@@ -32,8 +32,11 @@ config_webrx: configuration options for OpenWebRX
     and use them for running your web service with OpenWebRX.)
 """
 
+# configuration version. please only modify if you're able to perform the associated migration steps.
+version = 2
+
 # NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
-#       https://github.com/simonyiszk/openwebrx/wiki
+# https://github.com/jketterl/openwebrx/wiki/Configuration-guide
 
 # ==== Server settings ====
 web_port = 8073
@@ -44,7 +47,7 @@ receiver_name = "[Callsign]"
 receiver_location = "Budapest, Hungary"
 receiver_asl = 200
 receiver_admin = "example@example.com"
-receiver_gps = (47.000000, 19.000000)
+receiver_gps = { "lat": 47.000000, "lon": 19.000000)
 photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
 photo_desc = """
 You can add your own background photo and receiver information.<br />
