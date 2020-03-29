@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from .admin import AdminController
 from owrx.config import Config
+from owrx.service import ServiceDetector
 from urllib.parse import parse_qs
 import logging
 
@@ -107,6 +108,48 @@ class CheckboxInput(Input):
 
     def parse(self, data):
         return {self.id: self.id in data and data[self.id][0] == "on"}
+
+
+class MultiCheckboxInput(Input):
+    def __init__(self, id, label, options, infotext=None):
+        super().__init__(id, label, infotext=infotext)
+        self.options = options
+
+    def render_input(self, value):
+        return "".join(self.render_checkbox(o, value) for o in self.options)
+
+    def checkbox_id(self, option):
+        return "{0}-{1}".format(self.id, option.value)
+
+    def render_checkbox(self, option, value):
+        return """
+          <div class="{classes}">
+            <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked}>
+            <label class="form-check-label" for="{id}">
+              {checkboxText}
+            </label>
+          </div>
+        """.format(
+            id=self.checkbox_id(option),
+            classes=self.input_classes(),
+            checked="checked" if option.value in value else "",
+            checkboxText=option.text
+        )
+
+    def parse(self, data):
+        def in_response(option):
+            boxid = self.checkbox_id(option)
+            return boxid in data and data[boxid][0] == "on"
+        return {self.id: [o.value for o in self.options if in_response(o)]}
+
+    def input_classes(self):
+        return " ".join(["form-check", "form-control-sm"])
+
+
+class ServicesCheckboxInput(MultiCheckboxInput):
+    def __init__(self, id, label, infotext=None):
+        services = [DropdownOption(s, s.upper()) for s in ServiceDetector.getAvailableServices()]
+        super().__init__(id, label, services, infotext)
 
 
 class DropdownOption(object):
@@ -270,6 +313,7 @@ class SettingsController(AdminController):
         Section(
             "Background decoding",
             CheckboxInput("services_enabled", "Service", checkboxText="Enable background decoding services"),
+            ServicesCheckboxInput("services_decoders", "Enabled services")
         ),
         Section(
             "APRS settings",

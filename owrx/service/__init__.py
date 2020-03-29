@@ -11,6 +11,7 @@ from owrx.feature import FeatureDetector
 from owrx.property import PropertyLayer
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
+from functools import reduce
 
 import logging
 
@@ -49,6 +50,30 @@ class AprsServiceOutput(ServiceOutput):
         return t == "packet_demod"
 
 
+class ServiceDetector(object):
+    requirements = {
+        "ft8": ["wsjt-x"],
+        "ft4": ["wsjt-x"],
+        "jt65": ["wsjt-x"],
+        "jt9": ["wsjt-x"],
+        "wspr": ["wsjt-x"],
+        "packet": ["packet"],
+    }
+
+    @staticmethod
+    def getAvailableServices():
+        # TODO this should be in a more central place (the frontend also needs this)
+        fd = FeatureDetector()
+
+        return [
+            name
+            for name, requirements in ServiceDetector.requirements.items()
+            if reduce(
+                lambda a, b: a and b, [fd.is_available(r) for r in requirements], True
+            )
+        ]
+
+
 class ServiceHandler(object):
     def __init__(self, source):
         self.lock = threading.Lock()
@@ -83,24 +108,9 @@ class ServiceHandler(object):
         pass
 
     def isSupported(self, mode):
-        # TODO this should be in a more central place (the frontend also needs this)
-        requirements = {
-            "ft8": "wsjt-x",
-            "ft4": "wsjt-x",
-            "jt65": "wsjt-x",
-            "jt9": "wsjt-x",
-            "wspr": "wsjt-x",
-            "packet": "packet",
-        }
-        fd = FeatureDetector()
-
-        # this looks overly complicated... but i'd like modes with no requirements to be always available without
-        # being listed in the hash above
-        unavailable = [mode for mode, req in requirements.items() if not fd.is_available(req)]
         configured = Config.get()["services_decoders"]
-        available = [mode for mode in configured if mode not in unavailable]
-
-        return mode in available
+        available = ServiceDetector.getAvailableServices()
+        return mode in configured and mode in available
 
     def shutdown(self):
         self.stopServices()
@@ -141,7 +151,9 @@ class ServiceHandler(object):
 
         dials = [
             dial
-            for dial in Bandplan.getSharedInstance().collectDialFrequencies(frequency_range)
+            for dial in Bandplan.getSharedInstance().collectDialFrequencies(
+                frequency_range
+            )
             if self.isSupported(dial["mode"])
         ]
 
@@ -155,7 +167,9 @@ class ServiceHandler(object):
             groups = self.optimizeResampling(dials, sr)
             if groups is None:
                 for dial in dials:
-                    self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
+                    self.services.append(
+                        self.setupService(dial["mode"], dial["frequency"], self.source)
+                    )
             else:
                 for group in groups:
                     frequencies = sorted([f["frequency"] for f in group])
@@ -163,7 +177,9 @@ class ServiceHandler(object):
                     max = frequencies[-1]
                     cf = (min + max) / 2
                     bw = max - min
-                    logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
+                    logger.debug(
+                        "group center frequency: {0}, bandwidth: {1}".format(cf, bw)
+                    )
                     resampler_props = PropertyLayer()
                     resampler_props["center_freq"] = cf
                     # TODO the + 24000 is a temporary fix since the resampling optimizer does not account for required bandwidths
@@ -172,7 +188,11 @@ class ServiceHandler(object):
                     resampler.start()
 
                     for dial in group:
-                        self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
+                        self.services.append(
+                            self.setupService(
+                                dial["mode"], dial["frequency"], resampler
+                            )
+                        )
 
                     # resampler goes in after the services since it must not be shutdown as long as the services are still running
                     self.services.append(resampler)
@@ -180,7 +200,10 @@ class ServiceHandler(object):
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
         distances = [
-            {"frequency": freqs[i]["frequency"], "distance": freqs[i + 1]["frequency"] - freqs[i]["frequency"]}
+            {
+                "frequency": freqs[i]["frequency"],
+                "distance": freqs[i + 1]["frequency"] - freqs[i]["frequency"],
+            }
             for i in range(0, len(freqs) - 1)
         ]
 
@@ -203,15 +226,27 @@ class ServiceHandler(object):
                 return bandwidth + len(group) * (freqs[-1] - freqs[0] + 24000)
 
             total_bandwidth = sum([get_bandwitdh(group) for group in groups])
-            return {"num_splits": num_splits, "total_bandwidth": total_bandwidth, "groups": groups}
+            return {
+                "num_splits": num_splits,
+                "total_bandwidth": total_bandwidth,
+                "groups": groups,
+            }
 
         usages = [calculate_usage(i) for i in range(0, len(freqs))]
         # another possible outcome might be that it's best not to resample at all. this is a special case.
-        usages += [{"num_splits": None, "total_bandwidth": bandwidth * len(freqs), "groups": [freqs]}]
+        usages += [
+            {
+                "num_splits": None,
+                "total_bandwidth": bandwidth * len(freqs),
+                "groups": [freqs],
+            }
+        ]
         results = sorted(usages, key=lambda f: f["total_bandwidth"])
 
         for r in results:
-            logger.debug("splits: {0}, total: {1}".format(r["num_splits"], r["total_bandwidth"]))
+            logger.debug(
+                "splits: {0}, total: {1}".format(r["num_splits"], r["total_bandwidth"])
+            )
 
         best = results[0]
         if best["num_splits"] is None:
