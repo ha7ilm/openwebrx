@@ -47,7 +47,7 @@ receiver_name = "[Callsign]"
 receiver_location = "Budapest, Hungary"
 receiver_asl = 200
 receiver_admin = "example@example.com"
-receiver_gps = { "lat": 47.000000, "lon": 19.000000)
+receiver_gps = {"lat": 47.000000, "lon": 19.000000}
 photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
 photo_desc = """
 You can add your own background photo and receiver information.<br />
@@ -254,21 +254,21 @@ sdrs = {
 waterfall_colors = [0x000000FF, 0x0000FFFF, 0x00FFFFFF, 0x00FF00FF, 0xFFFF00FF, 0xFF0000FF, 0xFF00FFFF, 0xFFFFFFFF]
 waterfall_min_level = -88  # in dB
 waterfall_max_level = -20
-waterfall_auto_level_margin = (5, 40)
+waterfall_auto_level_margin = {"min": 5, "max": 40}
 ### old theme by HA7ILM:
 # waterfall_colors = "[0x000000ff,0x2e6893ff, 0x69a5d0ff, 0x214b69ff, 0x9dc4e0ff,  0xfff775ff, 0xff8a8aff, 0xb20000ff]"
 # waterfall_min_level = -115 #in dB
 # waterfall_max_level = 0
-# waterfall_auto_level_margin = (20, 30)
+# waterfall_auto_level_margin = {"min": 20, "max": 30}
 ##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
 # Note: When the auto waterfall level button is clicked, the following happens:
-#   [waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin[0]]
-#   [waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin[1]]
+#   [waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin["min"]]
+#   [waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin["max"]]
 #
-#   ___|____________________________________|____________________________________|____________________________________|___> signal power
-#        \_waterfall_auto_level_margin[0]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin[1]_/
-#                                                      current_max_power_level __|
+#   ___|________________________________________|____________________________________|________________________________________|___> signal power
+#        \_waterfall_auto_level_margin["min"]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin["max"]_/
+#                                                          current_max_power_level __|
 
 # === Experimental settings ===
 # Warning! The settings below are very experimental.

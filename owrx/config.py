@@ -29,8 +29,13 @@ class ConfigMigrator(ABC):
 
 class ConfigMigratorVersion1(ConfigMigrator):
     def migrate(self, config):
-        gps = config["receiver_gps"]
-        config["receiver_gps"] = {"lat": gps[0], "lon": gps[1]}
+        if "receiver_gps" in config:
+            gps = config["receiver_gps"]
+            config["receiver_gps"] = {"lat": gps[0], "lon": gps[1]}
+
+        if "waterfall_auto_level_margin" in config:
+            levels = config["waterfall_auto_level_margin"]
+            config["waterfall_auto_level_margin"] = {"min": levels[0], "max": levels[1]}
 
         config["version"] = 2
         return config
