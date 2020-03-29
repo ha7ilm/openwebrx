@@ -110,6 +110,13 @@ class CheckboxInput(Input):
         return {self.id: self.id in data and data[self.id][0] == "on"}
 
 
+class Option(object):
+    # used for both MultiCheckboxInput and DropdownInput
+    def __init__(self, value, text):
+        self.value = value
+        self.text = text
+
+
 class MultiCheckboxInput(Input):
     def __init__(self, id, label, options, infotext=None):
         super().__init__(id, label, infotext=infotext)
@@ -148,14 +155,8 @@ class MultiCheckboxInput(Input):
 
 class ServicesCheckboxInput(MultiCheckboxInput):
     def __init__(self, id, label, infotext=None):
-        services = [DropdownOption(s, s.upper()) for s in ServiceDetector.getAvailableServices()]
+        services = [Option(s, s.upper()) for s in ServiceDetector.getAvailableServices()]
         super().__init__(id, label, services, infotext)
-
-
-class DropdownOption(object):
-    def __init__(self, value, text):
-        self.value = value
-        self.text = text
 
 
 class DropdownInput(Input):
@@ -237,12 +238,12 @@ class SettingsController(AdminController):
         Section(
             "Compression",
             DropdownInput("audio_compression", "Audio compression", options=[
-                DropdownOption("adpcm", "ADPCM"),
-                DropdownOption("none", "None"),
+                Option("adpcm", "ADPCM"),
+                Option("none", "None"),
             ]),
             DropdownInput("fft_compression", "Waterfall compression", options=[
-                DropdownOption("adpcm", "ADPCM"),
-                DropdownOption("none", "None"),
+                Option("adpcm", "ADPCM"),
+                Option("none", "None"),
             ]),
         ),
         Section(
