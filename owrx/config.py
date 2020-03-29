@@ -3,6 +3,7 @@ import importlib.util
 import os
 import logging
 import json
+from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,27 @@ class ConfigError(object):
         return "Configuration Error (key: {0}): {1}".format(self.key, self.message)
 
 
+class ConfigMigrator(ABC):
+    @abstractmethod
+    def migrate(self, config):
+        pass
+
+
+class ConfigMigratorVersion1(ConfigMigrator):
+    def migrate(self, config):
+        gps = config["receiver_gps"]
+        config["receiver_gps"] = {"lat": gps[0], "lon": gps[1]}
+
+        config["version"] = 2
+        return config
+
+
 class Config:
     sharedConfig = None
+    currentVersion = 2
+    migrators = {
+        1: ConfigMigratorVersion1()
+    }
 
     @staticmethod
     def _loadPythonFile(file):
@@ -45,7 +65,7 @@ class Config:
 
     @staticmethod
     def _loadConfig():
-        for file in ["settings.json", "/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
+        for file in ["./settings.json", "/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
             try:
                 if file.endswith(".py"):
                     return Config._loadPythonFile(file)
@@ -60,7 +80,7 @@ class Config:
     @staticmethod
     def get():
         if Config.sharedConfig is None:
-            Config.sharedConfig = Config._loadConfig()
+            Config.sharedConfig = Config._migrate(Config._loadConfig())
         return Config.sharedConfig
 
     @staticmethod
@@ -89,3 +109,13 @@ class Config:
         if not os.access(pm[key], os.W_OK):
             return ConfigError(key, "temporary directory is not writable")
         return None
+
+    @staticmethod
+    def _migrate(config):
+        version = config["version"] if "version" in config else 1
+        if version == Config.currentVersion:
+            return config
+
+        logger.debug("migrating config from version %i", version)
+        migrator = Config.migrators[version]
+        return migrator.migrate(config)

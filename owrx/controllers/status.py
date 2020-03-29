@@ -10,6 +10,8 @@ import json
 class StatusController(Controller):
     def indexAction(self):
         pm = Config.get()
+        # convert to old format
+        gps = (pm["receiver_gps"]["lat"], pm["receiver_gps"]["lon"])
         # TODO keys that have been left out since they are no longer simple strings: sdr_hw, bands, antenna
         vars = {
             "status": "active",
@@ -17,7 +19,7 @@ class StatusController(Controller):
             "op_email": pm["receiver_admin"],
             "users": ClientRegistry.getSharedInstance().clientCount(),
             "users_max": pm["max_clients"],
-            "gps": pm["receiver_gps"],
+            "gps": gps,
             "asl": pm["receiver_asl"],
             "loc": pm["receiver_location"],
             "sw_version": openwebrx_version,
@@ -44,12 +46,11 @@ class StatusController(Controller):
     def jsonAction(self):
         pm = Config.get()
 
-        gps = pm["receiver_gps"]
         status = {
             "receiver": {
                 "name": pm["receiver_name"],
                 "admin": pm["receiver_admin"],
-                "gps": {"lat": gps[0], "lon": gps[1]},
+                "gps": pm["receiver_gps"],
                 "asl": pm["receiver_asl"],
                 "location": pm["receiver_location"],
             },

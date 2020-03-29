@@ -135,7 +135,8 @@ class DaylightSchedule(TimerangeSchedule):
 
     def getSunTimes(self, date):
         pm = Config.get()
-        lat, lng = pm["receiver_gps"]
+        lat = pm["receiver_gps"]["lat"]
+        lng = pm["receiver_gps"]["lon"]
         degtorad = math.pi / 180
         radtodeg = 180 / math.pi
 

@@ -39,7 +39,8 @@ IGLOGIN {callsign} {password}
             )
 
             if pm["aprs_igate_beacon"]:
-                (lat, lon) = pm["receiver_gps"]
+                lat = pm["receiver_gps"]["lat"]
+                lon = pm["receiver_gps"]["lon"]
                 direction_ns = "N" if lat > 0 else "S"
                 direction_we = "E" if lon > 0 else "W"
                 lat = abs(lat)

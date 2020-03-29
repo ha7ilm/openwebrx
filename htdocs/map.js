@@ -219,8 +219,8 @@
 
                             map = new google.maps.Map($('.openwebrx-map')[0], {
                                 center: {
-                                    lat: config.receiver_gps[0],
-                                    lng: config.receiver_gps[1]
+                                    lat: config.receiver_gps.lat,
+                                    lng: config.receiver_gps.lon
                                 },
                                 zoom: 5,
                                 mapTypeId: mapTypeId

@@ -1097,7 +1097,7 @@ function on_ws_recv(evt) {
                     case "receiver_details":
                         var r = json['value'];
                         e('webrx-rx-title').innerHTML = r['receiver_name'];
-                        var query = encodeURIComponent(r['receiver_gps'][0] + ',' + r['receiver_gps'][1]);
+                        var query = encodeURIComponent(r['receiver_gps']['lat'] + ',' + r['receiver_gps']['lon']);
                         e('webrx-rx-desc').innerHTML = r['receiver_location'] + ' | Loc: ' + r['locator'] + ', ASL: ' + r['receiver_asl'] + ' m, <a href="https://www.google.com/maps/search/?api=1&query=' + query + '" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a>';
                         e('webrx-rx-photo-title').innerHTML = r['photo_title'];
                         e('webrx-rx-photo-desc').innerHTML = r['photo_desc'];
