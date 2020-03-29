@@ -106,7 +106,7 @@ class FeatureDetector(object):
     def has_csdr(self):
         """
         OpenWebRX uses the demodulator and pipeline tools provided by the csdr project. Please check out [the project
-        page on github](https://github.com/simonyiszk/csdr) for further details and installation instructions.
+        page on github](https://github.com/jketterl/csdr) for further details and installation instructions.
         """
         return self.command_is_runnable("csdr")
 
