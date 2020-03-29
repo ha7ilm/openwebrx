@@ -25,9 +25,9 @@ apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 git clone https://github.com/osmocom/rtl-sdr.git
-cmakebuild rtl-sdr b5af355b1d833b3c898a61cf1e072b59b0ea3440
+cmakebuild rtl-sdr d794155ba65796a76cd0a436f9709f4601509320
 
 git clone https://github.com/pothosware/SoapyRTLSDR.git
-cmakebuild SoapyRTLSDR 5c5d9503337c6d1c34b496dec6f908aab9478b0f
+cmakebuild SoapyRTLSDR 8ba18f17d64005e43ff2a4e46611f8c710b05007
 
 apk del .build-deps

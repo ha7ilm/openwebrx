@@ -26,7 +26,7 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 git clone https://github.com/mossmann/hackrf.git
 cd hackrf
-git checkout 06eb9192cd348083f5f7de9c0da9ead276020011
+git checkout 43e6f99fe8543094d18ff3a6550ed2066c398862
 cmakebuild host
 cd ..
 rm -rf hackrf

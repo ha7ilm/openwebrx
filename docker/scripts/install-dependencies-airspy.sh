@@ -28,12 +28,12 @@ git clone https://github.com/airspy/airspyone_host.git
 cmakebuild airspyone_host bceca18f9e3a5f89cff78c4d949c71771d92dfd3
 
 git clone https://github.com/pothosware/SoapyAirspy.git
-cmakebuild SoapyAirspy 99756be5c3413a2d447baf70cb5a880662452655
+cmakebuild SoapyAirspy 10d697b209e7f1acc8b2c8d24851d46170ef77e3
 
 git clone https://github.com/airspy/airspyhf.git
 cmakebuild airspyhf 613852a2bb64af42690bf9be2201826af69a9475
 
 git clone https://github.com/pothosware/SoapyAirspyHF.git
-cmakebuild SoapyAirspyHF 54f5487dd96207540b2dd562ff9e718e0588770b
+cmakebuild SoapyAirspyHF 81ca737bb044dd930a9de738bced1e4915491f1b
 
 apk del .build-deps
