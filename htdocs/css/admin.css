@@ -14,3 +14,7 @@ body {
 .buttons {
     text-align: right;
 }
+
+.row .map-input {
+    margin: 15px 15px 0;
+}

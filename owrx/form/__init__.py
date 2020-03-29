@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from owrx.service import ServiceDetector
+from owrx.config import Config
 
 
 class Input(ABC):
@@ -81,13 +82,17 @@ class FloatInput(NumberInput):
 
 class LocationInput(Input):
     def render_input(self, value):
-        # TODO make this work and pretty
         return """
             <div class="row">
                 {inputs}
             </div>
+            <div class="row">
+                <div class="col map-input" data-key="{key}" for="{id}"></div>
+            </div>
         """.format(
-            inputs="".join(self.render_sub_input(value, id) for id in ["lat", "lon"])
+            id=self.id,
+            inputs="".join(self.render_sub_input(value, id) for id in ["lat", "lon"]),
+            key=Config.get()["google_maps_api_key"],
         )
 
     def render_sub_input(self, value, id):
