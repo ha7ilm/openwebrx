@@ -2,7 +2,7 @@ from owrx.property import PropertyManager, PropertyLayer
 import importlib.util
 import os
 import logging
-import yaml
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -36,21 +36,21 @@ class Config:
         return pm
 
     @staticmethod
-    def _loadYamlFile(file):
+    def _loadJsonFile(file):
         with open(file, "r") as f:
             pm = PropertyLayer()
-            for k, v in yaml.load(f).items():
+            for k, v in json.load(f).items():
                 pm[k] = v
             return pm
 
     @staticmethod
     def _loadConfig():
-        for file in ["settings.yaml", "/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
+        for file in ["settings.json", "/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
             try:
                 if file.endswith(".py"):
                     return Config._loadPythonFile(file)
-                elif file.endswith(".yaml"):
-                    return Config._loadYamlFile(file)
+                elif file.endswith(".json"):
+                    return Config._loadJsonFile(file)
                 else:
                     logger.warning("unsupported file type: %s", file)
             except FileNotFoundError:
@@ -65,8 +65,8 @@ class Config:
 
     @staticmethod
     def store():
-        with open("settings.yaml", "w") as file:
-            yaml.dump(Config.get().__dict__(), file)
+        with open("settings.json", "w") as file:
+            json.dump(Config.get().__dict__(), file, indent=4)
 
     @staticmethod
     def validateConfig():
