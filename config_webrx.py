@@ -96,13 +96,14 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # ==== I/Q sources ====
 # (Uncomment the appropriate by removing # characters at the beginning of the corresponding lines.)
 
-#################################################################################################
-# Is my SDR hardware supported?                                                                 #
-# Check here: https://github.com/simonyiszk/openwebrx/wiki#guides-for-receiver-hardware-support #
-#################################################################################################
+###############################################################################
+# Is my SDR hardware supported?                                               #
+# Check here: https://github.com/jketterl/openwebrx/wiki/Supported-Hardware   #
+###############################################################################
 
 # Currently supported types of sdr receivers:
-# "rtl_sdr", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr", "perseussdr"
+# "rtl_sdr", "rtl_sdr_soapy", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr",
+# "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote"
 #
 # In order to use rtl_sdr, you will need to install librtlsdr-dev and the connector.
 # In order to use sdrplay, airspy or airspyhf, you will need to install soapysdr, the corresponding driver, and the
@@ -117,8 +118,6 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # and do the proper changes to the sdrs object below
 # (see also Wiki in https://github.com/jketterl/openwebrx/wiki/Sample-configuration-for-Perseus-HF-receiver).
 #
-# NOTE: The connector sources have replaced the old piped nmux style of reading input. If you still have any sdrs
-# configured that have type endin in "_connector", simply remove that suffix.
 
 sdrs = {
     "rtlsdr": {
