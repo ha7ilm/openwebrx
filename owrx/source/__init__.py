@@ -34,6 +34,8 @@ class SdrSource(ABC):
     def __init__(self, id, props):
         self.id = id
 
+        self.commandMapper = None
+
         self.props = PropertyStack()
         # layer 0 reserved for profile properties
         self.props.addLayer(1, props)
@@ -43,7 +45,6 @@ class SdrSource(ABC):
         self.profile_id = None
         self.activateProfile()
         self.wireEvents()
-        self.commandMapper = None
 
         if "port" in props and props["port"] is not None:
             self.port = props["port"]
@@ -72,7 +73,7 @@ class SdrSource(ABC):
             "ppm",
             "rf_gain",
             "lfo_offset",
-        ]
+        ] + list(self.getCommandMapper().keys())
 
     def getCommandMapper(self):
         if self.commandMapper is None:

@@ -22,9 +22,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
         pass
 
     def getEventNames(self):
-        return super().getEventNames() + [
-            "antenna",
-        ] + list(self.getSoapySettingsMappings().keys())
+        return super().getEventNames() + list(self.getSoapySettingsMappings().keys())
 
     def parseDeviceString(self, dstr):
         def decodeComponent(c):

@@ -10,6 +10,3 @@ class RtlSdrSource(ConnectorSource):
             .setBase("rtl_connector")
             .setMappings({"bias_tee": Flag("-b"), "direct_sampling": Option("-e")})
         )
-
-    def getEventNames(self):
-        return super().getEventNames() + ["bias_tee", "direct_sampling"]

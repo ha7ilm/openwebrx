@@ -14,11 +14,5 @@ class HackrfSource(DirectSource):
             }
         ).setStatic("-r-")
 
-    def getEventNames(self):
-        return super().getEventNames() + [
-            "lna_gain",
-            "rf_amp",
-        ]
-
     def getFormatConversion(self):
         return ["csdr convert_s8_f"]

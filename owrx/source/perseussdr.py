@@ -29,11 +29,3 @@ class PerseussdrSource(DirectSource):
                 "wideband": Option("-w"),
             }
         )
-
-    def getEventNames(self):
-        return super().getEventNames() + [
-            "attenuator",
-            "adc_preamp",
-            "adc_dither",
-            "wideband",
-        ]

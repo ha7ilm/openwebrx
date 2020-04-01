@@ -29,13 +29,6 @@ class ConnectorSource(SdrSource):
             }
         )
 
-    def getEventNames(self):
-        return super().getEventNames() + [
-            "device",
-            "iqswap",
-            "rtltcp_compat",
-        ]
-
     def sendControlMessage(self, prop, value):
         logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
         self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
