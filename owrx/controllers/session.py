@@ -47,6 +47,7 @@ class SessionController(WebpageController):
                 user = userlist[data["user"]]
                 if user.password.is_valid(data["password"]):
                     # TODO pass the final destination
+                    # TODO evaluate password force_change and redirect to password change
                     key = SessionStorage.getSharedInstance().startSession({"user": user.name})
                     cookie = SimpleCookie()
                     cookie["owrx-session"] = key
