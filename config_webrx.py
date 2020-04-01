@@ -323,3 +323,6 @@ aprs_symbols_path = "/opt/aprs-symbols/png"
 # this also uses the receiver_gps setting from above, so make sure it contains a correct locator
 pskreporter_enabled = False
 pskreporter_callsign = "N0CALL"
+
+# === Web admin settings ===
+webadmin_enabled = False
