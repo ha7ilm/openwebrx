@@ -1,14 +1,15 @@
 from .connector import ConnectorSource
-from owrx.command import Flag
+from owrx.command import Flag, Option
 
 
 class RtlSdrSource(ConnectorSource):
     def getCommandMapper(self):
-        return super().getCommandMapper().setBase("rtl_connector").setMappings(
-            {
-                "bias_tee": Flag("-b")
-            }
+        return (
+            super()
+            .getCommandMapper()
+            .setBase("rtl_connector")
+            .setMappings({"bias_tee": Flag("-b"), "direct_sampling": Option("-e")})
         )
 
     def getEventNames(self):
-        return super().getEventNames() + ["bias_tee"]
+        return super().getEventNames() + ["bias_tee", "direct_sampling"]
