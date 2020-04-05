@@ -154,7 +154,7 @@ class Uploader(object):
     def encodeSpot(self, spot):
         return bytes(
             self.encodeString(spot["callsign"])
-            + list(spot["freq"].to_bytes(4, "big"))
+            + list(int(spot["freq"]).to_bytes(4, "big"))
             + list(int(spot["db"]).to_bytes(1, "big", signed=True))
             + self.encodeString(spot["mode"])
             + self.encodeString(spot["locator"])
