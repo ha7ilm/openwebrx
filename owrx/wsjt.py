@@ -11,6 +11,7 @@ from owrx.config import Config
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
 from owrx.pskreporter import PskReporter
 from owrx.parser import Parser
+from abc import ABCMeta, abstractmethod
 
 import logging
 
@@ -85,7 +86,7 @@ class WsjtQueue(Queue):
         self.errorCounter.inc()
 
 
-class WsjtChopper(threading.Thread):
+class WsjtChopper(threading.Thread, metaclass=ABCMeta):
     def __init__(self, source):
         self.source = source
         self.tmp_dir = Config.get()["temporary_directory"]
@@ -140,11 +141,9 @@ class WsjtChopper(threading.Thread):
             os.unlink(filename)
         self._scheduleNextSwitch()
 
+    @abstractmethod
     def decoder_commandline(self, file):
-        """
-        must be overridden in child classes
-        """
-        return []
+        pass
 
     def decode(self, file):
         decoder = subprocess.Popen(
