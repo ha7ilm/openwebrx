@@ -11,7 +11,7 @@ from owrx.config import Config
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
 from owrx.pskreporter import PskReporter
 from owrx.parser import Parser
-from abc import ABCMeta, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 
 import logging
 
@@ -333,12 +333,16 @@ class WsjtParser(Parser):
         metric.inc()
 
 
-class Decoder(object):
+class Decoder(ABC):
     def parse_timestamp(self, instring, dateformat):
         ts = datetime.strptime(instring, dateformat)
         return int(
             datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
         )
+
+    @abstractmethod
+    def parse(self, msg, dial_freq):
+        pass
 
 
 class Jt9Decoder(Decoder):
