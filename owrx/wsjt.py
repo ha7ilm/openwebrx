@@ -107,9 +107,17 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
         self.doRun = True
         super().__init__()
 
+    @abstractmethod
+    def getInterval(self):
+        pass
+
+    @abstractmethod
+    def getFileTimestampFormat(self):
+        pass
+
     def getWaveFile(self):
         filename = "{tmp_dir}/openwebrx-wsjtchopper-{id}-{timestamp}.wav".format(
-            tmp_dir=self.tmp_dir, id=id(self), timestamp=datetime.utcnow().strftime(self.fileTimestampFormat)
+            tmp_dir=self.tmp_dir, id=id(self), timestamp=datetime.utcnow().strftime(self.getFileTimestampFormat())
         )
         wavefile = wave.open(filename, "wb")
         wavefile.setnchannels(1)
@@ -121,7 +129,8 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
         t = datetime.utcnow()
         zeroed = t.replace(minute=0, second=0, microsecond=0)
         delta = t - zeroed
-        seconds = (int(delta.total_seconds() / self.interval) + 1) * self.interval
+        interval = self.getInterval()
+        seconds = (int(delta.total_seconds() / interval) + 1) * interval
         t = zeroed + timedelta(seconds=seconds)
         logger.debug("scheduling: {0}".format(t))
         return t
@@ -214,20 +223,22 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
 
 
 class Ft8Chopper(WsjtChopper):
-    def __init__(self, dsp, source):
-        self.interval = 15
-        self.fileTimestampFormat = "%y%m%d_%H%M%S"
-        super().__init__(dsp, source)
+    def getInterval(self):
+        return 15
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
 
 
 class WsprChopper(WsjtChopper):
-    def __init__(self, dsp, source):
-        self.interval = 120
-        self.fileTimestampFormat = "%y%m%d_%H%M"
-        super().__init__(dsp, source)
+    def getInterval(self):
+        return 120
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         cmd = ["wsprd"]
@@ -238,30 +249,33 @@ class WsprChopper(WsjtChopper):
 
 
 class Jt65Chopper(WsjtChopper):
-    def __init__(self, dsp, source):
-        self.interval = 60
-        self.fileTimestampFormat = "%y%m%d_%H%M"
-        super().__init__(dsp, source)
+    def getInterval(self):
+        return 60
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
 
 
 class Jt9Chopper(WsjtChopper):
-    def __init__(self, dsp, source):
-        self.interval = 60
-        self.fileTimestampFormat = "%y%m%d_%H%M"
-        super().__init__(dsp, source)
+    def getInterval(self):
+        return 60
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
 
 
 class Ft4Chopper(WsjtChopper):
-    def __init__(self, dsp, source):
-        self.interval = 7.5
-        self.fileTimestampFormat = "%y%m%d_%H%M%S"
-        super().__init__(dsp, source)
+    def getInterval(self):
+        return 7.5
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
