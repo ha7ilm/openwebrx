@@ -162,6 +162,7 @@ class dsp(object):
         self.output_rate = 11025
         self.fft_size = 1024
         self.fft_fps = 5
+        self.center_freq = 0
         self.offset_freq = 0
         self.low_cut = -4000
         self.high_cut = 4000
@@ -448,18 +449,19 @@ class dsp(object):
 
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
-            chopper = None
+            chopper_cls = None
             if smd == "ft8":
-                chopper = Ft8Chopper(self.secondary_process_demod.stdout)
+                chopper_cls = Ft8Chopper
             elif smd == "wspr":
-                chopper = WsprChopper(self.secondary_process_demod.stdout)
+                chopper_cls = WsprChopper
             elif smd == "jt65":
-                chopper = Jt65Chopper(self.secondary_process_demod.stdout)
+                chopper_cls = Jt65Chopper
             elif smd == "jt9":
-                chopper = Jt9Chopper(self.secondary_process_demod.stdout)
+                chopper_cls = Jt9Chopper
             elif smd == "ft4":
-                chopper = Ft4Chopper(self.secondary_process_demod.stdout)
-            if chopper is not None:
+                chopper_cls = Ft4Chopper
+            if chopper_cls is not None:
+                chopper = chopper_cls(self, self.secondary_process_demod.stdout)
                 chopper.start()
                 self.output.send_output("wsjt_demod", chopper.read)
         elif self.isPacket():
@@ -626,6 +628,13 @@ class dsp(object):
         if self.running:
             with self.modification_lock:
                 self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
+
+    def set_center_freq(self, center_freq):
+        # dsp only needs to know this to be able to pass it to decoders in the form of get_operating_freq()
+        self.center_freq = center_freq
+
+    def get_operating_freq(self):
+        return self.center_freq + self.offset_freq
 
     def set_bpf(self, low_cut, high_cut):
         self.low_cut = low_cut

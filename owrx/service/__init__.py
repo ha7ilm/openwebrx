@@ -262,7 +262,9 @@ class ServiceHandler(object):
             output = WsjtServiceOutput(frequency)
         d = dsp(output)
         d.nc_port = source.getPort()
-        d.set_offset_freq(frequency - source.getProps()["center_freq"])
+        center_freq = source.getProps()["center_freq"]
+        d.set_offset_freq(frequency - center_freq)
+        d.set_center_freq(center_freq)
         if mode == "packet":
             d.set_demodulator("nfm")
             d.set_bpf(-4000, 4000)

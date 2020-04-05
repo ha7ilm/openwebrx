@@ -19,6 +19,16 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+class QueueJob(object):
+    def __init__(self, decoder, file, freq):
+        self.decoder = decoder
+        self.file = file
+        self.freq = freq
+
+    def run(self):
+        self.decoder.decode(self)
+
+
 class WsjtQueueWorker(threading.Thread):
     def __init__(self, queue):
         self.queue = queue
@@ -27,10 +37,9 @@ class WsjtQueueWorker(threading.Thread):
 
     def run(self) -> None:
         while self.doRun:
-            (processor, file) = self.queue.get()
+            job = self.queue.get()
             try:
-                logger.debug("processing file %s", file)
-                processor.decode(file)
+                job.run()
             except Exception:
                 logger.exception("failed to decode job")
                 self.queue.onError()
@@ -87,7 +96,8 @@ class WsjtQueue(Queue):
 
 
 class WsjtChopper(threading.Thread, metaclass=ABCMeta):
-    def __init__(self, source):
+    def __init__(self, dsp, source):
+        self.dsp = dsp
         self.source = source
         self.tmp_dir = Config.get()["temporary_directory"]
         (self.wavefilename, self.wavefile) = self.getWaveFile()
@@ -135,7 +145,7 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
 
         file.close()
         try:
-            WsjtQueue.getSharedInstance().put((self, filename))
+            WsjtQueue.getSharedInstance().put(QueueJob(self, filename, self.dsp.get_operating_freq()))
         except Full:
             logger.warning("wsjt decoding queue overflow; dropping one file")
             os.unlink(filename)
@@ -145,15 +155,16 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
     def decoder_commandline(self, file):
         pass
 
-    def decode(self, file):
+    def decode(self, job: QueueJob):
+        logger.debug("processing file %s", job.file)
         decoder = subprocess.Popen(
-            ["nice", "-n", "10"] + self.decoder_commandline(file),
+            ["nice", "-n", "10"] + self.decoder_commandline(job.file),
             stdout=subprocess.PIPE,
             cwd=self.tmp_dir,
             close_fds=True,
         )
         for line in decoder.stdout:
-            self.outputWriter.send(line)
+            self.outputWriter.send((job.freq, line))
         try:
             rc = decoder.wait(timeout=10)
             if rc != 0:
@@ -161,7 +172,7 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
         except subprocess.TimeoutExpired:
             logger.warning("subprocess (pid=%i}) did not terminate correctly; sending kill signal.", decoder.pid)
             decoder.kill()
-        os.unlink(file)
+        os.unlink(job.file)
 
     def run(self) -> None:
         logger.debug("WSJT chopper starting up")
@@ -203,20 +214,20 @@ class WsjtChopper(threading.Thread, metaclass=ABCMeta):
 
 
 class Ft8Chopper(WsjtChopper):
-    def __init__(self, source):
+    def __init__(self, dsp, source):
         self.interval = 15
         self.fileTimestampFormat = "%y%m%d_%H%M%S"
-        super().__init__(source)
+        super().__init__(dsp, source)
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
 
 
 class WsprChopper(WsjtChopper):
-    def __init__(self, source):
+    def __init__(self, dsp, source):
         self.interval = 120
         self.fileTimestampFormat = "%y%m%d_%H%M"
-        super().__init__(source)
+        super().__init__(dsp, source)
 
     def decoder_commandline(self, file):
         cmd = ["wsprd"]
@@ -227,30 +238,30 @@ class WsprChopper(WsjtChopper):
 
 
 class Jt65Chopper(WsjtChopper):
-    def __init__(self, source):
+    def __init__(self, dsp, source):
         self.interval = 60
         self.fileTimestampFormat = "%y%m%d_%H%M"
-        super().__init__(source)
+        super().__init__(dsp, source)
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
 
 
 class Jt9Chopper(WsjtChopper):
-    def __init__(self, source):
+    def __init__(self, dsp, source):
         self.interval = 60
         self.fileTimestampFormat = "%y%m%d_%H%M"
-        super().__init__(source)
+        super().__init__(dsp, source)
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
 
 
 class Ft4Chopper(WsjtChopper):
-    def __init__(self, source):
+    def __init__(self, dsp, source):
         self.interval = 7.5
         self.fileTimestampFormat = "%y%m%d_%H%M%S"
-        super().__init__(source)
+        super().__init__(dsp, source)
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
@@ -261,7 +272,9 @@ class WsjtParser(Parser):
 
     def parse(self, data):
         try:
-            msg = data.decode().rstrip()
+            freq, raw_msg = data
+            self.setDialFrequency(freq)
+            msg = raw_msg.decode().rstrip()
             # known debug messages we know to skip
             if msg.startswith("<DecodeFinished>"):
                 return
@@ -273,7 +286,7 @@ class WsjtParser(Parser):
                 decoder = Jt9Decoder()
             else:
                 decoder = WsprDecoder()
-            out = decoder.parse(msg, self.dial_freq)
+            out = decoder.parse(msg, freq)
             if "mode" in out:
                 self.pushDecode(out["mode"])
                 if "callsign" in out and "locator" in out:

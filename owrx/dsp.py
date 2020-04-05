@@ -77,6 +77,7 @@ class DspManager(csdr.output):
             self.props.wireProperty("samp_rate", self.dsp.set_samp_rate),
             self.props.wireProperty("output_rate", self.dsp.set_output_rate),
             self.props.wireProperty("offset_freq", self.dsp.set_offset_freq),
+            self.props.wireProperty("center_freq", self.dsp.set_center_freq),
             self.props.wireProperty("squelch_level", self.dsp.set_squelch_level),
             self.props.wireProperty("low_cut", set_low_cut),
             self.props.wireProperty("high_cut", set_high_cut),
