@@ -1,5 +1,5 @@
 from .direct import DirectSource
-from owrx.command import Flag, Option
+from owrx.command import Option
 
 
 class HackrfSource(DirectSource):
