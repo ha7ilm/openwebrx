@@ -1,8 +1,10 @@
 --- sdrplay/install_lib.sh
 +++ sdrplay/install_lib_patched.sh
-@@ -3,19 +3,7 @@
+@@ -4,20 +4,7 @@
+ export MAJVERS="3"
  
- echo "Installing SDRplay RSP API library 2.13..."
+ echo "Installing SDRplay RSP API library ${VERS}..."
+-read -p "Press RETURN to view the license agreement" ret
  
 -more sdrplay_license.txt
 -
@@ -16,25 +18,24 @@
 -    esac
 -done
 -
--export ARCH=`arch`
-+export ARCH=`uname -m`
- export VERS="2.13"
+ export ARCH=`uname -m`
  
  echo "Architecture: ${ARCH}"
-@@ -60,16 +48,6 @@
-     echo "ERROR: udev rules directory not found, add udev support and run the"
-     echo "installer again. udev support can be added by running..."
-     echo "sudo apt-get install libudev-dev"
--    echo " "
--    exit 1
+@@ -44,17 +31,6 @@
+ 	echo "ERROR: udev rules directory not found, add udev support and run the"
+ 	echo "installer again. udev support can be added by running..."
+ 	echo "sudo apt-get install libudev-dev"
+-	echo " "
+-	exit 1
 -fi
 -
 -if /sbin/ldconfig -p | /bin/fgrep -q libusb-1.0; then
--    echo "Libusb found, continuing..."
+-	echo "Libusb found, continuing..."
 -else
--    echo " "
--    echo "ERROR: Libusb cannot be found. Please install libusb and then run"
--    echo "the installer again. Libusb can be installed from http://libusb.info"
-     echo " "
-     exit 1
+-	echo " "
+-	echo "ERROR: Libusb cannot be found. Please install libusb and then run"
+-	echo "the installer again. Libusb can be installed by running..."
+-    echo "sudo apt-get install libusb-1.0.0-dev"
+ 	echo " "
+ 	exit 1
  fi
