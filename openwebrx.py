@@ -437,7 +437,9 @@ class WebRXHandler(BaseHTTPRequestHandler):
                         cma("do_GET /ws/")
                         client_i=get_client_by_id(self.path[4:], False)
                         myclient=clients[client_i]
-                    except rxws.WebSocketException: ws_success=False
+                    except rxws.WebSocketException as e:
+                        access_log("Error connecting WebSocket: {}".format(e))
+                        ws_success=False
                     except ClientNotFoundException: ws_success=False
                     finally:
                         if clients_mutex.locked(): cmr()
