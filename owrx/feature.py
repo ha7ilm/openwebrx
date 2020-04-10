@@ -32,6 +32,8 @@ class FeatureDetector(object):
         "fifi_sdr": ["alsa"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
+        "uhd": ["soapy_connector", "soapy_uhd"],
+        "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -244,14 +246,16 @@ class FeatureDetector(object):
     def _has_soapy_driver(self, driver):
         try:
             process = subprocess.Popen(["SoapySDRUtil", "--info"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-            driverRegex = re.compile("^Module found: .*lib(.*)Support.so")
+            factory_regex = re.compile("^Available factories\\.\\.\\. (.*)$")
 
-            def matchLine(line):
-                matches = driverRegex.match(line.decode())
-                return matches is not None and matches.group(1) == driver
+            drivers = []
+            for line in process.stdout:
+                matches = factory_regex.match(line.decode())
+                if matches:
+                    drivers = [s.strip() for s in matches[1].split(", ")]
+            logger.debug(drivers)
 
-            lines = [matchLine(line) for line in process.stdout]
-            return reduce(or_, lines, False)
+            return driver in drivers
         except FileNotFoundError:
             return False
 
@@ -270,7 +274,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/pothosware/SoapySDRPlay/wiki).
         """
-        return self._has_soapy_driver("sdrPlay")
+        return self._has_soapy_driver("sdrplay")
 
     def has_soapy_airspy(self):
         """
@@ -295,7 +299,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/myriadrf/LimeSuite).
         """
-        return self._has_soapy_driver("LMS7")
+        return self._has_soapy_driver("lime")
 
     def has_soapy_pluto_sdr(self):
         """
@@ -303,7 +307,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/photosware/SoapyPlutoSDR).
         """
-        return self._has_soapy_driver("PlutoSDR")
+        return self._has_soapy_driver("plutosdr")
 
     def has_soapy_remote(self):
         """
@@ -312,6 +316,22 @@ class FeatureDetector(object):
         You can get the code and find additional information [here](https://github.com/pothosware/SoapyRemote/wiki).
         """
         return self._has_soapy_driver("remote")
+
+    def has_soapy_uhd(self):
+        """
+        The SoapyUHD module allows using UHD / USRP devices with SoapySDR.
+
+        You can get it [here](https://github.com/pothosware/SoapyUHD/wiki).
+        """
+        return self._has_soapy_driver("uhd")
+
+    def has_soapy_red_pitaya(self):
+        """
+        The SoapyRedPitaya allows Red Pitaya deviced to be used with SoapySDR.
+
+        You can get it [here](https://github.com/pothosware/SoapyRedPitaya/wiki).
+        """
+        return self._has_soapy_driver("redpitaya")
 
     def has_dsd(self):
         """
