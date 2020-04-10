@@ -1,9 +1,11 @@
---- sdrplay/install_lib.sh	2018-06-21 01:57:02.000000000 +0200
-+++ sdrplay/install_lib_patched.sh	2019-01-22 17:21:06.445804136 +0100
-@@ -2,19 +2,7 @@
+--- sdrplay/install_lib.sh
++++ sdrplay/install_lib_patched.sh
+@@ -4,19 +4,6 @@
+ MAJVERS="3"
  
- echo "Installing SDRplay RSP API library 2.13..."
- 
+ echo "Installing SDRplay RSP API library ${VERS}..."
+-read -p "Press RETURN to view the license agreement" ret
+-
 -more sdrplay_license.txt
 -
 -while true; do
@@ -15,26 +17,6 @@
 -        * ) echo "Please answer y or n";;
 -    esac
 -done
--
--export ARCH=`arch`
-+export ARCH=`uname -m`
- export VERS="2.13"
  
- echo "Architecture: ${ARCH}"
-@@ -60,16 +48,6 @@
- 	echo " "
- 	exit 1
- fi
--
--if /sbin/ldconfig -p | /bin/fgrep -q libusb-1.0; then
--	echo "Libusb found, continuing..."
--else
--	echo " "
--	echo "ERROR: Libusb cannot be found. Please install libusb and then run"
--	echo "the installer again. Libusb can be installed from http://libusb.info"
--	echo " "
--	exit 1
--fi
- 
- #echo "Installing SoapySDRPlay..."
- 
+ ARCH=`uname -m`
+ OSDIST="Unknown"

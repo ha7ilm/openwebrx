@@ -28,13 +28,13 @@ ARCH=$(uname -m)
 
 case $ARCH in
   x86_64)
-    BINARY=SDRplay_RSP_API-Linux-2.13.1.run
+    BINARY=SDRplay_RSP_API-Linux-3.06.1.run
     ;;
   armv*)
-    BINARY=SDRplay_RSP_API-RPi-2.13.1.run
+    BINARY=SDRplay_RSP_API-ARM32-3.06.1.run
     ;;
   aarch64)
-    BINARY=SDRplay_RSP_API-ARM64-2.13.1.run
+    BINARY=SDRplay_RSP_API-ARM64-3.06.1.run
     ;;
 esac
 
@@ -48,7 +48,7 @@ cd ..
 rm -rf sdrplay
 rm $BINARY
 
-git clone https://github.com/pothosware/SoapySDRPlay.git
-cmakebuild SoapySDRPlay 14ec39e4ff0dab7ae7fdf1afbbd2d28b49b0ffae
+git clone https://github.com/fventuri/SoapySDRPlay.git
+cmakebuild SoapySDRPlay 9746de21d5a3778c444cc5e70da2a61c27cb614a
 
 apk del .build-deps
