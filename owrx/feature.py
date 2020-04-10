@@ -253,7 +253,6 @@ class FeatureDetector(object):
                 matches = factory_regex.match(line.decode())
                 if matches:
                     drivers = [s.strip() for s in matches[1].split(", ")]
-            logger.debug(drivers)
 
             return driver in drivers
         except FileNotFoundError:
