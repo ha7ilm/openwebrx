@@ -273,7 +273,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/pothosware/SoapySDRPlay/wiki).
         """
-        return self._has_soapy_driver("sdrplay")
+        return self._has_soapy_driver("sdrplay") or self._has_soapy_driver("sdrPlay")
 
     def has_soapy_airspy(self):
         """
