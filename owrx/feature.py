@@ -246,7 +246,7 @@ class FeatureDetector(object):
     def _has_soapy_driver(self, driver):
         try:
             process = subprocess.Popen(["SoapySDRUtil", "--info"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-            factory_regex = re.compile("^Available factories\\.\\.\\. (.*)$")
+            factory_regex = re.compile("^Available factories\\.\\.\\. ?(.*)$")
 
             drivers = []
             for line in process.stdout:
