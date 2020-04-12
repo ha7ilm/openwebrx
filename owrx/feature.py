@@ -40,6 +40,7 @@ class FeatureDetector(object):
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
+        "js8call": ["js8", "sox"],
     }
 
     def feature_availability(self):
@@ -369,6 +370,12 @@ class FeatureDetector(object):
         on how to build from source.
         """
         return reduce(and_, map(self.command_is_runnable, ["jt9", "wsprd"]), True)
+
+    def has_js8(self):
+        """
+        To decode JS8, you will need to install [JS8Call](http://js8call.com/)
+        """
+        return self.command_is_runnable("js8")
 
     def has_alsa(self):
         """

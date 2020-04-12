@@ -30,6 +30,7 @@ from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
 from owrx.wsjt import Ft8Chopper, WsprChopper, Jt9Chopper, Jt65Chopper, Ft4Chopper
+from owrx.js8 import Js8Chopper
 
 import logging
 
@@ -450,6 +451,7 @@ class dsp(object):
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
             chopper_cls = None
+            output_name = "wsjt_demod"
             if smd == "ft8":
                 chopper_cls = Ft8Chopper
             elif smd == "wspr":
@@ -460,10 +462,13 @@ class dsp(object):
                 chopper_cls = Jt9Chopper
             elif smd == "ft4":
                 chopper_cls = Ft4Chopper
+            elif smd == "js8":
+                chopper_cls = Js8Chopper
+                output_name = "js8_demod"
             if chopper_cls is not None:
                 chopper = chopper_cls(self, self.secondary_process_demod.stdout)
                 chopper.start()
-                self.output.send_output("wsjt_demod", chopper.read)
+                self.output.send_output(output_name, chopper.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_port)
@@ -576,7 +581,7 @@ class dsp(object):
     def isWsjtMode(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
-        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4"]
+        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4", "js8"]
 
     def isPacket(self, demodulator=None):
         if demodulator is None:

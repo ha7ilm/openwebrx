@@ -1305,7 +1305,7 @@ function update_wsjt_panel(msg) {
     };
     var linkedmsg = msg['msg'];
     var matches;
-    if (['FT8', 'JT65', 'JT9', 'FT4'].indexOf(msg['mode']) >= 0) {
+    if (['FT8', 'JT65', 'JT9', 'FT4', 'JS8'].indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] !== 'RR73') {
             linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
@@ -2019,6 +2019,7 @@ function demodulator_digital_replace(subtype) {
         case "jt65":
         case "jt9":
         case "ft4":
+        case "js8":
             secondary_demod_start(subtype);
             demodulator_analog_replace('usb', true);
             break;
@@ -2045,7 +2046,7 @@ function demodulator_digital_replace(subtype) {
     demodulator_buttons_update();
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
-    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'js8'].indexOf(subtype) >= 0);
     toggle_panel("openwebrx-panel-packet-message", subtype === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", subtype === "pocsag");
     updateHash();

@@ -1,6 +1,6 @@
-from owrx.config import Config
 from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
+from owrx.js8 import Js8Parser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
 from owrx.source import SdrSource
@@ -22,6 +22,7 @@ class DspManager(csdr.output):
             "wsjt_demod": WsjtParser(self.handler),
             "packet_demod": AprsParser(self.handler),
             "pocsag_demod": PocsagParser(self.handler),
+            "js8_demod": Js8Parser(self.handler),
         }
 
         self.props = PropertyStack()
