@@ -5,6 +5,7 @@ from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat
 from owrx.map import Map, LocatorLocation
 from owrx.pskreporter import PskReporter
+from owrx.metrics import Metrics, CounterMetric
 
 import logging
 
@@ -41,6 +42,8 @@ class Js8Parser(Parser):
             self.handler.write_js8_message(frame, self.dial_freq)
             logger.debug(frame)
 
+            self.pushDecode()
+
             if isinstance(frame, Js8FrameHeartbeat):
                 Map.getSharedInstance().updateLocation(
                     frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
@@ -57,3 +60,19 @@ class Js8Parser(Parser):
 
         except Exception:
             logger.exception("error while parsing js8 message")
+
+    def pushDecode(self):
+        metrics = Metrics.getSharedInstance()
+        band = "unknown"
+        if self.band is not None:
+            band = self.band.getName()
+        if band is None:
+            band = "unknown"
+
+        name = "js8call.decodes.{band}.js8".format(band=band)
+        metric = metrics.getMetric(name)
+        if metric is None:
+            metric = CounterMetric()
+            metrics.addMetric(name, metric)
+
+        metric.inc()
