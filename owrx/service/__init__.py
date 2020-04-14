@@ -5,10 +5,12 @@ from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
+from owrx.js8 import Js8Parser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.feature import FeatureDetector
 from owrx.property import PropertyLayer
+from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
 from functools import reduce
@@ -50,6 +52,14 @@ class AprsServiceOutput(ServiceOutput):
         return t == "packet_demod"
 
 
+class Js8ServiceOutput(ServiceOutput):
+    def getParser(self):
+        return Js8Parser(Js8Handler())
+
+    def supports_type(self, t):
+        return t == "js8_demod"
+
+
 class ServiceDetector(object):
     requirements = {
         "ft8": ["wsjt-x"],
@@ -58,6 +68,7 @@ class ServiceDetector(object):
         "jt9": ["wsjt-x"],
         "wspr": ["wsjt-x"],
         "packet": ["packet"],
+        "js8": ["js8call"],
     }
 
     @staticmethod
@@ -258,6 +269,8 @@ class ServiceHandler(object):
         # TODO selecting outputs will need some more intelligence here
         if mode == "packet":
             output = AprsServiceOutput(frequency)
+        elif mode == "js8":
+            output = Js8ServiceOutput(frequency)
         else:
             output = WsjtServiceOutput(frequency)
         d = dsp(output)
@@ -290,6 +303,11 @@ class WsjtHandler(object):
 
 class AprsHandler(object):
     def write_aprs_data(self, data):
+        pass
+
+
+class Js8Handler(object):
+    def write_js8_message(self, frame: Js8Frame, freq: int):
         pass
 
 
