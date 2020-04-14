@@ -13,6 +13,7 @@ from owrx.locator import Locator
 from owrx.property import PropertyStack
 from multiprocessing import Queue
 from queue import Full
+from js8py import Js8Frame
 import json
 import threading
 
@@ -332,6 +333,15 @@ class OpenWebRxReceiverClient(Client):
 
     def write_backoff_message(self, reason):
         self.send({"type": "backoff", "reason": reason})
+
+    def write_js8_message(self, frame: Js8Frame, freq: int):
+        self.send({"type": "js8_message", "value": {
+            "msg": str(frame),
+            "timestamp": frame.timestamp,
+            "db": frame.db,
+            "dt": frame.dt,
+            "freq": freq + frame.freq,
+        }})
 
 
 class MapConnection(Client):

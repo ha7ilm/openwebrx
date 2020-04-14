@@ -30,7 +30,7 @@ class PskReporter(object):
     sharedInstance = None
     creationLock = threading.Lock()
     interval = 300
-    supportedModes = ["FT8", "FT4", "JT9", "JT65"]
+    supportedModes = ["FT8", "FT4", "JT9", "JT65", "JS8"]
 
     @staticmethod
     def getSharedInstance():
