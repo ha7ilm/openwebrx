@@ -1133,6 +1133,7 @@ function on_ws_recv(evt) {
                         update_metadata(json['value']);
                         break;
                     case "wsjt_message":
+                    case "js8_message":
                         update_wsjt_panel(json['value']);
                         break;
                     case "dial_frequencies":
@@ -1305,7 +1306,7 @@ function update_wsjt_panel(msg) {
     };
     var linkedmsg = msg['msg'];
     var matches;
-    if (['FT8', 'JT65', 'JT9', 'FT4', 'JS8'].indexOf(msg['mode']) >= 0) {
+    if (['FT8', 'JT65', 'JT9', 'FT4'].indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] !== 'RR73') {
             linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="_blank">' + matches[2] + '</a>';
