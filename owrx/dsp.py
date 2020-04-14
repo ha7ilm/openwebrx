@@ -35,6 +35,7 @@ class DspManager(csdr.output):
             "offset_freq",
             "mod",
             "secondary_offset_freq",
+            "dmr_filter",
         ))
         # properties that we inherit from the sdr
         self.props.addLayer(1, self.sdrSource.getProps().filter(
@@ -47,7 +48,6 @@ class DspManager(csdr.output):
             "digimodes_enable",
             "samp_rate",
             "digital_voice_unvoiced_quality",
-            "dmr_filter",
             "temporary_directory",
             "center_freq",
         ))
