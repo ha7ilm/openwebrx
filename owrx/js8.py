@@ -69,7 +69,7 @@ class Js8Parser(Parser):
         if band is None:
             band = "unknown"
 
-        name = "js8call.decodes.{band}.js8".format(band=band)
+        name = "js8call.decodes.{band}.JS8".format(band=band)
         metric = metrics.getMetric(name)
         if metric is None:
             metric = CounterMetric()
