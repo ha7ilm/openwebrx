@@ -4,6 +4,9 @@ Section: hamradio
 Priority: optional
 Standards-Version: 4.2.0
 Build-Depends: debhelper (>= 10), dh-python, python3 (>= 3.5)
+Homepage: https://www.openwebrx.de/
+Vcs-Browser: https://github.com/jketterl/openwebrx
+Vcs-Git: https://github.com/jketterl/openwebrx.git
 
 Package: openwebrx
 Architecture: all
