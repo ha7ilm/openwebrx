@@ -44,12 +44,30 @@ cmakebuild digiham 95206501be89b38d0267bf6c29a6898e7c65656f
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7
 
+git clone https://github.com/Hamlib/Hamlib.git
+pushd Hamlib
+git checkout 301ebb92eaa538dfa75c06821f46715f40dd7673
+./bootstrap
+./configure
+make
+make install
+popd
+rm -rf Hamlib
+
+JS8CALL_VERSION=2.1.1
+JS8CALL_DIR=js8call-${JS8CALL_VERSION}
+JS8CALL_TGZ=${JS8CALL_DIR}.tgz
+wget http://files.js8call.com/${JS8CALL_VERSION}/${JS8CALL_TGZ}
+tar xvfz ${JS8CALL_TGZ}
+cmakebuild ${JS8CALL_DIR}
+rm ${JS8CALL_TGZ}
+
 WSJT_DIR=wsjtx-2.1.2
 WSJT_TGZ=${WSJT_DIR}.tgz
-wget http://physics.princeton.edu/pulsar/k1jt/$WSJT_TGZ
-tar xvfz $WSJT_TGZ
-cmakebuild $WSJT_DIR
-rm $WSJT_TGZ
+wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
+tar xvfz ${WSJT_TGZ}
+cmakebuild ${WSJT_DIR}
+rm ${WSJT_TGZ}
 
 git clone --depth 1 -b 1.5 https://github.com/wb2osz/direwolf.git
 cd direwolf
