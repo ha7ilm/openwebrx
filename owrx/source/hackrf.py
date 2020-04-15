@@ -11,6 +11,7 @@ class HackrfSource(DirectSource):
                 "rf_gain": Option("-g"),
                 "lna_gain": Option("-l"),
                 "rf_amp": Option("-a"),
+                "ppm": Option("-C"),
             }
         ).setStatic("-r-")
 
