@@ -3,7 +3,7 @@ Maintainer: Jakob Ketterl <jakob.ketterl@gmx.de>
 Section: hamradio
 Priority: optional
 Standards-Version: 4.2.0
-Build-Depends: debhelper (>= 10), dh-python, python3 (>= 3.5)
+Build-Depends: debhelper (>= 11), dh-python, python3-all (>= 3.5), python3-setuptools
 Homepage: https://www.openwebrx.de/
 Vcs-Browser: https://github.com/jketterl/openwebrx
 Vcs-Git: https://github.com/jketterl/openwebrx.git
