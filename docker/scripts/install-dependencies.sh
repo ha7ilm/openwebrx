@@ -9,7 +9,7 @@ function cmakebuild() {
   fi
   mkdir build
   cd build
-  cmake ..
+  cmake ${CMAKE_ARGS:-} ..
   make
   make install
   cd ../..
@@ -58,14 +58,14 @@ JS8CALL_VERSION=2.1.1
 JS8CALL_DIR=js8call-${JS8CALL_VERSION}
 JS8CALL_TGZ=${JS8CALL_DIR}.tgz
 wget http://files.js8call.com/${JS8CALL_VERSION}/${JS8CALL_TGZ}
-tar xvfz ${JS8CALL_TGZ}
-cmakebuild ${JS8CALL_DIR}
+tar xfz ${JS8CALL_TGZ}
+CMAKE_ARGS="-D CMAKE_CXX_FLAGS=-DJS8_USE_LEGACY_HAMLIB" cmakebuild ${JS8CALL_DIR}
 rm ${JS8CALL_TGZ}
 
 WSJT_DIR=wsjtx-2.1.2
 WSJT_TGZ=${WSJT_DIR}.tgz
 wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
-tar xvfz ${WSJT_TGZ}
+tar xfz ${WSJT_TGZ}
 cmakebuild ${WSJT_DIR}
 rm ${WSJT_TGZ}
 
