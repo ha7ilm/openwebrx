@@ -2,7 +2,7 @@ from .wsjt import WsjtChopper
 from .parser import Parser
 import re
 from js8py import Js8
-from js8py.frames import Js8FrameHeartbeat
+from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
 from owrx.map import Map, LocatorLocation
 from owrx.pskreporter import PskReporter
 from owrx.metrics import Metrics, CounterMetric
@@ -44,7 +44,7 @@ class Js8Parser(Parser):
 
             self.pushDecode()
 
-            if isinstance(frame, Js8FrameHeartbeat):
+            if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
                 Map.getSharedInstance().updateLocation(
                     frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
                 )
