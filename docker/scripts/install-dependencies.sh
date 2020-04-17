@@ -24,6 +24,12 @@ BUILD_PACKAGES="git libsndfile-dev fftw-dev cmake ca-certificates make gcc musl-
 apk add --no-cache $STATIC_PACKAGES
 apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
+git clone https://github.com/jketterl/js8py.git
+pushd js8py
+git checkout b55b6c7668c353b9f1af507c505b8a774951dee6
+python3 setup.py install
+popd
+
 git clone https://git.code.sf.net/p/itpp/git itpp
 cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
 
