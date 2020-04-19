@@ -26,7 +26,7 @@ apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/js8py.git
 pushd js8py
-git checkout b55b6c7668c353b9f1af507c505b8a774951dee6
+git checkout 888e62be375316882ad2b2ac8e396c3bf857b6fc
 python3 setup.py install
 popd
 
