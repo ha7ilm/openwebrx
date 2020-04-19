@@ -966,7 +966,7 @@ img.openwebrx-mirror-img
     overflow: hidden;
     text-overflow: ellipsis;
     direction: rtl;
-    text-aligh: left;
+    text-align: left;
 }
 
 #openwebrx-panel-js8-message .decimal {
