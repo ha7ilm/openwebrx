@@ -1,5 +1,6 @@
 from .direct import DirectSource
 from owrx.command import Option
+import time
 
 
 class HackrfSource(DirectSource):
@@ -17,3 +18,6 @@ class HackrfSource(DirectSource):
 
     def getFormatConversion(self):
         return ["csdr convert_s8_f"]
+
+    def sleepOnRestart(self):
+        time.sleep(1)
