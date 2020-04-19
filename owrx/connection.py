@@ -341,6 +341,7 @@ class OpenWebRxReceiverClient(Client):
             "db": frame.db,
             "dt": frame.dt,
             "freq": freq + frame.freq,
+            "thread_type": frame.thread_type
         }})
 
 

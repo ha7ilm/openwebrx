@@ -1132,8 +1132,10 @@ function on_ws_recv(evt) {
                     case "metadata":
                         update_metadata(json['value']);
                         break;
-                    case "wsjt_message":
                     case "js8_message":
+                        $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
+                        break;
+                    case "wsjt_message":
                         update_wsjt_panel(json['value']);
                         break;
                     case "dial_frequencies":
@@ -2047,7 +2049,8 @@ function demodulator_digital_replace(subtype) {
     demodulator_buttons_update();
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
     toggle_panel("openwebrx-panel-digimodes", true);
-    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'js8'].indexOf(subtype) >= 0);
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
+    toggle_panel("openwebrx-panel-js8-message", subtype == "js8");
     toggle_panel("openwebrx-panel-packet-message", subtype === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", subtype === "pocsag");
     updateHash();
@@ -2141,6 +2144,7 @@ function secondary_demod_close_window() {
     toggle_panel("openwebrx-panel-wsjt-message", false);
     toggle_panel("openwebrx-panel-packet-message", false);
     toggle_panel("openwebrx-panel-pocsag-message", false);
+    toggle_panel("openwebrx-panel-js8-message", false);
 }
 
 function secondary_demod_waterfall_add(data) {

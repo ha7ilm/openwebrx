@@ -32,6 +32,7 @@
         <script src="static/lib/ProgressBar.js"></script>
         <script src="static/lib/Measurement.js"></script>
         <script src="static/lib/FrequencyDisplay.js"></script>
+        <script src="static/lib/Js8Threads.js"></script>
         <link rel="stylesheet" type="text/css" href="static/lib/nanoscroller.css" />
         <link rel="stylesheet" type="text/css" href="static/css/openwebrx.css" />
         <meta charset="utf-8">
@@ -67,7 +68,7 @@
                     </div>
                 </div>
             </div>
-            <table class="openwebrx-panel" id="openwebrx-panel-wsjt-message" style="display: none; width: 619px;" data-panel-name="wsjt-message">
+            <table class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-wsjt-message" style="display: none; width: 619px;" data-panel-name="wsjt-message">
                 <thead><tr>
                     <th>UTC</th>
                     <th class="decimal">dB</th>
@@ -77,7 +78,15 @@
                 </tr></thead>
                 <tbody></tbody>
             </table>
-            <table class="openwebrx-panel" id="openwebrx-panel-packet-message" style="display: none; width: 619px;" data-panel-name="aprs-message">
+            <table class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-js8-message" style="display:none; width: 619px;" data-panel-name="js8-message">
+                <thead><tr>
+                    <th>UTC</th>
+                    <th class="decimal freq">Freq</th>
+                    <th class="message">Message</th>
+                </tr></thead>
+                <tbody></tbody>
+            </table>
+            <table class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-packet-message" style="display: none; width: 619px;" data-panel-name="aprs-message">
                 <thead><tr>
                     <th>UTC</th>
                     <th class="callsign">Callsign</th>
@@ -86,7 +95,7 @@
                 </tr></thead>
                 <tbody></tbody>
             </table>
-            <table class="openwebrx-panel" id="openwebrx-panel-pocsag-message" style="display: none; width: 619px;" data-panel-name="pocsag-message">
+            <table class="openwebrx-panel openwebrx-message-panel" id="openwebrx-panel-pocsag-message" style="display: none; width: 619px;" data-panel-name="pocsag-message">
                 <thead><tr>
                     <th class="address">Address</th>
                     <th class="message">Message</th>
