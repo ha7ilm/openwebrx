@@ -21,7 +21,7 @@ Js8Thread.prototype.render = function() {
     this.el.html(
         '<td>' + this.renderTimestamp(this.getLatestTimestamp()) + '</td>' +
         '<td class="decimal freq">' + Math.round(this.getAverageFrequency()) + '</td>' +
-        '<td class="message">&lrm;' + this.renderMessages() + '</td>'
+        '<td class="message"><div>' + this.renderMessages() + '</div></td>'
     );
 };
 

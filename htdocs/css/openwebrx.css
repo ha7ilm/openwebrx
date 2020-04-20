@@ -960,13 +960,19 @@ img.openwebrx-mirror-img
 }
 
 #openwebrx-panel-js8-message .message {
-    width: 470px;
-    max-width: 470px;
+    width: 465px;
+    max-width: 465px;
+}
+
+#openwebrx-panel-js8-message td.message {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
-    direction: rtl;
-    text-align: left;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+#openwebrx-panel-js8-message .message div {
+    flex: 1;
 }
 
 #openwebrx-panel-js8-message .decimal {
