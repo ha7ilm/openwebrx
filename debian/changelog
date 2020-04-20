@@ -19,6 +19,8 @@ openwebrx (0.19.0) UNRELEASED; urgency=low
   * Added support for bias tee control on rtl_sdr devices
   * All connector driven SDRs now support `"rf_gain": "auto"` to enable AGC
   * `rtl_sdr` type now also supports the `direct_sampling` option
+  * Added decoding implementation for for digimode "JS8Call" (requires an
+    installation of js8call and the js8py library)
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 20 Feb 2020 21:01:00 +0000
 

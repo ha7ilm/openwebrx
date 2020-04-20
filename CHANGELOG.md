@@ -15,6 +15,9 @@
 - Added support for bias tee control on rtl_sdr devices
 - All connector driven SDRs now support `"rf_gain": "auto"` to enable AGC
 - `rtl_sdr` type now also supports the `direct_sampling` option
+- Added decoding implementation for for digimode "JS8Call"
+  (requires an installation of [js8call](http://js8call.com/) and
+  [the js8py library](https://github.com/jketterl/js8py))
 
 **0.18.0**
 - Support for SoapyRemote
