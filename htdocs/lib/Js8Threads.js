@@ -96,6 +96,9 @@ Js8Threader.prototype.findThread = function(freq) {
         // max frequency deviation: 5 Hz. this may be a little tight.
         return thread.isOpen() && Math.abs(thread.getAverageFrequency() - freq) <= 5;
     });
+    matching.sort(function(a, b){
+        return b.getLatestTimestamp() - a.getLatestTimestamp();
+    });
     return matching[0] || false;
 };
 
