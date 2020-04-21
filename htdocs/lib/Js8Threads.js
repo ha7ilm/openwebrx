@@ -100,7 +100,11 @@ Js8Threader.prototype.findThread = function(freq) {
 };
 
 Js8Threader.prototype.pushMessage = function(message) {
-    var thread = this.findThread(message.freq);
+    var thread;
+    // only look for exising threads if the message is not a starting message
+    if ((message.thread_type & 1) === 0) {
+        thread = this.findThread(message.freq);
+    }
     if (!thread) {
         var line = $("<tr></tr>");
         this.tbody.append(line);
