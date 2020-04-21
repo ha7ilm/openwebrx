@@ -5,6 +5,7 @@ from owrx.sdr import SdrService
 from owrx.config import Config
 import os
 import json
+import pkg_resources
 
 
 class StatusController(Controller):
@@ -12,6 +13,7 @@ class StatusController(Controller):
         pm = Config.get()
         # convert to old format
         gps = (pm["receiver_gps"]["lat"], pm["receiver_gps"]["lon"])
+        avatar_path = pkg_resources.resource_filename("htdocs", "gfx/openwebrx-avatar.png")
         # TODO keys that have been left out since they are no longer simple strings: sdr_hw, bands, antenna
         vars = {
             "status": "active",
@@ -23,7 +25,7 @@ class StatusController(Controller):
             "asl": pm["receiver_asl"],
             "loc": pm["receiver_location"],
             "sw_version": openwebrx_version,
-            "avatar_ctime": os.path.getctime("htdocs/gfx/openwebrx-avatar.png"),
+            "avatar_ctime": os.path.getctime(avatar_path),
         }
         self.send_response("\n".join(["{key}={value}".format(key=key, value=value) for key, value in vars.items()]))
 
