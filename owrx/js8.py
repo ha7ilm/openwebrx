@@ -1,4 +1,4 @@
-from .wsjt import WsjtChopper
+from .audio import AudioChopperProfile
 from .parser import Parser
 import re
 from js8py import Js8
@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Js8Chopper(WsjtChopper):
+class Js8NormalProfile(AudioChopperProfile):
     def getInterval(self):
         return 15
 
