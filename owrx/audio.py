@@ -5,7 +5,7 @@ import threading
 import wave
 import subprocess
 import os
-from multiprocessing.connection import Pipe
+from multiprocessing.connection import Pipe, wait
 from datetime import datetime, timedelta
 from queue import Queue, Full
 
@@ -13,7 +13,7 @@ from queue import Queue, Full
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+#logger.setLevel(logging.INFO)
 
 
 class QueueJob(object):
@@ -117,7 +117,7 @@ class AudioChopperProfile(ABC):
         return 3
 
 
-class AudioChopper(threading.Thread, metaclass=ABCMeta):
+class AudioWriter(object):
     def __init__(self, dsp, source, profile: AudioChopperProfile):
         self.dsp = dsp
         self.source = source
@@ -128,12 +128,12 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
         self.switchingLock = threading.Lock()
         self.timer = None
         (self.outputReader, self.outputWriter) = Pipe()
-        self.doRun = True
-        super().__init__()
 
     def getWaveFile(self):
         filename = "{tmp_dir}/openwebrx-audiochopper-{id}-{timestamp}.wav".format(
-            tmp_dir=self.tmp_dir, id=id(self), timestamp=datetime.utcnow().strftime(self.profile.getFileTimestampFormat())
+            tmp_dir=self.tmp_dir,
+            id=id(self.profile),
+            timestamp=datetime.utcnow().strftime(self.profile.getFileTimestampFormat()),
         )
         wavefile = wave.open(filename, "wb")
         wavefile.setnchannels(1)
@@ -158,10 +158,9 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
 
     def _scheduleNextSwitch(self):
         self.cancelTimer()
-        if self.doRun:
-            delta = self.getNextDecodingTime() - datetime.utcnow()
-            self.timer = threading.Timer(delta.total_seconds(), self.switchFiles)
-            self.timer.start()
+        delta = self.getNextDecodingTime() - datetime.utcnow()
+        self.timer = threading.Timer(delta.total_seconds(), self.switchFiles)
+        self.timer.start()
 
     def switchFiles(self):
         self.switchingLock.acquire()
@@ -197,20 +196,16 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
             decoder.kill()
         os.unlink(job.file)
 
-    def run(self) -> None:
-        logger.debug("WSJT chopper starting up")
+    def start(self):
         (self.wavefilename, self.wavefile) = self.getWaveFile()
         self._scheduleNextSwitch()
-        while self.doRun:
-            data = self.source.read(256)
-            if data is None or (isinstance(data, bytes) and len(data) == 0):
-                self.doRun = False
-            else:
-                self.switchingLock.acquire()
-                self.wavefile.writeframes(data)
-                self.switchingLock.release()
 
-        logger.debug("WSJT chopper shutting down")
+    def write(self, data):
+        self.switchingLock.acquire()
+        self.wavefile.writeframes(data)
+        self.switchingLock.release()
+
+    def stop(self):
         self.outputReader.close()
         self.outputWriter.close()
         self.cancelTimer()
@@ -219,8 +214,33 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
         except Exception:
             logger.exception("error removing undecoded file")
 
+
+class AudioChopper(threading.Thread, metaclass=ABCMeta):
+    def __init__(self, dsp, source, *profiles: AudioChopperProfile):
+        self.source = source
+        self.writers = [AudioWriter(dsp, source, p) for p in profiles]
+        self.doRun = True
+        super().__init__()
+
+    def run(self) -> None:
+        logger.debug("Audio chopper starting up")
+        for w in self.writers:
+            w.start()
+        while self.doRun:
+            data = self.source.read(256)
+            if data is None or (isinstance(data, bytes) and len(data) == 0):
+                self.doRun = False
+            else:
+                for w in self.writers:
+                    w.write(data)
+
+        logger.debug("Audio chopper shutting down")
+        for w in self.writers:
+            w.stop()
+
     def read(self):
         try:
-            return self.outputReader.recv()
+            readers = wait([w.outputReader for w in self.writers])
+            return [r.recv() for r in readers]
         except EOFError:
             return None

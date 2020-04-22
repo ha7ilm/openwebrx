@@ -10,7 +10,6 @@ from abc import ABC, abstractmethod
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class Ft8Profile(AudioChopperProfile):
@@ -75,34 +74,35 @@ class Ft4Profile(AudioChopperProfile):
 class WsjtParser(Parser):
     modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4"}
 
-    def parse(self, data):
-        try:
-            freq, raw_msg = data
-            self.setDialFrequency(freq)
-            msg = raw_msg.decode().rstrip()
-            # known debug messages we know to skip
-            if msg.startswith("<DecodeFinished>"):
-                return
-            if msg.startswith(" EOF on input file"):
-                return
+    def parse(self, messages):
+        for data in messages:
+            try:
+                freq, raw_msg = data
+                self.setDialFrequency(freq)
+                msg = raw_msg.decode().rstrip()
+                # known debug messages we know to skip
+                if msg.startswith("<DecodeFinished>"):
+                    return
+                if msg.startswith(" EOF on input file"):
+                    return
 
-            modes = list(WsjtParser.modes.keys())
-            if msg[21] in modes or msg[19] in modes:
-                decoder = Jt9Decoder()
-            else:
-                decoder = WsprDecoder()
-            out = decoder.parse(msg, freq)
-            if "mode" in out:
-                self.pushDecode(out["mode"])
-                if "callsign" in out and "locator" in out:
-                    Map.getSharedInstance().updateLocation(
-                        out["callsign"], LocatorLocation(out["locator"]), out["mode"], self.band
-                    )
-                    PskReporter.getSharedInstance().spot(out)
+                modes = list(WsjtParser.modes.keys())
+                if msg[21] in modes or msg[19] in modes:
+                    decoder = Jt9Decoder()
+                else:
+                    decoder = WsprDecoder()
+                out = decoder.parse(msg, freq)
+                if "mode" in out:
+                    self.pushDecode(out["mode"])
+                    if "callsign" in out and "locator" in out:
+                        Map.getSharedInstance().updateLocation(
+                            out["callsign"], LocatorLocation(out["locator"]), out["mode"], self.band
+                        )
+                        PskReporter.getSharedInstance().spot(out)
 
-            self.handler.write_wsjt_message(out)
-        except ValueError:
-            logger.exception("error while parsing wsjt message")
+                self.handler.write_wsjt_message(out)
+            except ValueError:
+                logger.exception("error while parsing wsjt message")
 
     def pushDecode(self, mode):
         metrics = Metrics.getSharedInstance()
