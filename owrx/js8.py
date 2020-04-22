@@ -6,21 +6,29 @@ from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
 from owrx.map import Map, LocatorLocation
 from owrx.pskreporter import PskReporter
 from owrx.metrics import Metrics, CounterMetric
+from abc import ABCMeta
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Js8NormalProfile(AudioChopperProfile):
-    def getInterval(self):
-        return 15
-
+class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
     def getFileTimestampFormat(self):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
         return ["js8", "--js8", "-d", str(self.decoding_depth("js8")), file]
+
+
+class Js8NormalProfile(Js8Profile):
+    def getInterval(self):
+        return 15
+
+
+class Js8SlowProfile(Js8Profile):
+    def getInterval(self):
+        return 30
 
 
 class Js8Parser(Parser):

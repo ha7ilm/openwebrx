@@ -13,7 +13,7 @@ from queue import Queue, Full
 import logging
 
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 
 
 class QueueJob(object):
@@ -132,7 +132,7 @@ class AudioWriter(object):
     def getWaveFile(self):
         filename = "{tmp_dir}/openwebrx-audiochopper-{id}-{timestamp}.wav".format(
             tmp_dir=self.tmp_dir,
-            id=id(self.profile),
+            id=id(self),
             timestamp=datetime.utcnow().strftime(self.profile.getFileTimestampFormat()),
         )
         wavefile = wave.open(filename, "wb")
