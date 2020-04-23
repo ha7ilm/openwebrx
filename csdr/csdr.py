@@ -30,7 +30,7 @@ from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
 from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile
-from owrx.js8 import Js8NormalProfile
+from owrx.js8 import Js8NormalProfile, Js8SlowProfile
 from owrx.audio import AudioChopper
 
 import logging
@@ -451,23 +451,23 @@ class dsp(object):
 
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
-            chopper_profile = None
+            chopper_profiles = None
             output_name = "wsjt_demod"
             if smd == "ft8":
-                chopper_profile = Ft8Profile()
+                chopper_profiles = [Ft8Profile()]
             elif smd == "wspr":
-                chopper_profile = WsprProfile()
+                chopper_profiles = [WsprProfile()]
             elif smd == "jt65":
-                chopper_profile = Jt65Profile()
+                chopper_profiles = [Jt65Profile()]
             elif smd == "jt9":
-                chopper_profile = Jt9Profile()
+                chopper_profiles = [Jt9Profile()]
             elif smd == "ft4":
-                chopper_profile = Ft4Profile()
+                chopper_profiles = [Ft4Profile()]
             elif smd == "js8":
-                chopper_profile = Js8NormalProfile()
+                chopper_profiles = [Js8NormalProfile(), Js8SlowProfile()]
                 output_name = "js8_demod"
-            if chopper_profile is not None:
-                chopper = AudioChopper(self, self.secondary_process_demod.stdout, chopper_profile)
+            if chopper_profiles is not None:
+                chopper = AudioChopper(self, self.secondary_process_demod.stdout, *chopper_profiles)
                 chopper.start()
                 self.output.send_output(output_name, chopper.read)
         elif self.isPacket():
