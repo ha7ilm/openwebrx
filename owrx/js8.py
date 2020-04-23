@@ -6,7 +6,7 @@ from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
 from owrx.map import Map, LocatorLocation
 from owrx.pskreporter import PskReporter
 from owrx.metrics import Metrics, CounterMetric
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 import logging
 
@@ -18,17 +18,27 @@ class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
-        return ["js8", "--js8", "-d", str(self.decoding_depth("js8")), file]
+        return ["js8", "--js8", "-b", self.get_sub_mode(), "-d", str(self.decoding_depth("js8")), file]
+
+    @abstractmethod
+    def get_sub_mode(self):
+        pass
 
 
 class Js8NormalProfile(Js8Profile):
     def getInterval(self):
         return 15
 
+    def get_sub_mode(self):
+        return "A"
+
 
 class Js8SlowProfile(Js8Profile):
     def getInterval(self):
         return 30
+
+    def get_sub_mode(self):
+        return "E"
 
 
 class Js8Parser(Parser):
