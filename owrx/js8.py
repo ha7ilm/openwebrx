@@ -41,6 +41,22 @@ class Js8SlowProfile(Js8Profile):
         return "E"
 
 
+class Js8FastProfile(Js8Profile):
+    def getInterval(self):
+        return 10
+
+    def get_sub_mode(self):
+        return "B"
+
+
+class Js8TurboProfile(Js8Profile):
+    def getInterval(self):
+        return 6
+
+    def get_sub_mode(self):
+        return "C"
+
+
 class Js8Parser(Parser):
     decoderRegex = re.compile(" ?<Decode(Started|Debug|Finished)>")
 

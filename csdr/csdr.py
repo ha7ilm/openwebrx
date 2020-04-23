@@ -30,7 +30,7 @@ from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
 from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile
-from owrx.js8 import Js8NormalProfile, Js8SlowProfile
+from owrx.js8 import Js8NormalProfile, Js8SlowProfile, Js8FastProfile, Js8TurboProfile
 from owrx.audio import AudioChopper
 
 import logging
@@ -464,7 +464,7 @@ class dsp(object):
             elif smd == "ft4":
                 chopper_profiles = [Ft4Profile()]
             elif smd == "js8":
-                chopper_profiles = [Js8NormalProfile(), Js8SlowProfile()]
+                chopper_profiles = [Js8NormalProfile(), Js8SlowProfile(), Js8FastProfile(), Js8TurboProfile()]
                 output_name = "js8_demod"
             if chopper_profiles is not None:
                 chopper = AudioChopper(self, self.secondary_process_demod.stdout, *chopper_profiles)
