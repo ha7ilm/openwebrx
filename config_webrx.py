@@ -301,6 +301,9 @@ wsjt_decoding_depth = 3
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
 wsjt_decoding_depths = {"jt65": 1}
 
+# JS8 comes in different speeds: normal, slow, fast, turbo. This setting controls which ones are enabled.
+js8_enabled_profiles = ["normal", "slow"]
+
 temporary_directory = "/tmp"
 
 services_enabled = False
