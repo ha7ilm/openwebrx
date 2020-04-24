@@ -41,7 +41,7 @@ Js8Thread.prototype.renderMessages = function() {
         var msg = this.messages[i];
         if (msg.thread_type & 1) {
             res.push('[ ');
-        } else if (i === 0 || msg.timestamp - this.messages[i - 1].timestamp > 15000) {
+        } else if (i === 0 || msg.timestamp - this.messages[i - 1].timestamp > this.getMessageDuration()) {
             res.push(' ... ');
         }
         res.push(msg.msg);
@@ -52,6 +52,30 @@ Js8Thread.prototype.renderMessages = function() {
         }
     }
     return res.join('');
+};
+
+Js8Thread.prototype.getMessageDuration = function() {
+    switch (this.getMode()) {
+        case 'A':
+            return 15000;
+        case 'E':
+            return 30000;
+        case 'B':
+            return 10000;
+        case 'C':
+            return 6000;
+    }
+};
+
+Js8Thread.prototype.getMode = function() {
+    // we filter messages by mode, so the first one is as good as any
+    if (!this.messages.length) return;
+    return this.messages[0].mode;
+};
+
+Js8Thread.prototype.acceptsMode = function(mode) {
+    var currentMode = this.getMode();
+    return typeof(currentMode) === 'undefined' || currentMode === mode;
 };
 
 Js8Thread.prototype.renderTimestamp = function(timestamp) {
@@ -91,10 +115,10 @@ Js8Threader.prototype.purgeOldMessages = function() {
     });
 };
 
-Js8Threader.prototype.findThread = function(freq) {
+Js8Threader.prototype.findThread = function(freq, mode) {
     var matching = this.threads.filter(function(thread) {
         // max frequency deviation: 5 Hz. this may be a little tight.
-        return thread.isOpen() && Math.abs(thread.getAverageFrequency() - freq) <= 5;
+        return thread.isOpen() && thread.acceptsMode(mode) && Math.abs(thread.getAverageFrequency() - freq) <= 5;
     });
     matching.sort(function(a, b){
         return b.getLatestTimestamp() - a.getLatestTimestamp();
@@ -106,7 +130,7 @@ Js8Threader.prototype.pushMessage = function(message) {
     var thread;
     // only look for exising threads if the message is not a starting message
     if ((message.thread_type & 1) === 0) {
-        thread = this.findThread(message.freq);
+        thread = this.findThread(message.freq, message.mode);
     }
     if (!thread) {
         var line = $("<tr></tr>");
