@@ -48,6 +48,11 @@ class SettingsController(AdminController):
         self.serve_template("settings.html", **self.template_variables())
 
 
+class SdrSettingsController(AdminController):
+    def indexAction(self):
+        self.serve_template("sdrsettings.html", **self.template_variables())
+
+
 class GeneralSettingsController(AdminController):
     sections = [
         Section(

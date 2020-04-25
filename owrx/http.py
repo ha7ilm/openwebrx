@@ -11,7 +11,7 @@ from owrx.controllers.assets import (
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
-from owrx.controllers.settings import SettingsController, GeneralSettingsController
+from owrx.controllers.settings import SettingsController, GeneralSettingsController, SdrSettingsController
 from owrx.controllers.session import SessionController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -103,6 +103,7 @@ class Router(object):
             StaticRoute("/settings", SettingsController),
             StaticRoute("/generalsettings", GeneralSettingsController),
             StaticRoute("/generalsettings", GeneralSettingsController, method="POST", options={"action": "processFormData"}),
+            StaticRoute("/sdrsettings", SdrSettingsController),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),
