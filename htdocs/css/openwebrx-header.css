@@ -47,12 +47,6 @@
     float: left;
 }
 
-#webrx-ha5kfu-top-logo
-{
-    float: right;
-    padding: 15px;
-}
-
 #webrx-rx-avatar
 {
     background-color: rgba(154, 154, 154, .5);
@@ -149,7 +143,7 @@
 
 #openwebrx-main-buttons
 {
-    padding: 5px 0;
+    padding: 5px 15px;
     display: flex;
     list-style: none;
     float: right;
