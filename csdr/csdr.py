@@ -338,7 +338,7 @@ class dsp(object):
                 "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8",
                 "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8",
             ]
-        elif self.isWsjtMode(which):
+        elif self.isWsjtMode(which) or self.isJs8(which):
             chain += ["csdr realpart_cf"]
             if self.last_decimation != 1.0:
                 chain += ["csdr fractional_decimator_ff {last_decimation}"]
@@ -451,25 +451,25 @@ class dsp(object):
 
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
-            chopper_profiles = None
-            output_name = "wsjt_demod"
+            chopper_profile = None
             if smd == "ft8":
-                chopper_profiles = [Ft8Profile()]
+                chopper_profile = Ft8Profile()
             elif smd == "wspr":
-                chopper_profiles = [WsprProfile()]
+                chopper_profile = WsprProfile()
             elif smd == "jt65":
-                chopper_profiles = [Jt65Profile()]
+                chopper_profile = Jt65Profile()
             elif smd == "jt9":
-                chopper_profiles = [Jt9Profile()]
+                chopper_profile = Jt9Profile()
             elif smd == "ft4":
-                chopper_profiles = [Ft4Profile()]
-            elif smd == "js8":
-                chopper_profiles = Js8Profiles.getEnabledProfiles()
-                output_name = "js8_demod"
-            if chopper_profiles is not None:
-                chopper = AudioChopper(self, self.secondary_process_demod.stdout, *chopper_profiles)
+                chopper_profile = Ft4Profile()
+            if chopper_profile is not None:
+                chopper = AudioChopper(self, self.secondary_process_demod.stdout, chopper_profile)
                 chopper.start()
-                self.output.send_output(output_name, chopper.read)
+                self.output.send_output("wsjt_demod", chopper.read)
+        elif self.isJs8():
+            chopper = AudioChopper(self, self.secondary_process_demod.stdout, *Js8Profiles.getEnabledProfiles())
+            chopper.start()
+            self.output.send_output("js8_demod", chopper.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_port)
@@ -570,7 +570,7 @@ class dsp(object):
     def get_audio_rate(self):
         if self.isDigitalVoice() or self.isPacket() or self.isPocsag():
             return 48000
-        elif self.isWsjtMode():
+        elif self.isWsjtMode() or self.isJs8():
             return 12000
         return self.get_output_rate()
 
@@ -582,7 +582,12 @@ class dsp(object):
     def isWsjtMode(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
-        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4", "js8"]
+        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4"]
+
+    def isJs8(self, demodulator = None):
+        if demodulator is None:
+            demodulator = self.get_secondary_demodulator()
+        return demodulator == "js8"
 
     def isPacket(self, demodulator=None):
         if demodulator is None:
