@@ -93,11 +93,8 @@ class Js8Parser(Parser):
                 if msg.startswith(" EOF on input file"):
                     return
 
-                logger.debug(msg)
-
                 frame = Js8().parse_message(msg)
                 self.handler.write_js8_message(frame, self.dial_freq)
-                logger.debug(frame)
 
                 self.pushDecode()
 
