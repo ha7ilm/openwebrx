@@ -50,8 +50,8 @@ class SessionController(WebpageController):
                     key = SessionStorage.getSharedInstance().startSession({"user": user.name})
                     cookie = SimpleCookie()
                     cookie["owrx-session"] = key
-                    # TODO pass the final destination
-                    self.send_redirect("/settings", cookies=cookie)
+                    target = self.request.query["ref"][0] if "ref" in self.request.query else "/settings"
+                    self.send_redirect(target, cookies=cookie)
                     return
         self.send_redirect("/login")
 
