@@ -11,6 +11,7 @@ from owrx.form import (
     DropdownInput,
     Option,
     ServicesCheckboxInput,
+    Js8ProfileCheckboxInput,
 )
 import logging
 
@@ -145,13 +146,22 @@ class SettingsController(AdminController):
             ),
         ),
         Section(
-            "WSJT-X settings",
+            "Decoding settings",
             NumberInput("decoding_queue_workers", "Number of decoding workers"),
             NumberInput("decoding_queue_length", "Maximum length of decoding job queue"),
             NumberInput(
                 "wsjt_decoding_depth",
-                "WSJT decoding depth",
+                "Default WSJT decoding depth",
                 infotext="A higher decoding depth will allow more results, but will also consume more cpu",
+            ),
+            NumberInput(
+                "js8_decoding_depth",
+                "Js8Call decoding depth",
+                infotext="A higher decoding depth will allow more results, but will also consume more cpu",
+            ),
+            Js8ProfileCheckboxInput(
+                "js8_enabled_profiles",
+                "Js8Call enabled modes"
             ),
         ),
         Section(

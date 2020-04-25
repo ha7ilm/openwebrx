@@ -201,6 +201,17 @@ class ServicesCheckboxInput(MultiCheckboxInput):
         super().__init__(id, label, services, infotext)
 
 
+class Js8ProfileCheckboxInput(MultiCheckboxInput):
+    def __init__(self, id, label, infotext=None):
+        profiles = [
+            Option("normal", "Normal (15s, 50Hz, ~16WPM)"),
+            Option("slow", "Slow (30s, 25Hz, ~8WPM"),
+            Option("fast", "Fast (10s, 80Hz, ~24WPM"),
+            Option("turbo", "Turbo (6s, 160Hz, ~40WPM"),
+        ]
+        super().__init__(id, label, profiles, infotext)
+
+
 class DropdownInput(Input):
     def __init__(self, id, label, options, infotext=None):
         super().__init__(id, label, infotext=infotext)
