@@ -18,7 +18,7 @@ class AdminController(WebpageController):
 
     def handle_request(self):
         config = Config.get()
-        if not config["webadmin_enabled"]:
+        if "webadmin_enabled" not in config or not config["webadmin_enabled"]:
             self.send_response("Web Admin is disabled", code=403)
             return
         if self.authentication.isAuthenticated(self.request):
