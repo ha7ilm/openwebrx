@@ -44,6 +44,11 @@ class Section(object):
 
 
 class SettingsController(AdminController):
+    def indexAction(self):
+        self.serve_template("settings.html", **self.template_variables())
+
+
+class GeneralSettingsController(AdminController):
     sections = [
         Section(
             "General settings",
@@ -222,7 +227,7 @@ class SettingsController(AdminController):
     ]
 
     def render_sections(self):
-        sections = "".join(section.render() for section in SettingsController.sections)
+        sections = "".join(section.render() for section in GeneralSettingsController.sections)
         return """
             <form class="settings-body" method="POST">
                 {sections}
@@ -235,7 +240,7 @@ class SettingsController(AdminController):
         )
 
     def indexAction(self):
-        self.serve_template("admin.html", **self.template_variables())
+        self.serve_template("generalsettings.html", **self.template_variables())
 
     def template_variables(self):
         variables = super().template_variables()
@@ -245,7 +250,7 @@ class SettingsController(AdminController):
     def processFormData(self):
         data = parse_qs(self.get_body().decode("utf-8"))
         data = {
-            k: v for i in SettingsController.sections for k, v in i.parse(data).items()
+            k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()
         }
         config = Config.get()
         for k, v in data.items():
