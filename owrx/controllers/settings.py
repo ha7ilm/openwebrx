@@ -146,8 +146,8 @@ class SettingsController(AdminController):
         ),
         Section(
             "WSJT-X settings",
-            NumberInput("wsjt_queue_workers", "Number of WSJT decoding workers"),
-            NumberInput("wsjt_queue_length", "Maximum length of WSJT job queue"),
+            NumberInput("decoding_queue_workers", "Number of decoding workers"),
+            NumberInput("decoding_queue_length", "Maximum length of decoding job queue"),
             NumberInput(
                 "wsjt_decoding_depth",
                 "WSJT decoding depth",

@@ -28,6 +28,14 @@ class Js8Profiles(object):
 
 
 class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
+    def decoding_depth(self, mode):
+        pm = Config.get()
+        # return global default
+        if "js8_decoding_depth" in pm:
+            return pm["js8_decoding_depth"]
+        # default when no setting is provided
+        return 3
+
     def getFileTimestampFormat(self):
         return "%y%m%d_%H%M%S"
 

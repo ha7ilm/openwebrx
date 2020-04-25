@@ -5,14 +5,28 @@ from owrx.metrics import Metrics, CounterMetric
 from owrx.pskreporter import PskReporter
 from owrx.parser import Parser
 from owrx.audio import AudioChopperProfile
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
+from owrx.config import Config
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Ft8Profile(AudioChopperProfile):
+class WsjtProfile(AudioChopperProfile, metaclass=ABCMeta):
+    def decoding_depth(self, mode):
+        pm = Config.get()
+        # mode-specific setting?
+        if "wsjt_decoding_depths" in pm and mode in pm["wsjt_decoding_depths"]:
+            return pm["wsjt_decoding_depths"][mode]
+        # return global default
+        if "wsjt_decoding_depth" in pm:
+            return pm["wsjt_decoding_depth"]
+        # default when no setting is provided
+        return 3
+
+
+class Ft8Profile(WsjtProfile):
     def getInterval(self):
         return 15
 
@@ -23,7 +37,7 @@ class Ft8Profile(AudioChopperProfile):
         return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
 
 
-class WsprProfile(AudioChopperProfile):
+class WsprProfile(WsjtProfile):
     def getInterval(self):
         return 120
 
@@ -38,7 +52,7 @@ class WsprProfile(AudioChopperProfile):
         return cmd
 
 
-class Jt65Profile(AudioChopperProfile):
+class Jt65Profile(WsjtProfile):
     def getInterval(self):
         return 60
 
@@ -49,7 +63,7 @@ class Jt65Profile(AudioChopperProfile):
         return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
 
 
-class Jt9Profile(AudioChopperProfile):
+class Jt9Profile(WsjtProfile):
     def getInterval(self):
         return 60
 
@@ -60,7 +74,7 @@ class Jt9Profile(AudioChopperProfile):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
 
 
-class Ft4Profile(AudioChopperProfile):
+class Ft4Profile(WsjtProfile):
     def getInterval(self):
         return 7.5
 

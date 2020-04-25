@@ -52,21 +52,21 @@ class DecoderQueue(Queue):
         with DecoderQueue.creationLock:
             if DecoderQueue.sharedInstance is None:
                 pm = Config.get()
-                DecoderQueue.sharedInstance = DecoderQueue(maxsize=pm["wsjt_queue_length"], workers=pm["wsjt_queue_workers"])
+                DecoderQueue.sharedInstance = DecoderQueue(maxsize=pm["decoding_queue_length"], workers=pm["decoding_queue_workers"])
         return DecoderQueue.sharedInstance
 
     def __init__(self, maxsize, workers):
         super().__init__(maxsize)
         metrics = Metrics.getSharedInstance()
-        metrics.addMetric("wsjt.queue.length", DirectMetric(self.qsize))
+        metrics.addMetric("decoding.queue.length", DirectMetric(self.qsize))
         self.inCounter = CounterMetric()
-        metrics.addMetric("wsjt.queue.in", self.inCounter)
+        metrics.addMetric("decoding.queue.in", self.inCounter)
         self.outCounter = CounterMetric()
-        metrics.addMetric("wsjt.queue.out", self.outCounter)
+        metrics.addMetric("decoding.queue.out", self.outCounter)
         self.overflowCounter = CounterMetric()
-        metrics.addMetric("wsjt.queue.overflow", self.overflowCounter)
+        metrics.addMetric("decoding.queue.overflow", self.overflowCounter)
         self.errorCounter = CounterMetric()
-        metrics.addMetric("wsjt.queue.error", self.errorCounter)
+        metrics.addMetric("decoding.queue.error", self.errorCounter)
         self.workers = [self.newWorker() for _ in range(0, workers)]
 
     def put(self, item, **kwars):
@@ -104,17 +104,6 @@ class AudioChopperProfile(ABC):
     @abstractmethod
     def decoder_commandline(self, file):
         pass
-
-    def decoding_depth(self, mode):
-        pm = Config.get()
-        # mode-specific setting?
-        if "wsjt_decoding_depths" in pm and mode in pm["wsjt_decoding_depths"]:
-            return pm["wsjt_decoding_depths"][mode]
-        # return global default
-        if "wsjt_decoding_depth" in pm:
-            return pm["wsjt_decoding_depth"]
-        # default when no setting is provided
-        return 3
 
 
 class AudioWriter(object):
@@ -173,7 +162,7 @@ class AudioWriter(object):
         try:
             DecoderQueue.getSharedInstance().put(QueueJob(self, filename, self.dsp.get_operating_freq()))
         except Full:
-            logger.warning("wsjt decoding queue overflow; dropping one file")
+            logger.warning("decoding queue overflow; dropping one file")
             os.unlink(filename)
         self._scheduleNextSwitch()
 
