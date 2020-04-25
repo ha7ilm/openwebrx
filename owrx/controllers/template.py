@@ -1,6 +1,7 @@
 from . import Controller
 import pkg_resources
 from string import Template
+from owrx.config import Config
 
 
 class TemplateController(Controller):
@@ -19,7 +20,11 @@ class TemplateController(Controller):
 
 class WebpageController(TemplateController):
     def template_variables(self):
-        header = self.render_template("include/header.include.html")
+        settingslink = ""
+        pm = Config.get()
+        if "webadmin_enabled" in pm and pm["webadmin_enabled"]:
+            settingslink = """<a class="button" href="admin" target="_blank"><img src="static/gfx/openwebrx-panel-settings.png" /><br/>Settings</a>"""
+        header = self.render_template("include/header.include.html", settingslink=settingslink)
         return {"header": header}
 
 
