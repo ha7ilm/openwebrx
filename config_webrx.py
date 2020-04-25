@@ -327,4 +327,6 @@ pskreporter_enabled = False
 pskreporter_callsign = "N0CALL"
 
 # === Web admin settings ===
-webadmin_enabled = False
+# this feature is experimental at the moment. it should not be enabled on shared receivers since it allows remote
+# changes to the receiver settings. enable for testing in controlled environment only.
+# webadmin_enabled = False
