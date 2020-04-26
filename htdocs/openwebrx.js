@@ -1123,6 +1123,7 @@ function on_ws_recv(evt) {
                         break;
                     case "features":
                         var features = json['value'];
+                        Modes.setFeatures(features);
                         for (var feature in features) {
                             if (features.hasOwnProperty(feature)) {
                                 $('[data-feature="' + feature + '"]')[features[feature] ? "show" : "hide"]();
@@ -1179,7 +1180,6 @@ function on_ws_recv(evt) {
                         break;
                     case 'modes':
                         Modes.setModes(json['value']);
-                        console.info(Modes);
                         break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);

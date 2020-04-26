@@ -353,6 +353,7 @@ class OpenWebRxReceiverClient(Client):
         self.send({"type": "modes", "value": [{
             "modulation": m.modulation,
             "name": m.name,
+            "digimode": m.digimode,
             "requirements": m.requirements
         } for m in modes]})
 

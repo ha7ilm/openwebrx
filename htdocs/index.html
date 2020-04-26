@@ -166,48 +166,7 @@
                     <select id="openwebrx-sdr-profiles-listbox" onchange="sdr_profile_changed();">
                     </select>
                 </div>
-                <div class="openwebrx-panel-line openwebrx-panel-flex-line">
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-nfm"
-                         onclick="demodulator_analog_replace('nfm');">FM</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-am"
-                         onclick="demodulator_analog_replace('am');">AM</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-lsb"
-                         onclick="demodulator_analog_replace('lsb');">LSB</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-usb"
-                         onclick="demodulator_analog_replace('usb');">USB</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-cw"
-                         onclick="demodulator_analog_replace('cw');">CW</div>
-                </div>
-                <div class="openwebrx-panel-line openwebrx-panel-flex-line">
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-dmr"
-                         style="display:none;" data-feature="digital_voice_digiham"
-                         onclick="demodulator_analog_replace('dmr');">DMR</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-dstar"
-                         style="display:none;" data-feature="digital_voice_dsd"
-                         onclick="demodulator_analog_replace('dstar');">DStar</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-nxdn"
-                         style="display:none;" data-feature="digital_voice_dsd"
-                         onclick="demodulator_analog_replace('nxdn');">NXDN</div>
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-ysf"
-                         style="display:none;" data-feature="digital_voice_digiham"
-                         onclick="demodulator_analog_replace('ysf');">YSF</div>
-                </div>
-                <div class="openwebrx-panel-line openwebrx-panel-flex-line">
-                    <div class="openwebrx-button openwebrx-demodulator-button" id="openwebrx-button-dig" onclick="demodulator_digital_replace_last();">DIG</div>
-                    <select id="openwebrx-secondary-demod-listbox" onchange="secondary_demod_listbox_changed();">
-                        <option value="none"></option>
-                        <option value="bpsk31">BPSK31</option>
-                        <option value="bpsk63">BPSK63</option>
-                        <option value="ft8" data-feature="wsjt-x">FT8</option>
-                        <option value="wspr" data-feature="wsjt-x">WSPR</option>
-                        <option value="jt65" data-feature="wsjt-x">JT65</option>
-                        <option value="jt9" data-feature="wsjt-x">JT9</option>
-                        <option value="ft4" data-feature="wsjt-x">FT4</option>
-                        <option value="js8" data-feature="js8call">JS8Call</option>
-                        <option value="packet" data-feature="packet">Packet</option>
-                        <option value="pocsag" data-feature="pocsag">Pocsag</option>
-                    </select>
-                </div>
+                <div class="openwebrx-modes openwebrx-panel-line"></div>
                 <div class="openwebrx-panel-line">
                     <div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><img src="static/gfx/openwebrx-speaker.png" class="openwebrx-sliderbtn-img" id="openwebrx-mute-img"></div>
                     <input title="Volume" id="openwebrx-panel-volume" class="openwebrx-panel-slider" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
