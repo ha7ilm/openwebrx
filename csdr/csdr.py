@@ -607,6 +607,8 @@ class dsp(object):
         self.restart()
 
     def set_demodulator(self, demodulator):
+        if demodulator in ["usb", "lsb", "cw"]:
+            demodulator = "ssb"
         if self.demodulator == demodulator:
             return
         self.demodulator = demodulator

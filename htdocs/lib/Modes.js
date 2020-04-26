@@ -15,9 +15,8 @@ var Modes = {
     },
     updateModePanel:function() {
         var available = this.modes.filter(function(m){ return m.isAvailable(); });
-        var normalModes = available.filter(function(m){ return !m.digimode; });
-        var digiModes = available.filter(function(m){ return m.digimode; });
-
+        var normalModes = available.filter(function(m){ return m.type === 'analog'; });
+        var digiModes = available.filter(function(m){ return m.type === 'digimode'; });
 
         var html = []
 
@@ -63,8 +62,14 @@ var Modes = {
 var Mode = function(json){
     this.modulation = json.modulation;
     this.name = json.name;
-    this.digimode = json.digimode;
+    this.type = json.type;
     this.requirements = json.requirements;
+    if (json.bandpass) {
+        this.bandpass = json.bandpass;
+    }
+    if (this.type === 'digimode') {
+        this.underlying = json.underlying;
+    }
 };
 
 Mode.prototype.isAvailable = function(){

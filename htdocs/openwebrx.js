@@ -374,40 +374,10 @@ function Demodulator_default_analog(offset_frequency, subtype) {
             };
         }
     };
-    //Subtypes only define some filter parameters and the mod string sent to server,
-    //so you may set these parameters in your custom child class.
-    //Why? As of demodulation is done on the server, difference is mainly on the server side.
-    this.server_mod = subtype;
-    if (subtype === "lsb") {
-        this.low_cut = -3000;
-        this.high_cut = -300;
-        this.server_mod = "ssb";
-    }
-    else if (subtype === "usb") {
-        this.low_cut = 300;
-        this.high_cut = 3000;
-        this.server_mod = "ssb";
-    }
-    else if (subtype === "cw") {
-        this.low_cut = 700;
-        this.high_cut = 900;
-        this.server_mod = "ssb";
-    }
-    else if (subtype === "nfm") {
-        this.low_cut = -4000;
-        this.high_cut = 4000;
-    }
-    else if (subtype === "dmr" || subtype === "ysf") {
-        this.low_cut = -4000;
-        this.high_cut = 4000;
-    }
-    else if (subtype === "dstar" || subtype === "nxdn") {
-        this.low_cut = -3250;
-        this.high_cut = 3250;
-    }
-    else if (subtype === "am") {
-        this.low_cut = -4000;
-        this.high_cut = 4000;
+    var mode = Modes.findByModulation(subtype);
+    if (mode) {
+        this.low_cut = mode.bandpass.low_cut;
+        this.high_cut = mode.bandpass.high_cut;
     }
 
     this.wait_for_timer = false;
@@ -433,7 +403,7 @@ function Demodulator_default_analog(offset_frequency, subtype) {
             "high_cut": this.high_cut,
             "offset_freq": this.offset_frequency
         };
-        if (first_time) params.mod = this.server_mod;
+        if (first_time) params.mod = this.subtype;
         ws.send(JSON.stringify({"type": "dspcontrol", "params": params}));
         mkenvelopes(get_visible_freq_range());
     };
@@ -1174,6 +1144,7 @@ function on_ws_recv(evt) {
                         break;
                     case 'modes':
                         Modes.setModes(json['value']);
+                        demodulator_buttons_update();
                         break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
@@ -1947,29 +1918,24 @@ function initPanels() {
 }
 
 function demodulator_buttons_update() {
-    $(".openwebrx-demodulator-button").removeClass("highlighted");
+    var $buttons = $(".openwebrx-demodulator-button");
+    $buttons.removeClass("highlighted").removeClass('disabled');
     if (!demodulators.length) return;
+    var mod = demodulators[0].subtype;
+    $("#openwebrx-button-" + mod).addClass("highlighted");
     if (secondary_demod) {
         $("#openwebrx-button-dig").addClass("highlighted");
         $('#openwebrx-secondary-demod-listbox').val(secondary_demod);
-    } else switch (demodulators[0].subtype) {
-        case "lsb":
-        case "usb":
-        case "cw":
-            if (demodulators[0].high_cut - demodulators[0].low_cut < 300)
-                $("#openwebrx-button-cw").addClass("highlighted");
-            else {
-                if (demodulators[0].high_cut < 0)
-                    $("#openwebrx-button-lsb").addClass("highlighted");
-                else if (demodulators[0].low_cut > 0)
-                    $("#openwebrx-button-usb").addClass("highlighted");
-                else $("#openwebrx-button-lsb, #openwebrx-button-usb").addClass("highlighted");
-            }
-            break;
-        default:
-            var mod = demodulators[0].subtype;
-            $("#openwebrx-button-" + mod).addClass("highlighted");
-            break;
+        var mode = Modes.findByModulation(secondary_demod);
+        if (mode) {
+            var active = mode.underlying.map(function(u){ return 'openwebrx-button-' + u; });
+            console.info(active);
+            $buttons.filter(function(){
+                console.info(this.id);
+                console.info(active.indexOf(this.id));
+                return this.id !== "openwebrx-button-dig" && active.indexOf(this.id) < 0;
+            }).addClass('disabled');
+        }
     }
 }
 
@@ -2013,41 +1979,19 @@ function demodulator_digital_replace_last() {
 function demodulator_digital_replace(subtype) {
     if (secondary_demod === subtype) return;
     var mode = Modes.findByModulation(subtype);
-    if (mode && !mode.isAvailable()) {
+    if (!mode) {
+        return;
+    }
+    if (!mode.isAvailable()) {
         divlog('Digital mode "' + mode.name + '" not supported. Please check requirements', true);
         return;
     }
-    switch (subtype) {
-        case "bpsk31":
-        case "bpsk63":
-        case "rtty":
-        case "ft8":
-        case "jt65":
-        case "jt9":
-        case "ft4":
-        case "js8":
-            secondary_demod_start(subtype);
-            demodulator_analog_replace('usb', true);
-            break;
-        case "wspr":
-            secondary_demod_start(subtype);
-            demodulator_analog_replace('usb', true);
-            // WSPR only samples between 1400 and 1600 Hz
-            demodulators[0].low_cut = 1350;
-            demodulators[0].high_cut = 1650;
-            demodulators[0].set();
-            break;
-        case "packet":
-            secondary_demod_start(subtype);
-            demodulator_analog_replace('nfm', true);
-            break;
-        case "pocsag":
-            secondary_demod_start(subtype);
-            demodulator_analog_replace('nfm', true);
-            demodulators[0].low_cut = -6000;
-            demodulators[0].high_cut = 6000;
-            demodulators[0].set();
-            break;
+    secondary_demod_start(subtype);
+    demodulator_analog_replace(mode.underlying[0], true);
+    if (mode.bandpass) {
+        demodulators[0].low_cut = mode.bandpass.low_cut;
+        demodulators[0].high_cut = mode.bandpass.high_cut;
+        demodulators[0].set();
     }
     demodulator_buttons_update();
     $('#openwebrx-panel-digimodes').attr('data-mode', subtype);

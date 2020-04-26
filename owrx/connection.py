@@ -11,7 +11,7 @@ from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.locator import Locator
 from owrx.property import PropertyStack
-from owrx.modes import Modes
+from owrx.modes import Modes, DigitalMode
 from multiprocessing import Queue
 from queue import Full
 from js8py import Js8Frame
@@ -114,17 +114,17 @@ class OpenWebRxReceiverClient(Client):
             receiver_info["locator"] = Locator.fromCoordinates(receiver_info["receiver_gps"])
             self.write_receiver_details(receiver_info)
 
-        # TODO unsubscribe
-        receiver_details.wire(send_receiver_info)
-        send_receiver_info()
-
-        self.__sendProfiles()
-
         features = FeatureDetector().feature_availability()
         self.write_features(features)
 
         modes = Modes.getModes()
         self.write_modes(modes)
+
+        # TODO unsubscribe
+        receiver_details.wire(send_receiver_info)
+        send_receiver_info()
+
+        self.__sendProfiles()
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
@@ -350,12 +350,23 @@ class OpenWebRxReceiverClient(Client):
         }})
 
     def write_modes(self, modes):
-        self.send({"type": "modes", "value": [{
-            "modulation": m.modulation,
-            "name": m.name,
-            "digimode": m.digimode,
-            "requirements": m.requirements
-        } for m in modes]})
+        def to_json(m):
+            res = {
+                "modulation": m.modulation,
+                "name": m.name,
+                "type": "digimode" if isinstance(m, DigitalMode) else "analog",
+                "requirements": m.requirements
+            }
+            if m.bandpass is not None:
+                res["bandpass"] = {
+                    "low_cut": m.bandpass.low_cut,
+                    "high_cut": m.bandpass.high_cut
+                }
+            if isinstance(m, DigitalMode):
+                res["underlying"] = m.underlying
+            return res
+
+        self.send({"type": "modes", "value": [to_json(m) for m in modes]})
 
 
 class MapConnection(Client):

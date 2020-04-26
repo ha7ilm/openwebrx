@@ -446,6 +446,10 @@ input[type=range]:focus::-ms-fill-upper
 	margin-right: 5px;
 }
 
+.openwebrx-demodulator-button.disabled {
+    color: #B6B6B6;
+}
+
 .openwebrx-square-button img
 {
 	height: 27px;
