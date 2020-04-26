@@ -18,27 +18,30 @@ var Modes = {
         var normalModes = available.filter(function(m){ return !m.digimode; });
         var digiModes = available.filter(function(m){ return m.digimode; });
 
-        var index = 0;
-        var arrayLength = normalModes.length;
-        var chunks = [];
-
-
-        for (index = 0; index < arrayLength; index += 5) {
-            chunks.push(normalModes.slice(index, index + 5));
-        }
 
         var html = []
 
-        html.push.apply(html, chunks.map(function(chunk){
+        var buttons = normalModes.map(function(m){
             return $(
-                '<div class="openwebrx-panel-line openwebrx-panel-flex-line">' +
-                    chunk.map(function(m){
-                        return '<div class="openwebrx-button openwebrx-demodulator-button"' +
-                               'id="openwebrx-button-' + m.modulation + '"' +
-                               'onclick="demodulator_analog_replace(\'' + m.modulation + '\');">' +
-                               m.name + '</div>';
-                    }).join('') +
-                '</div>');
+                '<div class="openwebrx-button openwebrx-demodulator-button"' +
+                'id="openwebrx-button-' + m.modulation + '"' +
+                'onclick="demodulator_analog_replace(\'' + m.modulation + '\');">' +
+                m.name + '</div>'
+            );
+        });
+
+        var index = 0;
+        var arrayLength = buttons.length;
+        var chunks = [];
+
+        for (index = 0; index < arrayLength; index += 5) {
+            chunks.push(buttons.slice(index, index + 5));
+        }
+
+        html.push.apply(html, chunks.map(function(chunk){
+            $line = $('<div class="openwebrx-panel-line openwebrx-panel-flex-line"></div>');
+            $line.append.apply($line, chunk);
+            return $line
         }));
 
         html.push($(
@@ -55,7 +58,7 @@ var Modes = {
 
         $("#openwebrx-panel-receiver").find(".openwebrx-modes").html(html);
     }
-}
+};
 
 var Mode = function(json){
     this.modulation = json.modulation;
