@@ -1494,7 +1494,7 @@ function parseHash() {
 function validateHash() {
     var params = parseHash();
     params = Object.keys(params).filter(function(key) {
-        if (key == 'freq' || key == 'mod') {
+        if (key == 'freq' || key == 'mod' || key == 'secondary_mod') {
             return params.freq && Math.abs(params.freq - center_freq) < bandwidth;
         }
         return true;
