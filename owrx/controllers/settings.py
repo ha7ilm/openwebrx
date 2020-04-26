@@ -49,6 +49,25 @@ class SettingsController(AdminController):
 
 
 class SdrSettingsController(AdminController):
+    def template_variables(self):
+        variables = super().template_variables()
+        variables["devices"] = self.render_devices()
+        return variables
+
+    def render_devices(self):
+        def render_devicde(device_id, config):
+            return """
+                <div class="card device bg-dark text-white">
+                    <div class="card-header">
+                        {device_name}
+                    </div>
+                    <div class="card-body">
+                        device settings go here
+                    </div>
+                </div>
+            """.format(device_name=config["name"])
+        return "".join(render_devicde(key, value) for key, value in Config.get()["sdrs"].items())
+
     def indexAction(self):
         self.serve_template("sdrsettings.html", **self.template_variables())
 
