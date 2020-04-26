@@ -11,6 +11,7 @@ from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.locator import Locator
 from owrx.property import PropertyStack
+from owrx.modes import Modes
 from multiprocessing import Queue
 from queue import Full
 from js8py import Js8Frame
@@ -121,6 +122,9 @@ class OpenWebRxReceiverClient(Client):
 
         features = FeatureDetector().feature_availability()
         self.write_features(features)
+
+        modes = Modes.getModes()
+        self.write_modes(modes)
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
@@ -344,6 +348,13 @@ class OpenWebRxReceiverClient(Client):
             "thread_type": frame.thread_type,
             "mode": frame.mode
         }})
+
+    def write_modes(self, modes):
+        self.send({"type": "modes", "value": [{
+            "modulation": m.modulation,
+            "name": m.name,
+            "requirements": m.requirements
+        } for m in modes]})
 
 
 class MapConnection(Client):

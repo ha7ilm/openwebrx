@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from owrx.service import ServiceDetector
+from owrx.modes import Modes
 from owrx.config import Config
 
 
@@ -196,7 +196,7 @@ class MultiCheckboxInput(Input):
 class ServicesCheckboxInput(MultiCheckboxInput):
     def __init__(self, id, label, infotext=None):
         services = [
-            Option(s, s.upper()) for s in ServiceDetector.getAvailableServices()
+            Option(s.modulation, s.name) for s in Modes.getAvailableServices()
         ]
         super().__init__(id, label, services, infotext)
 

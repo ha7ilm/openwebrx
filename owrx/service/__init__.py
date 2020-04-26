@@ -8,12 +8,11 @@ from owrx.aprs import AprsParser
 from owrx.js8 import Js8Parser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
-from owrx.feature import FeatureDetector
 from owrx.property import PropertyLayer
 from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
-from functools import reduce
+from owrx.modes import Modes
 
 import logging
 
@@ -60,31 +59,6 @@ class Js8ServiceOutput(ServiceOutput):
         return t == "js8_demod"
 
 
-class ServiceDetector(object):
-    requirements = {
-        "ft8": ["wsjt-x"],
-        "ft4": ["wsjt-x"],
-        "jt65": ["wsjt-x"],
-        "jt9": ["wsjt-x"],
-        "wspr": ["wsjt-x"],
-        "packet": ["packet"],
-        "js8": ["js8call"],
-    }
-
-    @staticmethod
-    def getAvailableServices():
-        # TODO this should be in a more central place (the frontend also needs this)
-        fd = FeatureDetector()
-
-        return [
-            name
-            for name, requirements in ServiceDetector.requirements.items()
-            if reduce(
-                lambda a, b: a and b, [fd.is_available(r) for r in requirements], True
-            )
-        ]
-
-
 class ServiceHandler(object):
     def __init__(self, source):
         self.lock = threading.Lock()
@@ -120,7 +94,7 @@ class ServiceHandler(object):
 
     def isSupported(self, mode):
         configured = Config.get()["services_decoders"]
-        available = ServiceDetector.getAvailableServices()
+        available = [m.modulation for m in Modes.getAvailableServices()]
         return mode in configured and mode in available
 
     def shutdown(self):

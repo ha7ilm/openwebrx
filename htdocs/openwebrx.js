@@ -1177,6 +1177,10 @@ function on_ws_recv(evt) {
                         // set a higher reconnection timeout right away to avoid additional load
                         reconnect_timeout = 16000;
                         break;
+                    case 'modes':
+                        Modes.setModes(json['value']);
+                        console.info(Modes);
+                        break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
                 }
@@ -2014,6 +2018,11 @@ function demodulator_digital_replace_last() {
 
 function demodulator_digital_replace(subtype) {
     if (secondary_demod === subtype) return;
+    var mode = Modes.findByModulation(subtype);
+    if (mode && !mode.isAvailable()) {
+        divlog('Digital mode "' + mode.name + '" not supported. Please check requirements', true);
+        return;
+    }
     switch (subtype) {
         case "bpsk31":
         case "bpsk63":
