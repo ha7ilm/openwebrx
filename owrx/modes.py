@@ -70,3 +70,9 @@ class Modes(object):
     @staticmethod
     def getAvailableServices():
         return [m for m in Modes.getAvailableModes() if m.is_service()]
+
+    @staticmethod
+    def findByModulation(modulation):
+        modes = [m for m in Modes.getAvailableModes() if m.modulation == modulation]
+        if modes:
+            return modes[0]

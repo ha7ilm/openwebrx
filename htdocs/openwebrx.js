@@ -1048,7 +1048,7 @@ function on_ws_recv(evt) {
                         updateSquelch();
 
                         waterfall_init();
-                        initialize_demodulator(initial_demodulator_params);
+                        synchronize_demodulator_init({initialParams: initial_demodulator_params});
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();
@@ -1093,6 +1093,7 @@ function on_ws_recv(evt) {
                         break;
                     case "features":
                         Modes.setFeatures(json['value']);
+                        synchronize_demodulator_init({features: true});
                         break;
                     case "metadata":
                         update_metadata(json['value']);
@@ -1144,6 +1145,7 @@ function on_ws_recv(evt) {
                         break;
                     case 'modes':
                         Modes.setModes(json['value']);
+                        synchronize_demodulator_init({modes: true});
                         demodulator_buttons_update();
                         break;
                     default:
@@ -1539,6 +1541,15 @@ function onAudioStart(success, apiType){
     updateVolume();
 }
 
+var sync_params = {}
+
+function synchronize_demodulator_init(params) {
+    sync_params = $.extend(sync_params, params);
+    if (sync_params.initialParams && sync_params.modes && sync_params.features) {
+        initialize_demodulator(sync_params.initialParams);
+    }
+}
+
 function initialize_demodulator(initialParams) {
     mkscale();
     var params = $.extend(initialParams || {}, validateHash());
@@ -1929,10 +1940,7 @@ function demodulator_buttons_update() {
         var mode = Modes.findByModulation(secondary_demod);
         if (mode) {
             var active = mode.underlying.map(function(u){ return 'openwebrx-button-' + u; });
-            console.info(active);
             $buttons.filter(function(){
-                console.info(this.id);
-                console.info(active.indexOf(this.id));
                 return this.id !== "openwebrx-button-dig" && active.indexOf(this.id) < 0;
             }).addClass('disabled');
         }

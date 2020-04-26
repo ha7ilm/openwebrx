@@ -5,6 +5,7 @@ from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
 from owrx.source import SdrSource
 from owrx.property import PropertyStack, PropertyLayer
+from owrx.modes import Modes
 from csdr import csdr
 import threading
 
@@ -51,6 +52,8 @@ class DspManager(csdr.output):
             "digital_voice_unvoiced_quality",
             "temporary_directory",
             "center_freq",
+            "start_mod",
+            "start_freq",
         ))
 
         self.dsp = csdr.dsp(self)
@@ -71,6 +74,20 @@ class DspManager(csdr.output):
             for parser in self.parsers.values():
                 parser.setDialFrequency(freq)
 
+        if "start_mod" in self.props:
+            self.dsp.set_demodulator(self.props["start_mod"])
+            mode = Modes.findByModulation(self.props["start_mod"])
+
+            if mode and mode.bandpass:
+                self.dsp.set_bpf(mode.bandpass.low_cut, mode.bandpass.high_cut)
+            else:
+                self.dsp.set_bpf(-4000, 4000)
+
+        if "start_freq" in self.props and "center_freq" in self.props:
+            self.dsp.set_offset_freq(self.props["start_freq"] - self.props["center_freq"])
+        else:
+            self.dsp.set_offset_freq(0)
+
         self.subscriptions = [
             self.props.wireProperty("audio_compression", self.dsp.set_audio_compression),
             self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
@@ -89,8 +106,6 @@ class DspManager(csdr.output):
             self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
-        self.dsp.set_offset_freq(0)
-        self.dsp.set_bpf(-4000, 4000)
         self.dsp.csdr_dynamic_bufsize = self.props["csdr_dynamic_bufsize"]
         self.dsp.csdr_print_bufsizes = self.props["csdr_print_bufsizes"]
         self.dsp.csdr_through = self.props["csdr_through"]
