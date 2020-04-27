@@ -1445,10 +1445,6 @@ function on_ws_opened() {
         "type": "connectionproperties",
         "params": {"output_rate": audioEngine.getOutputRate()}
     }));
-    ws.send(JSON.stringify({
-        "type": "dspcontrol",
-        "action": "start"
-    }));
 }
 
 var was_error = 0;
@@ -1530,7 +1526,7 @@ function onAudioStart(success, apiType){
     divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
 
     // canvas_container is set after waterfall_init() has been called. we cannot initialize before.
-    if (canvas_container) initialize_demodulator();
+    if (canvas_container) synchronize_demodulator_init();
 
     //hide log panel in a second (if user has not hidden it yet)
     window.setTimeout(function () {
@@ -1544,7 +1540,7 @@ function onAudioStart(success, apiType){
 var sync_params = {}
 
 function synchronize_demodulator_init(params) {
-    sync_params = $.extend(sync_params, params);
+    sync_params = $.extend(sync_params, params || {});
     if (sync_params.initialParams && sync_params.modes && sync_params.features) {
         initialize_demodulator(sync_params.initialParams);
     }
@@ -1561,6 +1557,10 @@ function initialize_demodulator(initialParams) {
     if (params.offset_frequency) {
         demodulators[0].set_offset_frequency(params.offset_frequency);
     }
+    ws.send(JSON.stringify({
+        "type": "dspcontrol",
+        "action": "start"
+    }));
 }
 
 var reconnect_timeout = false;
@@ -1804,7 +1804,7 @@ function openwebrx_init() {
     bookmarks = new BookmarkBar();
     initSliders();
     window.addEventListener('hashchange', function() {
-        initialize_demodulator();
+        synchronize_demodulator_init();
     });
 }
 
