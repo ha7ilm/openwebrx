@@ -139,6 +139,7 @@ class OpenWebRxReceiverClient(Client):
     def handleTextMessage(self, conn, message):
         try:
             message = json.loads(message)
+            logger.debug(message)
             if "type" in message:
                 if message["type"] == "dspcontrol":
                     if "action" in message and message["action"] == "start":
@@ -146,7 +147,7 @@ class OpenWebRxReceiverClient(Client):
 
                     if "params" in message:
                         params = message["params"]
-                        self.setDspProperties(params)
+                        self.getDsp().setProperties(params)
 
                 elif message["type"] == "config":
                     if "params" in message:
@@ -163,7 +164,7 @@ class OpenWebRxReceiverClient(Client):
                     if "params" in message:
                         self.connectionProperties = message["params"]
                         if self.dsp:
-                            self.setDspProperties(self.connectionProperties)
+                            self.getDsp().setProperties(self.connectionProperties)
 
             else:
                 logger.warning("received message without type: {0}".format(message))
@@ -172,39 +173,30 @@ class OpenWebRxReceiverClient(Client):
             logger.warning("message is not json: {0}".format(message))
 
     def setSdr(self, id=None):
-        while True:
-            next = None
-            if id is not None:
-                next = SdrService.getSource(id)
-            if next is None:
-                next = SdrService.getFirstSource()
-            if next is None:
-                # exit condition: no sdrs available
-                self.handleNoSdrsAvailable()
-                return
+        next = None
+        if id is not None:
+            next = SdrService.getSource(id)
+        if next is None:
+            next = SdrService.getFirstSource()
+        if next is None:
+            # exit condition: no sdrs available
+            self.handleNoSdrsAvailable()
+            return
 
-            # exit condition: no change
-            if next == self.sdr:
-                return
+        # exit condition: no change
+        if next == self.sdr:
+            return
 
-            self.stopDsp()
+        self.stopDsp()
 
-            if self.configSub is not None:
-                self.configSub.cancel()
-                self.configSub = None
+        if self.configSub is not None:
+            self.configSub.cancel()
+            self.configSub = None
 
-            self.sdr = next
-
-            self.startDsp()
-
-            # keep trying until we find a suitable SDR
-            if self.sdr.getState() == SdrSource.STATE_FAILED:
-                self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
-            else:
-                break
+        self.sdr = next
 
         # send initial config
-        self.setDspProperties(self.connectionProperties)
+        self.getDsp().setProperties(self.connectionProperties)
 
         stack = PropertyStack()
         stack.addLayer(0, self.sdr.getProps())
@@ -236,9 +228,14 @@ class OpenWebRxReceiverClient(Client):
         self.write_sdr_error("No SDR Devices available")
 
     def startDsp(self):
-        if self.dsp is None and self.sdr is not None:
-            self.dsp = DspManager(self, self.sdr)
-            self.dsp.start()
+        while True:
+            logger.debug("starting dsp...")
+            self.getDsp().start()
+            if self.sdr.getState() == SdrSource.STATE_FAILED:
+                self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
+                self.setSdr()
+            else:
+                break
 
     def close(self):
         self.stopDsp()
@@ -250,6 +247,7 @@ class OpenWebRxReceiverClient(Client):
         super().close()
 
     def stopDsp(self):
+        logger.debug("stopDsp")
         if self.dsp is not None:
             self.dsp.stop()
             self.dsp = None
@@ -270,9 +268,11 @@ class OpenWebRxReceiverClient(Client):
         for key, value in params.items():
             protected[key] = value
 
-    def setDspProperties(self, params):
-        for key, value in params.items():
-            self.dsp.setProperty(key, value)
+    def getDsp(self):
+        if self.dsp is None:
+            logger.debug("new DSP")
+            self.dsp = DspManager(self, self.sdr)
+        return self.dsp
 
     def write_spectrum_data(self, data):
         self.mp_send(bytes([0x01]) + data)

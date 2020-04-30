@@ -135,6 +135,7 @@ class DspManager(csdr.output):
         super().__init__()
 
     def start(self):
+        logger.debug(self.sdrSource)
         if self.sdrSource.isAvailable():
             self.dsp.start()
 
@@ -159,6 +160,10 @@ class DspManager(csdr.output):
         for sub in self.subscriptions:
             sub.cancel()
         self.subscriptions = []
+
+    def setProperties(self, props):
+        for k, v in props.items():
+            self.setProperty(k, v)
 
     def setProperty(self, prop, value):
         self.props[prop] = value
