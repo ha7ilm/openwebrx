@@ -15,29 +15,21 @@ Filter.prototype.getLimits = function() {
     };
 };
 
-function Envelope(parent) {
-    this.parent = parent;
+function Envelope(demodulator) {
+    this.demodulator = demodulator;
     this.dragged_range = Demodulator.draggable_ranges.none;
 }
 
 Envelope.prototype.draw = function(visible_range){
     this.visible_range = visible_range;
-    this.drag_ranges = this.envelope_draw(
-        range,
-        center_freq + this.parent.offset_frequency + this.parent.low_cut,
-        center_freq + this.parent.offset_frequency + this.parent.high_cut,
-        this.color, center_freq + this.parent.offset_frequency
-    );
-};
+    var line = center_freq + this.demodulator.offset_frequency;
 
-Envelope.prototype.envelope_draw = function (range, from, to, color, line) {
     //                                               ____
     // Draws a standard filter envelope like this: _/    \_
     // Parameters are given in offset frequency (Hz).
     // Envelope is drawn on the scale canvas.
     // A "drag range" object is returned, containing information about the draggable areas of the envelope
     // (beginning, ending and the line showing the offset frequency).
-    if (typeof color === "undefined") color = "#ffff00"; //yellow
     var env_bounding_line_w = 5;   //
     var env_att_w = 5;             //     _______   ___env_h2 in px   ___|_____
     var env_h1 = 17;               //   _/|      \_ ___env_h1 in px _/   |_    \_
@@ -45,7 +37,9 @@ Envelope.prototype.envelope_draw = function (range, from, to, color, line) {
     var env_lineplus = 1;          //   ||env_bounding_line_w
     var env_line_click_area = 6;
     //range=get_visible_freq_range();
+    var from = center_freq + this.demodulator.offset_frequency + this.demodulator.low_cut;
     var from_px = scale_px_from_freq(from, range);
+    var to = center_freq + this.demodulator.offset_frequency + this.demodulator.high_cut;
     var to_px = scale_px_from_freq(to, range);
     if (to_px < from_px) /* swap'em */ {
         var temp_px = to_px;
@@ -53,12 +47,11 @@ Envelope.prototype.envelope_draw = function (range, from, to, color, line) {
         from_px = temp_px;
     }
 
-    /*from_px-=env_bounding_line_w/2;
-    to_px+=env_bounding_line_w/2;*/
     from_px -= (env_att_w + env_bounding_line_w);
     to_px += (env_att_w + env_bounding_line_w);
     // do drawing:
     scale_ctx.lineWidth = 3;
+    var color = this.color || '#ffff00'; // yellow
     scale_ctx.strokeStyle = color;
     scale_ctx.fillStyle = color;
     var drag_ranges = {envelope_on_screen: false, line_on_screen: false};
@@ -91,7 +84,7 @@ Envelope.prototype.envelope_draw = function (range, from, to, color, line) {
             scale_ctx.stroke();
         }
     }
-    return drag_ranges;
+    this.drag_ranges = drag_ranges;
 };
 
 Envelope.prototype.drag_start = function(x, key_modifiers){
@@ -99,9 +92,9 @@ Envelope.prototype.drag_start = function(x, key_modifiers){
     this.dragged_range = this.where_clicked(x, this.drag_ranges, key_modifiers);
     this.drag_origin = {
         x: x,
-        low_cut: this.parent.low_cut,
-        high_cut: this.parent.high_cut,
-        offset_frequency: this.parent.offset_frequency
+        low_cut: this.demodulator.low_cut,
+        high_cut: this.demodulator.high_cut,
+        offset_frequency: this.demodulator.offset_frequency
     };
     return this.dragged_range !== Demodulator.draggable_ranges.none;
 };
@@ -144,33 +137,33 @@ Envelope.prototype.drag_move = function(x) {
     //frequency.
     if (this.dragged_range === dr.beginning || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
         //we don't let low_cut go beyond its limits
-        if ((new_value = this.drag_origin.low_cut + minus * freq_change) < this.parent.filter.getLimits().low) return true;
+        if ((new_value = this.drag_origin.low_cut + minus * freq_change) < this.demodulator.filter.getLimits().low) return true;
         //nor the filter passband be too small
-        if (this.parent.high_cut - new_value < this.parent.filter.min_passband) return true;
+        if (this.demodulator.high_cut - new_value < this.demodulator.filter.min_passband) return true;
         //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
-        if (new_value >= this.parent.high_cut) return true;
-        this.parent.low_cut = new_value;
+        if (new_value >= this.demodulator.high_cut) return true;
+        this.demodulator.low_cut = new_value;
     }
     if (this.dragged_range === dr.ending || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
         //we don't let high_cut go beyond its limits
-        if ((new_value = this.drag_origin.high_cut + minus * freq_change) > this.parent.filter.getLimits().high) return true;
+        if ((new_value = this.drag_origin.high_cut + minus * freq_change) > this.demodulator.filter.getLimits().high) return true;
         //nor the filter passband be too small
-        if (new_value - this.parent.low_cut < this.parent.filter.min_passband) return true;
+        if (new_value - this.demodulator.low_cut < this.demodulator.filter.min_passband) return true;
         //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
-        if (new_value <= this.parent.low_cut) return true;
-        this.parent.high_cut = new_value;
+        if (new_value <= this.demodulator.low_cut) return true;
+        this.demodulator.high_cut = new_value;
     }
     if (this.dragged_range === dr.anything_else || this.dragged_range === dr.bfo) {
         //when any other part of the envelope is dragged, the offset frequency is changed (whole passband also moves with it)
         new_value = this.drag_origin.offset_frequency + freq_change;
         if (new_value > bandwidth / 2 || new_value < -bandwidth / 2) return true; //we don't allow tuning above Nyquist frequency :-)
-        this.parent.offset_frequency = new_value;
+        this.demodulator.offset_frequency = new_value;
     }
     //now do the actual modifications:
     mkenvelopes(this.visible_range);
-    this.parent.set();
+    this.demodulator.set();
     //will have to change this when changing to multi-demodulator mode:
-    tunedFrequencyDisplay.setFrequency(center_freq + this.parent.offset_frequency);
+    tunedFrequencyDisplay.setFrequency(center_freq + this.demodulator.offset_frequency);
     return true;
 };
 
