@@ -22,7 +22,7 @@ function Envelope(parent) {
 
 Envelope.prototype.draw = function(visible_range){
     this.visible_range = visible_range;
-    this.drag_ranges = demod_envelope_draw(
+    this.drag_ranges = this.envelope_draw(
         range,
         center_freq + this.parent.offset_frequency + this.parent.low_cut,
         center_freq + this.parent.offset_frequency + this.parent.high_cut,
@@ -30,9 +30,73 @@ Envelope.prototype.draw = function(visible_range){
     );
 };
 
+Envelope.prototype.envelope_draw = function (range, from, to, color, line) {
+    //                                               ____
+    // Draws a standard filter envelope like this: _/    \_
+    // Parameters are given in offset frequency (Hz).
+    // Envelope is drawn on the scale canvas.
+    // A "drag range" object is returned, containing information about the draggable areas of the envelope
+    // (beginning, ending and the line showing the offset frequency).
+    if (typeof color === "undefined") color = "#ffff00"; //yellow
+    var env_bounding_line_w = 5;   //
+    var env_att_w = 5;             //     _______   ___env_h2 in px   ___|_____
+    var env_h1 = 17;               //   _/|      \_ ___env_h1 in px _/   |_    \_
+    var env_h2 = 5;                //   |||env_att_line_w                |_env_lineplus
+    var env_lineplus = 1;          //   ||env_bounding_line_w
+    var env_line_click_area = 6;
+    //range=get_visible_freq_range();
+    var from_px = scale_px_from_freq(from, range);
+    var to_px = scale_px_from_freq(to, range);
+    if (to_px < from_px) /* swap'em */ {
+        var temp_px = to_px;
+        to_px = from_px;
+        from_px = temp_px;
+    }
+
+    /*from_px-=env_bounding_line_w/2;
+    to_px+=env_bounding_line_w/2;*/
+    from_px -= (env_att_w + env_bounding_line_w);
+    to_px += (env_att_w + env_bounding_line_w);
+    // do drawing:
+    scale_ctx.lineWidth = 3;
+    scale_ctx.strokeStyle = color;
+    scale_ctx.fillStyle = color;
+    var drag_ranges = {envelope_on_screen: false, line_on_screen: false};
+    if (!(to_px < 0 || from_px > window.innerWidth)) // out of screen?
+    {
+        drag_ranges.beginning = {x1: from_px, x2: from_px + env_bounding_line_w + env_att_w};
+        drag_ranges.ending = {x1: to_px - env_bounding_line_w - env_att_w, x2: to_px};
+        drag_ranges.whole_envelope = {x1: from_px, x2: to_px};
+        drag_ranges.envelope_on_screen = true;
+        scale_ctx.beginPath();
+        scale_ctx.moveTo(from_px, env_h1);
+        scale_ctx.lineTo(from_px + env_bounding_line_w, env_h1);
+        scale_ctx.lineTo(from_px + env_bounding_line_w + env_att_w, env_h2);
+        scale_ctx.lineTo(to_px - env_bounding_line_w - env_att_w, env_h2);
+        scale_ctx.lineTo(to_px - env_bounding_line_w, env_h1);
+        scale_ctx.lineTo(to_px, env_h1);
+        scale_ctx.globalAlpha = 0.3;
+        scale_ctx.fill();
+        scale_ctx.globalAlpha = 1;
+        scale_ctx.stroke();
+    }
+    if (typeof line !== "undefined") // out of screen?
+    {
+        var line_px = scale_px_from_freq(line, range);
+        if (!(line_px < 0 || line_px > window.innerWidth)) {
+            drag_ranges.line = {x1: line_px - env_line_click_area / 2, x2: line_px + env_line_click_area / 2};
+            drag_ranges.line_on_screen = true;
+            scale_ctx.moveTo(line_px, env_h1 + env_lineplus);
+            scale_ctx.lineTo(line_px, env_h2 - env_lineplus);
+            scale_ctx.stroke();
+        }
+    }
+    return drag_ranges;
+};
+
 Envelope.prototype.drag_start = function(x, key_modifiers){
     this.key_modifiers = key_modifiers;
-    this.dragged_range = demod_envelope_where_clicked(x, this.drag_ranges, key_modifiers);
+    this.dragged_range = this.where_clicked(x, this.drag_ranges, key_modifiers);
     this.drag_origin = {
         x: x,
         low_cut: this.parent.low_cut,
@@ -41,6 +105,29 @@ Envelope.prototype.drag_start = function(x, key_modifiers){
     };
     return this.dragged_range !== Demodulator.draggable_ranges.none;
 };
+
+Envelope.prototype.where_clicked = function(x, drag_ranges, key_modifiers) {  // Check exactly what the user has clicked based on ranges returned by demod_envelope_draw().
+    var in_range = function (x, range) {
+        return range.x1 <= x && range.x2 >= x;
+    };
+    var dr = Demodulator.draggable_ranges;
+
+    if (key_modifiers.shiftKey) {
+        //Check first: shift + center drag emulates BFO knob
+        if (drag_ranges.line_on_screen && in_range(x, drag_ranges.line)) return dr.bfo;
+        //Check second: shift + envelope drag emulates PBF knob
+        if (drag_ranges.envelope_on_screen && in_range(x, drag_ranges.whole_envelope)) return dr.pbs;
+    }
+    if (drag_ranges.envelope_on_screen) {
+        // For low and high cut:
+        if (in_range(x, drag_ranges.beginning)) return dr.beginning;
+        if (in_range(x, drag_ranges.ending)) return dr.ending;
+        // Last priority: having clicked anything else on the envelope, without holding the shift key
+        if (in_range(x, drag_ranges.whole_envelope)) return dr.anything_else;
+    }
+    return dr.none; //User doesn't drag the envelope for this demodulator
+};
+
 
 Envelope.prototype.drag_move = function(x) {
     var dr = Demodulator.draggable_ranges;
