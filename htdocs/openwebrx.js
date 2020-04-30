@@ -1810,8 +1810,8 @@ function demodulator_digital_replace(subtype) {
         divlog('Digital mode "' + mode.name + '" not supported. Please check requirements', true);
         return;
     }
-    secondary_demod_start(subtype);
     demodulator_analog_replace(mode.underlying[0], true);
+    secondary_demod_start(subtype);
     if (mode.bandpass) {
         demodulators[0].setBandpass(mode.bandpass);
     }
@@ -1879,12 +1879,14 @@ function secondary_demod_init() {
 
 function secondary_demod_start(subtype) {
     secondary_demod_canvases_initialized = false;
-    ws.send(JSON.stringify({"type": "dspcontrol", "params": {"secondary_mod": subtype}}));
+    demodulators[0].set_secondary_demod(subtype);
     secondary_demod = subtype;
 }
 
 function secondary_demod_stop() {
-    ws.send(JSON.stringify({"type": "dspcontrol", "params": {"secondary_mod": false}}));
+    if (demodulators[0]) {
+        demodulators[0].set_secondary_demod(false);
+    }
     secondary_demod = false;
 }
 
@@ -1969,10 +1971,7 @@ function secondary_demod_update_channel_freq_from_event(evt) {
     if (!secondary_demod_waiting_for_set) {
         secondary_demod_waiting_for_set = true;
         window.setTimeout(function () {
-                ws.send(JSON.stringify({
-                    "type": "dspcontrol",
-                    "params": {"secondary_offset_freq": Math.floor(secondary_demod_channel_freq)}
-                }));
+                demodulators[0].set_secondary_offset_freq(Math.floor(secondary_demod_channel_freq));
                 secondary_demod_waiting_for_set = false;
             },
             50

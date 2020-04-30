@@ -108,6 +108,7 @@ function Demodulator(offset_frequency, modulation) {
     this.squelch_level = -150;
     this.dmr_filter = 3;
     this.state = {};
+    this.secondary_demod = false;
     var mode = Modes.findByModulation(modulation);
     if (mode) {
         this.low_cut = mode.bandpass.low_cut;
@@ -175,7 +176,9 @@ Demodulator.prototype.set = function () {  //this function sends demodulator par
         "offset_freq": this.offset_frequency,
         "mod": this.modulation,
         "dmr_filter": this.dmr_filter,
-        "squelch_level": this.squelch_level
+        "squelch_level": this.squelch_level,
+        "secondary_mod": this.secondary_demod,
+        "secondary_offset_freq": this.secondary_offset_freq
     };
     var to_send = {};
     for (var key in params) {
@@ -214,4 +217,14 @@ Demodulator.prototype.getBandpass = function() {
         low_cut: this.low_cut,
         high_cut: this.high_cut
     };
+};
+
+Demodulator.prototype.set_secondary_demod = function(secondary_demod) {
+    this.secondary_demod = secondary_demod;
+    this.set();
+};
+
+Demodulator.prototype.set_secondary_offset_freq = function(secondary_offset) {
+    this.secondary_offset_freq = secondary_offset;
+    this.set();
 };
