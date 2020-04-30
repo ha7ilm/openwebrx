@@ -229,7 +229,6 @@ class OpenWebRxReceiverClient(Client):
 
     def startDsp(self):
         while True:
-            logger.debug("starting dsp...")
             self.getDsp().start()
             if self.sdr.getState() == SdrSource.STATE_FAILED:
                 self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
@@ -247,7 +246,6 @@ class OpenWebRxReceiverClient(Client):
         super().close()
 
     def stopDsp(self):
-        logger.debug("stopDsp")
         if self.dsp is not None:
             self.dsp.stop()
             self.dsp = None
@@ -270,7 +268,6 @@ class OpenWebRxReceiverClient(Client):
 
     def getDsp(self):
         if self.dsp is None:
-            logger.debug("new DSP")
             self.dsp = DspManager(self, self.sdr)
         return self.dsp
 

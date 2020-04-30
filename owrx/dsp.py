@@ -130,14 +130,17 @@ class DspManager(csdr.output):
                 self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
             ]
 
+        self.startOnAvailable = False
+
         self.sdrSource.addClient(self)
 
         super().__init__()
 
     def start(self):
-        logger.debug(self.sdrSource)
         if self.sdrSource.isAvailable():
             self.dsp.start()
+        else:
+            self.startOnAvailable = True
 
     def receive_output(self, t, read_fn):
         logger.debug("adding new output of type %s", t)
@@ -156,6 +159,7 @@ class DspManager(csdr.output):
 
     def stop(self):
         self.dsp.stop()
+        self.startOnAvailable = False
         self.sdrSource.removeClient(self)
         for sub in self.subscriptions:
             sub.cancel()
@@ -174,7 +178,9 @@ class DspManager(csdr.output):
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
             logger.debug("received STATE_RUNNING, attempting DspSource restart")
-            self.dsp.start()
+            if self.startOnAvailable:
+                self.dsp.start()
+                self.startOnAvailable = False
         elif state == SdrSource.STATE_STOPPING:
             logger.debug("received STATE_STOPPING, shutting down DspSource")
             self.dsp.stop()
