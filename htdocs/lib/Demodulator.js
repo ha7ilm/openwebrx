@@ -106,7 +106,7 @@ Envelope.prototype.drag_start = function(x, key_modifiers){
     return this.dragged_range !== Demodulator.draggable_ranges.none;
 };
 
-Envelope.prototype.where_clicked = function(x, drag_ranges, key_modifiers) {  // Check exactly what the user has clicked based on ranges returned by demod_envelope_draw().
+Envelope.prototype.where_clicked = function(x, drag_ranges, key_modifiers) {  // Check exactly what the user has clicked based on ranges returned by envelope_draw().
     var in_range = function (x, range) {
         return range.x1 <= x && range.x2 >= x;
     };
@@ -211,7 +211,7 @@ Demodulator.draggable_ranges = {
     anything_else: 3,
     bfo: 4 /*line (while holding shift)*/,
     pbs: 5
-}; //to which parameter these correspond in demod_envelope_draw()
+}; //to which parameter these correspond in envelope_draw()
 
 Demodulator.color_index = 0;
 Demodulator.colors = ["#ffff00", "#00ff00", "#00ffff", "#058cff", "#ff9600", "#a1ff39", "#ff4e39", "#ff5dbd"];
