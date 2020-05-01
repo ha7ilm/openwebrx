@@ -27,7 +27,6 @@ is_firefox = navigator.userAgent.indexOf("Firefox") >= 0;
 var bandwidth;
 var center_freq;
 var fft_size;
-var fft_fps;
 var fft_compression = "none";
 var fft_codec;
 var waterfall_setup_done = 0;
@@ -747,7 +746,6 @@ function on_ws_recv(evt) {
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'];
                         fft_size = config['fft_size'];
-                        fft_fps = config['fft_fps'];
                         var audio_compression = config['audio_compression'];
                         audioEngine.setCompression(audio_compression);
                         divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");

@@ -70,7 +70,6 @@ class OpenWebRxReceiverClient(Client):
         "waterfall_auto_level_margin",
         "samp_rate",
         "fft_size",
-        "fft_fps",
         "audio_compression",
         "fft_compression",
         "max_clients",
