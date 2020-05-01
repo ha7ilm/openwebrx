@@ -1,10 +1,11 @@
-function Filter() {
+function Filter(demodulator) {
+    this.demodulator = demodulator;
     this.min_passband = 100;
 }
 
 Filter.prototype.getLimits = function() {
     var max_bw;
-    if (secondary_demod === 'pocsag') {
+    if (this.demodulator.get_secondary_demod() === 'pocsag') {
         max_bw = 12500;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
@@ -142,7 +143,7 @@ Envelope.prototype.drag_move = function(x) {
         if (this.demodulator.high_cut - new_value < this.demodulator.filter.min_passband) return true;
         //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
         if (new_value >= this.demodulator.high_cut) return true;
-        this.demodulator.low_cut = new_value;
+        this.demodulator.setLowCut(new_value);
     }
     if (this.dragged_range === dr.ending || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
         //we don't let high_cut go beyond its limits
@@ -151,7 +152,7 @@ Envelope.prototype.drag_move = function(x) {
         if (new_value - this.demodulator.low_cut < this.demodulator.filter.min_passband) return true;
         //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
         if (new_value <= this.demodulator.low_cut) return true;
-        this.demodulator.high_cut = new_value;
+        this.demodulator.setHighCut(new_value);
     }
     if (this.dragged_range === dr.anything_else || this.dragged_range === dr.bfo) {
         //when any other part of the envelope is dragged, the offset frequency is changed (whole passband also moves with it)
@@ -181,7 +182,7 @@ function Demodulator(offset_frequency, modulation) {
     this.envelope = new Envelope(this);
     this.color = Demodulator.get_next_color();
     this.modulation = modulation;
-    this.filter = new Filter();
+    this.filter = new Filter(this);
     this.squelch_level = -150;
     this.dmr_filter = 3;
     this.state = {};
@@ -304,6 +305,16 @@ Demodulator.prototype.setBandpass = function(bandpass) {
     this.bandpass = bandpass;
     this.low_cut = bandpass.low_cut;
     this.high_cut = bandpass.high_cut;
+    this.set();
+};
+
+Demodulator.prototype.setLowCut = function(low_cut) {
+    this.low_cut = low_cut;
+    this.set();
+};
+
+Demodulator.prototype.setHighCut = function(high_cut) {
+    this.high_cut = high_cut;
     this.set();
 };
 
