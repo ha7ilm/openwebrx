@@ -142,7 +142,8 @@ function setSquelchToAuto() {
 
 function updateSquelch() {
     var sliderValue = parseInt($("#openwebrx-panel-squelch").val());
-    if (demodulators[0]) demodulators[0].setSquelch(sliderValue);
+    var demod = $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator();
+    if (demod) demod.setSquelch(sliderValue);
 }
 
 var waterfall_min_level;
@@ -236,11 +237,17 @@ function typeInAnimation(element, timeout, what, onFinish) {
 // ================  DEMODULATOR ROUTINES  ================
 // ========================================================
 
-demodulators = [];
-
+function getDemodulators() {
+    return [
+        $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator()
+    ].filter(function(d) {
+        return !!d;
+    });
+};
 
 function mkenvelopes(visible_range) //called from mkscale
 {
+    var demodulators = getDemodulators();
     scale_ctx.clearRect(0, 0, scale_ctx.canvas.width, 22); //clear the upper part of the canvas (where filter envelopes reside)
     for (var i = 0; i < demodulators.length; i++) {
         demodulators[i].envelope.draw(visible_range);
@@ -249,40 +256,6 @@ function mkenvelopes(visible_range) //called from mkscale
         var bandpass = demodulators[0].getBandpass()
         secondary_demod_waterfall_set_zoom(bandpass.low_cut, bandpass.high_cut);
     }
-}
-
-function demodulator_remove(which) {
-    demodulators[which].stop();
-    demodulators.splice(which, 1);
-}
-
-function demodulator_add(what) {
-    demodulators.push(what);
-    mkenvelopes(get_visible_freq_range());
-}
-
-var last_analog_demodulator_subtype = 'nfm';
-var last_digital_demodulator_subtype = 'bpsk31';
-
-function demodulator_analog_replace(subtype, for_digital) { //this function should only exist until the multi-demodulator capability is added
-    if (!(typeof for_digital !== "undefined" && for_digital && secondary_demod)) {
-        secondary_demod_close_window();
-        secondary_demod_listbox_update();
-    }
-    if (!demodulators || !demodulators[0] || demodulators[0].get_modulation() !== subtype) {
-        last_analog_demodulator_subtype = subtype;
-        var temp_offset = 0;
-        if (demodulators.length) {
-            temp_offset = demodulators[0].get_offset_frequency();
-            demodulator_remove(0);
-        }
-        var demod = new Demodulator(temp_offset, subtype);
-        demod.start();
-        demodulator_add(demod);
-    }
-    demodulator_buttons_update();
-    update_digitalvoice_panels("openwebrx-panel-metadata-" + subtype);
-    updateHash();
 }
 
 function waterfallWidth() {
@@ -296,11 +269,8 @@ function waterfallWidth() {
 
 var scale_ctx;
 var scale_canvas;
-var tunedFrequencyDisplay;
-var mouseFrequencyDisplay;
 
 function scale_setup() {
-    tunedFrequencyDisplay.setFrequency(canvas_get_frequency(window.innerWidth / 2));
     scale_canvas = e("openwebrx-scale-canvas");
     scale_ctx = scale_canvas.getContext("2d");
     scale_canvas.addEventListener("mousedown", scale_canvas_mousedown, false);
@@ -336,6 +306,7 @@ function scale_offset_freq_from_px(x, visible_range) {
 function scale_canvas_mousemove(evt) {
     var event_handled = false;
     var i;
+    var demodulators = getDemodulators();
     if (scale_canvas_drag_params.mouse_down && !scale_canvas_drag_params.drag && Math.abs(evt.pageX - scale_canvas_drag_params.start_x) > canvas_drag_min_delta)
     //we can use the main drag_min_delta thing of the main canvas
     {
@@ -354,7 +325,7 @@ function scale_canvas_mousemove(evt) {
 
 function frequency_container_mousemove(evt) {
     var frequency = center_freq + scale_offset_freq_from_px(evt.pageX);
-    mouseFrequencyDisplay.setFrequency(frequency);
+    $('.webrx-mouse-freq').frequencyDisplay().setFrequency(frequency);
 }
 
 function scale_canvas_end_drag(x) {
@@ -362,6 +333,7 @@ function scale_canvas_end_drag(x) {
     scale_canvas_drag_params.drag = false;
     scale_canvas_drag_params.mouse_down = false;
     var event_handled = false;
+    var demodulators = getDemodulators();
     for (var i = 0; i < demodulators.length; i++) event_handled |= demodulators[i].envelope.drag_end();
     if (!event_handled) demodulators[0].set_offset_frequency(scale_offset_freq_from_px(x));
 }
@@ -631,7 +603,7 @@ function canvas_mousemove(evt) {
             bookmarks.position();
         }
     } else {
-        mouseFrequencyDisplay.setFrequency(canvas_get_frequency(relativeX));
+        $('.webrx-mouse-freq').frequencyDisplay().setFrequency(canvas_get_frequency(relativeX));
     }
 }
 
@@ -644,7 +616,7 @@ function canvas_mouseup(evt) {
     var relativeX = get_relative_x(evt);
 
     if (!canvas_drag) {
-        demodulators[0].set_offset_frequency(canvas_get_freq_offset(relativeX));
+        $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().set_offset_frequency(canvas_get_freq_offset(relativeX));
     }
     else {
         canvas_end_drag();
@@ -727,7 +699,7 @@ function zoom_set(level) {
     level = parseInt(level);
     zoom_level = level;
     //zoom_center_rel=canvas_get_freq_offset(-canvases[0].offsetLeft+waterfallWidth()/2); //zoom to screen center instead of demod envelope
-    zoom_center_rel = demodulators[0].get_offset_frequency();
+    zoom_center_rel = $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().get_offset_frequency();
     zoom_center_where = 0.5 + (zoom_center_rel / bandwidth); //this is a kind of hack
     resize_canvases(true);
     mkscale();
@@ -787,7 +759,7 @@ function on_ws_recv(evt) {
                         updateSquelch();
 
                         waterfall_init();
-                        synchronize_demodulator_init({initialParams: initial_demodulator_params});
+                        $('#openwebrx-panel-receiver').demodulatorPanel().setInitialParams(initial_demodulator_params);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();
@@ -832,7 +804,6 @@ function on_ws_recv(evt) {
                         break;
                     case "features":
                         Modes.setFeatures(json['value']);
-                        synchronize_demodulator_init({features: true});
                         break;
                     case "metadata":
                         update_metadata(json['value']);
@@ -884,8 +855,6 @@ function on_ws_recv(evt) {
                         break;
                     case 'modes':
                         Modes.setModes(json['value']);
-                        synchronize_demodulator_init({modes: true});
-                        demodulator_buttons_update();
                         break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
@@ -1241,12 +1210,12 @@ function validateHash() {
 }
 
 function updateHash() {
-    var demod = demodulators[0];
+    var demod = $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator();
     if (!demod) return;
     window.location.hash = $.map({
         freq: demod.get_offset_frequency() + center_freq,
         mod: demod.get_modulation(),
-        secondary_mod: secondary_demod
+        secondary_mod: demod.get_secondary_demod()
     }, function(value, key){
         if (!value) return undefined;
         return key + '=' + value;
@@ -1259,7 +1228,7 @@ function onAudioStart(success, apiType){
     divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
 
     // canvas_container is set after waterfall_init() has been called. we cannot initialize before.
-    if (canvas_container) synchronize_demodulator_init();
+    //if (canvas_container) synchronize_demodulator_init();
 
     //hide log panel in a second (if user has not hidden it yet)
     window.setTimeout(function () {
@@ -1268,30 +1237,6 @@ function onAudioStart(success, apiType){
 
     //Synchronise volume with slider
     updateVolume();
-}
-
-var sync_params = {}
-
-function synchronize_demodulator_init(params) {
-    sync_params = $.extend(sync_params, params || {});
-    if (sync_params.initialParams && sync_params.modes && sync_params.features) {
-        initialize_demodulator(sync_params.initialParams);
-        delete sync_params.initialParams;
-    }
-}
-
-function initialize_demodulator(initialParams) {
-    mkscale();
-    var params = $.extend(initialParams || {}, validateHash());
-    if (params.secondary_mod) {
-        demodulator_digital_replace(params.secondary_mod);
-    } else if (params.mod) {
-        demodulator_analog_replace(params.mod);
-    }
-    if (params.offset_frequency) {
-        demodulators[0].set_offset_frequency(params.offset_frequency);
-    }
-    demodulators[0].start()
 }
 
 var reconnect_timeout = false;
@@ -1525,17 +1470,13 @@ function openwebrx_init() {
     secondary_demod_init();
     digimodes_init();
     initPanels();
-    tunedFrequencyDisplay = new TuneableFrequencyDisplay($('#webrx-actual-freq'));
-    tunedFrequencyDisplay.onFrequencyChange(function(f) {
-        demodulators[0].set_offset_frequency(f - center_freq);
-    });
-    mouseFrequencyDisplay = new FrequencyDisplay($('#webrx-mouse-freq'));
+    $('#openwebrx-panel-receiver').demodulatorPanel();
     window.addEventListener("resize", openwebrx_resize);
     init_header();
     bookmarks = new BookmarkBar();
     initSliders();
     window.addEventListener('hashchange', function() {
-        synchronize_demodulator_init();
+        $('#openwebrx-panel-receiver').demodulatorPanel().setHashParams(validateHash());
     });
 }
 
@@ -1567,7 +1508,7 @@ function update_dmr_timeslot_filtering() {
     }).toArray().reduce(function (acc, v) {
         return acc | v;
     }, 0);
-    demodulators[0].setDmrFilter(filter);
+    $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().setDmrFilter(filter);
 }
 
 function playButtonClick() {
@@ -1659,29 +1600,6 @@ function initPanels() {
     });
 }
 
-function demodulator_buttons_update() {
-    var $buttons = $(".openwebrx-demodulator-button");
-    $buttons.removeClass("highlighted").removeClass('disabled');
-    if (!demodulators.length) return;
-    var mod = demodulators[0].get_modulation();
-    $("#openwebrx-button-" + mod).addClass("highlighted");
-    if (secondary_demod) {
-        $("#openwebrx-button-dig").addClass("highlighted");
-        $('#openwebrx-secondary-demod-listbox').val(secondary_demod);
-        var mode = Modes.findByModulation(secondary_demod);
-        if (mode) {
-            var active = mode.underlying.map(function(u){ return 'openwebrx-button-' + u; });
-            $buttons.filter(function(){
-                return this.id !== "openwebrx-button-dig" && active.indexOf(this.id) < 0;
-            }).addClass('disabled');
-        }
-    }
-}
-
-function demodulator_analog_replace_last() {
-    demodulator_analog_replace(last_analog_demodulator_subtype);
-}
-
 /*
   _____  _       _                     _
  |  __ \(_)     (_)                   | |
@@ -1693,7 +1611,6 @@ function demodulator_analog_replace_last() {
            |___/
 */
 
-var secondary_demod = false;
 var secondary_demod_fft_offset_db = 30; //need to calculate that later
 var secondary_demod_canvases_initialized = false;
 var secondary_demod_listbox_updating = false;
@@ -1709,36 +1626,6 @@ var secondary_demod_current_canvas_actual_line;
 var secondary_demod_current_canvas_context;
 var secondary_demod_current_canvas_index;
 var secondary_demod_canvases;
-
-function demodulator_digital_replace_last() {
-    demodulator_digital_replace(last_digital_demodulator_subtype);
-    secondary_demod_listbox_update();
-}
-
-function demodulator_digital_replace(subtype) {
-    if (secondary_demod === subtype) return;
-    var mode = Modes.findByModulation(subtype);
-    if (!mode) {
-        return;
-    }
-    if (!mode.isAvailable()) {
-        divlog('Digital mode "' + mode.name + '" not supported. Please check requirements', true);
-        return;
-    }
-    demodulator_analog_replace(mode.underlying[0], true);
-    secondary_demod_start(subtype);
-    if (mode.bandpass) {
-        demodulators[0].setBandpass(mode.bandpass);
-    }
-    demodulator_buttons_update();
-    $('#openwebrx-panel-digimodes').attr('data-mode', subtype);
-    toggle_panel("openwebrx-panel-digimodes", true);
-    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(subtype) >= 0);
-    toggle_panel("openwebrx-panel-js8-message", subtype == "js8");
-    toggle_panel("openwebrx-panel-packet-message", subtype === "packet");
-    toggle_panel("openwebrx-panel-pocsag-message", subtype === "pocsag");
-    updateHash();
-}
 
 function secondary_demod_create_canvas() {
     var new_canvas = document.createElement("canvas");
@@ -1792,12 +1679,12 @@ function secondary_demod_init() {
     init_digital_removal_timer();
 }
 
+// TODO
 function secondary_demod_start(subtype) {
     secondary_demod_canvases_initialized = false;
-    demodulators[0].set_secondary_demod(subtype);
-    secondary_demod = subtype;
 }
 
+// TODO
 function secondary_demod_stop() {
     if (demodulators[0]) {
         demodulators[0].set_secondary_demod(false);
@@ -1834,7 +1721,6 @@ function secondary_demod_close_window() {
 }
 
 function secondary_demod_waterfall_add(data) {
-    if (!secondary_demod) return;
     var w = secondary_fft_size;
 
     //Add line to waterfall image
@@ -1854,22 +1740,6 @@ function secondary_demod_waterfall_add(data) {
     if (secondary_demod_current_canvas_actual_line < 0) secondary_demod_swap_canvases();
 }
 
-function secondary_demod_listbox_changed() {
-    if (secondary_demod_listbox_updating) return;
-    var sdm = $("#openwebrx-secondary-demod-listbox")[0].value;
-    if (sdm === "none") {
-        demodulator_analog_replace_last();
-    } else {
-        demodulator_digital_replace(sdm);
-    }
-}
-
-function secondary_demod_listbox_update() {
-    secondary_demod_listbox_updating = true;
-    $("#openwebrx-secondary-demod-listbox").val((secondary_demod) ? secondary_demod : "none");
-    secondary_demod_listbox_updating = false;
-}
-
 function secondary_demod_update_marker() {
     var width = Math.max((secondary_bw / (if_samp_rate / 2)) * secondary_demod_canvas_width, 5);
     var center_at = (secondary_demod_channel_freq / (if_samp_rate / 2)) * secondary_demod_canvas_width + secondary_demod_canvas_left;
@@ -1877,6 +1747,7 @@ function secondary_demod_update_marker() {
     $("#openwebrx-digimode-select-channel").width(width).css("left", left + "px")
 }
 
+// TODO
 function secondary_demod_update_channel_freq_from_event(evt) {
     if (typeof evt !== "undefined") {
         var relativeX = (evt.offsetX) ? evt.offsetX : evt.layerX;
@@ -1886,7 +1757,7 @@ function secondary_demod_update_channel_freq_from_event(evt) {
     if (!secondary_demod_waiting_for_set) {
         secondary_demod_waiting_for_set = true;
         window.setTimeout(function () {
-                demodulators[0].set_secondary_offset_freq(Math.floor(secondary_demod_channel_freq));
+                $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().set_secondary_offset_freq(Math.floor(secondary_demod_channel_freq));
                 secondary_demod_waiting_for_set = false;
             },
             50
@@ -1919,7 +1790,7 @@ function secondary_demod_canvas_container_mouseup(evt) {
 
 
 function secondary_demod_waterfall_set_zoom(low_cut, high_cut) {
-    if (!secondary_demod || !secondary_demod_canvases_initialized) return;
+    if (!secondary_demod_canvases_initialized) return;
     if (low_cut < 0 && high_cut < 0) {
         var hctmp = high_cut;
         var lctmp = low_cut;

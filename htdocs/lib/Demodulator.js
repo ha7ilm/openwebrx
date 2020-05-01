@@ -157,18 +157,15 @@ Envelope.prototype.drag_move = function(x) {
         //when any other part of the envelope is dragged, the offset frequency is changed (whole passband also moves with it)
         new_value = this.drag_origin.offset_frequency + freq_change;
         if (new_value > bandwidth / 2 || new_value < -bandwidth / 2) return true; //we don't allow tuning above Nyquist frequency :-)
-        this.demodulator.offset_frequency = new_value;
+        this.demodulator.set_offset_frequency(new_value);
     }
     //now do the actual modifications:
-    mkenvelopes(this.visible_range);
-    this.demodulator.set();
-    //will have to change this when changing to multi-demodulator mode:
-    tunedFrequencyDisplay.setFrequency(center_freq + this.demodulator.offset_frequency);
+    //mkenvelopes(this.visible_range);
+    //this.demodulator.set();
     return true;
 };
 
 Envelope.prototype.drag_end = function(){
-    demodulator_buttons_update();
     var to_return = this.dragged_range !== Demodulator.draggable_ranges.none; //this part is required for cliking anywhere on the scale to set offset
     this.dragged_range = Demodulator.draggable_ranges.none;
     return to_return;
@@ -194,6 +191,9 @@ function Demodulator(offset_frequency, modulation) {
         this.low_cut = mode.bandpass.low_cut;
         this.high_cut = mode.bandpass.high_cut;
     }
+    this.listeners = {
+        "frequencychange": []
+    };
 }
 
 //ranges on filter envelope that can be dragged:
@@ -216,12 +216,27 @@ Demodulator.get_next_color = function() {
 
 
 
+Demodulator.prototype.on = function(event, handler) {
+    this.listeners[event].push(handler);
+};
+
+Demodulator.prototype.emit = function(event, params) {
+    this.listeners[event].forEach(function(fn) {
+        fn(params);
+    });
+};
+
 Demodulator.prototype.set_offset_frequency = function(to_what) {
     if (to_what > bandwidth / 2 || to_what < -bandwidth / 2) return;
-    this.offset_frequency = Math.round(to_what);
+    to_what = Math.round(to_what);
+    if (this.offset_frequency === to_what) {
+        return;
+    }
+    this.offset_frequency = to_what;
     this.set();
+    this.emit("frequencychange", to_what);
     mkenvelopes(get_visible_freq_range());
-    tunedFrequencyDisplay.setFrequency(center_freq + to_what);
+    //tunedFrequencyDisplay.setFrequency(center_freq + to_what);
     updateHash();
 };
 
@@ -300,11 +315,21 @@ Demodulator.prototype.getBandpass = function() {
 };
 
 Demodulator.prototype.set_secondary_demod = function(secondary_demod) {
+    if (this.secondary_demod === secondary_demod) {
+        return;
+    }
     this.secondary_demod = secondary_demod;
     this.set();
 };
 
+Demodulator.prototype.get_secondary_demod = function() {
+    return this.secondary_demod;
+};
+
 Demodulator.prototype.set_secondary_offset_freq = function(secondary_offset) {
+    if (this.secondary_offset_freq === secondary_offset) {
+        return;
+    }
     this.secondary_offset_freq = secondary_offset;
     this.set();
 };

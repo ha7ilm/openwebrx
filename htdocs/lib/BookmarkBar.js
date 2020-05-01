@@ -9,11 +9,11 @@ function BookmarkBar() {
         me.$container.find('.bookmark').removeClass('selected');
         var b = $bookmark.data();
         if (!b || !b.frequency || (!b.modulation && !b.digital_modulation)) return;
-        demodulators[0].set_offset_frequency(b.frequency - center_freq);
+        me.getDemodulator().set_offset_frequency(b.frequency - center_freq);
         if (b.modulation) {
-            demodulator_analog_replace(b.modulation);
+            me.getDemodulatorPanel().setMode(b.modulation);
         } else if (b.digital_modulation) {
-            demodulator_digital_replace(b.digital_modulation);
+            me.getDemodulatorPanel().setDigiMode(b.digital_modulation);
         }
         $bookmark.addClass('selected');
     });
@@ -108,8 +108,8 @@ BookmarkBar.prototype.showEditDialog = function(bookmark) {
     if (!bookmark) {
         bookmark = {
             name: "",
-            frequency: center_freq + demodulators[0].offset_frequency,
-            modulation: demodulators[0].subtype
+            frequency: center_freq + this.getDemodulator().get_offset_frequency(),
+            modulation: this.getDemodulator().get_modulation()
         }
     }
     ['name', 'frequency', 'modulation'].forEach(function(key){
@@ -154,6 +154,14 @@ BookmarkBar.prototype.storeBookmark = function() {
     me.$dialog.hide();
 };
 
+BookmarkBar.prototype.getDemodulatorPanel = function() {
+    return $('#openwebrx-panel-receiver').demodulatorPanel();
+};
+
+BookmarkBar.prototype.getDemodulator = function() {
+    return this.getDemodulatorPanel().getDemodulator();
+};
+
 BookmarkLocalStorage = function(){
 };
 
@@ -171,7 +179,3 @@ BookmarkLocalStorage.prototype.deleteBookmark = function(data) {
     bookmarks = bookmarks.filter(function(b) { return b.id !== data; });
     this.setBookmarks(bookmarks);
 };
-
-
-
-

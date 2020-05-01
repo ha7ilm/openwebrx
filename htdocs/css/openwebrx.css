@@ -311,7 +311,7 @@ input[type=range]:focus::-ms-fill-upper
     font-style: normal;
 }
 
-#webrx-actual-freq {
+.webrx-actual-freq {
 	width: 100%;
 	text-align: left;
 	padding: 0;
@@ -320,11 +320,11 @@ input[type=range]:focus::-ms-fill-upper
 	flex-direction: row;
 }
 
-#webrx-actual-freq > * {
+.webrx-actual-freq > * {
     flex: 1;
 }
 
-#webrx-actual-freq input {
+.webrx-actual-freq input {
     font-family: 'roboto-mono';
     width: 0;
     box-sizing: border-box;
@@ -334,14 +334,13 @@ input[type=range]:focus::-ms-fill-upper
     color: inherit;
 }
 
-#webrx-actual-freq, #webrx-actual-freq input {
+.webrx-actual-freq, .webrx-actual-freq input {
 	font-size: 16pt;
 	font-family: 'roboto-mono';
 	line-height: 22px;
 }
 
-#webrx-mouse-freq
-{
+.webrx-mouse-freq {
 	width: 100%;
 	text-align: left;
 	font-size: 10pt;
@@ -728,8 +727,7 @@ img.openwebrx-mirror-img
 	color: White;
 }
 
-#openwebrx-secondary-demod-listbox
-{
+.openwebrx-secondary-demod-listbox {
 	width: 173px;
 	height: 27px;
 	padding-left:3px;
