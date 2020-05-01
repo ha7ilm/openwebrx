@@ -1679,19 +1679,6 @@ function secondary_demod_init() {
     init_digital_removal_timer();
 }
 
-// TODO
-function secondary_demod_start(subtype) {
-    secondary_demod_canvases_initialized = false;
-}
-
-// TODO
-function secondary_demod_stop() {
-    if (demodulators[0]) {
-        demodulators[0].set_secondary_demod(false);
-    }
-    secondary_demod = false;
-}
-
 function secondary_demod_push_data(x) {
     x = Array.from(x).filter(function (y) {
         var c = y.charCodeAt(0);
@@ -1709,15 +1696,6 @@ function secondary_demod_push_data(x) {
         return "<span class=\"part\">" + y + "</span>";
     }).join("");
     $("#openwebrx-cursor-blink").before(x);
-}
-
-function secondary_demod_close_window() {
-    secondary_demod_stop();
-    toggle_panel("openwebrx-panel-digimodes", false);
-    toggle_panel("openwebrx-panel-wsjt-message", false);
-    toggle_panel("openwebrx-panel-packet-message", false);
-    toggle_panel("openwebrx-panel-pocsag-message", false);
-    toggle_panel("openwebrx-panel-js8-message", false);
 }
 
 function secondary_demod_waterfall_add(data) {
@@ -1747,7 +1725,6 @@ function secondary_demod_update_marker() {
     $("#openwebrx-digimode-select-channel").width(width).css("left", left + "px")
 }
 
-// TODO
 function secondary_demod_update_channel_freq_from_event(evt) {
     if (typeof evt !== "undefined") {
         var relativeX = (evt.offsetX) ? evt.offsetX : evt.layerX;
