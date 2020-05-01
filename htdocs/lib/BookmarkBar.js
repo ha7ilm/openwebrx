@@ -13,7 +13,8 @@ function BookmarkBar() {
         if (b.modulation) {
             me.getDemodulatorPanel().setMode(b.modulation);
         } else if (b.digital_modulation) {
-            me.getDemodulatorPanel().setDigiMode(b.digital_modulation);
+            // TODO: update bookmarks so they don't contain digital_modulation
+            me.getDemodulatorPanel().setMode(b.digital_modulation);
         }
         $bookmark.addClass('selected');
     });

@@ -21,7 +21,7 @@ var Modes = {
         this.panels.push(el);
     },
     updatePanels: function() {
-        var init_complete = this.modes && this.features;
+        var init_complete = this.modes.length && Object.keys(this.features).length;
         this.panels.forEach(function(p) {
             p.render();
             if (init_complete) {
