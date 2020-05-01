@@ -818,7 +818,7 @@ function on_ws_recv(evt) {
                         var as_bookmarks = json['value'].map(function (d) {
                             return {
                                 name: d['mode'].toUpperCase(),
-                                digital_modulation: d['mode'],
+                                modulation: d['mode'],
                                 frequency: d['frequency']
                             };
                         });
