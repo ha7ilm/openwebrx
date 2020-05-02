@@ -1176,54 +1176,6 @@ var mute = false;
 // Optimalise these if audio lags or is choppy:
 var audio_buffer_maximal_length_sec = 1; //actual number of samples are calculated from sample rate
 
-function parseHash() {
-    if (!window.location.hash) {
-        return {};
-    }
-    return window.location.hash.substring(1).split(",").map(function(x) {
-        var harr = x.split('=');
-        return [harr[0], harr.slice(1).join('=')];
-    }).reduce(function(params, p){
-        params[p[0]] = p[1];
-        return params;
-    }, {});
-}
-
-function validateHash() {
-    var params = parseHash();
-    params = Object.keys(params).filter(function(key) {
-        if (key == 'freq' || key == 'mod' || key == 'secondary_mod') {
-            return params.freq && Math.abs(params.freq - center_freq) < bandwidth;
-        }
-        return true;
-    }).reduce(function(p, key) {
-        p[key] = params[key];
-        return p;
-    }, {});
-
-    if (params['freq']) {
-        params['offset_frequency'] = params['freq'] - center_freq;
-        delete params['freq'];
-    }
-
-    return params;
-}
-
-function updateHash() {
-    var demod = $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator();
-    if (!demod) return;
-    window.location.hash = $.map({
-        freq: demod.get_offset_frequency() + center_freq,
-        mod: demod.get_modulation(),
-        secondary_mod: demod.get_secondary_demod()
-    }, function(value, key){
-        if (!value) return undefined;
-        return key + '=' + value;
-    }).filter(function(v) {
-        return !!v;
-    }).join(',');
-}
-
 function onAudioStart(success, apiType){
     divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
 
@@ -1477,9 +1429,6 @@ function openwebrx_init() {
     init_header();
     bookmarks = new BookmarkBar();
     initSliders();
-    window.addEventListener('hashchange', function() {
-        $('#openwebrx-panel-receiver').demodulatorPanel().setHashParams(validateHash());
-    });
 }
 
 function initSliders() {

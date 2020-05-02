@@ -26,6 +26,9 @@ function DemodulatorPanel(el) {
             self.setMode(value);
         }
     });
+    window.addEventListener('hashchange', function() {
+        self.onHashChange();
+    });
 };
 
 DemodulatorPanel.prototype.render = function() {
@@ -102,7 +105,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
         var self = this;
         this.demodulator.on("frequencychange", function(freq) {
             self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
-            updateHash();
+            self.updateHash();
         });
     }
     if (mode.type === 'digimode') {
@@ -117,7 +120,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
 
     this.updateButtons();
     this.updatePanels();
-    updateHash();
+    this.updateHash();
 };
 
 DemodulatorPanel.prototype.disableDigiMode = function() {
@@ -141,7 +144,7 @@ DemodulatorPanel.prototype.getDemodulator = function() {
 
 DemodulatorPanel.prototype.startDemodulator = function() {
     if (!Modes.initComplete()) return;
-    var params = $.extend({}, this.initialParams || {}, this.transformHashParams(validateHash()));
+    var params = $.extend({}, this.initialParams || {}, this.transformHashParams(this.parseHash()));
     this._apply(params);
 };
 
@@ -163,8 +166,8 @@ DemodulatorPanel.prototype.setInitialParams = function(params) {
     this.initialParams = params;
 };
 
-DemodulatorPanel.prototype.setHashParams = function(params) {
-    this._apply(this.transformHashParams(params));
+DemodulatorPanel.prototype.onHashChange = function() {
+    this._apply(this.transformHashParams(this.parseHash()));
 };
 
 DemodulatorPanel.prototype.transformHashParams = function(params) {
@@ -203,6 +206,57 @@ DemodulatorPanel.prototype.setCenterFrequency = function(center_freq) {
     this.stopDemodulator();
     this.center_freq = center_freq;
     this.startDemodulator();
+};
+
+DemodulatorPanel.prototype.parseHash = function() {
+    if (!window.location.hash) {
+        return {};
+    }
+    var params = window.location.hash.substring(1).split(",").map(function(x) {
+        var harr = x.split('=');
+        return [harr[0], harr.slice(1).join('=')];
+    }).reduce(function(params, p){
+        params[p[0]] = p[1];
+        return params;
+    }, {});
+
+    return this.validateHash(params);
+};
+
+DemodulatorPanel.prototype.validateHash = function(params) {
+    var self = this;
+    params = Object.keys(params).filter(function(key) {
+        if (key == 'freq' || key == 'mod' || key == 'secondary_mod') {
+            return params.freq && Math.abs(params.freq - self.center_freq) < bandwidth;
+        }
+        return true;
+    }).reduce(function(p, key) {
+        p[key] = params[key];
+        return p;
+    }, {});
+
+    if (params['freq']) {
+        params['offset_frequency'] = params['freq'] - self.center_freq;
+        delete params['freq'];
+    }
+
+    return params;
+};
+
+DemodulatorPanel.prototype.updateHash = function() {
+    var demod = this.getDemodulator();
+    if (!demod) return;
+    var self = this;
+    window.location.hash = $.map({
+        freq: demod.get_offset_frequency() + self.center_freq,
+        mod: demod.get_modulation(),
+        secondary_mod: demod.get_secondary_demod()
+    }, function(value, key){
+        if (!value) return undefined;
+        return key + '=' + value;
+    }).filter(function(v) {
+        return !!v;
+    }).join(',');
 };
 
 $.fn.demodulatorPanel = function(){
