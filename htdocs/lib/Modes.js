@@ -20,13 +20,13 @@ var Modes = {
     registerModePanel: function(el) {
         this.panels.push(el);
     },
+    initComplete: function() {
+        return this.modes.length && Object.keys(this.features).length;
+    },
     updatePanels: function() {
-        var init_complete = this.modes.length && Object.keys(this.features).length;
         this.panels.forEach(function(p) {
             p.render();
-            if (init_complete) {
-                p.startDemodulator();
-            }
+            p.startDemodulator();
         });
     }
 };

@@ -745,7 +745,6 @@ function on_ws_recv(evt) {
 
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'];
-                        $('#openwebrx-panel-receiver').demodulatorPanel().setCenterFrequency(center_freq);
                         fft_size = config['fft_size'];
                         var audio_compression = config['audio_compression'];
                         audioEngine.setCompression(audio_compression);
@@ -758,7 +757,9 @@ function on_ws_recv(evt) {
                         updateSquelch();
 
                         waterfall_init();
-                        $('#openwebrx-panel-receiver').demodulatorPanel().setInitialParams(initial_demodulator_params);
+                        var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
+                        demodulatorPanel.setInitialParams(initial_demodulator_params);
+                        demodulatorPanel.setCenterFrequency(center_freq);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();

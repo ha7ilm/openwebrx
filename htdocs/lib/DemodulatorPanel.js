@@ -140,7 +140,8 @@ DemodulatorPanel.prototype.getDemodulator = function() {
 };
 
 DemodulatorPanel.prototype.startDemodulator = function() {
-    var params = $.extend(this.initialParams || {}, this.transformHashParams(validateHash()));
+    if (!Modes.initComplete()) return;
+    var params = $.extend({}, this.initialParams || {}, this.transformHashParams(validateHash()));
     this._apply(params);
 };
 
@@ -197,14 +198,11 @@ DemodulatorPanel.prototype.updateButtons = function() {
 
 DemodulatorPanel.prototype.setCenterFrequency = function(center_freq) {
     if (this.center_freq === center_freq) {
-        return ;
+        return;
     }
+    this.stopDemodulator();
     this.center_freq = center_freq;
-    var demod = this.getDemodulator();
-    if (demod) {
-        this.tuneableFrequencyDisplay.setFrequency(center_freq + demod.get_offset_frequency());
-    }
-    updateHash();
+    this.startDemodulator();
 };
 
 $.fn.demodulatorPanel = function(){
