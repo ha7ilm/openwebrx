@@ -82,7 +82,7 @@ class CompiledAssetsController(Controller):
             "lib/FrequencyDisplay.js",
             "lib/Js8Threads.js",
             "lib/Modes.js",
-        ]
+        ],
     }
 
     def indexAction(self):
