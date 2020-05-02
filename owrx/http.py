@@ -6,7 +6,8 @@ from owrx.controllers.template import (
 )
 from owrx.controllers.assets import (
     OwrxAssetsController,
-    AprsSymbolsController
+    AprsSymbolsController,
+    CompiledAssetsController
 )
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
@@ -91,6 +92,7 @@ class Router(object):
             StaticRoute("/status", StatusController),
             StaticRoute("/status.json", StatusController, options={"action": "jsonAction"}),
             RegexRoute("/static/(.+)", OwrxAssetsController),
+            RegexRoute("/compiled/(.+)", CompiledAssetsController),
             RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
             StaticRoute("/ws/", WebSocketController),
             RegexRoute("(/favicon.ico)", OwrxAssetsController),
