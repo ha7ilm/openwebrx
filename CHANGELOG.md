@@ -18,6 +18,8 @@
 - Added decoding implementation for for digimode "JS8Call"
   (requires an installation of [js8call](http://js8call.com/) and
   [the js8py library](https://github.com/jketterl/js8py))
+- Reorganization of the frontend demodulator code
+- Improve receiver load time by concatenating javascript assets
 
 **0.18.0**
 - Support for SoapyRemote

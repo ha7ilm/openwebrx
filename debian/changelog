@@ -21,6 +21,8 @@ openwebrx (0.19.0) UNRELEASED; urgency=low
   * `rtl_sdr` type now also supports the `direct_sampling` option
   * Added decoding implementation for for digimode "JS8Call" (requires an
     installation of js8call and the js8py library)
+  * Reorganization of the frontend demodulator code
+  * Improve receiver load time by concatenating javascript assets
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 20 Feb 2020 21:01:00 +0000
 
