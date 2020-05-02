@@ -745,6 +745,7 @@ function on_ws_recv(evt) {
 
                         bandwidth = config['samp_rate'];
                         center_freq = config['center_freq'];
+                        $('#openwebrx-panel-receiver').demodulatorPanel().setCenterFrequency(center_freq);
                         fft_size = config['fft_size'];
                         var audio_compression = config['audio_compression'];
                         audioEngine.setCompression(audio_compression);

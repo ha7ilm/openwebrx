@@ -6,7 +6,7 @@ function DemodulatorPanel(el) {
     var displayEl = el.find('.webrx-actual-freq')
     this.tuneableFrequencyDisplay = displayEl.tuneableFrequencyDisplay();
     displayEl.on('frequencychange', function(event, freq) {
-        self.getDemodulator().set_offset_frequency(freq - center_freq);
+        self.getDemodulator().set_offset_frequency(freq - self.center_freq);
     });
 
     Modes.registerModePanel(this);
@@ -101,7 +101,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
         this.demodulator = new Demodulator(current_offset_frequency, modulation);
         var self = this;
         this.demodulator.on("frequencychange", function(freq) {
-            self.tuneableFrequencyDisplay.setFrequency(center_freq + freq);
+            self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
             updateHash();
         });
     }
@@ -186,6 +186,18 @@ DemodulatorPanel.prototype.updateButtons = function() {
         this.el.find('.openwebrx-secondary-demod-listbox').val('none');
     }
 }
+
+DemodulatorPanel.prototype.setCenterFrequency = function(center_freq) {
+    if (this.center_freq === center_freq) {
+        return ;
+    }
+    this.center_freq = center_freq;
+    var demod = this.getDemodulator();
+    if (demod) {
+        this.tuneableFrequencyDisplay.setFrequency(center_freq + demod.get_offset_frequency());
+    }
+    updateHash();
+};
 
 $.fn.demodulatorPanel = function(){
     if (!this.data('panel')) {
