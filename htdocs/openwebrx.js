@@ -1469,6 +1469,7 @@ function openwebrx_init() {
     secondary_demod_init();
     digimodes_init();
     initPanels();
+    $('.webrx-mouse-freq').frequencyDisplay();
     $('#openwebrx-panel-receiver').demodulatorPanel();
     window.addEventListener("resize", openwebrx_resize);
     init_header();
