@@ -102,6 +102,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
         var self = this;
         this.demodulator.on("frequencychange", function(freq) {
             self.tuneableFrequencyDisplay.setFrequency(center_freq + freq);
+            updateHash();
         });
     }
     if (mode.type === 'digimode') {
@@ -139,7 +140,7 @@ DemodulatorPanel.prototype.getDemodulator = function() {
 };
 
 DemodulatorPanel.prototype.startDemodulator = function() {
-    var params = $.extend(this.initialParams || {}, validateHash());
+    var params = $.extend(this.initialParams || {}, this.transformHashParams(validateHash()));
     this._apply(params);
 };
 
@@ -154,10 +155,14 @@ DemodulatorPanel.prototype.setInitialParams = function(params) {
 };
 
 DemodulatorPanel.prototype.setHashParams = function(params) {
-    this._apply({
+    this._apply(this.transformHashParams(params));
+};
+
+DemodulatorPanel.prototype.transformHashParams = function(params) {
+    return {
         mod: params.secondary_mod || params.mod,
         offset_frequency: params.offset_frequency
-    });
+    };
 };
 
 DemodulatorPanel.prototype.updateButtons = function() {

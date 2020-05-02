@@ -237,8 +237,6 @@ Demodulator.prototype.set_offset_frequency = function(to_what) {
     this.set();
     this.emit("frequencychange", to_what);
     mkenvelopes(get_visible_freq_range());
-    //tunedFrequencyDisplay.setFrequency(center_freq + to_what);
-    updateHash();
 };
 
 Demodulator.prototype.get_offset_frequency = function() {
