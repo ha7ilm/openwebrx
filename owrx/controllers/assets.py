@@ -89,6 +89,7 @@ class CompiledAssetsController(Controller):
         profileName = self.request.matches.group(1)
         if profileName not in CompiledAssetsController.profiles:
             self.send_response("profile not found", code=404)
+            return
 
         files = CompiledAssetsController.profiles[profileName]
         logger.debug(files)
