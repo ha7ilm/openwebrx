@@ -1241,6 +1241,7 @@ function onAudioStart(success, apiType){
 var reconnect_timeout = false;
 
 function on_ws_closed() {
+    $("#openwebrx-panel-receiver").demodulatorPanel().stopDemodulator();
     if (reconnect_timeout) {
         // max value: roundabout 8 and a half minutes
         reconnect_timeout = Math.min(reconnect_timeout * 2, 512000);

@@ -97,7 +97,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
 
     var replace_modulator = current_modulation !== modulation;
     if (replace_modulator) {
-        if (this.demodulator) this.demodulator.stop();
+        this.stopDemodulator();
         this.demodulator = new Demodulator(current_offset_frequency, modulation);
         var self = this;
         this.demodulator.on("frequencychange", function(freq) {
@@ -143,6 +143,14 @@ DemodulatorPanel.prototype.startDemodulator = function() {
     var params = $.extend(this.initialParams || {}, this.transformHashParams(validateHash()));
     this._apply(params);
 };
+
+DemodulatorPanel.prototype.stopDemodulator = function() {
+    if (!this.demodulator) {
+        return;
+    }
+    this.demodulator.stop();
+    this.demodulator = false;
+}
 
 DemodulatorPanel.prototype._apply = function(params) {
     this.setMode(params.mod);
