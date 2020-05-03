@@ -6,10 +6,6 @@ import os
 import pkg_resources
 from abc import ABCMeta, abstractmethod
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class AssetsController(Controller, metaclass=ABCMeta):
     def getModified(self, file):
@@ -92,9 +88,7 @@ class CompiledAssetsController(Controller):
             return
 
         files = CompiledAssetsController.profiles[profileName]
-        logger.debug(files)
         files = [pkg_resources.resource_filename("htdocs", f) for f in files]
-        logger.debug(files)
 
         modified = self.getModified(files)
 
