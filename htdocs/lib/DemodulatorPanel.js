@@ -110,6 +110,9 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
     }
     if (mode.type === 'digimode') {
         this.demodulator.set_secondary_demod(mode.modulation);
+        if (mode.bandpass) {
+            this.demodulator.setBandpass(mode.bandpass);
+        }
     } else {
         this.demodulator.set_secondary_demod(false);
     }
