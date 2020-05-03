@@ -72,6 +72,7 @@ class CompiledAssetsController(Controller):
             "lib/Demodulator.js",
             "lib/DemodulatorPanel.js",
             "lib/BookmarkBar.js",
+            "lib/BookmarkDialog.js",
             "lib/AudioEngine.js",
             "lib/ProgressBar.js",
             "lib/Measurement.js",
