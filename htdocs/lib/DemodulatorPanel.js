@@ -91,8 +91,6 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
         return;
     }
 
-    this.mode = mode;
-
     if (mode.type === 'digimode') {
         modulation = mode.underlying[0];
     }
@@ -119,6 +117,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
     }
 
     this.demodulator.start();
+    this.mode = mode;
 
     this.updateButtons();
     this.updatePanels();
@@ -161,7 +160,8 @@ DemodulatorPanel.prototype.stopDemodulator = function() {
         return;
     }
     this.demodulator.stop();
-    this.demodulator = false;
+    this.demodulator = null;
+    this.mode = null;
 }
 
 DemodulatorPanel.prototype._apply = function(params) {
