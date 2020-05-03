@@ -264,8 +264,11 @@ class OpenWebRxReceiverClient(Client):
         stack.addLayer(0, self.sdr.getProps())
         stack.addLayer(1, config)
         protected = stack.filter(*keys)
-        for key, value in params.items():
-            protected[key] = value
+        try:
+            for key, value in params.items():
+                protected[key] = value
+        except KeyError:
+            pass
 
     def getDsp(self):
         if self.dsp is None:
