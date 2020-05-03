@@ -113,11 +113,13 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
     this.demodulator = new Demodulator(current.offset_frequency, modulation);
     this.demodulator.setSquelch(current.squelch_level);
     var self = this;
-    this.demodulator.on("frequencychange", function(freq) {
+    var updateFrequency = function(freq) {
         self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
         self.updateHash();
-    });
-    updateSquelch = function(squelch) {
+    };
+    this.demodulator.on("frequencychange", updateFrequency);
+    updateFrequency(this.demodulator.get_offset_frequency());
+    var updateSquelch = function(squelch) {
         self.el.find('.openwebrx-squelch-slider').val(squelch);
         self.updateHash();
     };
