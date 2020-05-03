@@ -185,6 +185,7 @@ function Demodulator(offset_frequency, modulation) {
     this.filter = new Filter(this);
     this.squelch_level = -150;
     this.dmr_filter = 3;
+    this.started = false;
     this.state = {};
     this.secondary_demod = false;
     var mode = Modes.findByModulation(modulation);
@@ -248,6 +249,7 @@ Demodulator.prototype.get_modulation = function() {
 };
 
 Demodulator.prototype.start = function() {
+    this.started = true;
     this.set();
     ws.send(JSON.stringify({
         "type": "dspcontrol",
@@ -264,6 +266,7 @@ Demodulator.prototype.send = function(params) {
 }
 
 Demodulator.prototype.set = function () {  //this function sends demodulator parameters to the server
+    if (!this.started) return;
     var params = {
         "low_cut": this.low_cut,
         "high_cut": this.high_cut,
