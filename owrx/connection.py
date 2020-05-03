@@ -254,6 +254,8 @@ class OpenWebRxReceiverClient(Client):
     def setParams(self, params):
         config = Config.get()
         # allow direct configuration only if enabled in the config
+        if "configurable_keys" not in config:
+            return
         keys = config["configurable_keys"]
         if not keys:
             return
