@@ -1110,13 +1110,6 @@ function update_pocsag_panel(msg) {
     $b.scrollTop($b[0].scrollHeight);
 }
 
-function update_digitalvoice_panels(showing) {
-    $(".openwebrx-meta-panel").each(function (_, p) {
-        toggle_panel(p.id, p.id === showing);
-    });
-    clear_metadata();
-}
-
 function clear_metadata() {
     $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
     $(".openwebrx-meta-slot").removeClass("active").removeClass("sync");

@@ -136,6 +136,13 @@ DemodulatorPanel.prototype.updatePanels = function() {
     toggle_panel("openwebrx-panel-js8-message", modulation == "js8");
     toggle_panel("openwebrx-panel-packet-message", modulation === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", modulation === "pocsag");
+
+    modulation = this.getDemodulator().get_modulation();
+    var showing = 'openwebrx-panel-metadata-' + modulation;
+    $(".openwebrx-meta-panel").each(function (_, p) {
+        toggle_panel(p.id, p.id === showing);
+    });
+    clear_metadata();
 };
 
 DemodulatorPanel.prototype.getDemodulator = function() {
