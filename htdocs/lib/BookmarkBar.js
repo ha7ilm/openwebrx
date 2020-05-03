@@ -102,40 +102,26 @@ BookmarkBar.prototype.render = function(){
 };
 
 BookmarkBar.prototype.showEditDialog = function(bookmark) {
-    var $form = this.$dialog.find("form");
     if (!bookmark) {
         bookmark = {
             name: "",
             frequency: center_freq + this.getDemodulator().get_offset_frequency(),
-            modulation: this.getDemodulator().get_modulation()
+            modulation: this.getDemodulator().get_secondary_demod() || this.getDemodulator().get_modulation()
         }
     }
-    ['name', 'frequency', 'modulation'].forEach(function(key){
-        $form.find('#' + key).val(bookmark[key]);
-    });
-    this.$dialog.data('id', bookmark.id);
+    this.$dialog.bookmarkDialog().setValues(bookmark);
     this.$dialog.show();
     this.$dialog.find('#name').focus();
 };
 
 BookmarkBar.prototype.storeBookmark = function() {
     var me = this;
-    var bookmark = {};
-    var valid = true;
-    ['name', 'frequency', 'modulation'].forEach(function(key){
-        var $input = me.$dialog.find('#' + key);
-        valid = valid && $input[0].checkValidity();
-        bookmark[key] = $input.val();
-    });
-    if (!valid) {
-        me.$dialog.find("form :submit").click();
-        return;
-    }
+    var bookmark = this.$dialog.bookmarkDialog().getValues();
+    if (!bookmark) return;
     bookmark.frequency = Number(bookmark.frequency);
 
     var bookmarks = me.localBookmarks.getBookmarks();
 
-    bookmark.id = me.$dialog.data('id');
     if (!bookmark.id) {
         if (bookmarks.length) {
             bookmark.id = 1 + Math.max.apply(Math, bookmarks.map(function(b){ return b.id || 0; }));
