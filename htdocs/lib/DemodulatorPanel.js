@@ -2,6 +2,7 @@ function DemodulatorPanel(el) {
     var self = this;
     self.el = el;
     self.demodulator = null;
+    self.mode = null;
 
     var displayEl = el.find('.webrx-actual-freq')
     this.tuneableFrequencyDisplay = displayEl.tuneableFrequencyDisplay();
@@ -82,32 +83,32 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
     if (!mode) {
         return;
     }
+    if (this.mode === mode) {
+        return;
+    }
     if (!mode.isAvailable()) {
         divlog('Modulation "' + mode.name + '" not supported. Please check requirements', true);
         return;
     }
+
+    this.mode = mode;
 
     if (mode.type === 'digimode') {
         modulation = mode.underlying[0];
     }
 
     var current_offset_frequency = 0;
-    var current_modulation = false;
     if (this.demodulator) {
-        current_modulation = this.demodulator.get_modulation();
         current_offset_frequency = this.demodulator.get_offset_frequency();
     }
 
-    var replace_modulator = current_modulation !== modulation;
-    if (replace_modulator) {
-        this.stopDemodulator();
-        this.demodulator = new Demodulator(current_offset_frequency, modulation);
-        var self = this;
-        this.demodulator.on("frequencychange", function(freq) {
-            self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
-            self.updateHash();
-        });
-    }
+    this.stopDemodulator();
+    this.demodulator = new Demodulator(current_offset_frequency, modulation);
+    var self = this;
+    this.demodulator.on("frequencychange", function(freq) {
+        self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
+        self.updateHash();
+    });
     if (mode.type === 'digimode') {
         this.demodulator.set_secondary_demod(mode.modulation);
         if (mode.bandpass) {
@@ -117,9 +118,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
         this.demodulator.set_secondary_demod(false);
     }
 
-    if (replace_modulator) {
-        this.demodulator.start();
-    }
+    this.demodulator.start();
 
     this.updateButtons();
     this.updatePanels();
@@ -127,8 +126,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
 };
 
 DemodulatorPanel.prototype.disableDigiMode = function() {
-    var modulation = this.el.find('.openwebrx-button.highlighted[data-modulation]').data('modulation');
-    this.setMode(modulation);
+    this.setMode(this.getDemodulator().get_modulation());
 };
 
 DemodulatorPanel.prototype.updatePanels = function() {
