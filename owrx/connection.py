@@ -353,7 +353,8 @@ class OpenWebRxReceiverClient(Client):
                 "modulation": m.modulation,
                 "name": m.name,
                 "type": "digimode" if isinstance(m, DigitalMode) else "analog",
-                "requirements": m.requirements
+                "requirements": m.requirements,
+                "squelch": m.squelch,
             }
             if m.bandpass is not None:
                 res["bandpass"] = {

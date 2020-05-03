@@ -103,14 +103,12 @@ function toggleMute() {
         e("openwebrx-mute-on").id = "openwebrx-mute-off";
         e("openwebrx-mute-img").src = "static/gfx/openwebrx-speaker.png";
         e("openwebrx-panel-volume").disabled = false;
-        e("openwebrx-panel-volume").style.opacity = 1.0;
         e("openwebrx-panel-volume").value = volumeBeforeMute;
     } else {
         mute = true;
         e("openwebrx-mute-off").id = "openwebrx-mute-on";
         e("openwebrx-mute-img").src = "static/gfx/openwebrx-speaker-muted.png";
         e("openwebrx-panel-volume").disabled = true;
-        e("openwebrx-panel-volume").style.opacity = 0.5;
         volumeBeforeMute = e("openwebrx-panel-volume").value;
         e("openwebrx-panel-volume").value = 0;
     }
@@ -132,17 +130,6 @@ function zoomInTotal() {
 
 function zoomOutTotal() {
     zoom_set(0);
-}
-
-function setSquelchToAuto() {
-    e("openwebrx-panel-squelch").value = (getLogSmeterValue(smeter_level) + 10).toString();
-    updateSquelch();
-}
-
-function updateSquelch() {
-    var sliderValue = parseInt($("#openwebrx-panel-squelch").val());
-    var demod = $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator();
-    if (demod) demod.setSquelch(sliderValue);
 }
 
 var waterfall_min_level;
@@ -189,7 +176,7 @@ function setSmeterRelativeValue(value) {
 }
 
 function setSquelchSliderBackground(val) {
-    var $slider = $('#openwebrx-panel-squelch');
+    var $slider = $('#openwebrx-panel-receiver .openwebrx-squelch-slider');
     var min = Number($slider.attr('min'));
     var max = Number($slider.attr('max'));
     var sliderPosition = $slider.val();
@@ -740,7 +727,8 @@ function on_ws_recv(evt) {
 
                         var initial_demodulator_params = {
                             mod: config['start_mod'],
-                            offset_frequency: config['start_offset_freq']
+                            offset_frequency: config['start_offset_freq'],
+                            squelch_level: Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150
                         };
 
                         bandwidth = config['samp_rate'];
@@ -752,9 +740,6 @@ function on_ws_recv(evt) {
                         fft_compression = config['fft_compression'];
                         divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
                         clientProgressBar.setMaxClients(config['max_clients']);
-                        var sql = Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150;
-                        $("#openwebrx-panel-squelch").val(sql);
-                        updateSquelch();
 
                         waterfall_init();
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();

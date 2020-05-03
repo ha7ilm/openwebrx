@@ -36,6 +36,7 @@ var Mode = function(json){
     this.name = json.name;
     this.type = json.type;
     this.requirements = json.requirements;
+    this.squelch = json.squelch;
     if (json.bandpass) {
         this.bandpass = json.bandpass;
     }

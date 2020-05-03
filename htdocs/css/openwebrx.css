@@ -150,6 +150,10 @@ input[type=range]:focus::-ms-fill-upper
 	background: #B6B6B6;
 }
 
+input[type=range]:disabled {
+    opacity: 0.5;
+}
+
 #webrx-page-container
 {
     height: 100%;
@@ -433,6 +437,10 @@ input[type=range]:focus::-ms-fill-upper
 
 .openwebrx-button:last-child {
     margin-right: 0;
+}
+
+.openwebrx-button.disabled {
+    opacity: 0.5;
 }
 
 .openwebrx-demodulator-button

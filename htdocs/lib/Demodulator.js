@@ -194,7 +194,8 @@ function Demodulator(offset_frequency, modulation) {
         this.high_cut = mode.bandpass.high_cut;
     }
     this.listeners = {
-        "frequencychange": []
+        "frequencychange": [],
+        "squelchchange": []
     };
 }
 
@@ -293,8 +294,16 @@ Demodulator.prototype.set = function () {  //this function sends demodulator par
 };
 
 Demodulator.prototype.setSquelch = function(squelch) {
+    if (this.squelch_level == squelch) {
+        return;
+    }
     this.squelch_level = squelch;
     this.set();
+    this.emit("squelchchange", squelch);
+};
+
+Demodulator.prototype.getSquelch = function() {
+    return this.squelch_level;
 };
 
 Demodulator.prototype.setDmrFilter = function(dmr_filter) {

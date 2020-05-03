@@ -27,6 +27,14 @@ function DemodulatorPanel(el) {
             self.setMode(value);
         }
     });
+    el.on('click', '.openwebrx-squelch-default', function() {
+        if (!self.squelchAvailable()) return;
+        el.find('.openwebrx-squelch-slider').val(getLogSmeterValue(smeter_level) + 10);
+        self.updateSquelch();
+    });
+    el.on('change', '.openwebrx-squelch-slider', function() {
+        self.updateSquelch();
+    });
     window.addEventListener('hashchange', function() {
         self.onHashChange();
     });
@@ -95,18 +103,27 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
         modulation = mode.underlying[0];
     }
 
-    var current_offset_frequency = 0;
+    var current = this.collectParams();
     if (this.demodulator) {
-        current_offset_frequency = this.demodulator.get_offset_frequency();
+        current.offset_frequency = this.demodulator.get_offset_frequency();
+        current.squelch_level = this.demodulator.getSquelch();
     }
 
     this.stopDemodulator();
-    this.demodulator = new Demodulator(current_offset_frequency, modulation);
+    this.demodulator = new Demodulator(current.offset_frequency, modulation);
+    this.demodulator.setSquelch(current.squelch_level);
     var self = this;
     this.demodulator.on("frequencychange", function(freq) {
         self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
         self.updateHash();
     });
+    updateSquelch = function(squelch) {
+        self.el.find('.openwebrx-squelch-slider').val(squelch);
+        self.updateHash();
+    };
+    this.demodulator.on('squelchchange', updateSquelch);
+    updateSquelch(this.demodulator.getSquelch());
+
     if (mode.type === 'digimode') {
         this.demodulator.set_secondary_demod(mode.modulation);
         if (mode.bandpass) {
@@ -149,9 +166,18 @@ DemodulatorPanel.prototype.getDemodulator = function() {
     return this.demodulator;
 };
 
+DemodulatorPanel.prototype.collectParams = function() {
+    var defaults = {
+        offset_frequency: 0,
+        squelch_level: -150,
+        mod: 'nfm'
+    }
+    return $.extend(new Object(), defaults, this.initialParams || {}, this.transformHashParams(this.parseHash()));
+};
+
 DemodulatorPanel.prototype.startDemodulator = function() {
     if (!Modes.initComplete()) return;
-    var params = $.extend({}, this.initialParams || {}, this.transformHashParams(this.parseHash()));
+    var params = this.collectParams();
     this._apply(params);
 };
 
@@ -167,6 +193,7 @@ DemodulatorPanel.prototype.stopDemodulator = function() {
 DemodulatorPanel.prototype._apply = function(params) {
     this.setMode(params.mod);
     this.getDemodulator().set_offset_frequency(params.offset_frequency);
+    this.getDemodulator().setSquelch(params.squelch_level);
     this.updateButtons();
 };
 
@@ -179,11 +206,17 @@ DemodulatorPanel.prototype.onHashChange = function() {
 };
 
 DemodulatorPanel.prototype.transformHashParams = function(params) {
-    return {
-        mod: params.secondary_mod || params.mod,
-        offset_frequency: params.offset_frequency
+    var ret = {
+        mod: params.secondary_mod || params.mod
     };
+    if (params.offset_frequency) ret.offset_frequency = params.offset_frequency;
+    if (params.sql) ret.squelch_level = parseInt(params.sql);
+    return ret;
 };
+
+DemodulatorPanel.prototype.squelchAvailable = function () {
+    return this.mode && this.mode.squelch;
+}
 
 DemodulatorPanel.prototype.updateButtons = function() {
     var $buttons = this.el.find(".openwebrx-demodulator-button");
@@ -205,6 +238,9 @@ DemodulatorPanel.prototype.updateButtons = function() {
     } else {
         this.el.find('.openwebrx-secondary-demod-listbox').val('none');
     }
+    var squelch_disabled = !this.squelchAvailable();
+    this.el.find('.openwebrx-squelch-slider').prop('disabled', squelch_disabled);
+    this.el.find('.openwebrx-squelch-default')[squelch_disabled ? 'addClass' : 'removeClass']('disabled');
 }
 
 DemodulatorPanel.prototype.setCenterFrequency = function(center_freq) {
@@ -234,7 +270,7 @@ DemodulatorPanel.prototype.parseHash = function() {
 DemodulatorPanel.prototype.validateHash = function(params) {
     var self = this;
     params = Object.keys(params).filter(function(key) {
-        if (key == 'freq' || key == 'mod' || key == 'secondary_mod') {
+        if (key == 'freq' || key == 'mod' || key == 'secondary_mod' || key == 'sql') {
             return params.freq && Math.abs(params.freq - self.center_freq) < bandwidth;
         }
         return true;
@@ -258,13 +294,20 @@ DemodulatorPanel.prototype.updateHash = function() {
     window.location.hash = $.map({
         freq: demod.get_offset_frequency() + self.center_freq,
         mod: demod.get_modulation(),
-        secondary_mod: demod.get_secondary_demod()
+        secondary_mod: demod.get_secondary_demod(),
+        sql: demod.getSquelch(),
     }, function(value, key){
         if (!value) return undefined;
         return key + '=' + value;
     }).filter(function(v) {
         return !!v;
     }).join(',');
+};
+
+DemodulatorPanel.prototype.updateSquelch = function() {
+    var sliderValue = parseInt(this.el.find(".openwebrx-squelch-slider").val());
+    var demod = this.getDemodulator();
+    if (demod) demod.setSquelch(sliderValue);
 };
 
 $.fn.demodulatorPanel = function(){
