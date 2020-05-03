@@ -374,6 +374,10 @@ class FeatureDetector(object):
     def has_js8(self):
         """
         To decode JS8, you will need to install [JS8Call](http://js8call.com/)
+
+        Please note that the `js8` command line decoder is not made available on $PATH by some JS8Call package builds.
+        You will need to manually make it available by either linking it to `/usr/bin` or by adding its location to
+        $PATH.
         """
         return self.command_is_runnable("js8")
 
