@@ -15,6 +15,7 @@ from owrx.modes import Modes, DigitalMode
 from multiprocessing import Queue
 from queue import Full
 from js8py import Js8Frame
+from abc import ABC, abstractmethod
 import json
 import threading
 
@@ -23,7 +24,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Client(object):
+class Client(ABC):
     def __init__(self, conn):
         self.conn = conn
         self.multiprocessingPipe = Queue(100)
@@ -52,6 +53,7 @@ class Client(object):
         except Full:
             self.close()
 
+    @abstractmethod
     def handleTextMessage(self, conn, message):
         pass
 
@@ -145,8 +147,12 @@ class OpenWebRxReceiverClient(Client):
                         self.startDsp()
 
                     if "params" in message:
-                        params = message["params"]
-                        self.getDsp().setProperties(params)
+                        dsp = self.getDsp()
+                        if dsp is None:
+                            logger.warning("DSP not available; discarding client data")
+                        else:
+                            params = message["params"]
+                            dsp.setProperties(params)
 
                 elif message["type"] == "config":
                     if "params" in message:
@@ -172,27 +178,38 @@ class OpenWebRxReceiverClient(Client):
             logger.warning("message is not json: {0}".format(message))
 
     def setSdr(self, id=None):
-        next = None
-        if id is not None:
-            next = SdrService.getSource(id)
-        if next is None:
-            next = SdrService.getFirstSource()
-        if next is None:
-            # exit condition: no sdrs available
-            self.handleNoSdrsAvailable()
-            return
+        while True:
+            next = None
+            if id is not None:
+                next = SdrService.getSource(id)
+            if next is None:
+                next = SdrService.getFirstSource()
+            if next is None:
+                # exit condition: no sdrs available
+                logger.warning("no more SDR devices available")
+                self.handleNoSdrsAvailable()
+                return
 
-        # exit condition: no change
-        if next == self.sdr:
-            return
+            # exit condition: no change
+            if next == self.sdr:
+                return
 
-        self.stopDsp()
+            self.stopDsp()
 
-        if self.configSub is not None:
-            self.configSub.cancel()
-            self.configSub = None
+            if self.configSub is not None:
+                self.configSub.cancel()
+                self.configSub = None
 
-        self.sdr = next
+            self.sdr = next
+
+            self.getDsp()
+
+            # found a working sdr, exit the loop
+            if self.sdr.getState() != SdrSource.STATE_FAILED:
+                break
+
+            logger.warning('SDR device "%s" has failed, selecing new device', self.sdr.getName())
+            self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
 
         # send initial config
         self.getDsp().setProperties(self.connectionProperties)
@@ -227,13 +244,7 @@ class OpenWebRxReceiverClient(Client):
         self.write_sdr_error("No SDR Devices available")
 
     def startDsp(self):
-        while True:
-            self.getDsp().start()
-            if self.sdr.getState() == SdrSource.STATE_FAILED:
-                self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
-                self.setSdr()
-            else:
-                break
+        self.getDsp().start()
 
     def close(self):
         self.stopDsp()
@@ -271,7 +282,7 @@ class OpenWebRxReceiverClient(Client):
                 pass
 
     def getDsp(self):
-        if self.dsp is None:
+        if self.dsp is None and self.sdr is not None:
             self.dsp = DspManager(self, self.sdr)
         return self.dsp
 
