@@ -212,7 +212,7 @@ DemodulatorPanel.prototype.transformHashParams = function(params) {
         mod: params.secondary_mod || params.mod
     };
     if (params.offset_frequency) ret.offset_frequency = params.offset_frequency;
-    if (params.sql) ret.squelch_level = parseInt(params.sql);
+    if (typeof(params.sql) !== 'undefined') ret.squelch_level = parseInt(params.sql);
     return ret;
 };
 
@@ -299,7 +299,7 @@ DemodulatorPanel.prototype.updateHash = function() {
         secondary_mod: demod.get_secondary_demod(),
         sql: demod.getSquelch(),
     }, function(value, key){
-        if (!value) return undefined;
+        if (typeof(value) === 'undefined') return undefined;
         return key + '=' + value;
     }).filter(function(v) {
         return !!v;
