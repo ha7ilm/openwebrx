@@ -299,7 +299,7 @@ DemodulatorPanel.prototype.updateHash = function() {
         secondary_mod: demod.get_secondary_demod(),
         sql: demod.getSquelch(),
     }, function(value, key){
-        if (typeof(value) === 'undefined') return undefined;
+        if (typeof(value) === 'undefined' || value === false) return undefined;
         return key + '=' + value;
     }).filter(function(v) {
         return !!v;
