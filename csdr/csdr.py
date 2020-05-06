@@ -639,8 +639,7 @@ class dsp(object):
     def set_offset_freq(self, offset_freq):
         self.offset_freq = offset_freq
         if self.running:
-            with self.modification_lock:
-                self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
+            self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
 
     def set_center_freq(self, center_freq):
         # dsp only needs to know this to be able to pass it to decoders in the form of get_operating_freq()
@@ -653,10 +652,9 @@ class dsp(object):
         self.low_cut = low_cut
         self.high_cut = high_cut
         if self.running:
-            with self.modification_lock:
-                self.pipes["bpf_pipe"].write(
-                    "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
-                )
+            self.pipes["bpf_pipe"].write(
+                "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
+            )
 
     def get_bpf(self):
         return [self.low_cut, self.high_cut]
@@ -669,8 +667,7 @@ class dsp(object):
         # no squelch required on digital voice modes
         actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() else self.squelch_level
         if self.running:
-            with self.modification_lock:
-                self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
+            self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 
     def set_unvoiced_quality(self, q):
         self.unvoiced_quality = q
@@ -743,6 +740,16 @@ class dsp(object):
             # create control pipes for csdr
             self.try_create_pipes(self.pipe_names, command_base)
 
+            # send initial config through the pipes
+            if self.has_pipe("bpf_pipe"):
+                self.set_bpf(self.low_cut, self.high_cut)
+            if self.has_pipe("shift_pipe"):
+                self.set_offset_freq(self.offset_freq)
+            if self.has_pipe("squelch_pipe"):
+                self.set_squelch_level(self.squelch_level)
+            if self.has_pipe("dmr_control_pipe"):
+                self.set_dmr_filter(3)
+
             # run the command
             command = command_base.format(
                 bpf_pipe=self.pipes["bpf_pipe"],
@@ -798,16 +805,6 @@ class dsp(object):
                 )
 
             self.start_secondary_demodulator()
-
-        # send initial config through the pipes
-        if self.has_pipe("bpf_pipe"):
-            self.set_bpf(self.low_cut, self.high_cut)
-        if self.has_pipe("shift_pipe"):
-            self.set_offset_freq(self.offset_freq)
-        if self.has_pipe("squelch_pipe"):
-            self.set_squelch_level(self.squelch_level)
-        if self.has_pipe("dmr_control_pipe"):
-            self.set_dmr_filter(3)
 
         if self.has_pipe("smeter_pipe"):
             def read_smeter():
