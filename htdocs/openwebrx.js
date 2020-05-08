@@ -1353,9 +1353,12 @@ function init_header() {
 }
 
 function initProgressBars() {
-    $('#openwebrx-bar-audio-buffer, #openwebrx-bar-audio-output').each(function() {
-        $(this).progressbar().setSampleRate(audioEngine.getSampleRate());
-    });
+    $(".openwebrx-progressbar").each(function(){
+        var bar = $(this).progressbar();
+        if ('setSampleRate' in bar) {
+            bar.setSampleRate(audioEngine.getSampleRate());
+        }
+    })
 }
 
 function audioReporter(stats) {
