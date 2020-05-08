@@ -761,12 +761,7 @@ function on_ws_recv(evt) {
                         secondary_demod_init_canvases();
                         break;
                     case "receiver_details":
-                        var r = json['value'];
-                        e('webrx-rx-title').innerHTML = r['receiver_name'];
-                        var query = encodeURIComponent(r['receiver_gps']['lat'] + ',' + r['receiver_gps']['lon']);
-                        e('webrx-rx-desc').innerHTML = r['receiver_location'] + ' | Loc: ' + r['locator'] + ', ASL: ' + r['receiver_asl'] + ' m, <a href="https://www.google.com/maps/search/?api=1&query=' + query + '" target="_blank" onclick="dont_toggle_rx_photo();">[maps]</a>';
-                        e('webrx-rx-photo-title').innerHTML = r['photo_title'];
-                        e('webrx-rx-photo-desc').innerHTML = r['photo_desc'];
+                        $('#webrx-top-container').header().setDetails(json['value']);
                         break;
                     case "smeter":
                         smeter_level = json['value'];
@@ -1346,12 +1341,6 @@ function openwebrx_resize() {
     resize_scale();
 }
 
-function init_header() {
-    $('#openwebrx-main-buttons').find('[data-toggle-panel]').click(function () {
-        toggle_panel($(this).data('toggle-panel'));
-    });
-}
-
 function initProgressBars() {
     $(".openwebrx-progressbar").each(function(){
         var bar = $(this).progressbar();
@@ -1397,7 +1386,7 @@ function openwebrx_init() {
     $('.webrx-mouse-freq').frequencyDisplay();
     $('#openwebrx-panel-receiver').demodulatorPanel();
     window.addEventListener("resize", openwebrx_resize);
-    init_header();
+    $('#webrx-top-container').header();
     bookmarks = new BookmarkBar();
     initSliders();
 }
