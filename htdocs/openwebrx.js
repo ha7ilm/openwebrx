@@ -31,66 +31,9 @@ var fft_compression = "none";
 var fft_codec;
 var waterfall_setup_done = 0;
 var secondary_fft_size;
-var rx_photo_state = 1;
 
 function e(what) {
     return document.getElementById(what);
-}
-
-var rx_photo_height;
-
-function init_rx_photo() {
-    var clip = e("webrx-top-photo-clip");
-    rx_photo_height = clip.clientHeight;
-    clip.style.maxHeight = rx_photo_height + "px";
-
-    $.extend($.easing, {
-        easeOutCubic:function(x) {
-            return 1 - Math.pow( 1 - x, 3 );
-        }
-    });
-
-    window.setTimeout(function () {
-        $('#webrx-rx-photo-title').animate({opacity: 0}, 500);
-    }, 1000);
-    window.setTimeout(function () {
-        $('#webrx-rx-photo-desc').animate({opacity: 0}, 500);
-    }, 1500);
-    window.setTimeout(function () {
-        close_rx_photo()
-    }, 2500);
-    $('#webrx-top-container').find('.openwebrx-photo-trigger').click(toggle_rx_photo);
-}
-
-var dont_toggle_rx_photo_flag = 0;
-
-function dont_toggle_rx_photo() {
-    dont_toggle_rx_photo_flag = 1;
-}
-
-function toggle_rx_photo() {
-    if (dont_toggle_rx_photo_flag) {
-        dont_toggle_rx_photo_flag = 0;
-        return;
-    }
-    if (rx_photo_state) close_rx_photo();
-    else open_rx_photo()
-}
-
-function close_rx_photo() {
-    rx_photo_state = 0;
-    $('#webrx-top-photo-clip').animate({maxHeight: 67}, {duration: 1000, easing: 'easeOutCubic'});
-    e("openwebrx-rx-details-arrow-down").style.display = "block";
-    e("openwebrx-rx-details-arrow-up").style.display = "none";
-}
-
-function open_rx_photo() {
-    rx_photo_state = 1;
-    e("webrx-rx-photo-desc").style.opacity = 1;
-    e("webrx-rx-photo-title").style.opacity = 1;
-    $('#webrx-top-photo-clip').animate({maxHeight: rx_photo_height}, {duration: 1000, easing: 'easeOutCubic'});
-    e("openwebrx-rx-details-arrow-down").style.display = "none";
-    e("openwebrx-rx-details-arrow-up").style.display = "block";
 }
 
 function updateVolume() {
@@ -1378,7 +1321,6 @@ function openwebrx_init() {
     }
     fft_codec = new ImaAdpcmCodec();
     initProgressBars();
-    init_rx_photo();
     open_websocket();
     secondary_demod_init();
     digimodes_init();
