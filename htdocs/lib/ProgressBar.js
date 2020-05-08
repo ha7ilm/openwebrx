@@ -25,12 +25,15 @@ ProgressBar.prototype.setOver = function(over) {
     this.$innerBar.css('backgroundColor', (over) ? "#ff6262" : "#00aba6");
 };
 
-AudioBufferProgressBar = function(el, sampleRate) {
+AudioBufferProgressBar = function(el) {
     ProgressBar.call(this, el);
-    this.sampleRate = sampleRate;
 };
 
 AudioBufferProgressBar.prototype = new ProgressBar();
+
+AudioBufferProgressBar.prototype.setSampleRate = function(sampleRate) {
+    this.sampleRate = sampleRate;
+};
 
 AudioBufferProgressBar.prototype.setBuffersize = function(buffersize) {
     var audio_buffer_value = buffersize / this.sampleRate;
@@ -70,11 +73,14 @@ AudioSpeedProgressBar.prototype.setSpeed = function(speed) {
 
 AudioOutputProgressBar = function(el, sampleRate) {
     ProgressBar.call(this, el);
-    this.maxRate = sampleRate * 1.25;
-    this.minRate = sampleRate * .25;
 };
 
 AudioOutputProgressBar.prototype = new ProgressBar();
+
+AudioOutputProgressBar.prototype.setSampleRate = function(sampleRate) {
+    this.maxRate = sampleRate * 1.25;
+    this.minRate = sampleRate * .25;
+};
 
 AudioOutputProgressBar.prototype.setAudioRate = function(audioRate) {
     this.set(audioRate / this.maxRate, "Audio output [" + (audioRate / 1000).toFixed(1) + " ksps]", audioRate > this.maxRate || audioRate < this.minRate);
@@ -110,4 +116,21 @@ CpuProgressBar.prototype = new ProgressBar();
 
 CpuProgressBar.prototype.setUsage = function(usage) {
     this.set(usage, "Server CPU [" + Math.round(usage * 100) + "%]", usage > .85);
+};
+
+ProgressBar.types = {
+    cpu: CpuProgressBar,
+    audiobuffer: AudioBufferProgressBar,
+    audiospeed: AudioSpeedProgressBar,
+    audiooutput: AudioOutputProgressBar,
+    clients: ClientsProgressBar,
+    networkspeed: NetworkSpeedProgressBar
+}
+
+$.fn.progressbar = function() {
+    if (!this.data('progressbar')) {
+        var constructor = ProgressBar.types[this.data('type')] || ProgressBar;
+        this.data('progressbar', new constructor(this));
+    }
+    return this.data('progressbar');
 };

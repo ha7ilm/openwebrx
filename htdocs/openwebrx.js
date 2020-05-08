@@ -739,7 +739,7 @@ function on_ws_recv(evt) {
                         divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
                         fft_compression = config['fft_compression'];
                         divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
-                        clientProgressBar.setMaxClients(config['max_clients']);
+                        $('#openwebrx-bar-clients').progressbar().setMaxClients(config['max_clients']);
 
                         waterfall_init();
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
@@ -773,10 +773,10 @@ function on_ws_recv(evt) {
                         setSmeterAbsoluteValue(smeter_level);
                         break;
                     case "cpuusage":
-                        cpuProgressBar.setUsage(json['value']);
+                        $('#openwebrx-bar-server-cpu').progressbar().setUsage(json['value']);
                         break;
                     case "clients":
-                        clientProgressBar.setClients(json['value']);
+                        $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
                         break;
                     case "profiles":
                         var listbox = e("openwebrx-sdr-profiles-listbox");
@@ -1121,7 +1121,7 @@ function on_ws_opened() {
     if (!networkSpeedMeasurement) {
         networkSpeedMeasurement = new Measurement();
         networkSpeedMeasurement.report(60000, 1000, function(rate){
-            networkSpeedProgressBar.setSpeed(rate);
+            $('#openwebrx-bar-network-speed').progressbar().setSpeed(rate);
         });
     } else {
         networkSpeedMeasurement.reset();
@@ -1352,33 +1352,23 @@ function init_header() {
     });
 }
 
-var audioBufferProgressBar;
-var networkSpeedProgressBar;
-var audioSpeedProgressBar;
-var audioOutputProgressBar;
-var clientProgressBar;
-var cpuProgressBar;
-
 function initProgressBars() {
-    audioBufferProgressBar = new AudioBufferProgressBar($('#openwebrx-bar-audio-buffer'), audioEngine.getSampleRate());
-    networkSpeedProgressBar = new NetworkSpeedProgressBar($('#openwebrx-bar-network-speed'));
-    audioSpeedProgressBar = new AudioSpeedProgressBar($('#openwebrx-bar-audio-speed'));
-    audioOutputProgressBar = new AudioOutputProgressBar($('#openwebrx-bar-audio-output'), audioEngine.getSampleRate());
-    clientProgressBar = new ClientsProgressBar($('#openwebrx-bar-clients'));
-    cpuProgressBar = new CpuProgressBar($('#openwebrx-bar-server-cpu'));
+    $('#openwebrx-bar-audio-buffer, #openwebrx-bar-audio-output').each(function() {
+        $(this).progressbar().setSampleRate(audioEngine.getSampleRate());
+    });
 }
 
 function audioReporter(stats) {
     if (typeof(stats.buffersize) !== 'undefined') {
-        audioBufferProgressBar.setBuffersize(stats.buffersize);
+         $('#openwebrx-bar-audio-buffer').progressbar().setBuffersize(stats.buffersize);
     }
 
     if (typeof(stats.audioByteRate) !== 'undefined') {
-        audioSpeedProgressBar.setSpeed(stats.audioByteRate * 8);
+        $('#openwebrx-bar-audio-speed').progressbar().setSpeed(stats.audioByteRate * 8);
     }
 
     if (typeof(stats.audioRate) !== 'undefined') {
-        audioOutputProgressBar.setAudioRate(stats.audioRate);
+        $('#openwebrx-bar-audio-output').progressbar().setAudioRate(stats.audioRate);
     }
 }
 
