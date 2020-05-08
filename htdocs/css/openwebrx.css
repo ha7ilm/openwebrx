@@ -453,8 +453,8 @@ input[type=range]:disabled {
 	margin-right: 5px;
 }
 
-.openwebrx-demodulator-button.disabled {
-    color: #B6B6B6;
+.openwebrx-demodulator-button.same-mod {
+    color: #FFC;
 }
 
 .openwebrx-square-button img

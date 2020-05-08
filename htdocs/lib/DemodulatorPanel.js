@@ -233,7 +233,7 @@ DemodulatorPanel.prototype.squelchAvailable = function () {
 
 DemodulatorPanel.prototype.updateButtons = function() {
     var $buttons = this.el.find(".openwebrx-demodulator-button");
-    $buttons.removeClass("highlighted").removeClass('disabled');
+    $buttons.removeClass("highlighted").removeClass('same-mod');
     var demod = this.getDemodulator()
     if (!demod) return;
     this.el.find('[data-modulation=' + demod.get_modulation() + ']').addClass("highlighted");
@@ -243,10 +243,12 @@ DemodulatorPanel.prototype.updateButtons = function() {
         this.el.find('.openwebrx-secondary-demod-listbox').val(secondary_demod);
         var mode = Modes.findByModulation(secondary_demod);
         if (mode) {
-            $buttons.filter(function(){
-                var mod = $(this).data('modulation');
-                return mod && mode.underlying.indexOf(mod) < 0;
-            }).addClass('disabled');
+            var self = this;
+            mode.underlying.filter(function(m) {
+                return m !== demod.get_modulation();
+            }).forEach(function(m) {
+                self.el.find('[data-modulation=' + m + ']').addClass('same-mod')
+            });
         }
     } else {
         this.el.find('.openwebrx-secondary-demod-listbox').val('none');
