@@ -86,8 +86,8 @@ DemodulatorPanel.prototype.render = function() {
     this.el.find(".openwebrx-modes").html(html);
 };
 
-DemodulatorPanel.prototype.setMode = function(modulation) {
-    var mode = Modes.findByModulation(modulation);
+DemodulatorPanel.prototype.setMode = function(requestedModulation) {
+    var mode = Modes.findByModulation(requestedModulation);
     if (!mode) {
         return;
     }
@@ -101,6 +101,14 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
 
     if (mode.type === 'digimode') {
         modulation = mode.underlying[0];
+    } else {
+        if (this.mode && this.mode.type === 'digimode' && this.mode.underlying.indexOf(requestedModulation) >= 0) {
+            // keep the mode, just switch underlying modulation
+            mode = this.mode;
+            modulation = requestedModulation;
+        } else {
+            modulation = mode.modulation;
+        }
     }
 
     var current = this.collectParams();
@@ -112,6 +120,7 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
     this.stopDemodulator();
     this.demodulator = new Demodulator(current.offset_frequency, modulation);
     this.demodulator.setSquelch(current.squelch_level);
+
     var self = this;
     var updateFrequency = function(freq) {
         self.tuneableFrequencyDisplay.setFrequency(self.center_freq + freq);
@@ -144,6 +153,8 @@ DemodulatorPanel.prototype.setMode = function(modulation) {
 };
 
 DemodulatorPanel.prototype.disableDigiMode = function() {
+    // just a little trick to get out of the digimode
+    delete this.mode;
     this.setMode(this.getDemodulator().get_modulation());
 };
 
