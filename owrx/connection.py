@@ -15,7 +15,7 @@ from owrx.modes import Modes, DigitalMode
 from multiprocessing import Queue
 from queue import Full
 from js8py import Js8Frame
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 import json
 import threading
 
@@ -64,7 +64,33 @@ class Client(ABC):
         self.close()
 
 
-class OpenWebRxReceiverClient(Client):
+class OpenWebRxClient(Client, metaclass=ABCMeta):
+    def __init__(self, conn):
+        super().__init__(conn)
+
+        receiver_details = Config.get().filter(
+            "receiver_name",
+            "receiver_location",
+            "receiver_asl",
+            "receiver_gps",
+            "photo_title",
+            "photo_desc",
+        )
+
+        def send_receiver_info(*args):
+            receiver_info = receiver_details.__dict__()
+            receiver_info["locator"] = Locator.fromCoordinates(receiver_info["receiver_gps"])
+            self.write_receiver_details(receiver_info)
+
+        # TODO unsubscribe
+        receiver_details.wire(send_receiver_info)
+        send_receiver_info()
+
+    def write_receiver_details(self, details):
+        self.send({"type": "receiver_details", "value": details})
+
+
+class OpenWebRxReceiverClient(OpenWebRxClient):
     config_keys = [
         "waterfall_colors",
         "waterfall_min_level",
@@ -97,33 +123,13 @@ class OpenWebRxReceiverClient(Client):
             self.close()
             raise
 
-        pm = Config.get()
-
         self.setSdr()
-
-        receiver_details = pm.filter(
-            "receiver_name",
-            "receiver_location",
-            "receiver_asl",
-            "receiver_gps",
-            "photo_title",
-            "photo_desc",
-        )
-
-        def send_receiver_info(*args):
-            receiver_info = receiver_details.__dict__()
-            receiver_info["locator"] = Locator.fromCoordinates(receiver_info["receiver_gps"])
-            self.write_receiver_details(receiver_info)
 
         features = FeatureDetector().feature_availability()
         self.write_features(features)
 
         modes = Modes.getModes()
         self.write_modes(modes)
-
-        # TODO unsubscribe
-        receiver_details.wire(send_receiver_info)
-        send_receiver_info()
 
         self.__sendProfiles()
 
@@ -314,9 +320,6 @@ class OpenWebRxReceiverClient(Client):
     def write_config(self, cfg):
         self.send({"type": "config", "value": cfg})
 
-    def write_receiver_details(self, details):
-        self.send({"type": "receiver_details", "value": details})
-
     def write_profiles(self, profiles):
         self.send({"type": "profiles", "value": profiles})
 
@@ -382,7 +385,7 @@ class OpenWebRxReceiverClient(Client):
         self.send({"type": "modes", "value": [to_json(m) for m in modes]})
 
 
-class MapConnection(Client):
+class MapConnection(OpenWebRxClient):
     def __init__(self, conn):
         super().__init__(conn)
 
