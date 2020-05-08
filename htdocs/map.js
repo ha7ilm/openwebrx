@@ -135,7 +135,11 @@
                     if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
                         map.panTo(pos);
                         showMarkerInfoWindow(update.callsign, pos);
-                        delete(expectedCallsign);
+                        expectedCallsign = false;
+                    }
+
+                    if (infowindow && infowindow.callsign && infowindow.callsign == update.callsign.trim()) {
+                        showMarkerInfoWindow(infowindow.callsign, pos);
                     }
                 break;
                 case 'locator':
@@ -176,7 +180,11 @@
                     if (expectedLocator && expectedLocator == update.location.locator) {
                         map.panTo(center);
                         showLocatorInfoWindow(expectedLocator, center);
-                        delete(expectedLocator);
+                        expectedLocator = false;
+                    }
+
+                    if (infowindow && infowindow.locator && infowindow.locator == update.location.locator) {
+                        showLocatorInfoWindow(infowindow.locator, center);
                     }
                 break;
             }
@@ -287,9 +295,21 @@
 
     connect();
 
+    var getInfoWindow = function() {
+        if (!infowindow) {
+            infowindow = new google.maps.InfoWindow();
+            google.maps.event.addListener(infowindow, 'closeclick', function() {
+                delete infowindow.locator;
+                delete infowindow.callsign;
+            });
+        }
+        return infowindow;
+    }
+
     var infowindow;
     var showLocatorInfoWindow = function(locator, pos) {
-        if (!infowindow) infowindow = new google.maps.InfoWindow();
+        var infowindow = getInfoWindow();
+        infowindow.locator = locator;
         var inLocator = $.map(rectangles, function(r, callsign) {
             return {callsign: callsign, locator: r.locator, lastseen: r.lastseen, mode: r.mode, band: r.band}
         }).filter(function(d) {
@@ -315,7 +335,8 @@
     };
 
     var showMarkerInfoWindow = function(callsign, pos) {
-        if (!infowindow) infowindow = new google.maps.InfoWindow();
+        var infowindow = getInfoWindow();
+        infowindow.callsign = callsign;
         var marker = markers[callsign];
         var timestring = moment(marker.lastseen).fromNow();
         var commentString = "";
