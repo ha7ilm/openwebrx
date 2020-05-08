@@ -23,7 +23,7 @@ class WebpageController(TemplateController):
         settingslink = ""
         pm = Config.get()
         if "webadmin_enabled" in pm and pm["webadmin_enabled"]:
-            settingslink = """<a class="button" href="settings" target="_blank"><img src="static/gfx/openwebrx-panel-settings.png" /><br/>Settings</a>"""
+            settingslink = """<a class="button" href="settings" target="openwebrx-settings"><img src="static/gfx/openwebrx-panel-settings.png" /><br/>Settings</a>"""
         header = self.render_template("include/header.include.html", settingslink=settingslink)
         return {"header": header}
 
