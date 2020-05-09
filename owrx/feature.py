@@ -34,6 +34,7 @@ class FeatureDetector(object):
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
         "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
+        "radioberry": ["soapy_connector", "soapy_radioberry"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -332,6 +333,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyRedPitaya/wiki).
         """
         return self._has_soapy_driver("redpitaya")
+
+    def has_soapy_radioberry(self):
+        """
+        The Radioberry is a SDR hat for the Raspberry Pi.
+
+        You can find more information, along with its SoapySDR module [here](https://github.com/pa3gsb/Radioberry-2.x).
+        """
+        return self._has_soapy_driver("radioberry")
 
     def has_dsd(self):
         """
