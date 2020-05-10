@@ -1,12 +1,6 @@
 @import url("openwebrx-header.css");
 @import url("openwebrx-globals.css");
 
-/* expandable photo not implemented on login page */
-#webrx-top-photo-clip {
-    max-height: 67px;
-}
-
-
 body {
     background-color: #2e2e2e;
 }
