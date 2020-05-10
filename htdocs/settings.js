@@ -68,16 +68,44 @@ function SdrDevice(el) {
     this.data = JSON.parse(decodeURIComponent(el.data('config')));
     this.inputs = {};
     this.render();
+
+    var self = this;
+    el.on('click', '.fieldselector .btn', function() {
+        var key = el.find('.fieldselector select').val();
+        self.data[key] = false;
+        self.render();
+    });
 };
 
 SdrDevice.prototype.render = function() {
     var self = this;
+    self.el.empty();
     $.each(this.data, function(key, value) {
         var inputClass = Input.mappings[key] || TextInput;
         var input = new inputClass(key, value);
         self.inputs[key] = input;
-        self.el.append(input.render())
+        self.el.append(input.render());
     });
+    self.el.append(this.renderFieldSelector());
+};
+
+SdrDevice.prototype.renderFieldSelector = function() {
+    var self = this;
+    return '<div class="fieldselector">' +
+        '<h3>Add new configuration options<h3>' +
+        '<div class="form-group row">' +
+            '<div class="col-3"><select class="form-control form-control-sm">' +
+                Object.keys(Input.mappings).filter(function(m){
+                    return !(m in self.data);
+                }).map(function(m) {
+                    return '<option name="' + m + '">' + m + '</option>';
+                }).join('') +
+            '</select></div>' +
+            '<div class="col-2">' +
+                '<div class="btn btn-primary">Add to config</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
 };
 
 $.fn.sdrdevice = function() {
@@ -113,5 +141,5 @@ $(function(){
         });
     });
 
-    console.info($(".sdrdevice").sdrdevice());
+    $(".sdrdevice").sdrdevice();
 });
