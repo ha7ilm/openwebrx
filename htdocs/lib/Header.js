@@ -6,6 +6,7 @@ function Header(el) {
     });
 
     this.init_rx_photo();
+    this.download_details();
 };
 
 Header.prototype.setDetails = function(details) {
@@ -55,6 +56,13 @@ Header.prototype.toggle_rx_photo = function(ev) {
     } else {
         this.open_rx_photo();
     }
+};
+
+Header.prototype.download_details = function() {
+    var self = this;
+    $.ajax('api/receiverdetails').done(function(data){
+        self.setDetails(data);
+    });
 };
 
 $.fn.header = function() {

@@ -1,4 +1,5 @@
 from owrx.config import Config
+from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
@@ -9,7 +10,6 @@ from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
 from owrx.bookmarks import Bookmarks
 from owrx.map import Map
-from owrx.locator import Locator
 from owrx.property import PropertyStack
 from owrx.modes import Modes, DigitalMode
 from multiprocessing import Queue
@@ -68,18 +68,10 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
     def __init__(self, conn):
         super().__init__(conn)
 
-        receiver_details = Config.get().filter(
-            "receiver_name",
-            "receiver_location",
-            "receiver_asl",
-            "receiver_gps",
-            "photo_title",
-            "photo_desc",
-        )
+        receiver_details = ReceiverDetails()
 
         def send_receiver_info(*args):
             receiver_info = receiver_details.__dict__()
-            receiver_info["locator"] = Locator.fromCoordinates(receiver_info["receiver_gps"])
             self.write_receiver_details(receiver_info)
 
         # TODO unsubscribe
