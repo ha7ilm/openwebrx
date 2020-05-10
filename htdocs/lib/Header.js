@@ -63,3 +63,7 @@ $.fn.header = function() {
     }
     return this.data('header');
 };
+
+$(function(){
+    $('#webrx-top-container').header();
+});
