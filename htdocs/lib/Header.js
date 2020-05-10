@@ -17,10 +17,7 @@ Header.prototype.setDetails = function(details) {
 };
 
 Header.prototype.init_rx_photo = function() {
-    var clip = this.el.find("#webrx-top-photo-clip")[0];
-    this.rx_photo_height = clip.clientHeight;
-    clip.style.maxHeight = this.rx_photo_height + "px";
-    this.rx_photo_state = 1;
+    this.rx_photo_state = 0;
 
     $.extend($.easing, {
         easeOutCubic:function(x) {
@@ -28,13 +25,6 @@ Header.prototype.init_rx_photo = function() {
         }
     });
 
-    window.setTimeout(function () {
-        $('#webrx-rx-photo-title').animate({opacity: 0}, 500);
-    }, 1000);
-    window.setTimeout(function () {
-        $('#webrx-rx-photo-desc').animate({opacity: 0}, 500);
-    }, 1500);
-    window.setTimeout(this.close_rx_photo.bind(this), 2500);
     $('#webrx-top-container').find('.openwebrx-photo-trigger').click(this.toggle_rx_photo.bind(this));
 };
 
@@ -51,7 +41,7 @@ Header.prototype.open_rx_photo = function() {
     this.rx_photo_state = 1;
     this.el.find("#webrx-rx-photo-desc").animate({opacity: 1});
     this.el.find("#webrx-rx-photo-title").animate({opacity: 1});
-    this.el.find('#webrx-top-photo-clip').animate({maxHeight: this.rx_photo_height}, {duration: 1000, easing: 'easeOutCubic'});
+    this.el.find('#webrx-top-photo-clip').animate({maxHeight: 350}, {duration: 1000, easing: 'easeOutCubic'});
     this.el.find("#openwebrx-rx-details-arrow-down").hide();
     this.el.find("#openwebrx-rx-details-arrow-up").show();
 }

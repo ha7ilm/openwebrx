@@ -2,6 +2,7 @@
 {
     position: relative;
     z-index:1000;
+    background-color: #575757;
 }
 
 #webrx-top-photo
@@ -13,7 +14,8 @@
 #webrx-top-photo-clip
 {
     min-height: 67px;
-    max-height: 350px;
+    max-height: 67px;
+    height: 350px;
     overflow: hidden;
     position: relative;
 }
@@ -101,18 +103,15 @@
     cursor:pointer;
     position: absolute;
     left: 470px;
-    top: 51px;
+    top: 55px;
 }
 
 #openwebrx-rx-details-arrow a
 {
     margin: 0;
     padding: 0;
-}
-
-#openwebrx-rx-details-arrow-down
-{
-    display:none;
+    line-height: 0;
+    display: block;
 }
 
 #openwebrx-main-buttons .button {
