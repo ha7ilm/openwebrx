@@ -81,6 +81,12 @@ class CompiledAssetsController(Controller):
             "lib/Js8Threads.js",
             "lib/Modes.js",
         ],
+        "map.js": [
+            "lib/jquery-3.2.1.min.js",
+            "lib/chroma.min.js",
+            "lib/Header.js",
+            "map.js",
+        ],
     }
 
     def indexAction(self):
