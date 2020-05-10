@@ -25,8 +25,42 @@ TextInput.prototype.render = function() {
     return this.bootstrapify($('<input type="text" name="' + this.name + '" value="' + this.value + '">'));
 }
 
+function NumberInput() {
+    Input.apply(this, arguments);
+};
+
+NumberInput.prototype = new Input();
+
+NumberInput.prototype.render = function() {
+    return this.bootstrapify($('<input type="number" name="' + this.name + '" value="' + this.value + '">'));
+};
+
+function ProfileInput() {
+    Input.apply(this, arguments);
+};
+
+ProfileInput.prototype = new Input();
+
+ProfileInput.prototype.render = function() {
+    return $('<div><h3>Profiles</h3></div>');
+};
+
+function SchedulerInput() {
+    Input.apply(this, arguments);
+};
+
+SchedulerInput.prototype = new Input();
+
+SchedulerInput.prototype.render = function() {
+    return $('<div><h3>Scheduler</h3></div>');
+};
+
 Input.mappings = {
-    "name": TextInput
+    "name": TextInput,
+    "type": TextInput,
+    "ppm": NumberInput,
+    "profiles": ProfileInput,
+    "scheduler": SchedulerInput
 };
 
 function SdrDevice(el) {
