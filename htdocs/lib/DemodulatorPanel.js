@@ -222,7 +222,7 @@ DemodulatorPanel.prototype.transformHashParams = function(params) {
     var ret = {
         mod: params.secondary_mod || params.mod
     };
-    if (params.offset_frequency) ret.offset_frequency = params.offset_frequency;
+    if (typeof(params.offset_frequency) !== 'undefined') ret.offset_frequency = params.offset_frequency;
     if (typeof(params.sql) !== 'undefined') ret.squelch_level = parseInt(params.sql);
     return ret;
 };
