@@ -25,6 +25,12 @@ class QueueJob(object):
     def run(self):
         self.decoder.decode(self)
 
+    def unlink(self):
+        try:
+            os.unlink(self.file)
+        except FileNotFoundError:
+            pass
+
 
 class QueueWorker(threading.Thread):
     def __init__(self, queue):
@@ -40,6 +46,9 @@ class QueueWorker(threading.Thread):
             except Exception:
                 logger.exception("failed to decode job")
                 self.queue.onError()
+            finally:
+                job.unlink()
+
             self.queue.task_done()
 
 
@@ -159,11 +168,12 @@ class AudioWriter(object):
         self.switchingLock.release()
 
         file.close()
+        job = QueueJob(self, filename, self.dsp.get_operating_freq())
         try:
-            DecoderQueue.getSharedInstance().put(QueueJob(self, filename, self.dsp.get_operating_freq()))
+            DecoderQueue.getSharedInstance().put(job)
         except Full:
             logger.warning("decoding queue overflow; dropping one file")
-            os.unlink(filename)
+            job.unlink()
         self._scheduleNextSwitch()
 
     def decode(self, job: QueueJob):
@@ -183,7 +193,6 @@ class AudioWriter(object):
         except subprocess.TimeoutExpired:
             logger.warning("subprocess (pid=%i}) did not terminate correctly; sending kill signal.", decoder.pid)
             decoder.kill()
-        os.unlink(job.file)
 
     def start(self):
         (self.wavefilename, self.wavefile) = self.getWaveFile()
