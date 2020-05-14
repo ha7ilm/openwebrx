@@ -41,6 +41,10 @@ class PropertyManager(ABC):
         pass
 
     @abstractmethod
+    def __delitem__(self, key):
+        pass
+
+    @abstractmethod
     def keys(self):
         pass
 
@@ -98,6 +102,9 @@ class PropertyLayer(PropertyManager):
     def __dict__(self):
         return {k: v for k, v in self.properties.items()}
 
+    def __delitem__(self, key):
+        return self.properties.__delitem__(key)
+
     def keys(self):
         return self.properties.keys()
 
@@ -131,6 +138,11 @@ class PropertyFilter(PropertyManager):
 
     def __dict__(self):
         return {k: v for k, v in self.pm.__dict__().items() if k in self.props}
+
+    def __delitem__(self, key):
+        if key not in self.props:
+            raise KeyError(key)
+        return self.pm.__delitem__(key)
 
     def keys(self):
         return [k for k in self.pm.keys() if k in self.props]
@@ -225,6 +237,10 @@ class PropertyStack(PropertyManager):
 
     def __dict__(self):
         return {k: self.__getitem__(k) for k in self.keys()}
+
+    def __delitem__(self, key):
+        for layer in self.layers:
+            layer["props"].__delitem__(key)
 
     def keys(self):
         return set([key for l in self.layers for key in l["props"].keys()])
