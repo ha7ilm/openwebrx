@@ -43,6 +43,15 @@
     right: 0;
 }
 
+#webrx-tob-container, #webrx-top-container * {
+    line-height: initial;
+    box-sizing: initial;
+}
+
+#webrx-top-container img {
+    vertical-align: initial;
+}
+
 #webrx-top-logo
 {
     padding: 12px;
