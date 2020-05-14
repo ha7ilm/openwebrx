@@ -29,7 +29,7 @@ class FeatureDetector(object):
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
-        "fifi_sdr": ["alsa"],
+        "fifi_sdr": ["alsa", "rockprog"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
@@ -387,3 +387,11 @@ class FeatureDetector(object):
         on the Alsa library. It is available as a package for most Linux distributions.
         """
         return self.command_is_runnable("arecord --help")
+
+    def has_rockprog(self):
+        """
+        The "rockprog" executable is required to send commands to your FiFiSDR. It needs to be installed separately.
+
+        You can find instructions and downloads [here](https://o28.sischa.net/fifisdr/trac/wiki/De%3Arockprog).
+        """
+        return self.command_is_runnable("rockprog")
