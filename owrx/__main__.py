@@ -1,3 +1,8 @@
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import Config
@@ -9,11 +14,6 @@ from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.pskreporter import PskReporter
 from owrx.version import openwebrx_version
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
