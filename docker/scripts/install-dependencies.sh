@@ -35,7 +35,7 @@ cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
 
 git clone https://github.com/jketterl/csdr.git
 cd csdr
-git checkout fe0b042d9cdc2605a817ca7fdd3a23c48bf07563
+git checkout a1424eac3163a8756219608fe509b036bf90b129
 make
 make install
 cd ..
