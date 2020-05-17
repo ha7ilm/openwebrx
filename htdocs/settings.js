@@ -114,11 +114,13 @@ SdrDevice.prototype.getMappings = function() {
             label: "Profiles",
             initialValue: [],
             includeInDefault: true,
+            position: 100
         },
         "scheduler": {
             constructor: SchedulerInput,
             label: "Scheduler",
-            initialValue: {}
+            initialValue: {},
+            position: 101
         },
         "rf_gain": {
             constructor: TextInput,
@@ -148,10 +150,19 @@ SdrDevice.prototype.getInitialValue = function(key) {
     return mapping && ('initialValue' in mapping) ? mapping['initialValue'] : false;
 };
 
+SdrDevice.prototype.getPosition = function(key) {
+    var mapping = this.getMapping(key);
+    return mapping && mapping.position || 10;
+};
+
 SdrDevice.prototype.render = function() {
     var self = this;
     self.el.empty();
-    $.each(this.getData(), function(key, value) {
+    var data = this.getData();
+    Object.keys(data).sort(function(a, b){
+        return self.getPosition(a) - self.getPosition(b);
+    }).forEach(function(key){
+        var value = data[key];
         var inputClass = self.getInputClass(key);
         var input = new inputClass(key, value, self.getLabel(key));
         self.inputs[key] = input;
