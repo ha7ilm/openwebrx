@@ -49,11 +49,13 @@ receiver_asl = 200
 receiver_admin = "example@example.com"
 receiver_gps = {"lat": 47.000000, "lon": 19.000000}
 photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
+# photo_desc allows you to put pretty much any HTML you like into the receiver description.
+# The lines below should give you some examples of what's possible.
 photo_desc = """
 You can add your own background photo and receiver information.<br />
-Receiver is operated by: <a href="mailto:%[RX_ADMIN]">%[RX_ADMIN]</a><br/>
-Device: %[RX_DEVICE]<br />
-Antenna: %[RX_ANT]<br />
+Receiver is operated by: <a href="mailto:openwebrx@localhost" target="_blank">Receiver Operator</a><br/>
+Device: Receiver Device<br />
+Antenna: Receiver Antenna<br />
 Website: <a href="http://localhost" target="_blank">http://localhost</a>
 """
 
