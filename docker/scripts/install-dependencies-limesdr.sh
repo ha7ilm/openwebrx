@@ -4,7 +4,7 @@ export MAKEFLAGS="-j4"
 
 cd /tmp
 
-STATIC_PACKAGES="libusb-1.0-0"
+STATIC_PACKAGES="libusb-1.0-0 libatomic1"
 BUILD_PACKAGES="git libusb-1.0-0-dev cmake make gcc g++"
 
 apt-get update
