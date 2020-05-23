@@ -5,7 +5,9 @@ ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh && \
     rm /install-dependencies.sh
 
+WORKDIR /opt/openwebrx
+
 VOLUME /etc/openwebrx
 
-ENTRYPOINT [ "/usr/bin/openwebrx" ]
+ENTRYPOINT [ "/opt/openwebrx/docker/scripts/run.sh" ]
 EXPOSE 8073
