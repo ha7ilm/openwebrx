@@ -18,11 +18,11 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb udev"
+STATIC_PACKAGES="libusb-1.0.0 libudev1"
 BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-dev"
 
-apk add --no-cache $STATIC_PACKAGES
-apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
+apt-get update
+apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
 
 ARCH=$(uname -m)
 
@@ -51,4 +51,6 @@ rm $BINARY
 git clone https://github.com/pothosware/SoapySDRPlay.git
 cmakebuild SoapySDRPlay 14ec39e4ff0dab7ae7fdf1afbbd2d28b49b0ffae
 
-apk del .build-deps
+SUDO_FORCE_REMOVE=yes apt-get -y purge --autoremove $BUILD_PACKAGES
+apt-get clean
+rm -rf /var/lib/apt/lists/*

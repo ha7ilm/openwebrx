@@ -4,11 +4,11 @@ export MAKEFLAGS="-j4"
 
 cd /tmp
 
-STATIC_PACKAGES="libusb udev"
-BUILD_PACKAGES="git make gcc autoconf automake libtool musl-dev libusb-dev shadow vim"
+STATIC_PACKAGES="libusb-1.0-0 libudev1"
+BUILD_PACKAGES="git make gcc autoconf automake libtool libusb-1.0-0-dev xxd"
 
-apk add --no-cache $STATIC_PACKAGES
-apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
+apt-get update
+apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/Microtelecom/libperseus-sdr.git
 cd libperseus-sdr
@@ -21,4 +21,6 @@ ldconfig /etc/ld.so.conf.d
 cd ..
 rm -rf libperseus-sdr
 
-apk del .build-deps
+apt-get -y purge --autoremove $BUILD_PACKAGES
+apt-get clean
+rm -rf /var/lib/apt/lists/*

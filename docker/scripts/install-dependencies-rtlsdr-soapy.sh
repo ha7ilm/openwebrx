@@ -18,11 +18,11 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb"
-BUILD_PACKAGES="git libusb-dev cmake make gcc musl-dev g++ linux-headers"
+STATIC_PACKAGES="libusb-1.0-0"
+BUILD_PACKAGES="git libusb-1.0-0-dev cmake make gcc g++ pkg-config"
 
-apk add --no-cache $STATIC_PACKAGES
-apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
+apt-get update
+apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/osmocom/rtl-sdr.git
 cmakebuild rtl-sdr d794155ba65796a76cd0a436f9709f4601509320
@@ -30,4 +30,6 @@ cmakebuild rtl-sdr d794155ba65796a76cd0a436f9709f4601509320
 git clone https://github.com/pothosware/SoapyRTLSDR.git
 cmakebuild SoapyRTLSDR 8ba18f17d64005e43ff2a4e46611f8c710b05007
 
-apk del .build-deps
+apt-get -y purge --autoremove $BUILD_PACKAGES
+apt-get clean
+rm -rf /var/lib/apt/lists/*

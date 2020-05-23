@@ -18,12 +18,14 @@ function cmakebuild() {
 
 cd /tmp
 
-BUILD_PACKAGES="git cmake make gcc g++ musl-dev"
+BUILD_PACKAGES="git cmake make gcc g++"
 
-apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
-
+apt-get update
+apt-get -y install $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
 cmakebuild owrx_connector 3ffbdcccbe39a5675fd539d959e64885e521eae6
 
-apk del .build-deps
+apt-get -y purge --autoremove $BUILD_PACKAGES
+apt-get clean
+rm -rf /var/lib/apt/lists/*
