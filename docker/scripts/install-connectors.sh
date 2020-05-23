@@ -21,7 +21,7 @@ cd /tmp
 BUILD_PACKAGES="git cmake make gcc g++"
 
 apt-get update
-apt-get -y install $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
 cmakebuild owrx_connector 3ffbdcccbe39a5675fd539d959e64885e521eae6

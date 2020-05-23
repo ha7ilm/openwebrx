@@ -22,7 +22,7 @@ STATIC_PACKAGES="libusb-1.0-0"
 BUILD_PACKAGES="git libusb-1.0-0-dev cmake make gcc g++ pkg-config"
 
 apt-get update
-apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/airspy/airspyone_host.git
 cmakebuild airspyone_host bceca18f9e3a5f89cff78c4d949c71771d92dfd3

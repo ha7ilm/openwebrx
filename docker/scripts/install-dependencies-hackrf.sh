@@ -22,7 +22,7 @@ STATIC_PACKAGES="libusb-1.0-0 libfftw3-3 udev"
 BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-1.0-0-dev libfftw3-dev pkg-config"
 
 apt-get update
-apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/mossmann/hackrf.git
 cd hackrf

@@ -22,7 +22,7 @@ STATIC_PACKAGES="libusb-1.0.0 libudev1"
 BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-dev"
 
 apt-get update
-apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 ARCH=$(uname -m)
 

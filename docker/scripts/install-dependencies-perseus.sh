@@ -8,7 +8,7 @@ STATIC_PACKAGES="libusb-1.0-0 libudev1"
 BUILD_PACKAGES="git make gcc autoconf automake libtool libusb-1.0-0-dev xxd"
 
 apt-get update
-apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/Microtelecom/libperseus-sdr.git
 cd libperseus-sdr

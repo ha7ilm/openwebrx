@@ -22,7 +22,7 @@ STATIC_PACKAGES="libusb-1.0-0 libxml2"
 BUILD_PACKAGES="git libusb-1.0-0-dev cmake make gcc g++ libxml2-dev flex bison"
 
 apt-get update
-apt-get -y install $STATIC_PACKAGES $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/analogdevicesinc/libiio.git
 cmakebuild libiio 5f5af2e417129ad8f4e05fc5c1b730f0694dca12 -DCMAKE_INSTALL_PREFIX=/usr/local
