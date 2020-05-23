@@ -20,6 +20,8 @@
   [the js8py library](https://github.com/jketterl/js8py))
 - Reorganization of the frontend demodulator code
 - Improve receiver load time by concatenating javascript assets
+- Docker images migrated to Debian slim images; This was necessary to allow the use of function multiversioning in
+  csdr and owrx_connector to allow the images to run on a wider range of CPUs
 
 **0.18.0**
 - Support for SoapyRemote
