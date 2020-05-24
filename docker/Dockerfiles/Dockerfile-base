@@ -1,6 +1,10 @@
 FROM debian:buster-slim
 
-ADD docker/scripts/js8call-hamlib.patch /
+ADD https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s6-overlay-amd64.tar.gz /tmp/
+RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
+ENTRYPOINT ["/init"]
+
+ADD docker/files/js8call/js8call-hamlib.patch /
 ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh && \
     rm /install-dependencies.sh
@@ -9,5 +13,6 @@ WORKDIR /opt/openwebrx
 
 VOLUME /etc/openwebrx
 
-ENTRYPOINT [ "/opt/openwebrx/docker/scripts/run.sh" ]
+ADD docker/files/services/openwebrx /etc/services.d/openwebrx
+
 EXPOSE 8073
