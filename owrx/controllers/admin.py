@@ -1,6 +1,11 @@
 from .template import WebpageController
 from .session import SessionStorage
 from owrx.config import Config
+from urllib import parse
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Authentication(object):
@@ -18,10 +23,11 @@ class AdminController(WebpageController):
 
     def handle_request(self):
         config = Config.get()
-        if not config["webadmin_enabled"]:
+        if "webadmin_enabled" not in config or not config["webadmin_enabled"]:
             self.send_response("Web Admin is disabled", code=403)
             return
         if self.authentication.isAuthenticated(self.request):
             super().handle_request()
         else:
-            self.send_redirect("/login")
+            target = "/login?{0}".format(parse.urlencode({"ref": self.request.path}))
+            self.send_redirect(target)

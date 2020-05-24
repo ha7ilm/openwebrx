@@ -9,6 +9,7 @@ class SdrplaySource(SoapyConnectorSource):
                 "bias_tee": "biasT_ctrl",
                 "rf_notch": "rfnotch_ctrl",
                 "dab_notch": "dabnotch_ctrl",
+                "if_mode": "if_mode",
             }
         )
         return mappings

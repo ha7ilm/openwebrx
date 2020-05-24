@@ -29,7 +29,9 @@ import math
 from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
-from owrx.wsjt import Ft8Chopper, WsprChopper, Jt9Chopper, Jt65Chopper, Ft4Chopper
+from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile
+from owrx.js8 import Js8Profiles
+from owrx.audio import AudioChopper
 
 import logging
 
@@ -239,7 +241,7 @@ class dsp(object):
             if self.fft_compression == "adpcm":
                 chain += ["csdr compress_fft_adpcm_f_u8 {fft_size}"]
             return chain
-        chain += ["csdr shift_addition_cc --fifo {shift_pipe}"]
+        chain += ["csdr shift_addfast_cc --fifo {shift_pipe}"]
         if self.decimation > 1:
             chain += ["csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING"]
         chain += ["csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING"]
@@ -329,14 +331,14 @@ class dsp(object):
             return chain
         elif which == "bpsk31" or which == "bpsk63":
             return chain + [
-                "csdr shift_addition_cc --fifo {secondary_shift_pipe}",
+                "csdr shift_addfast_cc --fifo {secondary_shift_pipe}",
                 "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_cutoff}",
                 "csdr simple_agc_cc 0.001 0.5",
                 "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q",
                 "CSDR_FIXED_BUFSIZE=1 csdr dbpsk_decoder_c_u8",
                 "CSDR_FIXED_BUFSIZE=1 csdr psk31_varicode_decoder_u8_u8",
             ]
-        elif self.isWsjtMode(which):
+        elif self.isWsjtMode(which) or self.isJs8(which):
             chain += ["csdr realpart_cf"]
             if self.last_decimation != 1.0:
                 chain += ["csdr fractional_decimator_ff {last_decimation}"]
@@ -449,21 +451,25 @@ class dsp(object):
 
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
-            chopper_cls = None
+            chopper_profile = None
             if smd == "ft8":
-                chopper_cls = Ft8Chopper
+                chopper_profile = Ft8Profile()
             elif smd == "wspr":
-                chopper_cls = WsprChopper
+                chopper_profile = WsprProfile()
             elif smd == "jt65":
-                chopper_cls = Jt65Chopper
+                chopper_profile = Jt65Profile()
             elif smd == "jt9":
-                chopper_cls = Jt9Chopper
+                chopper_profile = Jt9Profile()
             elif smd == "ft4":
-                chopper_cls = Ft4Chopper
-            if chopper_cls is not None:
-                chopper = chopper_cls(self, self.secondary_process_demod.stdout)
+                chopper_profile = Ft4Profile()
+            if chopper_profile is not None:
+                chopper = AudioChopper(self, self.secondary_process_demod.stdout, chopper_profile)
                 chopper.start()
                 self.output.send_output("wsjt_demod", chopper.read)
+        elif self.isJs8():
+            chopper = AudioChopper(self, self.secondary_process_demod.stdout, *Js8Profiles.getEnabledProfiles())
+            chopper.start()
+            self.output.send_output("js8_demod", chopper.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_port)
@@ -564,7 +570,7 @@ class dsp(object):
     def get_audio_rate(self):
         if self.isDigitalVoice() or self.isPacket() or self.isPocsag():
             return 48000
-        elif self.isWsjtMode():
+        elif self.isWsjtMode() or self.isJs8():
             return 12000
         return self.get_output_rate()
 
@@ -577,6 +583,11 @@ class dsp(object):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
         return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4"]
+
+    def isJs8(self, demodulator = None):
+        if demodulator is None:
+            demodulator = self.get_secondary_demodulator()
+        return demodulator == "js8"
 
     def isPacket(self, demodulator=None):
         if demodulator is None:
@@ -596,6 +607,8 @@ class dsp(object):
         self.restart()
 
     def set_demodulator(self, demodulator):
+        if demodulator in ["usb", "lsb", "cw"]:
+            demodulator = "ssb"
         if self.demodulator == demodulator:
             return
         self.demodulator = demodulator
@@ -626,8 +639,7 @@ class dsp(object):
     def set_offset_freq(self, offset_freq):
         self.offset_freq = offset_freq
         if self.running:
-            with self.modification_lock:
-                self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
+            self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
 
     def set_center_freq(self, center_freq):
         # dsp only needs to know this to be able to pass it to decoders in the form of get_operating_freq()
@@ -640,10 +652,9 @@ class dsp(object):
         self.low_cut = low_cut
         self.high_cut = high_cut
         if self.running:
-            with self.modification_lock:
-                self.pipes["bpf_pipe"].write(
-                    "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
-                )
+            self.pipes["bpf_pipe"].write(
+                "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
+            )
 
     def get_bpf(self):
         return [self.low_cut, self.high_cut]
@@ -656,8 +667,7 @@ class dsp(object):
         # no squelch required on digital voice modes
         actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() else self.squelch_level
         if self.running:
-            with self.modification_lock:
-                self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
+            self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 
     def set_unvoiced_quality(self, q):
         self.unvoiced_quality = q
@@ -730,6 +740,16 @@ class dsp(object):
             # create control pipes for csdr
             self.try_create_pipes(self.pipe_names, command_base)
 
+            # send initial config through the pipes
+            if self.has_pipe("bpf_pipe"):
+                self.set_bpf(self.low_cut, self.high_cut)
+            if self.has_pipe("shift_pipe"):
+                self.set_offset_freq(self.offset_freq)
+            if self.has_pipe("squelch_pipe"):
+                self.set_squelch_level(self.squelch_level)
+            if self.has_pipe("dmr_control_pipe"):
+                self.set_dmr_filter(3)
+
             # run the command
             command = command_base.format(
                 bpf_pipe=self.pipes["bpf_pipe"],
@@ -785,16 +805,6 @@ class dsp(object):
                 )
 
             self.start_secondary_demodulator()
-
-        # send initial config through the pipes
-        if self.has_pipe("bpf_pipe"):
-            self.set_bpf(self.low_cut, self.high_cut)
-        if self.has_pipe("shift_pipe"):
-            self.set_offset_freq(self.offset_freq)
-        if self.has_pipe("squelch_pipe"):
-            self.set_squelch_level(self.squelch_level)
-        if self.has_pipe("dmr_control_pipe"):
-            self.set_dmr_filter(3)
 
         if self.has_pipe("smeter_pipe"):
             def read_smeter():

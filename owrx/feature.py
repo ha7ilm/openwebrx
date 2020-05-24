@@ -29,7 +29,7 @@ class FeatureDetector(object):
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
-        "fifi_sdr": ["alsa"],
+        "fifi_sdr": ["alsa", "rockprog"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
@@ -40,6 +40,7 @@ class FeatureDetector(object):
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
+        "js8call": ["js8", "sox"],
     }
 
     def feature_availability(self):
@@ -246,13 +247,13 @@ class FeatureDetector(object):
     def _has_soapy_driver(self, driver):
         try:
             process = subprocess.Popen(["SoapySDRUtil", "--info"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-            factory_regex = re.compile("^Available factories\\.\\.\\. (.*)$")
+            factory_regex = re.compile("^Available factories\\.\\.\\. ?(.*)$")
 
             drivers = []
             for line in process.stdout:
                 matches = factory_regex.match(line.decode())
                 if matches:
-                    drivers = [s.strip() for s in matches[1].split(", ")]
+                    drivers = [s.strip() for s in matches.group(1).split(", ")]
 
             return driver in drivers
         except FileNotFoundError:
@@ -370,9 +371,27 @@ class FeatureDetector(object):
         """
         return reduce(and_, map(self.command_is_runnable, ["jt9", "wsprd"]), True)
 
+    def has_js8(self):
+        """
+        To decode JS8, you will need to install [JS8Call](http://js8call.com/)
+
+        Please note that the `js8` command line decoder is not made available on $PATH by some JS8Call package builds.
+        You will need to manually make it available by either linking it to `/usr/bin` or by adding its location to
+        $PATH.
+        """
+        return self.command_is_runnable("js8")
+
     def has_alsa(self):
         """
         Some SDR receivers are identifying themselves as a soundcard. In order to read their data, OpenWebRX relies
         on the Alsa library. It is available as a package for most Linux distributions.
         """
         return self.command_is_runnable("arecord --help")
+
+    def has_rockprog(self):
+        """
+        The "rockprog" executable is required to send commands to your FiFiSDR. It needs to be installed separately.
+
+        You can find instructions and downloads [here](https://o28.sischa.net/fifisdr/trac/wiki/De%3Arockprog).
+        """
+        return self.command_is_runnable("rockprog")

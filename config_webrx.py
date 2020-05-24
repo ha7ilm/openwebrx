@@ -49,11 +49,13 @@ receiver_asl = 200
 receiver_admin = "example@example.com"
 receiver_gps = {"lat": 47.000000, "lon": 19.000000}
 photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
+# photo_desc allows you to put pretty much any HTML you like into the receiver description.
+# The lines below should give you some examples of what's possible.
 photo_desc = """
 You can add your own background photo and receiver information.<br />
-Receiver is operated by: <a href="mailto:%[RX_ADMIN]">%[RX_ADMIN]</a><br/>
-Device: %[RX_DEVICE]<br />
-Antenna: %[RX_ANT]<br />
+Receiver is operated by: <a href="mailto:openwebrx@localhost" target="_blank">Receiver Operator</a><br/>
+Device: Receiver Device<br />
+Antenna: Receiver Antenna<br />
 Website: <a href="http://localhost" target="_blank">http://localhost</a>
 """
 
@@ -150,11 +152,11 @@ sdrs = {
         "name": "Airspy HF+",
         "type": "airspyhf",
         "ppm": 0,
+        "rf_gain": "auto",
         "profiles": {
             "20m": {
                 "name": "20m",
                 "center_freq": 14150000,
-                "rf_gain": 10,
                 "samp_rate": 768000,
                 "start_freq": 14070000,
                 "start_mod": "usb",
@@ -162,7 +164,6 @@ sdrs = {
             "30m": {
                 "name": "30m",
                 "center_freq": 10125000,
-                "rf_gain": 10,
                 "samp_rate": 192000,
                 "start_freq": 10142000,
                 "start_mod": "usb",
@@ -170,7 +171,6 @@ sdrs = {
             "40m": {
                 "name": "40m",
                 "center_freq": 7100000,
-                "rf_gain": 10,
                 "samp_rate": 256000,
                 "start_freq": 7070000,
                 "start_mod": "usb",
@@ -178,7 +178,6 @@ sdrs = {
             "80m": {
                 "name": "80m",
                 "center_freq": 3650000,
-                "rf_gain": 10,
                 "samp_rate": 768000,
                 "start_freq": 3570000,
                 "start_mod": "usb",
@@ -186,7 +185,6 @@ sdrs = {
             "49m": {
                 "name": "49m Broadcast",
                 "center_freq": 6000000,
-                "rf_gain": 10,
                 "samp_rate": 768000,
                 "start_freq": 6070000,
                 "start_mod": "am",
@@ -285,21 +283,27 @@ google_maps_api_key = ""
 # in seconds; default: 2 hours
 map_position_retention_time = 2 * 60 * 60
 
-# wsjt decoder queue configuration
-# due to the nature of the wsjt operating modes (ft8, ft8, jt9, jt65 and wspr), the data is recorded for a given amount
-# of time (6.5 seconds up to 2 minutes) and decoded at the end. this can lead to very high peak loads.
+# decoder queue configuration
+# due to the nature of some operating modes (ft8, ft8, jt9, jt65, wspr and js8), the data is recorded for a given amount
+# of time (6 seconds up to 2 minutes) and decoded at the end. this can lead to very high peak loads.
 # to mitigate this, the recordings will be queued and processed in sequence.
 # the number of workers will limit the total amount of work (one worker will losely occupy one cpu / thread)
-wsjt_queue_workers = 2
+decoding_queue_workers = 2
 # the maximum queue length will cause decodes to be dumped if the workers cannot keep up
 # if you are running background services, make sure this number is high enough to accept the task influx during peaks
-# i.e. this should be higher than the number of wsjt services running at the same time
-wsjt_queue_length = 10
+# i.e. this should be higher than the number of decoding services running at the same time
+decoding_queue_length = 10
+
 # wsjt decoding depth will allow more results, but will also consume more cpu
 wsjt_decoding_depth = 3
 # can also be set for each mode separately
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
 wsjt_decoding_depths = {"jt65": 1}
+
+# JS8 comes in different speeds: normal, slow, fast, turbo. This setting controls which ones are enabled.
+js8_enabled_profiles = ["normal", "slow"]
+# JS8 decoding depth; higher value will get more results, but will also consume more cpu
+js8_decoding_depth = 3
 
 temporary_directory = "/tmp"
 
@@ -325,4 +329,6 @@ pskreporter_enabled = False
 pskreporter_callsign = "N0CALL"
 
 # === Web admin settings ===
-webadmin_enabled = False
+# this feature is experimental at the moment. it should not be enabled on shared receivers since it allows remote
+# changes to the receiver settings. enable for testing in controlled environment only.
+# webadmin_enabled = False

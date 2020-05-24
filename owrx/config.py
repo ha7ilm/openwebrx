@@ -26,6 +26,11 @@ class ConfigMigrator(ABC):
     def migrate(self, config):
         pass
 
+    def renameKey(self, config, old, new):
+        if old in config and not new in config:
+            config[new] = config[old]
+            del config[old]
+
 
 class ConfigMigratorVersion1(ConfigMigrator):
     def migrate(self, config):
@@ -36,6 +41,9 @@ class ConfigMigratorVersion1(ConfigMigrator):
         if "waterfall_auto_level_margin" in config:
             levels = config["waterfall_auto_level_margin"]
             config["waterfall_auto_level_margin"] = {"min": levels[0], "max": levels[1]}
+
+        self.renameKey(config, "wsjt_queue_workers", "decoding_queue_workers")
+        self.renameKey(config, "wsjt_queue_length", "decoding_queue_length")
 
         config["version"] = 2
         return config

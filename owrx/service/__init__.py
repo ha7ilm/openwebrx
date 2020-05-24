@@ -5,13 +5,14 @@ from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
+from owrx.js8 import Js8Parser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
-from owrx.feature import FeatureDetector
 from owrx.property import PropertyLayer
+from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
-from functools import reduce
+from owrx.modes import Modes
 
 import logging
 
@@ -50,28 +51,12 @@ class AprsServiceOutput(ServiceOutput):
         return t == "packet_demod"
 
 
-class ServiceDetector(object):
-    requirements = {
-        "ft8": ["wsjt-x"],
-        "ft4": ["wsjt-x"],
-        "jt65": ["wsjt-x"],
-        "jt9": ["wsjt-x"],
-        "wspr": ["wsjt-x"],
-        "packet": ["packet"],
-    }
+class Js8ServiceOutput(ServiceOutput):
+    def getParser(self):
+        return Js8Parser(Js8Handler())
 
-    @staticmethod
-    def getAvailableServices():
-        # TODO this should be in a more central place (the frontend also needs this)
-        fd = FeatureDetector()
-
-        return [
-            name
-            for name, requirements in ServiceDetector.requirements.items()
-            if reduce(
-                lambda a, b: a and b, [fd.is_available(r) for r in requirements], True
-            )
-        ]
+    def supports_type(self, t):
+        return t == "js8_demod"
 
 
 class ServiceHandler(object):
@@ -109,7 +94,7 @@ class ServiceHandler(object):
 
     def isSupported(self, mode):
         configured = Config.get()["services_decoders"]
-        available = ServiceDetector.getAvailableServices()
+        available = [m.modulation for m in Modes.getAvailableServices()]
         return mode in configured and mode in available
 
     def shutdown(self):
@@ -258,6 +243,8 @@ class ServiceHandler(object):
         # TODO selecting outputs will need some more intelligence here
         if mode == "packet":
             output = AprsServiceOutput(frequency)
+        elif mode == "js8":
+            output = Js8ServiceOutput(frequency)
         else:
             output = WsjtServiceOutput(frequency)
         d = dsp(output)
@@ -278,6 +265,7 @@ class ServiceHandler(object):
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(source.getProps()["samp_rate"])
+        d.set_temporary_directory(Config.get()['temporary_directory'])
         d.set_service()
         d.start()
         return d
@@ -290,6 +278,11 @@ class WsjtHandler(object):
 
 class AprsHandler(object):
     def write_aprs_data(self, data):
+        pass
+
+
+class Js8Handler(object):
+    def write_js8_message(self, frame: Js8Frame, freq: int):
         pass
 
 

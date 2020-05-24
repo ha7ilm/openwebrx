@@ -6,12 +6,13 @@ from owrx.controllers.template import (
 )
 from owrx.controllers.assets import (
     OwrxAssetsController,
-    AprsSymbolsController
+    AprsSymbolsController,
+    CompiledAssetsController
 )
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
-from owrx.controllers.settings import SettingsController
+from owrx.controllers.settings import SettingsController, GeneralSettingsController, SdrSettingsController
 from owrx.controllers.session import SessionController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -91,6 +92,7 @@ class Router(object):
             StaticRoute("/status", StatusController),
             StaticRoute("/status.json", StatusController, options={"action": "jsonAction"}),
             RegexRoute("/static/(.+)", OwrxAssetsController),
+            RegexRoute("/compiled/(.+)", CompiledAssetsController),
             RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
             StaticRoute("/ws/", WebSocketController),
             RegexRoute("(/favicon.ico)", OwrxAssetsController),
@@ -99,9 +101,12 @@ class Router(object):
             StaticRoute("/map", MapController),
             StaticRoute("/features", FeatureController),
             StaticRoute("/api/features", ApiController),
+            StaticRoute("/api/receiverdetails", ApiController, options={"action": "receiverDetails"}),
             StaticRoute("/metrics", MetricsController),
-            StaticRoute("/admin", SettingsController),
-            StaticRoute("/admin", SettingsController, method="POST", options={"action": "processFormData"}),
+            StaticRoute("/settings", SettingsController),
+            StaticRoute("/generalsettings", GeneralSettingsController),
+            StaticRoute("/generalsettings", GeneralSettingsController, method="POST", options={"action": "processFormData"}),
+            StaticRoute("/sdrsettings", SdrSettingsController),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),

@@ -1,5 +1,6 @@
 from .direct import DirectSource
-from owrx.command import Flag, Option
+from owrx.command import Option
+import time
 
 
 class HackrfSource(DirectSource):
@@ -11,8 +12,12 @@ class HackrfSource(DirectSource):
                 "rf_gain": Option("-g"),
                 "lna_gain": Option("-l"),
                 "rf_amp": Option("-a"),
+                "ppm": Option("-C"),
             }
         ).setStatic("-r-")
 
     def getFormatConversion(self):
         return ["csdr convert_s8_f"]
+
+    def sleepOnRestart(self):
+        time.sleep(1)

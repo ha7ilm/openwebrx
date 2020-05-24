@@ -2,6 +2,7 @@
 {
     position: relative;
     z-index:1000;
+    background-color: #575757;
 }
 
 #webrx-top-photo
@@ -13,7 +14,8 @@
 #webrx-top-photo-clip
 {
     min-height: 67px;
-    max-height: 350px;
+    max-height: 67px;
+    height: 350px;
     overflow: hidden;
     position: relative;
 }
@@ -41,16 +43,19 @@
     right: 0;
 }
 
+#webrx-tob-container, #webrx-top-container * {
+    line-height: initial;
+    box-sizing: initial;
+}
+
+#webrx-top-container img {
+    vertical-align: initial;
+}
+
 #webrx-top-logo
 {
     padding: 12px;
     float: left;
-}
-
-#webrx-ha5kfu-top-logo
-{
-    float: right;
-    padding: 15px;
 }
 
 #webrx-rx-avatar
@@ -107,18 +112,15 @@
     cursor:pointer;
     position: absolute;
     left: 470px;
-    top: 51px;
+    top: 55px;
 }
 
 #openwebrx-rx-details-arrow a
 {
     margin: 0;
     padding: 0;
-}
-
-#openwebrx-rx-details-arrow-down
-{
-    display:none;
+    line-height: 0;
+    display: block;
 }
 
 #openwebrx-main-buttons .button {
@@ -149,7 +151,7 @@
 
 #openwebrx-main-buttons
 {
-    padding: 5px 0;
+    padding: 5px 15px;
     display: flex;
     list-style: none;
     float: right;

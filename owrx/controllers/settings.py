@@ -11,7 +11,10 @@ from owrx.form import (
     DropdownInput,
     Option,
     ServicesCheckboxInput,
+    Js8ProfileCheckboxInput,
 )
+from urllib.parse import quote
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,6 +46,41 @@ class Section(object):
 
 
 class SettingsController(AdminController):
+    def indexAction(self):
+        self.serve_template("settings.html", **self.template_variables())
+
+
+class SdrSettingsController(AdminController):
+    def template_variables(self):
+        variables = super().template_variables()
+        variables["devices"] = self.render_devices()
+        return variables
+
+    def render_devices(self):
+        return "".join(self.render_device(key, value) for key, value in Config.get()["sdrs"].items())
+
+    def render_device(self, device_id, config):
+        return """
+            <div class="card device bg-dark text-white">
+                <div class="card-header">
+                    {device_name}
+                </div>
+                <div class="card-body">
+                    {form}
+                </div>
+            </div>
+        """.format(device_name=config["name"], form=self.render_form(device_id, config))
+
+    def render_form(self, device_id, config):
+        return """
+            <form class="sdrdevice" data-config="{formdata}"></form>
+        """.format(device_id=device_id, formdata=quote(json.dumps(config)))
+
+    def indexAction(self):
+        self.serve_template("sdrsettings.html", **self.template_variables())
+
+
+class GeneralSettingsController(AdminController):
     sections = [
         Section(
             "General settings",
@@ -145,13 +183,22 @@ class SettingsController(AdminController):
             ),
         ),
         Section(
-            "WSJT-X settings",
-            NumberInput("wsjt_queue_workers", "Number of WSJT decoding workers"),
-            NumberInput("wsjt_queue_length", "Maximum length of WSJT job queue"),
+            "Decoding settings",
+            NumberInput("decoding_queue_workers", "Number of decoding workers"),
+            NumberInput("decoding_queue_length", "Maximum length of decoding job queue"),
             NumberInput(
                 "wsjt_decoding_depth",
-                "WSJT decoding depth",
+                "Default WSJT decoding depth",
                 infotext="A higher decoding depth will allow more results, but will also consume more cpu",
+            ),
+            NumberInput(
+                "js8_decoding_depth",
+                "Js8Call decoding depth",
+                infotext="A higher decoding depth will allow more results, but will also consume more cpu",
+            ),
+            Js8ProfileCheckboxInput(
+                "js8_enabled_profiles",
+                "Js8Call enabled modes"
             ),
         ),
         Section(
@@ -212,7 +259,7 @@ class SettingsController(AdminController):
     ]
 
     def render_sections(self):
-        sections = "".join(section.render() for section in SettingsController.sections)
+        sections = "".join(section.render() for section in GeneralSettingsController.sections)
         return """
             <form class="settings-body" method="POST">
                 {sections}
@@ -225,7 +272,7 @@ class SettingsController(AdminController):
         )
 
     def indexAction(self):
-        self.serve_template("admin.html", **self.template_variables())
+        self.serve_template("generalsettings.html", **self.template_variables())
 
     def template_variables(self):
         variables = super().template_variables()
@@ -235,7 +282,7 @@ class SettingsController(AdminController):
     def processFormData(self):
         data = parse_qs(self.get_body().decode("utf-8"))
         data = {
-            k: v for i in SettingsController.sections for k, v in i.parse(data).items()
+            k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()
         }
         config = Config.get()
         for k, v in data.items():
