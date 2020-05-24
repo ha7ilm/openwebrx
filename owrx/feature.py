@@ -272,9 +272,9 @@ class FeatureDetector(object):
         """
         The SoapySDR module for sdrplay devices is required for interfacing with SDRPlay devices (RSP1*, RSP2*, RSPDuo)
 
-        You can get it [here](https://github.com/pothosware/SoapySDRPlay/wiki).
+        You can get it [here](https://github.com/SDRplay/SoapySDRPlay).
         """
-        return self._has_soapy_driver("sdrplay") or self._has_soapy_driver("sdrPlay")
+        return self._has_soapy_driver("sdrplay")
 
     def has_soapy_airspy(self):
         """
