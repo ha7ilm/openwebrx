@@ -13,6 +13,6 @@ WORKDIR /opt/openwebrx
 
 VOLUME /etc/openwebrx
 
-CMD /opt/openwebrx/docker/scripts/run.sh
+CMD [ "/opt/openwebrx/docker/scripts/run.sh" ]
 
 EXPOSE 8073
