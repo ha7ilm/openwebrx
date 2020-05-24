@@ -1,7 +1,8 @@
 FROM debian:buster-slim
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s6-overlay-amd64.tar.gz /tmp/
-RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
+ADD docker/scripts/install-s6.sh /
+RUN /install-s6.sh && \
+    rm /install-s6.sh
 ENTRYPOINT ["/init"]
 
 ADD docker/files/js8call/js8call-hamlib.patch /
