@@ -241,7 +241,7 @@ class dsp(object):
             if self.fft_compression == "adpcm":
                 chain += ["csdr compress_fft_adpcm_f_u8 {fft_size}"]
             return chain
-        chain += ["csdr shift_addition_cc --fifo {shift_pipe}"]
+        chain += ["csdr shift_addfast_cc --fifo {shift_pipe}"]
         if self.decimation > 1:
             chain += ["csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING"]
         chain += ["csdr bandpass_fir_fft_cc --fifo {bpf_pipe} {bpf_transition_bw} HAMMING"]
@@ -331,7 +331,7 @@ class dsp(object):
             return chain
         elif which == "bpsk31" or which == "bpsk63":
             return chain + [
-                "csdr shift_addition_cc --fifo {secondary_shift_pipe}",
+                "csdr shift_addfast_cc --fifo {secondary_shift_pipe}",
                 "csdr bandpass_fir_fft_cc -{secondary_bpf_cutoff} {secondary_bpf_cutoff} {secondary_bpf_cutoff}",
                 "csdr simple_agc_cc 0.001 0.5",
                 "csdr timing_recovery_cc GARDNER {secondary_samples_per_bits} 0.5 2 --add_q",
