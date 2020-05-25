@@ -1,14 +1,11 @@
 FROM debian:buster-slim
 
-ADD docker/scripts/install-s6.sh /
-RUN /install-s6.sh && \
-    rm /install-s6.sh
-ENTRYPOINT ["/init"]
-
 ADD docker/files/js8call/js8call-hamlib.patch /
 ADD docker/scripts/install-dependencies.sh /
 RUN /install-dependencies.sh && \
     rm /install-dependencies.sh
+
+ENTRYPOINT ["/init"]
 
 WORKDIR /opt/openwebrx
 

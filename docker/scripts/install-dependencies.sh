@@ -24,6 +24,24 @@ BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapa
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
+case `uname -m` in
+    arm*)
+        PLATFORM=armhf
+        ;;
+    aarch64*)
+        PLATFORM=aarch64
+        ;;
+    x86_64*)
+        PLATFORM=amd64
+        ;;
+esac
+
+pushd /tmp
+wget https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s6-overlay-${PLATFORM}.tar.gz
+tar xzf s6-overlay-${PLATFORM}.tar.gz -C /
+rm s6-overlay-${PLATFORM}.tar.gz
+popd
+
 git clone https://github.com/jketterl/js8py.git
 pushd js8py
 git checkout 888e62be375316882ad2b2ac8e396c3bf857b6fc
