@@ -86,6 +86,8 @@ WSJT_DIR=wsjtx-2.1.2
 WSJT_TGZ=${WSJT_DIR}.tgz
 wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
 tar xfz ${WSJT_TGZ}
+patch -Np0 -d ${WSJT_DIR} < /wsjtx-hamlib.patch
+mv /wsjtx.patch ${WSJT_DIR}
 cmakebuild ${WSJT_DIR}
 rm ${WSJT_TGZ}
 
