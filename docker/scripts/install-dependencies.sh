@@ -18,7 +18,7 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="sox libfftw3-bin python3 python3-setuptools netcat-openbsd libsndfile1 liblapack3 libusb-1.0-0 libqt5serialport5 libqt5multimedia5-plugins libqt5widgets5 libqt5sql5-sqlite libqt5core5a libqt5multimedia5 libqt5network5 libqt5printsupport5 libqt5serialport5 libqt5sql5 libqt5widgets5 libreadline7 libgfortran4 libgomp1 libasound2 libudev1 libhamlib2 ca-certificates"
+STATIC_PACKAGES="sox libfftw3-bin python3 python3-setuptools netcat-openbsd libsndfile1 liblapack3 libusb-1.0-0 libqt5core5a libreadline7 libgfortran4 libgomp1 libasound2 libudev1 ca-certificates"
 BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev autoconf automake libtool texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev pkg-config libudev-dev libhamlib-dev patch xsltproc"
 
 apt-get update
