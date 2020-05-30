@@ -22,7 +22,8 @@
 - Improve receiver load time by concatenating javascript assets
 - Docker images migrated to Debian slim images; This was necessary to allow the use of function multiversioning in
   csdr and owrx_connector to allow the images to run on a wider range of CPUs
-- Docker containers have been updated to include the SDRplay driver version 3 
+- Docker containers have been updated to include the SDRplay driver version 3
+- HackRF support is now based on SoapyHackRF
 
 **0.18.0**
 - Support for SoapyRemote
