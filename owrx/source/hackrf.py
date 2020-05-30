@@ -1,8 +1,11 @@
 from .soapy import SoapyConnectorSource
-from owrx.command import Option
-import time
 
 
 class HackrfSource(SoapyConnectorSource):
+    def getSoapySettingsMappings(self):
+        mappings = super().getSoapySettingsMappings()
+        mappings.update({"bias_tee": "bias_tx"})
+        return mappings
+
     def getDriver(self):
         return "hackrf"
