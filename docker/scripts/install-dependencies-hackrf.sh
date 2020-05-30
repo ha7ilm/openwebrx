@@ -31,6 +31,9 @@ cmakebuild host
 cd ..
 rm -rf hackrf
 
+git clone https://github.com/pothosware/SoapyHackRF.git
+cmakebuild SoapyHackRF 3c514cecd3dd2fdf4794aebc96c482940c11d7ff
+
 SUDO_FORCE_REMOVE=yes apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
 rm -rf /var/lib/apt/lists/*
