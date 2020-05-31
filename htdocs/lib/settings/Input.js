@@ -75,13 +75,14 @@ SoapyGainInput.prototype.render = function(){
             return '<div class="row option form-group gain-mode-separate">' +
                 '<div class="col-4">' + g + '</div>' +
                 '<div class="col-8">' +
-                    '<input class="form-control form-control-sm" type="number">' +
+                    '<input class="form-control form-control-sm" data-gain="' + g + '" type="number">' +
                 '</div>' +
             '</div>';
         }).join('')
     );
     var el = $(this.bootstrapify(markup))
     var setMode = function(mode){
+        el.find('select').val(mode);
         el.find('.option').hide();
         el.find('.gain-mode-' + mode).show();
     };
@@ -89,7 +90,30 @@ SoapyGainInput.prototype.render = function(){
         var mode = $(this).val();
         setMode(mode);
     });
-    setMode('auto');
+    if (typeof(this.value) === 'number') {
+        setMode('single');
+        el.find('.gain-mode-single input').val(this.value);
+    } else if (typeof(this.value) === 'string') {
+        if (this.value === 'auto') {
+            setMode('auto');
+        } else {
+            setMode('separate');
+            values = $.extend.apply($, this.value.split(',').map(function(seg){
+                var split = seg.split('=');
+                if (split.length < 2) return;
+                var res = {};
+                res[split[0]] = parseInt(split[1]);
+                return res;
+            }));
+            el.find('.gain-mode-separate input').each(function(){
+                var $input = $(this);
+                var g = $input.data('gain');
+                $input.val(g in values ? values[g] : 0);
+            });
+        }
+    } else {
+        setMode('auto');
+    }
     return el;
 };
 
