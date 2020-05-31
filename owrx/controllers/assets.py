@@ -87,6 +87,13 @@ class CompiledAssetsController(Controller):
             "lib/Header.js",
             "map.js",
         ],
+        "settings.js": [
+            "lib/jquery-3.2.1.min.js",
+            "lib/Header.js",
+            "lib/settings/Input.js",
+            "lib/settings/SdrDevice.js",
+            "settings.js",
+        ]
     }
 
     def indexAction(self):
