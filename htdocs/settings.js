@@ -5,13 +5,19 @@ function Input(name, value, options) {
     this.label = options && options.label || name;
 };
 
+Input.prototype.getClasses = function() {
+    return ['form-control', 'form-control-sm'];
+}
+
 Input.prototype.bootstrapify = function(input) {
-    input.addClass('form-control').addClass('form-control-sm');
+    this.getClasses().forEach(input.addClass.bind(input));
     return [
         '<div class="form-group row">',
             '<label class="col-form-label col-form-label-sm col-3" for="' + this.name + '">' + this.label + '</label>',
             '<div class="col-9">',
-                input[0].outerHTML,
+                $.map(input, function(el) {
+                    return el.outerHTML;
+                }).join(''),
             '</div>',
         '</div>'
     ].join('');
@@ -43,8 +49,48 @@ function SoapyGainInput() {
 
 SoapyGainInput.prototype = new Input();
 
+SoapyGainInput.prototype.getClasses = function() {
+    return [];
+};
+
 SoapyGainInput.prototype.render = function(){
-    return this.bootstrapify($('<div>Soapy gain settings go here</div>'));
+    var markup = $(
+        '<div class="row form-group">' +
+            '<div class="col-4">Gain mode</div>' +
+            '<div class="col-8">' +
+                '<select class="form-control form-control-sm">' +
+                    '<option value="auto">automatic gain</option>' +
+                    '<option value="single">single gain value</option>' +
+                    '<option value="separate">separate gain values</option>' +
+                '</select>' +
+            '</div>' +
+        '</div>' +
+        '<div class="row option form-group gain-mode-single">' +
+            '<div class="col-4">Gain</div>' +
+            '<div class="col-8">' +
+                '<input class="form-control form-control-sm" type="number">' +
+            '</div>' +
+        '</div>' +
+        this.options.gains.map(function(g){
+            return '<div class="row option form-group gain-mode-separate">' +
+                '<div class="col-4">' + g + '</div>' +
+                '<div class="col-8">' +
+                    '<input class="form-control form-control-sm" type="number">' +
+                '</div>' +
+            '</div>';
+        }).join('')
+    );
+    var el = $(this.bootstrapify(markup))
+    var setMode = function(mode){
+        el.find('.option').hide();
+        el.find('.gain-mode-' + mode).show();
+    };
+    el.on('change', 'select', function(){
+        var mode = $(this).val();
+        setMode(mode);
+    });
+    setMode('auto');
+    return el;
 };
 
 function ProfileInput() {
