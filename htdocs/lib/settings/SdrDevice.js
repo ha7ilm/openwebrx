@@ -210,9 +210,31 @@ SdrplaySdrDevice.prototype.getMappings = function() {
     });
 };
 
+AirspyHfSdrDevice = function() {
+    SoapySdrDevice.apply(this, arguments);
+};
+
+AirspyHfSdrDevice.prototype = Object.create(SoapySdrDevice.prototype);
+AirspyHfSdrDevice.prototype.constructor = AirspyHfSdrDevice;
+
+AirspyHfSdrDevice.prototype.getMappings = function() {
+    var mappings = SoapySdrDevice.prototype.getMappings.apply(this, arguments);
+    return $.extend(new Object(), mappings, {
+        "rf_gain": {
+            constructor: SoapyGainInput,
+            initialValue: 0,
+            inputOptions: {
+                label: "Gain",
+                gains: ['RF', 'VGA']
+            }
+        }
+    });
+};
+
 SdrDevice.types = {
     'rtl_sdr': RtlSdrDevice,
-    'sdrplay': SdrplaySdrDevice
+    'sdrplay': SdrplaySdrDevice,
+    'airspyhf': AirspyHfSdrDevice
 };
 
 $.fn.sdrdevice = function() {
