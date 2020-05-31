@@ -185,8 +185,20 @@ SoapySdrDevice.prototype.getMappings = function() {
                 label: "Soapy device selector"
             },
             initialValue: ""
+        },
+        "rf_gain": {
+            constructor: SoapyGainInput,
+            initialValue: 0,
+            inputOptions: {
+                label: "Gain",
+                gains: this.getGains()
+            }
         }
     });
+};
+
+SoapySdrDevice.prototype.getGains = function() {
+    return [];
 };
 
 SdrplaySdrDevice = function() {
@@ -196,18 +208,8 @@ SdrplaySdrDevice = function() {
 SdrplaySdrDevice.prototype = Object.create(SoapySdrDevice.prototype);
 SdrplaySdrDevice.prototype.constructor = SdrplaySdrDevice;
 
-SdrplaySdrDevice.prototype.getMappings = function() {
-    var mappings = SoapySdrDevice.prototype.getMappings.apply(this, arguments);
-    return $.extend(new Object(), mappings, {
-        "rf_gain": {
-            constructor: SoapyGainInput,
-            initialValue: 0,
-            inputOptions: {
-                label: "Gain",
-                gains: ['RFGR', 'IFGR']
-            }
-        }
-    });
+SdrplaySdrDevice.prototype.getGains = function() {
+    return ['RFGR', 'IFGR'];
 };
 
 AirspyHfSdrDevice = function() {
@@ -217,24 +219,26 @@ AirspyHfSdrDevice = function() {
 AirspyHfSdrDevice.prototype = Object.create(SoapySdrDevice.prototype);
 AirspyHfSdrDevice.prototype.constructor = AirspyHfSdrDevice;
 
-AirspyHfSdrDevice.prototype.getMappings = function() {
-    var mappings = SoapySdrDevice.prototype.getMappings.apply(this, arguments);
-    return $.extend(new Object(), mappings, {
-        "rf_gain": {
-            constructor: SoapyGainInput,
-            initialValue: 0,
-            inputOptions: {
-                label: "Gain",
-                gains: ['RF', 'VGA']
-            }
-        }
-    });
+AirspyHfSdrDevice.prototype.getGains = function() {
+    return ['RF', 'VGA'];
+};
+
+HackRfSdrDevice = function() {
+    SoapySdrDevice.apply(this, arguments);
+};
+
+HackRfSdrDevice.prototype = Object.create(SoapySdrDevice.prototype);
+HackRfSdrDevice.prototype.constructor = HackRfSdrDevice;
+
+HackRfSdrDevice.prototype.getGains = function() {
+    return ['LNA', 'VGA', 'AMP'];
 };
 
 SdrDevice.types = {
     'rtl_sdr': RtlSdrDevice,
     'sdrplay': SdrplaySdrDevice,
-    'airspyhf': AirspyHfSdrDevice
+    'airspyhf': AirspyHfSdrDevice,
+    'hackrf': HackRfSdrDevice
 };
 
 $.fn.sdrdevice = function() {
