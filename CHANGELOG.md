@@ -1,4 +1,4 @@
-**unreleased**
+**0.19.0**
 - Fix direwolf connection setup by implementing a retry loop
 - Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connector
 - OSM maps instead of Google when google_maps_api_key is not set (thanks @jquagga)
