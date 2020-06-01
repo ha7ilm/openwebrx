@@ -59,15 +59,6 @@ Antenna: Receiver Antenna<br />
 Website: <a href="http://localhost" target="_blank">http://localhost</a>
 """
 
-# ==== sdr.hu listing ====
-# If you want your ham receiver to be listed publicly on sdr.hu, then take the following steps:
-# 1. Register at: http://sdr.hu/register
-# 2. You will get an unique key by email. Copy it and paste here:
-sdrhu_key = ""
-# 3. Set this setting to True to enable listing:
-sdrhu_public_listing = False
-server_hostname = "localhost"
-
 # ==== DSP/RX settings ====
 fft_fps = 9
 fft_size = 4096  # Should be power of 2

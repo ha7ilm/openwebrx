@@ -9,7 +9,6 @@ from owrx.config import Config
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
-from owrx.sdrhu import SdrHuUpdater
 from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.pskreporter import PskReporter
@@ -58,10 +57,6 @@ Support and info:       https://groups.io/g/openwebrx
 
     # Get error messages about unknown / unavailable features as soon as possible
     SdrService.loadProps()
-
-    if "sdrhu_key" in pm and pm["sdrhu_public_listing"]:
-        updater = SdrHuUpdater()
-        updater.start()
 
     Services.start()
 

@@ -244,18 +244,6 @@ class GeneralSettingsController(AdminController):
                 infotext="This callsign will be used to send spots to pskreporter.info",
             ),
         ),
-        Section(
-            "sdr.hu",
-            TextInput(
-                "sdrhu_key",
-                "sdr.hu key",
-                infotext='Please obtain your personal key on <a href="https://sdr.hu" target="_blank">sdr.hu</a>',
-            ),
-            CheckboxInput(
-                "sdrhu_public_listing", "List on sdr.hu", "List my receiver on sdr.hu"
-            ),
-            TextInput("server_hostname", "Hostname"),
-        ),
     ]
 
     def render_sections(self):
