@@ -9,26 +9,6 @@ import pkg_resources
 
 
 class StatusController(Controller):
-    def indexAction(self):
-        pm = Config.get()
-        # convert to old format
-        gps = (pm["receiver_gps"]["lat"], pm["receiver_gps"]["lon"])
-        avatar_path = pkg_resources.resource_filename("htdocs", "gfx/openwebrx-avatar.png")
-        # TODO keys that have been left out since they are no longer simple strings: sdr_hw, bands, antenna
-        vars = {
-            "status": "active",
-            "name": pm["receiver_name"],
-            "op_email": pm["receiver_admin"],
-            "users": ClientRegistry.getSharedInstance().clientCount(),
-            "users_max": pm["max_clients"],
-            "gps": gps,
-            "asl": pm["receiver_asl"],
-            "loc": pm["receiver_location"],
-            "sw_version": openwebrx_version,
-            "avatar_ctime": os.path.getctime(avatar_path),
-        }
-        self.send_response("\n".join(["{key}={value}".format(key=key, value=value) for key, value in vars.items()]))
-
     def getProfileStats(self, profile):
         return {
             "name": profile["name"],
@@ -45,7 +25,7 @@ class StatusController(Controller):
         }
         return stats
 
-    def jsonAction(self):
+    def indexAction(self):
         pm = Config.get()
 
         status = {

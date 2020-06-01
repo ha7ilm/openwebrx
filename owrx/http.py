@@ -89,15 +89,12 @@ class Router(object):
     def __init__(self):
         self.routes = [
             StaticRoute("/", IndexController),
-            StaticRoute("/status", StatusController),
-            StaticRoute("/status.json", StatusController, options={"action": "jsonAction"}),
+            StaticRoute("/status.json", StatusController),
             RegexRoute("/static/(.+)", OwrxAssetsController),
             RegexRoute("/compiled/(.+)", CompiledAssetsController),
             RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
             StaticRoute("/ws/", WebSocketController),
             RegexRoute("(/favicon.ico)", OwrxAssetsController),
-            # backwards compatibility for the sdr.hu portal
-            RegexRoute("(/gfx/openwebrx-avatar.png)", OwrxAssetsController),
             StaticRoute("/map", MapController),
             StaticRoute("/features", FeatureController),
             StaticRoute("/api/features", ApiController),
