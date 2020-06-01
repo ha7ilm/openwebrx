@@ -164,14 +164,14 @@ sdrs = {
                 "center_freq": 7100000,
                 "samp_rate": 256000,
                 "start_freq": 7070000,
-                "start_mod": "usb",
+                "start_mod": "lsb",
             },
             "80m": {
                 "name": "80m",
                 "center_freq": 3650000,
                 "samp_rate": 768000,
                 "start_freq": 3570000,
-                "start_mod": "usb",
+                "start_mod": "lsb",
             },
             "49m": {
                 "name": "49m Broadcast",
@@ -186,6 +186,7 @@ sdrs = {
         "name": "SDRPlay RSP2",
         "type": "sdrplay",
         "ppm": 0,
+        "antenna": "Antenna A",
         "profiles": {
             "20m": {
                 "name": "20m",
@@ -194,7 +195,6 @@ sdrs = {
                 "samp_rate": 500000,
                 "start_freq": 14070000,
                 "start_mod": "usb",
-                "antenna": "Antenna A",
             },
             "30m": {
                 "name": "30m",
@@ -210,8 +210,7 @@ sdrs = {
                 "rf_gain": 0,
                 "samp_rate": 500000,
                 "start_freq": 7070000,
-                "start_mod": "usb",
-                "antenna": "Antenna A",
+                "start_mod": "lsb",
             },
             "80m": {
                 "name": "80m",
@@ -219,8 +218,7 @@ sdrs = {
                 "rf_gain": 0,
                 "samp_rate": 500000,
                 "start_freq": 3570000,
-                "start_mod": "usb",
-                "antenna": "Antenna A",
+                "start_mod": "lsb",
             },
             "49m": {
                 "name": "49m Broadcast",
@@ -229,7 +227,6 @@ sdrs = {
                 "samp_rate": 500000,
                 "start_freq": 6070000,
                 "start_mod": "am",
-                "antenna": "Antenna A",
             },
         },
     },
