@@ -1,23 +1,11 @@
-from .direct import DirectSource
-from owrx.command import Option
-import time
+from .soapy import SoapyConnectorSource
 
 
-class HackrfSource(DirectSource):
-    def getCommandMapper(self):
-        return super().getCommandMapper().setBase("hackrf_transfer").setMappings(
-            {
-                "samp_rate": Option("-s"),
-                "tuner_freq": Option("-f"),
-                "rf_gain": Option("-g"),
-                "lna_gain": Option("-l"),
-                "rf_amp": Option("-a"),
-                "ppm": Option("-C"),
-            }
-        ).setStatic("-r-")
+class HackrfSource(SoapyConnectorSource):
+    def getSoapySettingsMappings(self):
+        mappings = super().getSoapySettingsMappings()
+        mappings.update({"bias_tee": "bias_tx"})
+        return mappings
 
-    def getFormatConversion(self):
-        return ["csdr convert_s8_f"]
-
-    def sleepOnRestart(self):
-        time.sleep(1)
+    def getDriver(self):
+        return "hackrf"

@@ -13,6 +13,8 @@ from owrx.form import (
     ServicesCheckboxInput,
     Js8ProfileCheckboxInput,
 )
+from urllib.parse import quote
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,18 +57,24 @@ class SdrSettingsController(AdminController):
         return variables
 
     def render_devices(self):
-        def render_devicde(device_id, config):
-            return """
-                <div class="card device bg-dark text-white">
-                    <div class="card-header">
-                        {device_name}
-                    </div>
-                    <div class="card-body">
-                        device settings go here
-                    </div>
+        return "".join(self.render_device(key, value) for key, value in Config.get()["sdrs"].items())
+
+    def render_device(self, device_id, config):
+        return """
+            <div class="card device bg-dark text-white">
+                <div class="card-header">
+                    {device_name}
                 </div>
-            """.format(device_name=config["name"])
-        return "".join(render_devicde(key, value) for key, value in Config.get()["sdrs"].items())
+                <div class="card-body">
+                    {form}
+                </div>
+            </div>
+        """.format(device_name=config["name"], form=self.render_form(device_id, config))
+
+    def render_form(self, device_id, config):
+        return """
+            <form class="sdrdevice" data-config="{formdata}"></form>
+        """.format(device_id=device_id, formdata=quote(json.dumps(config)))
 
     def indexAction(self):
         self.serve_template("sdrsettings.html", **self.template_variables())
@@ -235,18 +243,6 @@ class GeneralSettingsController(AdminController):
                 "pskreporter callsign",
                 infotext="This callsign will be used to send spots to pskreporter.info",
             ),
-        ),
-        Section(
-            "sdr.hu",
-            TextInput(
-                "sdrhu_key",
-                "sdr.hu key",
-                infotext='Please obtain your personal key on <a href="https://sdr.hu" target="_blank">sdr.hu</a>',
-            ),
-            CheckboxInput(
-                "sdrhu_public_listing", "List on sdr.hu", "List my receiver on sdr.hu"
-            ),
-            TextInput("server_hostname", "Hostname"),
         ),
     ]
 

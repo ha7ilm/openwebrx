@@ -1,11 +1,6 @@
 @import url("openwebrx-header.css");
 @import url("openwebrx-globals.css");
 
-body {
-    background-color: #2e2e2e;
-    color: #DDD;
-}
-
 .buttons {
     text-align: right;
 }

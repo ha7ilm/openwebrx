@@ -49,22 +49,15 @@ receiver_asl = 200
 receiver_admin = "example@example.com"
 receiver_gps = {"lat": 47.000000, "lon": 19.000000}
 photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
+# photo_desc allows you to put pretty much any HTML you like into the receiver description.
+# The lines below should give you some examples of what's possible.
 photo_desc = """
 You can add your own background photo and receiver information.<br />
-Receiver is operated by: <a href="mailto:%[RX_ADMIN]">%[RX_ADMIN]</a><br/>
-Device: %[RX_DEVICE]<br />
-Antenna: %[RX_ANT]<br />
+Receiver is operated by: <a href="mailto:openwebrx@localhost" target="_blank">Receiver Operator</a><br/>
+Device: Receiver Device<br />
+Antenna: Receiver Antenna<br />
 Website: <a href="http://localhost" target="_blank">http://localhost</a>
 """
-
-# ==== sdr.hu listing ====
-# If you want your ham receiver to be listed publicly on sdr.hu, then take the following steps:
-# 1. Register at: http://sdr.hu/register
-# 2. You will get an unique key by email. Copy it and paste here:
-sdrhu_key = ""
-# 3. Set this setting to True to enable listing:
-sdrhu_public_listing = False
-server_hostname = "localhost"
 
 # ==== DSP/RX settings ====
 fft_fps = 9

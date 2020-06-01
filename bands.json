@@ -199,5 +199,75 @@
     "name": "3cm",
     "lower_bound": 10000000000,
     "upper_bound": 10500000000
+  },
+  {
+    "name": "120m Broadcast",
+    "lower_bound": 2300000,
+    "upper_bound": 2495000
+  },
+  {
+    "name": "90m Broadcast",
+    "lower_bound": 3200000,
+    "upper_bound": 3400000
+  },
+  {
+    "name": "75m Broadcast",
+    "lower_bound": 3900000,
+    "upper_bound": 4000000
+  },
+  {
+    "name": "60m Broadcast",
+    "lower_bound": 4750000,
+    "upper_bound": 4995000
+  },
+  {
+    "name": "49m Broadcast",
+    "lower_bound": 5900000,
+    "upper_bound": 6200000
+  },
+  {
+    "name": "41m Broadcast",
+    "lower_bound": 7200000,
+    "upper_bound": 7450000
+  },
+  {
+    "name": "31m Broadcast",
+    "lower_bound": 9400000,
+    "upper_bound": 9900000
+  },
+  {
+    "name": "25m Broadcast",
+    "lower_bound": 11600000,
+    "upper_bound": 12100000
+  },
+  {
+    "name": "22m Broadcast",
+    "lower_bound": 13570000,
+    "upper_bound": 13870000
+  },
+  {
+    "name": "19m Broadcast",
+    "lower_bound": 15100000,
+    "upper_bound": 15830000
+  },
+  {
+    "name": "16m Broadcast",
+    "lower_bound": 17480000,
+    "upper_bound": 17900000
+  },
+  {
+    "name": "15m Broadcast",
+    "lower_bound": 18900000,
+    "upper_bound": 19020000
+  },
+  {
+    "name": "13m Broadcast",
+    "lower_bound": 21450000,
+    "upper_bound": 21850000
+  },
+  {
+    "name": "11m Broadcast",
+    "lower_bound": 25670000,
+    "upper_bound": 26100000
   }
 ]

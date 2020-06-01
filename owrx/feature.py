@@ -24,12 +24,12 @@ class FeatureDetector(object):
         "rtl_sdr": ["rtl_connector"],
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
-        "hackrf": ["hackrf_transfer"],
+        "hackrf": ["soapy_connector", "soapy_hackrf"],
         "perseussdr": ["perseustest"],
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
-        "fifi_sdr": ["alsa"],
+        "fifi_sdr": ["alsa", "rockprog"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
@@ -127,26 +127,6 @@ class FeatureDetector(object):
         for better performance) or GNU netcat packages. Please check your distribution package manager for options.
         """
         return self.command_is_runnable("nc --help")
-
-    def has_hackrf_transfer(self):
-        """
-        To use a HackRF, compile the HackRF host tools from its "stdout" branch:
-        ```
-         git clone https://github.com/mossmann/hackrf/
-         cd hackrf
-         git fetch
-         git checkout origin/stdout
-         cd host
-         mkdir build
-         cd build
-         cmake .. -DINSTALL_UDEV_RULES=ON
-         make
-         sudo make install
-        ```
-        """
-        # TODO i don't have a hackrf, so somebody doublecheck this.
-        # TODO also check if it has the stdout feature
-        return self.command_is_runnable("hackrf_transfer --help")
 
     def has_perseustest(self):
         """
@@ -273,7 +253,7 @@ class FeatureDetector(object):
         """
         The SoapySDR module for sdrplay devices is required for interfacing with SDRPlay devices (RSP1*, RSP2*, RSPDuo)
 
-        You can get it [here](https://github.com/pothosware/SoapySDRPlay/wiki).
+        You can get it [here](https://github.com/SDRplay/SoapySDRPlay).
         """
         return self._has_soapy_driver("sdrplay")
 
@@ -342,6 +322,14 @@ class FeatureDetector(object):
         """
         return self._has_soapy_driver("radioberry")
 
+    def has_soapy_hackrf(self):
+        """
+        The SoapyHackRF allows HackRF to be used with SoapySDR.
+
+        You can get it [here](https://github.com/pothosware/SoapyHackRF/wiki).
+        """
+        return self._has_soapy_driver("hackrf")
+
     def has_dsd(self):
         """
         The digital voice modes NXDN and D-Star can be decoded by the dsd project. Please note that you need the version
@@ -396,3 +384,11 @@ class FeatureDetector(object):
         on the Alsa library. It is available as a package for most Linux distributions.
         """
         return self.command_is_runnable("arecord --help")
+
+    def has_rockprog(self):
+        """
+        The "rockprog" executable is required to send commands to your FiFiSDR. It needs to be installed separately.
+
+        You can find instructions and downloads [here](https://o28.sischa.net/fifisdr/trac/wiki/De%3Arockprog).
+        """
+        return self.command_is_runnable("rockprog")

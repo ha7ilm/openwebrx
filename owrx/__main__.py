@@ -1,19 +1,18 @@
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import Config
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
-from owrx.sdrhu import SdrHuUpdater
 from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.pskreporter import PskReporter
 from owrx.version import openwebrx_version
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
@@ -58,10 +57,6 @@ Support and info:       https://groups.io/g/openwebrx
 
     # Get error messages about unknown / unavailable features as soon as possible
     SdrService.loadProps()
-
-    if "sdrhu_key" in pm and pm["sdrhu_public_listing"]:
-        updater = SdrHuUpdater()
-        updater.start()
 
     Services.start()
 

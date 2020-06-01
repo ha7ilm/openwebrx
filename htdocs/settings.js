@@ -19,5 +19,7 @@ $(function(){
                 $lon.val(pos.lng);
             });
         });
-    })
+    });
+
+    $(".sdrdevice").sdrdevice();
 });
