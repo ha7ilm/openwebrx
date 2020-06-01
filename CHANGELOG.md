@@ -25,6 +25,7 @@
 - Docker containers have been updated to include the SDRplay driver version 3
 - HackRF support is now based on SoapyHackRF
 - Removed sdr.hu server listing support since the site has been shut down
+- Added support for Radioberry 2 Rasbperry Pi SDR Cape
 
 **0.18.0**
 - Support for SoapyRemote
