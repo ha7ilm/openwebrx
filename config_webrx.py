@@ -148,7 +148,7 @@ sdrs = {
             "20m": {
                 "name": "20m",
                 "center_freq": 14150000,
-                "samp_rate": 768000,
+                "samp_rate": 384000,
                 "start_freq": 14070000,
                 "start_mod": "usb",
             },
@@ -169,14 +169,14 @@ sdrs = {
             "80m": {
                 "name": "80m",
                 "center_freq": 3650000,
-                "samp_rate": 768000,
+                "samp_rate": 384000,
                 "start_freq": 3570000,
                 "start_mod": "lsb",
             },
             "49m": {
                 "name": "49m Broadcast",
-                "center_freq": 6000000,
-                "samp_rate": 768000,
+                "center_freq": 6050000,
+                "samp_rate": 384000,
                 "start_freq": 6070000,
                 "start_mod": "am",
             },
