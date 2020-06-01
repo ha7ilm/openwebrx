@@ -1,4 +1,4 @@
-openwebrx (0.19.0) UNRELEASED; urgency=low
+openwebrx (0.19.0) buster focal; urgency=low
   * Fix direwolf connection setup by implementing a retry loop
   * Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connector
   * OSM maps instead of Google when google_maps_api_key is not set (thanks
@@ -27,7 +27,7 @@ openwebrx (0.19.0) UNRELEASED; urgency=low
   * Removed sdr.hu server listing support since the site has been shut down
   * Added support for Radioberry 2 Rasbperry Pi SDR Cape
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 20 Feb 2020 21:01:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 01 Jun 2020 17:02:00 +0000
 
 openwebrx (0.18.0) buster; urgency=low
 
