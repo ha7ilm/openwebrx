@@ -1,3 +1,7 @@
+openwebrx (0.20.0) UNRELEASED; urgency=low
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, Jun 02 2020 19:16:00 +0000
+
 openwebrx (0.19.0) buster focal; urgency=low
   * Fix direwolf connection setup by implementing a retry loop
   * Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connector

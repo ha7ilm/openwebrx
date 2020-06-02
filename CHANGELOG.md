@@ -1,3 +1,5 @@
+**unreleased**
+
 **0.19.0**
 - Fix direwolf connection setup by implementing a retry loop
 - Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connector
