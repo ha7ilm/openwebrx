@@ -1,11 +1,13 @@
 from . import Controller
-from owrx.client import ClientRegistry
 from owrx.version import openwebrx_version
 from owrx.sdr import SdrService
 from owrx.config import Config
-import os
+from owrx.receiverid import ReceiverId, KeyException
 import json
-import pkg_resources
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class StatusController(Controller):
@@ -27,7 +29,11 @@ class StatusController(Controller):
 
     def indexAction(self):
         pm = Config.get()
-
+        if "Authorization" in self.request.headers:
+            try:
+                ReceiverId.getResponseHeader(self.request.headers["Authorization"])
+            except KeyException:
+                logger.exception("error processing authorization header")
         status = {
             "receiver": {
                 "name": pm["receiver_name"],
