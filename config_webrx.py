@@ -66,9 +66,9 @@ Website: <a href="http://localhost" target="_blank">http://localhost</a>
 # your public listing.
 # Your receiver keys should be placed into this array:
 receiver_keys = []
-# You can list your receiver on multiple sites, you can place all your keys into the array above, or you can append
-# more keys like this:
-# receiver_keys += "my-receiver-key"
+# If you list your receiver on multiple sites, you can place all your keys into the array above, or you can append
+# keys to the arraylike this:
+# receiver_keys += ["my-receiver-key"]
 
 # If you're not sure, simply copy & paste the code you received from your listing site below this line:
 
