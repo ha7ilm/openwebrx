@@ -1,5 +1,7 @@
 import re
 import logging
+import hashlib
+from datetime import datetime
 from owrx.config import Config
 
 logger = logging.getLogger(__name__)
@@ -47,7 +49,11 @@ class ReceiverId(object):
             raise KeyException("invalid authorization header")
         challenge = KeyChallenge(matches.group(1))
         key = ReceiverId.findKey(challenge)
-        # TODO sign challenge and respond
+        time, signature = ReceiverId.signChallenge(challenge, key)
+        return {
+            "Signature": signature,
+            "Time": time,
+        }
 
     @staticmethod
     def findKey(challenge):
@@ -61,3 +67,11 @@ class ReceiverId(object):
         if matching_keys:
             return matching_keys[0]
         return None
+
+    @staticmethod
+    def signChallenge(challenge, key):
+        now = datetime.utcnow().isoformat()
+        signString = "{challenge}:{time}".format(challenge=challenge.challenge, time=now)
+        m = hashlib.sha256()
+        m.update(signString.encode())
+        return now, m.hexdigest()

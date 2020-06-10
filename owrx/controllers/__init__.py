@@ -7,14 +7,18 @@ class Controller(object):
         self.request = request
         self.options = options
 
-    def send_response(self, content, code=200, content_type="text/html", last_modified: datetime = None, max_age=None):
+    def send_response(self, content, code=200, content_type="text/html", last_modified: datetime = None, max_age=None, headers=None):
         self.handler.send_response(code)
+        if headers is None:
+            headers = {}
         if content_type is not None:
-            self.handler.send_header("Content-Type", content_type)
+            headers["Content-Type"] = content_type
         if last_modified is not None:
-            self.handler.send_header("Last-Modified", last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            headers["Last-Modified"] = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
         if max_age is not None:
-            self.handler.send_header("Cache-Control", "max-age: {0}".format(max_age))
+            headers["Cache-Control"] = "max-age: {0}".format(max_age)
+        for key, value in headers.items():
+            self.handler.send_header(key, value)
         self.handler.end_headers()
         if type(content) == str:
             content = content.encode()

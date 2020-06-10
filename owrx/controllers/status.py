@@ -29,9 +29,10 @@ class StatusController(Controller):
 
     def indexAction(self):
         pm = Config.get()
+        headers = None
         if "Authorization" in self.request.headers:
             try:
-                ReceiverId.getResponseHeader(self.request.headers["Authorization"])
+                headers = ReceiverId.getResponseHeader(self.request.headers["Authorization"])
             except KeyException:
                 logger.exception("error processing authorization header")
         status = {
@@ -46,4 +47,4 @@ class StatusController(Controller):
             "version": openwebrx_version,
             "sdrs": [self.getReceiverStats(r) for r in SdrService.getSources().values()]
         }
-        self.send_response(json.dumps(status), content_type="application/json")
+        self.send_response(json.dumps(status), content_type="application/json", headers=headers)
