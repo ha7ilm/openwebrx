@@ -59,6 +59,19 @@ Antenna: Receiver Antenna<br />
 Website: <a href="http://localhost" target="_blank">http://localhost</a>
 """
 
+# ==== Public receiver listings ====
+# You can publish your receiver on online receiver directories, like https://www.receiverbook.de
+# You will receive a receiver key from the directory that will authenticate you as the operator of this receiver.
+# Please note that you not share your receiver keys publicly since anyone that obtains your receiver key can take over
+# your public listing.
+# Your receiver keys should be placed into this array:
+receiver_keys = []
+# You can list your receiver on multiple sites, you can place all your keys into the array above, or you can append
+# more keys like this:
+# receiver_keys += "my-receiver-key"
+
+# If you're not sure, simply copy & paste the code you received from your listing site below this line:
+
 # ==== DSP/RX settings ====
 fft_fps = 9
 fft_size = 4096  # Should be power of 2
