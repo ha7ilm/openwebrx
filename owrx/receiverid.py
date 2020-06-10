@@ -1,6 +1,7 @@
 import re
 import logging
 import hashlib
+import hmac
 from datetime import datetime
 from owrx.config import Config
 
@@ -49,6 +50,8 @@ class ReceiverId(object):
             raise KeyException("invalid authorization header")
         challenge = KeyChallenge(matches.group(1))
         key = ReceiverId.findKey(challenge)
+        if key is None:
+            return {}
         time, signature = ReceiverId.signChallenge(challenge, key)
         return {
             "Signature": signature,
@@ -60,9 +63,10 @@ class ReceiverId(object):
         def parseKey(keyString):
             try:
                 return Key(keyString)
-            except KeyError as e:
+            except KeyException as e:
                 logger.error(e)
-        keys = [key for key in (parseKey(keyString) for keyString in Config.get()['receiver_keys']) if key is not None]
+        keys = [parseKey(keyString) for keyString in Config.get()['receiver_keys']]
+        keys = [key for key in keys if key is not None]
         matching_keys = [key for key in keys if key.source == challenge.source and key.id == challenge.id]
         if matching_keys:
             return matching_keys[0]
@@ -72,6 +76,5 @@ class ReceiverId(object):
     def signChallenge(challenge, key):
         now = datetime.utcnow().isoformat()
         signString = "{challenge}:{time}".format(challenge=challenge.challenge, time=now)
-        m = hashlib.sha256()
-        m.update(signString.encode())
+        m = hmac.new(bytes.fromhex(key.secret), msg=signString.encode('utf8'), digestmod=hashlib.sha256)
         return now, m.hexdigest()
