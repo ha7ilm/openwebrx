@@ -75,6 +75,7 @@ class ReceiverId(object):
     @staticmethod
     def signChallenge(challenge, key):
         now = datetime.utcnow().isoformat()
-        signString = "{challenge}:{time}".format(challenge=challenge.challenge, time=now)
-        m = hmac.new(bytes.fromhex(key.secret), msg=signString.encode('utf8'), digestmod=hashlib.sha256)
+        m = hmac.new(bytes.fromhex(key.secret), digestmod=hashlib.sha256)
+        m.update(bytes.fromhex(challenge.challenge))
+        m.update(now.encode('utf8'))
         return now, m.hexdigest()
