@@ -1,4 +1,4 @@
-openwebrx (0.19.1) UNRELEASED; urgency=low
+openwebrx (0.19.1) buster focal; urgency=low
 
   * Added ability to authenticate receivers with listing sites using
     "receiver id" tokens
