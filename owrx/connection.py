@@ -138,7 +138,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient):
     def handleTextMessage(self, conn, message):
         try:
             message = json.loads(message)
-            logger.debug(message)
             if "type" in message:
                 if message["type"] == "dspcontrol":
                     if "action" in message and message["action"] == "start":
