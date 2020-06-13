@@ -1,9 +1,9 @@
-openwebrx (0.20.0) UNRELEASED; urgency=low
+openwebrx (0.19.1) UNRELEASED; urgency=low
 
   * Added ability to authenticate receivers with listing sites using
     "receiver id" tokens
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, Jun 02 2020 19:16:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, Jun 13 2020 16:46:00 +0000
 
 openwebrx (0.19.0) buster focal; urgency=low
   * Fix direwolf connection setup by implementing a retry loop

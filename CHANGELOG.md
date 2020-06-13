@@ -1,4 +1,4 @@
-**unreleased**
+**0.19.1**
 - Added ability to authenticate receivers with listing sites using "receiver id" tokens
 
 **0.19.0**
