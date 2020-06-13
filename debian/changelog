@@ -1,3 +1,7 @@
+openwebrx (0.20.0) UNRELEASED; urgency=low
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 13 Jun 2020 17:22:00 +0000
+
 openwebrx (0.19.1) buster focal; urgency=low
 
   * Added ability to authenticate receivers with listing sites using
