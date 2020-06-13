@@ -1,4 +1,5 @@
 **unreleased**
+- Added ability to authenticate receivers with listing sites using "receiver id" tokens
 
 **0.19.0**
 - Fix direwolf connection setup by implementing a retry loop
