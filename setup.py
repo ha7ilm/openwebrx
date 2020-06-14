@@ -1,6 +1,6 @@
 from glob import glob
 from setuptools import setup
-from owrx.version import strictversion
+from owrx.version import looseversion
 
 try:
     from setuptools import find_namespace_packages
@@ -10,7 +10,7 @@ except ImportError:
 
 setup(
     name="OpenWebRX",
-    version=str(strictversion),
+    version=str(looseversion),
     packages=find_namespace_packages(include=["owrx", "owrx.source", "owrx.service", "owrx.controllers", "owrx.property", "owrx.form", "csdr", "htdocs"]),
     package_data={"htdocs": [f[len("htdocs/") :] for f in glob("htdocs/**/*", recursive=True)]},
     entry_points={"console_scripts": ["openwebrx=owrx.__main__:main"]},

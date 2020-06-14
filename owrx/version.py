@@ -1,5 +1,5 @@
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 
-_versionstring = "0.20.0"
-strictversion = StrictVersion(_versionstring)
-openwebrx_version = "v{0}".format(strictversion)
+_versionstring = "0.20.0-dev"
+looseversion = LooseVersion(_versionstring)
+openwebrx_version = "v{0}".format(looseversion)
