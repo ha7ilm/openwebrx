@@ -1,13 +1,34 @@
 from . import Controller
 from owrx.config import Config
-from datetime import datetime
+from datetime import datetime, timezone
 import mimetypes
 import os
 import pkg_resources
 from abc import ABCMeta, abstractmethod
 
 
-class AssetsController(Controller, metaclass=ABCMeta):
+class ModificationAwaraController(Controller, metaclass=ABCMeta):
+    @abstractmethod
+    def getModified(self, file):
+        pass
+    
+    def wasModified(self, file):
+        try:
+            modified = self.getModified(file).astimezone(timezone.utc).replace(microsecond=0)
+    
+            if modified is not None and "If-Modified-Since" in self.handler.headers:
+                client_modified = datetime.strptime(
+                    self.handler.headers["If-Modified-Since"], "%a, %d %b %Y %H:%M:%S %Z"
+                ).replace(tzinfo=timezone.utc)
+                if modified <= client_modified:
+                    return False
+        except FileNotFoundError:
+            pass
+        
+        return True
+
+
+class AssetsController(ModificationAwaraController, metaclass=ABCMeta):
     def getModified(self, file):
         return datetime.fromtimestamp(os.path.getmtime(self.getFilePath(file)))
 
@@ -22,13 +43,9 @@ class AssetsController(Controller, metaclass=ABCMeta):
         try:
             modified = self.getModified(file)
 
-            if modified is not None and "If-Modified-Since" in self.handler.headers:
-                client_modified = datetime.strptime(
-                    self.handler.headers["If-Modified-Since"], "%a, %d %b %Y %H:%M:%S %Z"
-                )
-                if modified <= client_modified:
-                    self.send_response("", code=304)
-                    return
+            if not self.wasModified(file):
+                self.send_response("", code=304)
+                return
 
             f = self.openFile(file)
             data = f.read()
@@ -63,7 +80,7 @@ class AprsSymbolsController(AssetsController):
         return self.path + file
 
 
-class CompiledAssetsController(Controller):
+class CompiledAssetsController(ModificationAwaraController):
     profiles = {
         "receiver.js": [
             "openwebrx.js",
@@ -107,13 +124,9 @@ class CompiledAssetsController(Controller):
 
         modified = self.getModified(files)
 
-        if modified is not None and "If-Modified-Since" in self.handler.headers:
-            client_modified = datetime.strptime(
-                self.handler.headers["If-Modified-Since"], "%a, %d %b %Y %H:%M:%S %Z"
-            )
-            if modified <= client_modified:
-                self.send_response("", code=304)
-                return
+        if not self.wasModified(files):
+            self.send_response("", code=304)
+            return
 
         contents = [self.getContents(f) for f in files]
 
