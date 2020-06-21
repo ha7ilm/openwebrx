@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class Controller(object):
@@ -14,7 +14,7 @@ class Controller(object):
         if content_type is not None:
             headers["Content-Type"] = content_type
         if last_modified is not None:
-            headers["Last-Modified"] = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
+            headers["Last-Modified"] = last_modified.astimezone(tz=timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
         if max_age is not None:
             headers["Cache-Control"] = "max-age: {0}".format(max_age)
         for key, value in headers.items():
