@@ -1,5 +1,4 @@
 from owrx.config import Config
-from owrx.metrics import Metrics, DirectMetric
 import threading
 
 import logging
@@ -24,7 +23,6 @@ class ClientRegistry(object):
 
     def __init__(self):
         self.clients = []
-        Metrics.getSharedInstance().addMetric("openwebrx.users", DirectMetric(self.clientCount))
         super().__init__()
 
     def broadcast(self):

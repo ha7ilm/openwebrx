@@ -1,4 +1,5 @@
 import threading
+from owrx.client import ClientRegistry
 
 
 class Metric(object):
@@ -38,6 +39,7 @@ class Metrics(object):
 
     def __init__(self):
         self.metrics = {}
+        self.addMetric("openwebrx.users", DirectMetric(ClientRegistry.getSharedInstance().clientCount))
 
     def addMetric(self, name, metric):
         self.metrics[name] = metric
