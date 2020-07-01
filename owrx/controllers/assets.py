@@ -14,7 +14,7 @@ class ModificationAwaraController(Controller, metaclass=ABCMeta):
     
     def wasModified(self, file):
         try:
-            modified = self.getModified(file).astimezone(timezone.utc).replace(microsecond=0)
+            modified = self.getModified(file).replace(microsecond=0)
     
             if modified is not None and "If-Modified-Since" in self.handler.headers:
                 client_modified = datetime.strptime(
@@ -30,7 +30,7 @@ class ModificationAwaraController(Controller, metaclass=ABCMeta):
 
 class AssetsController(ModificationAwaraController, metaclass=ABCMeta):
     def getModified(self, file):
-        return datetime.fromtimestamp(os.path.getmtime(self.getFilePath(file)))
+        return datetime.fromtimestamp(os.path.getmtime(self.getFilePath(file)), timezone.utc)
 
     def openFile(self, file):
         return open(self.getFilePath(file), "rb")
@@ -138,5 +138,5 @@ class CompiledAssetsController(ModificationAwaraController):
             return f.read()
 
     def getModified(self, files):
-        modified = [datetime.fromtimestamp(os.path.getmtime(f)) for f in files]
-        return max(*modified)
+        modified = [os.path.getmtime(f) for f in files]
+        return datetime.fromtimestamp(max(*modified), timezone.utc)
