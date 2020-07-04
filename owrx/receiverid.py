@@ -38,8 +38,19 @@ class KeyChallenge(object):
 
 
 class KeyResponse(object):
+    def __init__(self, source, id, time: datetime, signature):
+        self.source = source
+        self.id = id
+        self.time = time
+        self.signature = signature
+
     def __str__(self):
-        return "TODO"
+        return "Time={time}, Response={source}-{id}-{signature}".format(
+            source=self.source,
+            id=self.id,
+            signature=self.signature,
+            time=self.time
+        )
 
 
 class ReceiverId(object):
@@ -52,11 +63,7 @@ class ReceiverId(object):
         key = ReceiverId.findKey(challenge)
         if key is None:
             return {}
-        time, signature = ReceiverId.signChallenge(challenge, key)
-        return {
-            "Signature": signature,
-            "Time": time,
-        }
+        return ReceiverId.signChallenge(challenge, key)
 
     @staticmethod
     def findKey(challenge):
@@ -78,4 +85,4 @@ class ReceiverId(object):
         m = hmac.new(bytes.fromhex(key.secret), digestmod=hashlib.sha256)
         m.update(bytes.fromhex(challenge.challenge))
         m.update(now.encode('utf8'))
-        return now, m.hexdigest()
+        return KeyResponse(challenge.source, challenge.id, now, m.hexdigest())
