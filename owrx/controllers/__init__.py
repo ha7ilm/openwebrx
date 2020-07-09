@@ -18,11 +18,7 @@ class Controller(object):
         if max_age is not None:
             headers["Cache-Control"] = "max-age: {0}".format(max_age)
         for key, value in headers.items():
-            if isinstance(value, list):
-                for v in value:
-                    self.handler.send_header(key, v)
-            else:
-                self.handler.send_header(key, value)
+            self.handler.send_header(key, value)
         self.handler.end_headers()
         if type(content) == str:
             content = content.encode()

@@ -2,7 +2,7 @@ import re
 import logging
 import hashlib
 import hmac
-from datetime import datetime
+from datetime import datetime, timezone
 from owrx.config import Config
 
 logger = logging.getLogger(__name__)
@@ -38,18 +38,18 @@ class KeyChallenge(object):
 
 
 class KeyResponse(object):
-    def __init__(self, source, id, time: datetime, signature):
+    def __init__(self, source, id, time, signature):
         self.source = source
         self.id = id
         self.time = time
         self.signature = signature
 
     def __str__(self):
-        return "Time={time}, Response={source}-{id}-{signature}".format(
+        return "{source}-{id}-{time}-{signature}".format(
             source=self.source,
             id=self.id,
+            time=self.time,
             signature=self.signature,
-            time=self.time
         )
 
 
@@ -59,11 +59,16 @@ class ReceiverId(object):
         matches = headerRegex.match(requestHeader)
         if not matches:
             raise KeyException("invalid authorization header")
-        challenge = KeyChallenge(matches.group(1))
-        key = ReceiverId.findKey(challenge)
-        if key is None:
-            return {}
-        return ReceiverId.signChallenge(challenge, key)
+        challenges = [KeyChallenge(i) for i in matches.group(1).split(",")]
+
+        def signChallenge(challenge):
+            key = ReceiverId.findKey(challenge)
+            if key is None:
+                return
+            return ReceiverId.signChallenge(challenge, key)
+
+        responses = [signChallenge(c) for c in challenges]
+        return ",".join(str(r) for r in responses if r is not None)
 
     @staticmethod
     def findKey(challenge):
@@ -81,8 +86,9 @@ class ReceiverId(object):
 
     @staticmethod
     def signChallenge(challenge, key):
-        now = datetime.utcnow().isoformat()
+        now = datetime.utcnow().replace(microsecond=0, tzinfo=timezone.utc)
+        now_bytes = int(now.timestamp()).to_bytes(4, byteorder="big")
         m = hmac.new(bytes.fromhex(key.secret), digestmod=hashlib.sha256)
         m.update(bytes.fromhex(challenge.challenge))
-        m.update(now.encode('utf8'))
-        return KeyResponse(challenge.source, challenge.id, now, m.hexdigest())
+        m.update(now_bytes)
+        return KeyResponse(challenge.source, challenge.id, now_bytes.hex(), m.hexdigest())
