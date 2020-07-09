@@ -35,6 +35,7 @@ class FeatureDetector(object):
         "uhd": ["soapy_connector", "soapy_uhd"],
         "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
+        "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -329,6 +330,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyHackRF/wiki).
         """
         return self._has_soapy_driver("hackrf")
+
+    def has_soapy_fcdpp(self):
+        """
+        The SoapyFCDPP module allows the use of the Funcube Dongle Pro+.
+
+        You can get it [here](https://github.com/pothosware/SoapyFCDPP).
+        """
+        return self._has_soapy_driver("fcdpp")
 
     def has_dsd(self):
         """
