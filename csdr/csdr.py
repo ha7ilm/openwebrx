@@ -95,10 +95,9 @@ class Pipe(object):
         self.file = open(self.path, self.direction, encoding=self.encoding)
 
     def close(self):
-        if self.file is None:
-            return
         try:
-            self.file.close()
+            if self.file is not None:
+                self.file.close()
             os.unlink(self.path)
         except FileNotFoundError:
             # it seems like we keep calling this twice. no idea why, but we don't need the resulting error.
@@ -685,6 +684,9 @@ class dsp(object):
 
     def try_create_pipes(self, pipe_names, command_base):
         for pipe_name, pipe_type in pipe_names.items():
+            if self.has_pipe(pipe_name):
+                logger.warning("{pipe_name} is still in use", pipe_name=pipe_name)
+                self.pipes[pipe_name].close()
             if "{" + pipe_name + "}" in command_base:
                 p = self.pipe_base_path + pipe_name
                 encoding = None
