@@ -146,6 +146,9 @@ class WebSocketConnection(object):
             self.close()
 
     def interrupt(self):
+        if self.interruptPipeSend is None:
+            logger.debug("interrupt with closed pipe")
+            return
         self.interruptPipeSend.send(bytes(0x00))
 
     def handle(self):
@@ -226,6 +229,18 @@ class WebSocketConnection(object):
                     except OSError:
                         logger.exception("OSError while reading data; closing connection")
                         self.open = False
+
+        self.interruptPipeSend.close()
+        self.interruptPipeSend = None
+        # drain messages left in the queue so that the queue can be successfully closed
+        # this is necessary since python keeps the file descriptors open otherwise
+        try:
+            while True:
+                self.interruptPipeRecv.recv()
+        except EOFError:
+            pass
+        self.interruptPipeRecv.close()
+        self.interruptPipeRecv = None
 
     def close(self):
         self.open = False
