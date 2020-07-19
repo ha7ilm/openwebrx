@@ -16,7 +16,7 @@ OPCODE_PING = 0x09
 OPCODE_PONG = 0x0A
 
 
-class WebSocketException(Exception):
+class WebSocketException(IOError):
     pass
 
 

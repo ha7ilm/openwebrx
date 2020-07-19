@@ -240,5 +240,5 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
         try:
             readers = wait([w.outputReader for w in self.writers])
             return [r.recv() for r in readers]
-        except EOFError:
+        except (EOFError, OSError):
             return None

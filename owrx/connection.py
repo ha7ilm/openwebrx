@@ -41,7 +41,10 @@ class Client(ABC):
         threading.Thread(target=mp_passthru).start()
 
     def send(self, data):
-        self.conn.send(data)
+        try:
+            self.conn.send(data)
+        except IOError:
+            self.close()
 
     def close(self):
         self.conn.close()
