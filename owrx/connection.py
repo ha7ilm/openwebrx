@@ -37,6 +37,11 @@ class Client(ABC):
                     self.send(data)
                 except (EOFError, OSError):
                     run = False
+                except Exception:
+                    logger.exception("Exception on client multiprocessing queue")
+
+            # unset the queue object to free shared memory file descriptors
+            self.multiprocessingPipe = None
 
         threading.Thread(target=mp_passthru).start()
 
