@@ -251,13 +251,14 @@ class SdrSource(ABC):
         except ValueError:
             pass
 
+        hasUsers = self.hasClients(SdrSource.CLIENT_USER)
+        self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
+
         # no need to check for users if we are always-on
         if self.isAlwaysOn():
             return
 
-        hasUsers = self.hasClients(SdrSource.CLIENT_USER)
         hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
-        self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
         if not hasUsers and not hasBackgroundTasks:
             self.stop()
 
