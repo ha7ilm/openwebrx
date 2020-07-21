@@ -35,7 +35,7 @@ class Client(ABC):
                 try:
                     data = self.multiprocessingPipe.get()
                     self.send(data)
-                except (EOFError, OSError):
+                except (EOFError, OSError, ValueError):
                     run = False
                 except Exception:
                     logger.exception("Exception on client multiprocessing queue")
@@ -53,9 +53,12 @@ class Client(ABC):
 
     def close(self):
         self.conn.close()
-        self.multiprocessingPipe.close()
+        if self.multiprocessingPipe is not None:
+            self.multiprocessingPipe.close()
 
     def mp_send(self, data):
+        if self.multiprocessingPipe is None:
+            return
         try:
             self.multiprocessingPipe.put(data, block=False)
         except Full:
