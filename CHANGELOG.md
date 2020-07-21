@@ -1,4 +1,9 @@
 **unreleased**
+- Added the ability to sign multiple keys in a single request, thus enabling multiple users to claim a single receiver
+  on receiverbook.de
+- Fixed file descriptor leaks to prevent "too many open files" errors
+- New devices supported:
+  - FunCube Dongle Pro+ (`"type": "fcdpp"`)
 
 **0.19.1**
 - Added ability to authenticate receivers with listing sites using "receiver id" tokens

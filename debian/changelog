@@ -1,5 +1,11 @@
 openwebrx (0.20.0) UNRELEASED; urgency=low
 
+  * Added the ability to sign multiple keys in a single request, thus enabling multiple users to claim a single receiver
+    on receiverbook.de
+  * Fixed file descriptor leaks to prevent "too many open files" errors
+  * New devices supported:
+    - FunCube Dongle Pro+ (`"type": "fcdpp"`)
+
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 13 Jun 2020 17:22:00 +0000
 
 openwebrx (0.19.1) buster focal; urgency=low
