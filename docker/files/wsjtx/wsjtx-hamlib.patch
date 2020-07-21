@@ -1,6 +1,6 @@
---- CMakeLists.txt	2020-05-25 19:26:41.423517236 +0200
-+++ CMakeLists.txt	2020-05-25 19:11:36.116236231 +0200
-@@ -79,24 +79,6 @@
+--- CMakeLists.txt.orig	2020-07-21 20:59:55.982026645 +0200
++++ CMakeLists.txt	2020-07-21 21:01:25.444836112 +0200
+@@ -80,24 +80,6 @@
  
  include (ExternalProject)
  
@@ -12,9 +12,9 @@
 -ExternalProject_Add (hamlib
 -  GIT_REPOSITORY ${hamlib_repo}
 -  GIT_TAG ${hamlib_TAG}
--  URL ${CMAKE_CURRENT_SOURCE_DIR}/src/hamlib.tgz
+-  URL ${CMAKE_CURRENT_SOURCE_DIR}/src/${__hamlib_upstream}
 -  URL_HASH MD5=${hamlib_md5sum}
--  UPDATE_COMMAND ./bootstrap
+-  #UPDATE_COMMAND ${CMAKE_COMMAND} -E env "[ -f ./bootstrap ] && ./bootstrap"
 -  PATCH_COMMAND ${PATCH_EXECUTABLE} -p1 -N < ${CMAKE_CURRENT_SOURCE_DIR}/hamlib.patch
 -  CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-shared --enable-static --without-cxx-binding ${EXTRA_FLAGS} # LIBUSB_LIBS=${USB_LIBRARY}
 -  BUILD_COMMAND $(MAKE) all V=1 # $(MAKE) is ExternalProject_Add() magic to do recursive make
@@ -25,7 +25,7 @@
  #
  # custom target to make a hamlib source tarball
  #
-@@ -128,7 +110,6 @@
+@@ -136,7 +118,6 @@
  # build and optionally install WSJT-X using the hamlib package built
  # above
  #
@@ -33,7 +33,7 @@
  ExternalProject_Add (wsjtx
    GIT_REPOSITORY ${wsjtx_repo}
    GIT_TAG ${WSJTX_TAG}
-@@ -152,7 +133,6 @@
+@@ -160,7 +141,6 @@
    DEPENDEES build
    )
  
