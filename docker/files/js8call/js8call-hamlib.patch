@@ -1,6 +1,6 @@
 diff -ur js8call-orig/CMake/Modules/Findhamlib.cmake js8call/CMake/Modules/Findhamlib.cmake
---- js8call-orig/CMake/Modules/Findhamlib.cmake	2020-05-28 00:10:13.386429366 +0200
-+++ js8call/CMake/Modules/Findhamlib.cmake	2020-05-28 00:10:34.339623106 +0200
+--- js8call-orig/CMake/Modules/Findhamlib.cmake	2020-07-22 18:14:18.014499840 +0200
++++ js8call/CMake/Modules/Findhamlib.cmake	2020-07-22 18:16:07.200375473 +0200
 @@ -78,4 +78,4 @@
  # Handle the  QUIETLY and REQUIRED  arguments and set  HAMLIB_FOUND to
  # TRUE if all listed variables are TRUE
@@ -8,9 +8,9 @@ diff -ur js8call-orig/CMake/Modules/Findhamlib.cmake js8call/CMake/Modules/Findh
 -find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES hamlib_LIBRARY_DIRS)
 +find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES)
 diff -ur js8call-orig/CMakeLists.txt js8call/CMakeLists.txt
---- js8call-orig/CMakeLists.txt	2020-05-28 00:10:13.393095987 +0200
-+++ js8call/CMakeLists.txt	2020-05-28 00:12:09.925653037 +0200
-@@ -683,7 +683,7 @@
+--- js8call-orig/CMakeLists.txt	2020-07-22 18:14:18.014499840 +0200
++++ js8call/CMakeLists.txt	2020-07-22 18:17:55.629633825 +0200
+@@ -558,7 +558,7 @@
  #
  # libhamlib setup
  #
@@ -19,7 +19,7 @@ diff -ur js8call-orig/CMakeLists.txt js8call/CMakeLists.txt
  find_package (hamlib 3 REQUIRED)
  find_program (RIGCTL_EXE rigctl)
  find_program (RIGCTLD_EXE rigctld)
-@@ -1033,55 +1033,6 @@
+@@ -911,56 +911,6 @@
    target_link_libraries (js8 wsjt_fort wsjt_cxx Qt5::Core)
  endif (${OPENMP_FOUND} OR APPLE)
  
@@ -31,6 +31,7 @@ diff -ur js8call-orig/CMakeLists.txt js8call/CMakeLists.txt
 -  wsjtx.rc
 -  ${WSJTX_ICON_FILE}
 -  ${wsjtx_RESOURCES_RCC}
+-  images.qrc
 -  )
 -
 -if (WSJT_CREATE_WINMAIN)
@@ -75,7 +76,7 @@ diff -ur js8call-orig/CMakeLists.txt js8call/CMakeLists.txt
  # if (UNIX)
  #   if (NOT WSJT_SKIP_MANPAGES)
  #     add_subdirectory (manpages)
-@@ -1097,38 +1048,10 @@
+@@ -976,38 +926,10 @@
  #
  # installation
  #
@@ -114,7 +115,7 @@ diff -ur js8call-orig/CMakeLists.txt js8call/CMakeLists.txt
  install (FILES
    contrib/Ephemeris/JPLEPH
    DESTINATION ${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}
-@@ -1182,32 +1105,6 @@
+@@ -1061,32 +983,6 @@
    "${CMAKE_CURRENT_BINARY_DIR}/wsjtx_config.h"
    )
  

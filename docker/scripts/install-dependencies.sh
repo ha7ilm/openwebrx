@@ -72,15 +72,15 @@ cmakebuild digiham 95206501be89b38d0267bf6c29a6898e7c65656f
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7
 
-JS8CALL_VERSION=2.1.1
-JS8CALL_DIR=js8call-${JS8CALL_VERSION}
-JS8CALL_TGZ=${JS8CALL_DIR}.tgz
+JS8CALL_VERSION=2.2.0
+JS8CALL_DIR=js8call
+JS8CALL_TGZ=js8call-${JS8CALL_VERSION}.tgz
 wget http://files.js8call.com/${JS8CALL_VERSION}/${JS8CALL_TGZ}
 tar xfz ${JS8CALL_TGZ}
 # patch allows us to build against the packaged hamlib
 patch -Np1 -d ${JS8CALL_DIR} < /js8call-hamlib.patch
 rm /js8call-hamlib.patch
-CMAKE_ARGS="-D CMAKE_CXX_FLAGS=-DJS8_USE_LEGACY_HAMLIB" cmakebuild ${JS8CALL_DIR}
+CMAKE_ARGS="-D CMAKE_CXX_FLAGS=-DJS8_USE_HAMLIB_THREE" cmakebuild ${JS8CALL_DIR}
 rm ${JS8CALL_TGZ}
 
 WSJT_DIR=wsjtx-2.2.2
