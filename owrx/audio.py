@@ -183,9 +183,14 @@ class AudioWriter(object):
             stdout=subprocess.PIPE,
             cwd=self.tmp_dir,
             close_fds=True,
-            )
-        for line in decoder.stdout:
-            self.outputWriter.send((job.freq, line))
+        )
+        try:
+            for line in decoder.stdout:
+                self.outputWriter.send((job.freq, line))
+        except OSError:
+            decoder.stdout.flush()
+            # TODO uncouple parsing from the output so that decodes can still go to the map and the spotters
+            logger.debug("output has gone away while decoding job.")
         try:
             rc = decoder.wait(timeout=10)
             if rc != 0:
