@@ -48,6 +48,7 @@ class Modes(object):
         AnalogMode("dstar", "DStar", bandpass=Bandpass(-3250, 3250), requirements=["digital_voice_dsd"], squelch=False),
         AnalogMode("nxdn", "NXDN", bandpass=Bandpass(-3250, 3250), requirements=["digital_voice_dsd"], squelch=False),
         AnalogMode("ysf", "YSF", bandpass=Bandpass(-4000, 4000), requirements=["digital_voice_digiham"], squelch=False),
+        AnalogMode("freedv", "FDV", bandpass=Bandpass(300, 3000), requirements=["digital_voice_freedv"], squelch=False),
         DigitalMode("bpsk31", "BPSK31", underlying=["usb"]),
         DigitalMode("bpsk63", "BPSK63", underlying=["usb"]),
         DigitalMode("ft8", "FT8", underlying=["usb"], requirements=["wsjt-x"], service=True),

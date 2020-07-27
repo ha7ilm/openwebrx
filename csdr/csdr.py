@@ -301,6 +301,15 @@ class dsp(object):
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
             chain += ["csdr agc_ff", "csdr limit_ff", "csdr convert_f_s16"]
+        elif which == "freedv":
+            chain += ["csdr realpart_cf"]
+            chain += last_decimation_block
+            chain += [
+                "csdr agc_ff",
+                "csdr convert_f_s16",
+                "freedv_rx 1600 - -",
+                "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
+            ]
         elif which == "ssb":
             chain += ["csdr realpart_cf"]
             chain += last_decimation_block
@@ -571,6 +580,8 @@ class dsp(object):
             return 48000
         elif self.isWsjtMode() or self.isJs8():
             return 12000
+        elif self.get_demodulator() == "freedv":
+            return 8000
         return self.get_output_rate()
 
     def isDigitalVoice(self, demodulator=None):
@@ -664,7 +675,7 @@ class dsp(object):
     def set_squelch_level(self, squelch_level):
         self.squelch_level = squelch_level
         # no squelch required on digital voice modes
-        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() else self.squelch_level
+        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.get_demodulator() == "freedv" else self.squelch_level
         if self.running:
             self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 

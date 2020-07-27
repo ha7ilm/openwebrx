@@ -39,6 +39,7 @@ class FeatureDetector(object):
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
+        "digital_voice_freedv": ["freedv_rx", "sox"],
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
@@ -401,3 +402,6 @@ class FeatureDetector(object):
         You can find instructions and downloads [here](https://o28.sischa.net/fifisdr/trac/wiki/De%3Arockprog).
         """
         return self.command_is_runnable("rockprog")
+
+    def has_freedv_rx(self):
+        return self.command_is_runnable("freedv_rx")
