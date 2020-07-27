@@ -247,8 +247,6 @@ sdrs = {
 
 # ==== Color themes ====
 
-# A guide is available to help you set these values: https://github.com/simonyiszk/openwebrx/wiki/Calibrating-waterfall-display-levels
-
 ### default theme by teejez:
 waterfall_colors = [0x000000FF, 0x0000FFFF, 0x00FFFFFF, 0x00FF00FF, 0xFFFF00FF, 0xFF0000FF, 0xFF00FFFF, 0xFFFFFFFF]
 waterfall_min_level = -88  # in dB
