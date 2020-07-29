@@ -99,6 +99,18 @@ make install
 cd ..
 rm -rf direwolf
 
+git clone https://github.com/drowe67/codec2.git
+cd codec2
+git checkout v0.9.2
+mkdir build
+cd build
+cmake ..
+make
+make install
+install -m 0755 src/freedv_rx /usr/local/bin
+cd ../..
+rm -rf codec2
+
 git clone https://github.com/hessu/aprs-symbols /opt/aprs-symbols
 pushd /opt/aprs-symbols
 git checkout 5c2abe2658ee4d2563f3c73b90c6f59124839802
