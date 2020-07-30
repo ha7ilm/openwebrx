@@ -61,7 +61,7 @@ class Js8ServiceOutput(ServiceOutput):
 
 class ServiceHandler(object):
     def __init__(self, source):
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.services = []
         self.source = source
         self.startupTimer = None
@@ -124,30 +124,28 @@ class ServiceHandler(object):
         self.startupTimer.start()
 
     def updateServices(self):
-        logger.debug("re-scheduling services due to sdr changes")
-        self.stopServices()
-        if not self.source.isAvailable():
-            logger.debug("sdr source is unavailable")
-            return
-        cf = self.source.getProps()["center_freq"]
-        sr = self.source.getProps()["samp_rate"]
-        srh = sr / 2
-        frequency_range = (cf - srh, cf + srh)
-
-        dials = [
-            dial
-            for dial in Bandplan.getSharedInstance().collectDialFrequencies(
-                frequency_range
-            )
-            if self.isSupported(dial["mode"])
-        ]
-
-        if not dials:
-            logger.debug("no services available")
-            return
-
         with self.lock:
-            self.services = []
+            logger.debug("re-scheduling services due to sdr changes")
+            self.stopServices()
+            if not self.source.isAvailable():
+                logger.debug("sdr source is unavailable")
+                return
+            cf = self.source.getProps()["center_freq"]
+            sr = self.source.getProps()["samp_rate"]
+            srh = sr / 2
+            frequency_range = (cf - srh, cf + srh)
+
+            dials = [
+                dial
+                for dial in Bandplan.getSharedInstance().collectDialFrequencies(
+                    frequency_range
+                )
+                if self.isSupported(dial["mode"])
+            ]
+
+            if not dials:
+                logger.debug("no services available")
+                return
 
             groups = self.optimizeResampling(dials, sr)
             if groups is None:
