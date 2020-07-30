@@ -101,7 +101,8 @@ rm -rf direwolf
 
 git clone https://github.com/drowe67/codec2.git
 cd codec2
-git checkout v0.9.2
+# latest commit from master as of 2020-07-30
+git checkout 1edc22e43f77fbb971429f9f7d4d8d909a7e12cb
 mkdir build
 cd build
 cmake ..
