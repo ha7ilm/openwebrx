@@ -209,13 +209,30 @@ class AudioWriter(object):
         self.switchingLock.release()
 
     def stop(self):
-        self.outputReader.close()
         self.outputWriter.close()
+        self.outputWriter = None
+
+        # drain messages left in the queue so that the queue can be successfully closed
+        # this is necessary since python keeps the file descriptors open otherwise
+        try:
+            while True:
+                self.outputReader.recv()
+        except EOFError:
+            pass
+        self.outputReader.close()
+        self.outputReader = None
+
         self.cancelTimer()
+        try:
+            self.wavefile.close()
+        except Exception:
+            logger.exception("error closing wave file")
         try:
             os.unlink(self.wavefilename)
         except Exception:
             logger.exception("error removing undecoded file")
+        self.wavefile = None
+        self.wavefilename = None
 
 
 class AudioChopper(threading.Thread, metaclass=ABCMeta):
