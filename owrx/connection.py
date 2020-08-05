@@ -12,8 +12,7 @@ from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.property import PropertyStack
 from owrx.modes import Modes, DigitalMode
-from multiprocessing import Queue
-from queue import Full
+from queue import Queue, Full
 from js8py import Js8Frame
 from abc import ABC, ABCMeta, abstractmethod
 import json
@@ -27,21 +26,21 @@ logger = logging.getLogger(__name__)
 class Client(ABC):
     def __init__(self, conn):
         self.conn = conn
-        self.multiprocessingPipe = Queue(100)
+        self.multithreadingPipe = Queue(100)
 
         def mp_passthru():
             run = True
             while run:
                 try:
-                    data = self.multiprocessingPipe.get()
+                    data = self.multithreadingPipe.get()
                     self.send(data)
                 except (EOFError, OSError, ValueError):
                     run = False
                 except Exception:
-                    logger.exception("Exception on client multiprocessing queue")
+                    logger.exception("Exception on client multithreading queue")
 
             # unset the queue object to free shared memory file descriptors
-            self.multiprocessingPipe = None
+            self.multithreadingPipe = None
 
         threading.Thread(target=mp_passthru).start()
 
@@ -53,14 +52,12 @@ class Client(ABC):
 
     def close(self):
         self.conn.close()
-        if self.multiprocessingPipe is not None:
-            self.multiprocessingPipe.close()
 
     def mp_send(self, data):
-        if self.multiprocessingPipe is None:
+        if self.multithreadingPipe is None:
             return
         try:
-            self.multiprocessingPipe.put(data, block=False)
+            self.multithreadingPipe.put(data, block=False)
         except Full:
             self.close()
 
