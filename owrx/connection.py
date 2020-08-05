@@ -26,21 +26,23 @@ logger = logging.getLogger(__name__)
 class Client(ABC):
     def __init__(self, conn):
         self.conn = conn
-        self.multithreadingPipe = Queue(100)
+        self.multithreadingQueue = Queue(100)
 
         def mp_passthru():
             run = True
             while run:
                 try:
-                    data = self.multithreadingPipe.get()
+                    data = self.multithreadingQueue.get()
                     self.send(data)
                 except (EOFError, OSError, ValueError):
                     run = False
                 except Exception:
                     logger.exception("Exception on client multithreading queue")
+                finally:
+                    self.multithreadingQueue.task_done()
 
             # unset the queue object to free shared memory file descriptors
-            self.multithreadingPipe = None
+            self.multithreadingQueue = None
 
         threading.Thread(target=mp_passthru).start()
 
@@ -54,10 +56,10 @@ class Client(ABC):
         self.conn.close()
 
     def mp_send(self, data):
-        if self.multithreadingPipe is None:
+        if self.multithreadingQueue is None:
             return
         try:
-            self.multithreadingPipe.put(data, block=False)
+            self.multithreadingQueue.put(data, block=False)
         except Full:
             self.close()
 
