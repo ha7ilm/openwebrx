@@ -504,12 +504,18 @@ class dsp(object):
         if self.secondary_process_fft:
             try:
                 os.killpg(os.getpgid(self.secondary_process_fft.pid), signal.SIGTERM)
+                # drain any leftover data to free file descriptors
+                self.secondary_process_fft.communicate()
+                self.secondary_process_fft = None
             except ProcessLookupError:
                 # been killed by something else, ignore
                 pass
         if self.secondary_process_demod:
             try:
                 os.killpg(os.getpgid(self.secondary_process_demod.pid), signal.SIGTERM)
+                # drain any leftover data to free file descriptors
+                self.secondary_process_demod.communicate()
+                self.secondary_process_demod = None
             except ProcessLookupError:
                 # been killed by something else, ignore
                 pass
@@ -848,6 +854,8 @@ class dsp(object):
             if self.process is not None:
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+                    # drain any leftover data to free file descriptors
+                    self.process.communicate()
                     self.process = None
                 except ProcessLookupError:
                     # been killed by something else, ignore
