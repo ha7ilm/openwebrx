@@ -247,7 +247,11 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
         for w in self.writers:
             w.start()
         while self.doRun:
-            data = self.source.read(256)
+            data = None
+            try:
+                data = self.source.read(256)
+            except ValueError:
+                pass
             if data is None or (isinstance(data, bytes) and len(data) == 0):
                 self.doRun = False
             else:
