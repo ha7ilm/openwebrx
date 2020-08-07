@@ -22,5 +22,8 @@ How did you install OpenWebRX? (Raspberry Pi SD card image, Debian / Ubuntu pack
 **Versions**
 What version of OpenWebRX are you running? (Check on startup, or see `owrx/version.py`. If a `-dev` version is used, ideally state the commit the issue is appearing on)
 
+**Log messages**
+Are there any relevant messages relating to the bug in the output / log of OpenWebRX? (On most installations, the log should be available using the command `sudo journalctl -u openwebrx`)
+
 **Additional context**
 Add any other context about the problem here.
