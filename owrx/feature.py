@@ -404,4 +404,11 @@ class FeatureDetector(object):
         return self.command_is_runnable("rockprog")
 
     def has_freedv_rx(self):
+        """
+        The "freedv\_rx" executable is required to demodulate FreeDV digital transmissions. It comes together with the
+        codec2 library, but it's only a supplemental part and not installed by default or contained in its packages.
+        To install it, you will need to compile codec2 from source and manually install freedv\_rx.
+
+        You can find the codec2 source code [here](https://github.com/drowe67/codec2).
+        """
         return self.command_is_runnable("freedv_rx")
