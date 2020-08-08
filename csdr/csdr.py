@@ -261,9 +261,12 @@ class dsp(object):
             if not self.output.supports_type("audio"):
                 return chain
         # safe some cpu cycles... no need to decimate if decimation factor is 1
-        last_decimation_block = (
-            ["csdr fractional_decimator_ff {last_decimation}"] if self.last_decimation != 1.0 else []
-        )
+        last_decimation_block = []
+        if self.last_decimation >= 2.0:
+            # activate prefilter if signal has been oversampled, e.g. WFM
+            last_decimation_block = ["csdr fractional_decimator_ff {last_decimation} 12 --prefilter"]
+        elif self.last_decimation >= 1.0:
+            last_decimation_block = ["csdr fractional_decimator_ff {last_decimation}"]
         if which == "nfm":
             chain += ["csdr fmdemod_quadri_cf", "csdr limit_ff"]
             chain += last_decimation_block
@@ -275,7 +278,10 @@ class dsp(object):
             else:
                 chain += ["csdr convert_f_s16"]
         elif which == "wfm":
-            chain += ["csdr fmdemod_quadri_cf", "csdr limit_ff"]
+            chain += [
+                "csdr fmdemod_quadri_cf",
+                "csdr limit_ff",
+            ]
             chain += last_decimation_block
             chain += [
                 "csdr deemphasis_wfm_ff {audio_rate} 50e-6",
