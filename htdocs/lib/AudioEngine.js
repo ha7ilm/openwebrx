@@ -216,7 +216,7 @@ AudioEngine.prototype.getSampleRate = function() {
     return this.audioContext.sampleRate;
 };
 
-AudioEngine.prototype.pushAudio = function(data) {
+AudioEngine.prototype.processAudio = function(data, resampler) {
     if (!this.audioNode) return;
     this.audioBytes.add(data.byteLength);
     var buffer;
@@ -226,7 +226,7 @@ AudioEngine.prototype.pushAudio = function(data) {
     } else {
         buffer = new Int16Array(data);
     }
-    buffer = this.resampler.process(buffer);
+    buffer = resampler.process(buffer);
     if (this.audioNode.port) {
         // AudioWorklets supported
         this.audioNode.port.postMessage(buffer);
@@ -236,28 +236,14 @@ AudioEngine.prototype.pushAudio = function(data) {
             this.audioBuffers.push(buffer);
         }
     }
+}
+
+AudioEngine.prototype.pushAudio = function(data) {
+    this.processAudio(data, this.resampler);
 };
 
 AudioEngine.prototype.pushHdAudio = function(data) {
-    if (!this.audioNode) return;
-    this.audioBytes.add(data.byteLength);
-    var buffer;
-    if (this.compression === "adpcm") {
-        //resampling & ADPCM
-        buffer = this.audioCodec.decode(new Uint8Array(data));
-    } else {
-        buffer = new Int16Array(data);
-    }
-    buffer = this.hdResampler.process(buffer);
-    if (this.audioNode.port) {
-        // AudioWorklets supported
-        this.audioNode.port.postMessage(buffer);
-    } else {
-        // silently drop excess samples
-        if (this.getBuffersize() + buffer.length <= this.maxBufferSize) {
-            this.audioBuffers.push(buffer);
-        }
-    }
+    this.processAudio(data, this.hdResampler);
 }
 
 AudioEngine.prototype.setCompression = function(compression) {
