@@ -95,6 +95,7 @@ class DspManager(csdr.output):
             self.props.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
             self.props.wireProperty("samp_rate", self.dsp.set_samp_rate),
             self.props.wireProperty("output_rate", self.dsp.set_output_rate),
+            self.props.wireProperty("hd_output_rate", self.dsp.set_hd_output_rate),
             self.props.wireProperty("offset_freq", self.dsp.set_offset_freq),
             self.props.wireProperty("center_freq", self.dsp.set_center_freq),
             self.props.wireProperty("squelch_level", self.dsp.set_squelch_level),
@@ -147,6 +148,7 @@ class DspManager(csdr.output):
         logger.debug("adding new output of type %s", t)
         writers = {
             "audio": self.handler.write_dsp_data,
+            "hd_audio": self.handler.write_hd_audio,
             "smeter": self.handler.write_s_meter_level,
             "secondary_fft": self.handler.write_secondary_fft,
             "secondary_demod": self.handler.write_secondary_demod,

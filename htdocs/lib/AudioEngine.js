@@ -238,6 +238,28 @@ AudioEngine.prototype.pushAudio = function(data) {
     }
 };
 
+AudioEngine.prototype.pushHdAudio = function(data) {
+    if (!this.audioNode) return;
+    this.audioBytes.add(data.byteLength);
+    var buffer;
+    if (this.compression === "adpcm") {
+        //resampling & ADPCM
+        buffer = this.audioCodec.decode(new Uint8Array(data));
+    } else {
+        buffer = new Int16Array(data);
+    }
+    buffer = this.hdResampler.process(buffer);
+    if (this.audioNode.port) {
+        // AudioWorklets supported
+        this.audioNode.port.postMessage(buffer);
+    } else {
+        // silently drop excess samples
+        if (this.getBuffersize() + buffer.length <= this.maxBufferSize) {
+            this.audioBuffers.push(buffer);
+        }
+    }
+}
+
 AudioEngine.prototype.setCompression = function(compression) {
     this.compression = compression;
 };

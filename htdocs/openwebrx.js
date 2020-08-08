@@ -829,6 +829,10 @@ function on_ws_recv(evt) {
                     secondary_demod_waterfall_add(waterfall_f32);
                 }
                 break;
+            case 4:
+                // hd audio data
+                audioEngine.pushHdAudio(data);
+                break;
             default:
                 console.warn('unknown type of binary message: ' + type)
         }

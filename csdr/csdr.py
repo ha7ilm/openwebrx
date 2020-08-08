@@ -165,6 +165,7 @@ class dsp(object):
     def __init__(self, output):
         self.samp_rate = 250000
         self.output_rate = 11025
+        self.hd_output_rate = 44100
         self.fft_size = 1024
         self.fft_fps = 5
         self.center_freq = 0
@@ -273,6 +274,13 @@ class dsp(object):
                 ]
             else:
                 chain += ["csdr convert_f_s16"]
+        elif which == "wfm":
+            chain += ["csdr fmdemod_quadri_cf", "csdr limit_ff"]
+            chain += last_decimation_block
+            chain += [
+                "csdr deemphasis_wfm_ff {audio_rate} 50e-6",
+                "csdr convert_f_s16"
+            ]
         elif self.isDigitalVoice(which):
             chain += ["csdr fmdemod_quadri_cf", "dc_block "]
             chain += last_decimation_block
@@ -305,7 +313,7 @@ class dsp(object):
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
             chain += ["csdr agc_ff", "csdr limit_ff", "csdr convert_f_s16"]
-        elif which == "freedv":
+        elif self.isFreeDV(which):
             chain += ["csdr realpart_cf"]
             chain += last_decimation_block
             chain += [
@@ -585,13 +593,18 @@ class dsp(object):
     def get_output_rate(self):
         return self.output_rate
 
+    def get_hd_output_rate(self):
+        return self.hd_output_rate
+
     def get_audio_rate(self):
         if self.isDigitalVoice() or self.isPacket() or self.isPocsag():
             return 48000
         elif self.isWsjtMode() or self.isJs8():
             return 12000
-        elif self.get_demodulator() == "freedv":
+        elif self.isFreeDV():
             return 8000
+        elif self.isHdAudio():
+            return self.get_hd_output_rate()
         return self.get_output_rate()
 
     def isDigitalVoice(self, demodulator=None):
@@ -619,11 +632,27 @@ class dsp(object):
             demodulator = self.get_secondary_demodulator()
         return demodulator == "pocsag"
 
+    def isFreeDV(self, demodulator=None):
+        if demodulator is None:
+            demodulator = self.get_demodulator()
+        return demodulator == "freedv"
+
+    def isHdAudio(self, demodulator=None):
+        if demodulator is None:
+            demodulator = self.get_demodulator()
+        return demodulator == "wfm"
+
     def set_output_rate(self, output_rate):
         if self.output_rate == output_rate:
             return
         self.output_rate = output_rate
         self.calculate_decimation()
+        self.restart()
+
+    def set_hd_output_rate(self, hd_output_rate):
+        if self.hd_output_rate == hd_output_rate:
+            return
+        self.hd_output_rate = hd_output_rate
         self.restart()
 
     def set_demodulator(self, demodulator):
@@ -685,7 +714,7 @@ class dsp(object):
     def set_squelch_level(self, squelch_level):
         self.squelch_level = squelch_level
         # no squelch required on digital voice modes
-        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.get_demodulator() == "freedv" else self.squelch_level
+        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.isFreeDV() else self.squelch_level
         if self.running:
             self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 
@@ -818,9 +847,10 @@ class dsp(object):
 
             threading.Thread(target=watch_thread).start()
 
-            if self.output.supports_type("audio"):
+            audio_type = "hd_audio" if self.isHdAudio() else "audio"
+            if self.output.supports_type(audio_type):
                 self.output.send_output(
-                    "audio",
+                    audio_type,
                     partial(
                         self.process.stdout.read,
                         self.get_fft_bytes_to_read() if self.demodulator == "fft" else self.get_audio_bytes_to_read(),
