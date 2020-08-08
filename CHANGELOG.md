@@ -3,6 +3,7 @@
   on receiverbook.de
 - Fixed file descriptor leaks to prevent "too many open files" errors
 - Add new demodulator chain for FreeDV
+- Added new HD audio streaming mode along with a new WFM demodulator
 - New devices supported:
   - FunCube Dongle Pro+ (`"type": "fcdpp"`)
 
