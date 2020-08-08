@@ -30,6 +30,7 @@ class DspManager(csdr.output):
         # local demodulator properties not forwarded to the sdr
         self.props.addLayer(0, PropertyLayer().filter(
             "output_rate",
+            "hd_output_rate",
             "squelch_level",
             "secondary_mod",
             "low_cut",

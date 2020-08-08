@@ -19,6 +19,7 @@ function AudioEngine(maxBufferLength, audioReporter) {
 
     this.setupResampling();
     this.resampler = new Interpolator(this.resamplingFactor);
+    this.hdResampler = new Interpolator(this.hdResamplingFactor);
 
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
 }
@@ -165,29 +166,51 @@ AudioEngine.prototype.resetStats = function() {
 };
 
 AudioEngine.prototype.setupResampling = function() { //both at the server and the client
-    var output_range_max = 12000;
-    var output_range_min = 8000;
+    var audio_params = this.findRate(8000, 12000);
+    if (!audio_params) {
+        this.resamplingFactor = 0;
+        this.outputRate = 0;
+        divlog('Your audio card sampling rate (' + targetRate + ') is not supported.<br />Please change your operating system default settings in order to fix this.', 1);
+    } else {
+        this.resamplingFactor = audio_params.resamplingFactor;
+        this.outputRate = audio_params.outputRate;
+    }
+
+    var hd_audio_params = this.findRate(36000, 48000);
+    if (!hd_audio_params) {
+        this.hdResamplingFactor = 0;
+        this.hdOutputRate = 0;
+        divlog('Your audio card sampling rate (' + targetRate + ') is not supported for HD audio<br />Please change your operating system default settings in order to fix this.', 1);
+    } else {
+        this.hdResamplingFactor = hd_audio_params.resamplingFactor;
+        this.hdOutputRate = hd_audio_params.outputRate;
+    }
+};
+
+AudioEngine.prototype.findRate = function(low, high) {
     var targetRate = this.audioContext.sampleRate;
     var i = 1;
     while (true) {
         var audio_server_output_rate = Math.floor(targetRate / i);
-        if (audio_server_output_rate < output_range_min) {
-            this.resamplingFactor = 0;
-            this.outputRate = 0;
-            divlog('Your audio card sampling rate (' + targetRate + ') is not supported.<br />Please change your operating system default settings in order to fix this.', 1);
-            break;
-        } else if (audio_server_output_rate >= output_range_min && audio_server_output_rate <= output_range_max) {
-            this.resamplingFactor = i;
-            this.outputRate = audio_server_output_rate;
-            break; //okay, we're done
+        if (audio_server_output_rate < low) {
+            return;
+        } else if (audio_server_output_rate >= low && audio_server_output_rate <= high) {
+            return {
+                resamplingFactor: i,
+                outputRate: audio_server_output_rate
+            }
         }
         i++;
-    }
-};
+    };
+}
 
 AudioEngine.prototype.getOutputRate = function() {
     return this.outputRate;
 };
+
+AudioEngine.prototype.getHdOutputRate = function() {
+    return this.hdOutputRate;
+}
 
 AudioEngine.prototype.getSampleRate = function() {
     return this.audioContext.sampleRate;

@@ -1067,7 +1067,10 @@ function on_ws_opened() {
     reconnect_timeout = false;
     ws.send(JSON.stringify({
         "type": "connectionproperties",
-        "params": {"output_rate": audioEngine.getOutputRate()}
+        "params": {
+            "output_rate": audioEngine.getOutputRate(),
+            "hd_output_rate": audioEngine.getHdOutputRate()
+        }
     }));
 }
 
