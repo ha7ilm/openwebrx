@@ -85,7 +85,7 @@ AudioSpeedProgressBar.prototype.getDefaultText = function() {
 };
 
 AudioSpeedProgressBar.prototype.setSpeed = function(speed) {
-    this.set(speed / 500000, "Audio stream [" + (speed / 1000).toFixed(0) + " kbps]", false);
+    this.set(speed / 1000000, "Audio stream [" + (speed / 1000).toFixed(0) + " kbps]", false);
 };
 
 AudioOutputProgressBar = function(el, sampleRate) {
