@@ -7,6 +7,8 @@ Filter.prototype.getLimits = function() {
     var max_bw;
     if (this.demodulator.get_secondary_demod() === 'pocsag') {
         max_bw = 12500;
+    } else if (this.demodulator.get_modulation() === 'wfm') {
+        max_bw = 80000;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
     }
