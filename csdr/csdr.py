@@ -54,7 +54,11 @@ class output(object):
         def copy():
             run = True
             while run:
-                data = read()
+                data = None
+                try:
+                    data = read()
+                except ValueError:
+                    pass
                 if data is None or (isinstance(data, bytes) and len(data) == 0):
                     run = False
                 else:
