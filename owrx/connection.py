@@ -22,6 +22,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+PoisonPill = object()
+
 
 class Client(ABC):
     def __init__(self, conn):
@@ -33,13 +35,15 @@ class Client(ABC):
             while run:
                 try:
                     data = self.multithreadingQueue.get()
-                    self.send(data)
+                    if data is PoisonPill:
+                        run = False
+                    else:
+                        self.send(data)
+                    self.multithreadingQueue.task_done()
                 except (EOFError, OSError, ValueError):
                     run = False
                 except Exception:
                     logger.exception("Exception on client multithreading queue")
-                finally:
-                    self.multithreadingQueue.task_done()
 
             # unset the queue object to free shared memory file descriptors
             self.multithreadingQueue = None
@@ -53,6 +57,8 @@ class Client(ABC):
             self.close()
 
     def close(self):
+        if self.multithreadingQueue is not None:
+            self.multithreadingQueue.put(PoisonPill)
         self.conn.close()
 
     def mp_send(self, data):
