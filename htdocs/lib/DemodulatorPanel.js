@@ -57,19 +57,9 @@ DemodulatorPanel.prototype.render = function() {
         );
     });
 
-    var index = 0;
-    var arrayLength = buttons.length;
-    var chunks = [];
-
-    for (index = 0; index < arrayLength; index += 5) {
-        chunks.push(buttons.slice(index, index + 5));
-    }
-
-    html.push.apply(html, chunks.map(function(chunk){
-        $line = $('<div class="openwebrx-panel-line openwebrx-panel-flex-line"></div>');
-        $line.append.apply($line, chunk);
-        return $line
-    }));
+    var $modegrid = $('<div class="openwebrx-modes-grid"></div>');
+    $modegrid.append.apply($modegrid, buttons);
+    html.push($modegrid);
 
     html.push($(
         '<div class="openwebrx-panel-line openwebrx-panel-flex-line">' +
