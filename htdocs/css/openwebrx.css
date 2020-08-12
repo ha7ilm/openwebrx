@@ -445,7 +445,6 @@ input[type=range]:disabled {
 
 .openwebrx-demodulator-button
 {
-	min-width: 38px;
 	height: 19px;
 	font-size: 12pt;
 	text-align: center;
@@ -621,15 +620,16 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-modes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    grid-gap: 5px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 
 .openwebrx-modes-grid .openwebrx-demodulator-button {
     margin: 0;
-    overflow: hidden;
     white-space: nowrap;
+    flex: 1 0 38px;
 }
 
 #openwebrx-smeter-outer
