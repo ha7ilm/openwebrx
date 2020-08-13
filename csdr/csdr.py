@@ -27,6 +27,7 @@ import signal
 import threading
 import math
 import time
+import select
 from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
@@ -94,7 +95,27 @@ class Pipe(object):
         os.mkfifo(self.path)
 
     def open(self):
-        self.file = open(self.path, self.direction, encoding=self.encoding)
+        retries = 0
+
+        def opener(path, flags):
+            fd = os.open(path, flags | os.O_NONBLOCK)
+            os.set_blocking(fd, True)
+            return fd
+
+        while self.file is None and self.doOpen and retries < 10:
+            try:
+                self.file = open(self.path, self.direction, encoding=self.encoding, opener=opener)
+            except OSError as error:
+                # ENXIO = FIFO has not been opened for reading
+                if error.errno == 6:
+                    time.sleep(.1)
+                    retries += 1
+                else:
+                    raise
+
+        # if doOpen is false, opening has been canceled, so no warning in that case.
+        if self.file is None and self.doOpen:
+            logger.warning("could not open FIFO %s", self.path)
 
     def close(self):
         self.doOpen = False
@@ -120,28 +141,9 @@ class WritingPipe(Pipe):
         self.open()
 
     def open_and_dequeue(self):
-        retries = 0
+        super().open()
 
-        def opener(path, flags):
-            fd = os.open(path, flags | os.O_NONBLOCK)
-            os.set_blocking(fd, True)
-            return fd
-
-        while self.file is None and self.doOpen and retries < 10:
-            try:
-                self.file = open(self.path, self.direction, encoding=self.encoding, opener=opener)
-            except OSError as error:
-                # ENXIO = FIFO has not been opened for reading
-                if error.errno == 6:
-                    time.sleep(.1)
-                    retries += 1
-                else:
-                    raise
-
-        # if doOpen is false, opening has been canceled, so no warning in that case.
         if self.file is None:
-            if self.doOpen:
-                logger.warning("could not open FIFO %s", self.path)
             return
 
         with self.queueLock:
@@ -166,6 +168,12 @@ class WritingPipe(Pipe):
 class ReadingPipe(Pipe):
     def __init__(self, path, encoding=None):
         super().__init__(path, "r", encoding=encoding)
+
+    def open(self):
+        if not self.doOpen:
+            return
+        super().open()
+        select.select([self.file], [], [], 10)
 
     def read(self):
         if self.file is None:
