@@ -87,15 +87,11 @@ class Pipe(object):
 
     def __init__(self, path, direction, encoding=None):
         self.doOpen = True
-        self.path = path
+        self.path = "{base}_{myid}".format(base=path, myid=id(self))
         self.direction = direction
         self.encoding = encoding
         self.file = None
-        try:
-            os.unlink(path)
-        except Exception:
-            pass
-        os.mkfifo(path)
+        os.mkfifo(self.path)
 
     def open(self):
         self.file = open(self.path, self.direction, encoding=self.encoding)
@@ -247,7 +243,7 @@ class dsp(object):
 
     def set_temporary_directory(self, what):
         self.temporary_directory = what
-        self.pipe_base_path = "{tmp_dir}/openwebrx_pipe_{myid}_".format(tmp_dir=self.temporary_directory, myid=id(self))
+        self.pipe_base_path = "{tmp_dir}/openwebrx_pipe_".format(tmp_dir=self.temporary_directory)
 
     def chain(self, which):
         chain = ["nc -v 127.0.0.1 {nc_port}"]
