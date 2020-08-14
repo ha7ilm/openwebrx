@@ -48,7 +48,7 @@ class Client(ABC):
             # unset the queue object to free shared memory file descriptors
             self.multithreadingQueue = None
 
-        threading.Thread(target=mp_passthru).start()
+        threading.Thread(target=mp_passthru, name="connection_mp_passthru").start()
 
     def send(self, data):
         try:

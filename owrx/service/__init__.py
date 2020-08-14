@@ -32,7 +32,7 @@ class ServiceOutput(output, metaclass=ABCMeta):
         parser = self.getParser()
         parser.setDialFrequency(self.frequency)
         target = self.pump(read_fn, parser.parse)
-        threading.Thread(target=target).start()
+        threading.Thread(target=target, name="service_output_receive").start()
 
 
 class WsjtServiceOutput(ServiceOutput):

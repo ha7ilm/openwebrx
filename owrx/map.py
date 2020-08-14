@@ -49,7 +49,7 @@ class Map(object):
                     loops = 0
                 time.sleep(60)
 
-        threading.Thread(target=removeLoop, daemon=True).start()
+        threading.Thread(target=removeLoop, daemon=True, name="map_removeloop").start()
         super().__init__()
 
     def broadcast(self, update):

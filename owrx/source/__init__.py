@@ -171,7 +171,7 @@ class SdrSource(ABC):
                 logger.debug("shut down with RC={0}".format(rc))
                 self.monitor = None
 
-            self.monitor = threading.Thread(target=wait_for_process_to_end)
+            self.monitor = threading.Thread(target=wait_for_process_to_end, name="source_monitor")
             self.monitor.start()
 
             retries = 1000

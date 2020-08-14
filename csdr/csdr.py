@@ -45,7 +45,7 @@ class output(object):
         if not self.supports_type(t):
             # TODO rewrite the output mechanism in a way that avoids producing unnecessary data
             logger.warning("dumping output of type %s since it is not supported.", t)
-            threading.Thread(target=self.pump(read_fn, lambda x: None)).start()
+            threading.Thread(target=self.pump(read_fn, lambda x: None), name="csdr_pump_thread").start()
             return
         self.receive_output(t, read_fn)
 
@@ -773,7 +773,7 @@ class dsp(object):
                     logger.debug("restarting since rc = 0, self.running = true, and no modification")
                     self.restart()
 
-            threading.Thread(target=watch_thread).start()
+            threading.Thread(target=watch_thread, name="csdr_watch_thread").start()
 
             audio_type = "hd_audio" if self.isHdAudio() else "audio"
             if self.output.supports_type(audio_type):

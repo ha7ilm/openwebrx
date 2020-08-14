@@ -110,7 +110,7 @@ class WritingPipe(Pipe):
         This sends the opening operation off to a background thread. If we were to block the thread here, another pipe
         may be waiting in the queue to be opened on the opposing side, resulting in a deadlock
         """
-        threading.Thread(target=self.open_and_dequeue).start()
+        threading.Thread(target=self.open_and_dequeue, name="csdr_pipe_thread").start()
 
     def write(self, data):
         """

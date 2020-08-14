@@ -158,7 +158,7 @@ class DspManager(csdr.output):
 
         write = writers[t]
 
-        threading.Thread(target=self.pump(read_fn, write)).start()
+        threading.Thread(target=self.pump(read_fn, write), name="dsp_pump_{}".format(t)).start()
 
     def stop(self):
         self.dsp.stop()
