@@ -15,6 +15,7 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-soapyremote.sh &&\
     /install-dependencies-perseus.sh &&\
     /install-dependencies-fcdpp.sh &&\
+    /install-dependencies-radioberry.sh &&\
     rm /install-dependencies-*.sh &&\
     rm /install-lib.*.patch
 
