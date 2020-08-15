@@ -276,7 +276,7 @@ DemodulatorPanel.prototype.validateHash = function(params) {
     var self = this;
     params = Object.keys(params).filter(function(key) {
         if (key == 'freq' || key == 'mod' || key == 'secondary_mod' || key == 'sql') {
-            return params.freq && Math.abs(params.freq - self.center_freq) < bandwidth;
+            return params.freq && Math.abs(params.freq - self.center_freq) < bandwidth / 2;
         }
         return true;
     }).reduce(function(p, key) {
