@@ -24,6 +24,7 @@ BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-1.0-0-dev libfftw3
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
+git clone https://github.com/pa3gsb/Radioberry-2.x
 cd Radioberry-2.x\SBC\rpi-4\
 
 cmakebuild SoapyRadioberrySDR
