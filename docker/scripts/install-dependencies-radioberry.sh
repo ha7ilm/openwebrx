@@ -10,7 +10,7 @@ function cmakebuild() {
   mkdir build
   cd build
   cmake .. 
-  make MAKEFLAGS
+  make
   make install
   cd ../..
   rm -rf $1
