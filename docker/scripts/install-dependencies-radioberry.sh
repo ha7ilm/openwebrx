@@ -27,7 +27,8 @@ apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 git clone https://github.com/pa3gsb/Radioberry-2.x
 cd Radioberry-2.x\SBC\rpi-4\
 
-cmakebuild SoapyRadioberrySDR
+# latest commit on master as of 2020-08-15
+cmakebuild SoapyRadioberrySDR ed8cbfd17b6d1e657a54a677b87479cf28dd77e8
 cd ../../..
 rm -rf Radioberry-2.x
 
