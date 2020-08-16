@@ -7,6 +7,7 @@ openwebrx (0.20.0) UNRELEASED; urgency=low
   * Added new HD audio streaming mode along with a new WFM demodulator
   * New devices supported:
     - FunCube Dongle Pro+ (`"type": "fcdpp"`)
+    - Support for connections to rtl_tcp
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 13 Jun 2020 17:22:00 +0000
 

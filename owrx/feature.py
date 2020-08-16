@@ -23,6 +23,7 @@ class FeatureDetector(object):
         # different types of sdrs and their requirements
         "rtl_sdr": ["rtl_connector"],
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
+        "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "hackrf": ["soapy_connector", "soapy_hackrf"],
         "perseussdr": ["perseustest"],
@@ -194,7 +195,7 @@ class FeatureDetector(object):
         )
 
     def _check_connector(self, command):
-        required_version = LooseVersion("0.2")
+        required_version = LooseVersion("0.3")
 
         owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
 
@@ -217,6 +218,15 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
         return self._check_connector("rtl_connector")
+
+    def has_rtl_tcp_connector(self):
+        """
+        The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
+        frequency switching, uses less CPU and can even provide more stability in some cases.
+
+        You can get it [here](https://github.com/jketterl/owrx_connector).
+        """
+        return self._check_connector("rtl_tcp_connector")
 
     def has_soapy_connector(self):
         """

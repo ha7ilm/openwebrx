@@ -6,6 +6,7 @@
 - Added new HD audio streaming mode along with a new WFM demodulator
 - New devices supported:
   - FunCube Dongle Pro+ (`"type": "fcdpp"`)
+  - Support for connections to rtl_tcp
 
 **0.19.1**
 - Added ability to authenticate receivers with listing sites using "receiver id" tokens
