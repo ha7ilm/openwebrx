@@ -72,3 +72,8 @@ class Option(CommandMapping):
     def setSpacer(self, spacer):
         self.spacer = spacer
         return self
+
+
+class Argument(CommandMapping):
+    def map(self, value):
+        return value
