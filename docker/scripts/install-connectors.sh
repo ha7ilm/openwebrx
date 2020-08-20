@@ -24,7 +24,8 @@ apt-get update
 apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
-cmakebuild owrx_connector 45ec227b38bb763b0a923a1856740f4ddf74216c
+# this is the latest development version as of 2020-08-20 (includes rtl_tcp_connector)
+cmakebuild owrx_connector a5a4d78ff7f029d2b86e9ddbc30187ced1c3ecf7
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
