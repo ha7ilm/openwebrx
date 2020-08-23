@@ -1099,8 +1099,10 @@ var mute = false;
 // Optimalise these if audio lags or is choppy:
 var audio_buffer_maximal_length_sec = 1; //actual number of samples are calculated from sample rate
 
-function onAudioStart(success, apiType){
+function onAudioStart(apiType){
     divlog('Web Audio API succesfully initialized, using ' + apiType  + ' API, sample rate: ' + audioEngine.getSampleRate() + " Hz");
+
+    hideOverlay();
 
     // canvas_container is set after waterfall_init() has been called. we cannot initialize before.
     //if (canvas_container) synchronize_demodulator_init();
@@ -1320,11 +1322,12 @@ var audioEngine;
 function openwebrx_init() {
     audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
     $overlay = $('#openwebrx-autoplay-overlay');
-    $overlay.on('click', playButtonClick);
+    $overlay.on('click', function(){
+        audioEngine.resume();
+    });
+    audioEngine.onStart(onAudioStart);
     if (!audioEngine.isAllowed()) {
         $overlay.show();
-    } else {
-        audioEngine.start(onAudioStart);
     }
     fft_codec = new ImaAdpcmCodec();
     initProgressBars();
@@ -1370,9 +1373,7 @@ function update_dmr_timeslot_filtering() {
     $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().setDmrFilter(filter);
 }
 
-function playButtonClick() {
-    //On iOS, we can only start audio from a click or touch event.
-    audioEngine.start(onAudioStart);
+function hideOverlay() {
     var $overlay = $('#openwebrx-autoplay-overlay');
     $overlay.css('opacity', 0);
     $overlay.on('transitionend', function() {

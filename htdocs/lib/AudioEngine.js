@@ -10,9 +10,16 @@ function AudioEngine(maxBufferLength, audioReporter) {
     if (!ctx) {
         return;
     }
-    this.audioContext = new ctx();
-    this.allowed = this.audioContext.state === 'running';
+
+    this.onStartCallbacks = [];
+
     this.started = false;
+    this.audioContext = new ctx();
+    var me = this;
+    this.audioContext.onstatechange = function() {
+        if (me.audioContext.state !== 'running') return;
+        me._start();
+    }
 
     this.audioCodec = new ImaAdpcmCodec();
     this.compression = 'none';
@@ -24,112 +31,130 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
 }
 
-AudioEngine.prototype.start = function(callback) {
+AudioEngine.prototype.resume = function(){
+    this.audioContext.resume();
+}
+
+AudioEngine.prototype._start = function() {
     var me = this;
-    if (me.resamplingFactor === 0) return; //if failed to find a valid resampling factor...
+
+    // if failed to find a valid resampling factor...
+    if (me.resamplingFactor === 0) {
+         return;
+    }
+
+    // been started before?
     if (me.started) {
-        if (callback) callback(false);
         return;
     }
 
-    me.audioContext.resume().then(function(){
-        me.allowed = me.audioContext.state === 'running';
-        if (!me.allowed) {
-            if (callback) callback(false);
-            return;
-        }
-        me.started = true;
+    // are we allowed to play audio?
+    if (!me.isAllowed()) {
+        return;
+    }
+    me.started = true;
 
-        me.gainNode = me.audioContext.createGain();
-        me.gainNode.connect(me.audioContext.destination);
+    me.gainNode = me.audioContext.createGain();
+    me.gainNode.connect(me.audioContext.destination);
 
-        if (useAudioWorklets && me.audioContext.audioWorklet) {
-            me.audioContext.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
-                me.audioNode = new AudioWorkletNode(me.audioContext, 'openwebrx-audio-processor', {
-                    numberOfInputs: 0,
-                    numberOfOutputs: 1,
-                    outputChannelCount: [1],
-                    processorOptions: {
-                        maxBufferSize: me.maxBufferSize
-                    }
-                });
-                me.audioNode.connect(me.gainNode);
-                me.audioNode.port.addEventListener('message', function(m){
-                    var json = JSON.parse(m.data);
-                    if (typeof(json.buffersize) !== 'undefined') {
-                        me.audioReporter({
-                            buffersize: json.buffersize
-                        });
-                    }
-                    if (typeof(json.samplesProcessed) !== 'undefined') {
-                        me.audioSamples.add(json.samplesProcessed);
-                    }
-                });
-                me.audioNode.port.start();
-                if (callback) callback(true, 'AudioWorklet');
+    if (useAudioWorklets && me.audioContext.audioWorklet) {
+        me.audioContext.audioWorklet.addModule('static/lib/AudioProcessor.js').then(function(){
+            me.audioNode = new AudioWorkletNode(me.audioContext, 'openwebrx-audio-processor', {
+                numberOfInputs: 0,
+                numberOfOutputs: 1,
+                outputChannelCount: [1],
+                processorOptions: {
+                    maxBufferSize: me.maxBufferSize
+                }
             });
-        } else {
-            me.audioBuffers = [];
-
-            if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
-                AudioBuffer.prototype.copyToChannel = function (input, channel) //input is Float32Array
-                {
-                    var cd = this.getChannelData(channel);
-                    for (var i = 0; i < input.length; i++) cd[i] = input[i];
-                }
-            }
-
-            var bufferSize;
-            if (me.audioContext.sampleRate < 44100 * 2)
-                bufferSize = 4096;
-            else if (me.audioContext.sampleRate >= 44100 * 2 && me.audioContext.sampleRate < 44100 * 4)
-                bufferSize = 4096 * 2;
-            else if (me.audioContext.sampleRate > 44100 * 4)
-                bufferSize = 4096 * 4;
-
-
-            function audio_onprocess(e) {
-                var total = 0;
-                var out = new Float32Array(bufferSize);
-                while (me.audioBuffers.length) {
-                    var b = me.audioBuffers.shift();
-                    // not enough space to fit all data, so splice and put back in the queue
-                    if (total + b.length > bufferSize) {
-                        var spaceLeft  = bufferSize - total;
-                        var tokeep = b.subarray(0, spaceLeft);
-                        out.set(tokeep, total);
-                        var tobuffer = b.subarray(spaceLeft, b.length);
-                        me.audioBuffers.unshift(tobuffer);
-                        total += spaceLeft;
-                        break;
-                    } else {
-                        out.set(b, total);
-                        total += b.length;
-                    }
-                }
-
-                e.outputBuffer.copyToChannel(out, 0);
-                me.audioSamples.add(total);
-
-            }
-
-            //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
-            var method = 'createScriptProcessor';
-            if (me.audioContext.createJavaScriptNode) {
-                method = 'createJavaScriptNode';
-            }
-            me.audioNode = me.audioContext[method](bufferSize, 0, 1);
-            me.audioNode.onaudioprocess = audio_onprocess;
             me.audioNode.connect(me.gainNode);
-            if (callback) callback(true, 'ScriptProcessorNode');
+            me.audioNode.port.addEventListener('message', function(m){
+                var json = JSON.parse(m.data);
+                if (typeof(json.buffersize) !== 'undefined') {
+                    me.audioReporter({
+                        buffersize: json.buffersize
+                    });
+                }
+                if (typeof(json.samplesProcessed) !== 'undefined') {
+                    me.audioSamples.add(json.samplesProcessed);
+                }
+            });
+            me.audioNode.port.start();
+            me.workletType = 'AudioWorklet';
+        });
+    } else {
+        me.audioBuffers = [];
+
+        if (!AudioBuffer.prototype.copyToChannel) { //Chrome 36 does not have it, Firefox does
+            AudioBuffer.prototype.copyToChannel = function (input, channel) //input is Float32Array
+            {
+                var cd = this.getChannelData(channel);
+                for (var i = 0; i < input.length; i++) cd[i] = input[i];
+            }
         }
 
-        setInterval(me.reportStats.bind(me), 1000);
-    });
+        var bufferSize;
+        if (me.audioContext.sampleRate < 44100 * 2)
+            bufferSize = 4096;
+        else if (me.audioContext.sampleRate >= 44100 * 2 && me.audioContext.sampleRate < 44100 * 4)
+            bufferSize = 4096 * 2;
+        else if (me.audioContext.sampleRate > 44100 * 4)
+            bufferSize = 4096 * 4;
+
+
+        function audio_onprocess(e) {
+            var total = 0;
+            var out = new Float32Array(bufferSize);
+            while (me.audioBuffers.length) {
+                var b = me.audioBuffers.shift();
+                // not enough space to fit all data, so splice and put back in the queue
+                if (total + b.length > bufferSize) {
+                    var spaceLeft  = bufferSize - total;
+                    var tokeep = b.subarray(0, spaceLeft);
+                    out.set(tokeep, total);
+                    var tobuffer = b.subarray(spaceLeft, b.length);
+                    me.audioBuffers.unshift(tobuffer);
+                    total += spaceLeft;
+                    break;
+                } else {
+                    out.set(b, total);
+                    total += b.length;
+                }
+            }
+
+            e.outputBuffer.copyToChannel(out, 0);
+            me.audioSamples.add(total);
+
+        }
+
+        //on Chrome v36, createJavaScriptNode has been replaced by createScriptProcessor
+        var method = 'createScriptProcessor';
+        if (me.audioContext.createJavaScriptNode) {
+            method = 'createJavaScriptNode';
+        }
+        me.audioNode = me.audioContext[method](bufferSize, 0, 1);
+        me.audioNode.onaudioprocess = audio_onprocess;
+        me.audioNode.connect(me.gainNode);
+        me.workletType = 'ScriptProcessorNode';
+    }
+
+    setInterval(me.reportStats.bind(me), 1000);
+
+    var callbacks = this.onStartCallbacks;
+    this.onStartCallbacks = false;
+    callbacks.forEach(function(c) { c(me.workletType); });
+};
+
+AudioEngine.prototype.onStart = function(callback) {
+    if (this.onStartCallbacks) {
+        this.onStartCallbacks.push(callback);
+    } else {
+        callback();
+    }
 };
 
 AudioEngine.prototype.isAllowed = function() {
-    return this.allowed;
+    return this.audioContext.state === 'running';
 };
 
 AudioEngine.prototype.reportStats = function() {
