@@ -33,6 +33,9 @@ class CommandMapper(object):
         self.static = static
         return self
 
+    def keys(self):
+        return self.mappings.keys()
+
 
 class CommandMapping(ABC):
     @abstractmethod
@@ -69,3 +72,8 @@ class Option(CommandMapping):
     def setSpacer(self, spacer):
         self.spacer = spacer
         return self
+
+
+class Argument(CommandMapping):
+    def map(self, value):
+        return value

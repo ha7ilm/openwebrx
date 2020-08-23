@@ -1,5 +1,4 @@
-from owrx.config import PropertyManager
-from owrx.metrics import Metrics, DirectMetric
+from owrx.config import Config
 import threading
 
 import logging
@@ -24,7 +23,6 @@ class ClientRegistry(object):
 
     def __init__(self):
         self.clients = []
-        Metrics.getSharedInstance().addMetric("openwebrx.users", DirectMetric(self.clientCount))
         super().__init__()
 
     def broadcast(self):
@@ -33,7 +31,7 @@ class ClientRegistry(object):
             c.write_clients(n)
 
     def addClient(self, client):
-        pm = PropertyManager.getSharedInstance()
+        pm = Config.get()
         if len(self.clients) >= pm["max_clients"]:
             raise TooManyClientsException()
         self.clients.append(client)

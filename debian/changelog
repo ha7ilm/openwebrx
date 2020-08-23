@@ -1,5 +1,148 @@
-openwebrx (0.18) UNRELEASED; urgency=low
+openwebrx (0.20.0) UNRELEASED; urgency=low
 
-  * Initial release.
+  * Added the ability to sign multiple keys in a single request, thus enabling multiple users to claim a single receiver
+    on receiverbook.de
+  * Fixed file descriptor leaks to prevent "too many open files" errors
+  * Add new demodulator chain for FreeDV
+  * Added new HD audio streaming mode along with a new WFM demodulator
+  * New devices supported:
+    - FunCube Dongle Pro+ (`"type": "fcdpp"`)
+    - Support for connections to rtl_tcp
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 08 Dec 2019 12:35:48 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 13 Jun 2020 17:22:00 +0000
+
+openwebrx (0.19.1) buster focal; urgency=low
+
+  * Added ability to authenticate receivers with listing sites using
+    "receiver id" tokens
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 13 Jun 2020 16:46:00 +0000
+
+openwebrx (0.19.0) buster focal; urgency=low
+  * Fix direwolf connection setup by implementing a retry loop
+  * Pass direct sampling mode changes for rtl_sdr_soapy to owrx_connector
+  * OSM maps instead of Google when google_maps_api_key is not set (thanks
+    @jquagga)
+  * Improved logic to pass parameters to soapy devices.
+    - `rtl_sdr_soapy`: added support for `bias_tee`
+    - `sdrplay`: added support for `bias_tee`, `rf_notch` and `dab_notch`
+    - `airspy`: added support for `bitpack`
+  * Added support for Perseus-SDR devices, (thanks @amontefusco)
+  * Property System has been rewritten so that defaults on sdr behave as
+    expected
+  * Waterfall range auto-adjustment now only takes the center 80% of the
+    spectrum into account, which should work better with SDRs that oversample
+    or have rather flat filter curves towards the spectrum edges
+  * Bugfix for negative network usage
+  * FiFi SDR: prevent arecord from shutting down after 2GB of data has been
+    sent
+  * Added support for bias tee control on rtl_sdr devices
+  * All connector driven SDRs now support `"rf_gain": "auto"` to enable AGC
+  * `rtl_sdr` type now also supports the `direct_sampling` option
+  * Added decoding implementation for for digimode "JS8Call" (requires an
+    installation of js8call and the js8py library)
+  * Reorganization of the frontend demodulator code
+  * Improve receiver load time by concatenating javascript assets
+  * HackRF support is now based on SoapyHackRF
+  * Removed sdr.hu server listing support since the site has been shut down
+  * Added support for Radioberry 2 Rasbperry Pi SDR Cape
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 01 Jun 2020 17:02:00 +0000
+
+openwebrx (0.18.0) buster; urgency=low
+
+  * Compression, resampling and filtering in the frontend have been rewritten
+    in javascript, sdr.js has been removed
+  * Decoding of Pocsag modulation is now possible
+  * Removed the 3D waterfall since it had no real application and required ~1MB
+    of javascript code to be downloaded
+  * Improved the frontend handling of the "too many users" scenario
+  * PSK63 digimode is now available (same decoding pipeline as PSK31, but with
+    adopted parameters)
+  * The frequency can now be manipulated with the mousewheel, which should
+    allow the user to tune more precise. The tuning step size is determined by
+    the digit the mouse cursor is hovering over.
+  * Clicking on the frequency now opens an input for direct frequency selection
+  * URL hashes have been fixed and improved: They are now updated
+    automatically, so a shared URL will include frequency and demodulator,
+    which allows for improved sharing and linking.
+  * New daylight scheduler for background decoding, allows profiles to be
+    selected by local sunrise / sunset times
+  * The owrx_connector is now the default way of communicating with sdr
+    devices. The old sdr types have been replaced, all `_connector` suffixes on
+    the type must be removed!
+  * The sources have been refactored, making it a lot easier to add support for
+    other devices
+  * SDR device failure handling has been improved, including user feedback
+  * New devices supported:
+  * wsjt-x updated to 2.1.2
+  * The rtl_tcp compatibility mode of the owrx_connector is now configurable
+    using the `rtltcp_compat` flag
+  * explicit device filter for soapy devices for multi-device setups
+  * compatibility fixes for safari browsers (ios and mac)
+  * Offset tuning using the `lfo_offset` has been reworked in a way that
+    `center_freq` has to be set to the frequency you actually want to listen
+    to. If you're using an `lfo_offset` already, you will probably need to
+    change its sign.
+  * `initial_squelch_level` can now be set on each profile.
+  * Part of the frontend code has been reworked
+    - Audio buffer minimums have been completely stripped. As a result, you
+      should get better latency. Unfortunately, this also means there will be
+      some skipping when audio starts.
+    - Now also supports AudioWorklets (for those browser that have it).
+    - Mousewheel controls for the receiver sliders
+  * Error handling for failed SDR devices
+  * One of the most-requested features is finally coming to OpenWebRX:
+    Bookmarks (sometimes also referred to as labels).
+    There's two kinds of bookmarks available:
+    - Serverside bookmarks that are set up by the receiver administrator.
+      Check the file `bookmarks.json` for examples!
+    - Clientside bookmarks which every user can store for themselves. They are
+      stored in the browser's localStorage.
+  * Automatic reporting of spots to [pskreporter](https://pskreporter.info/) is
+    now possible. Please have a look at the configuration on how to set it up.
+  * Websocket communication has been overhauled in large parts. It should now
+    be more reliable, and failing connections should now have no impact on
+    other users.
+  * Profile scheduling allows to set up band-hopping if you are running
+    background services.
+  * APRS now has the ability to show symbols on the map, if a corresponding
+    symbol set has been installed. Check the config!
+  * Debug logging has been disabled in a handful of modules, expect vastly
+    reduced output on the shell.
+  * New set of APRS-related features
+    - Decode Packet transmissions using direwolf (1k2 only for now)
+    - APRS packets are mostly decoded and shown both in a new panel and on the
+      map
+    - APRS is also available as a background service
+    - direwolfs I-gate functionality can be enabled, which allows your receiver
+      to work as a receive-only I-gate for the APRS network in the background
+  * Demodulation for background services has been optimized to use less total
+    bandwidth, saving CPU
+  * More metrics have been added; they can be used together with collectd and
+    its curl_json plugin for now, with some limitations.
+  * New bandplan feature, the first thing visible is the "dial" indicator that
+    brings you right to the dial frequency for digital modes
+  * fixed some bugs in the websocket communication which broke the map
+  * WSJT-X integration (FT8, FT4, WSPR, JT65, JT9 using wsjt-x demodulators)
+  * New Map Feature that shows both decoded grid squares from FT8 and Locations
+    decoded from YSF digital voice
+  * New Feature report that will show what functionality is available
+  * major rework on the openwebrx core
+  * Support of multiple SDR devices simultaneously
+  * Support for multiple profiles per SDR that allow the user to listen to
+    different frequencies
+  * Support for digital voice decoding
+  * Feature detection that will disable functionality when dependencies are not
+    available (if you're missing the digital
+    buttons, this is probably why)
+  * Support added for the following SDR sources:
+    - LimeSDR (`"type": "lime_sdr"`)
+    - PlutoSDR (`"type": "pluto_sdr"`)
+    - RTL_SDR via Soapy (`"type": "rtl_sdr_soapy"`) on special request to allow
+      use of the direct sampling mode
+    - SoapyRemote (`"type": "soapy_remote"`)
+    - FiFiSDR (`"type": "fifi_sdr"`)
+    - airspyhf devices (Airspy HF+ / Discovery) (`"type": "airspyhf"`)
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 18 Feb 2020 20:09:00 +0000

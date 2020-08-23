@@ -4,10 +4,10 @@ After=multi-user.target
 
 [Service]
 Type=simple
-User=root
-Group=root
+User=openwebrx
+Group=openwebrx
 ExecStart=/usr/bin/openwebrx
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

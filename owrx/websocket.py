@@ -16,7 +16,7 @@ OPCODE_PING = 0x09
 OPCODE_PONG = 0x0A
 
 
-class WebSocketException(Exception):
+class WebSocketException(IOError):
     pass
 
 
@@ -146,6 +146,9 @@ class WebSocketConnection(object):
             self.close()
 
     def interrupt(self):
+        if self.interruptPipeSend is None:
+            logger.debug("interrupt with closed pipe")
+            return
         self.interruptPipeSend.send(bytes(0x00))
 
     def handle(self):
@@ -199,9 +202,15 @@ class WebSocketConnection(object):
                             data = bytes([b ^ masking_key[index % 4] for (index, b) in enumerate(data)])
                         if opcode == OPCODE_TEXT_MESSAGE:
                             message = data.decode("utf-8")
-                            self.messageHandler.handleTextMessage(self, message)
+                            try:
+                                self.messageHandler.handleTextMessage(self, message)
+                            except Exception:
+                                logger.exception("Exception in websocket handler handleTextMessage()")
                         elif opcode == OPCODE_BINARY_MESSAGE:
-                            self.messageHandler.handleBinaryMessage(self, data)
+                            try:
+                                self.messageHandler.handleBinaryMessage(self, data)
+                            except Exception:
+                                logger.exception("Exception in websocket handler handleBinaryMessage()")
                         elif opcode == OPCODE_PING:
                             self.sendPong()
                         elif opcode == OPCODE_PONG:
@@ -220,6 +229,18 @@ class WebSocketConnection(object):
                     except OSError:
                         logger.exception("OSError while reading data; closing connection")
                         self.open = False
+
+        self.interruptPipeSend.close()
+        self.interruptPipeSend = None
+        # drain messages left in the queue so that the queue can be successfully closed
+        # this is necessary since python keeps the file descriptors open otherwise
+        try:
+            while True:
+                self.interruptPipeRecv.recv()
+        except EOFError:
+            pass
+        self.interruptPipeRecv.close()
+        self.interruptPipeRecv = None
 
     def close(self):
         self.open = False

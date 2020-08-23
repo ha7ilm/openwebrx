@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euxo pipefail
+export MAKEFLAGS="-j4"
 
 function cmakebuild() {
   cd $1
@@ -17,12 +18,15 @@ function cmakebuild() {
 
 cd /tmp
 
-BUILD_PACKAGES="git cmake make gcc g++ musl-dev"
+BUILD_PACKAGES="git cmake make gcc g++"
 
-apk add --no-cache --virtual .build-deps $BUILD_PACKAGES
-
+apt-get update
+apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
-cmakebuild owrx_connector 84909c53cde78cbf4be408037e31209fbc702ad3
+# this is the latest development version as of 2020-08-20 (includes rtl_tcp_connector)
+cmakebuild owrx_connector a5a4d78ff7f029d2b86e9ddbc30187ced1c3ecf7
 
-apk del .build-deps
+apt-get -y purge --autoremove $BUILD_PACKAGES
+apt-get clean
+rm -rf /var/lib/apt/lists/*
