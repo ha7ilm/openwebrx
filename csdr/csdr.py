@@ -230,7 +230,7 @@ class dsp(object):
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
             chain += [
-                "csdr agc_ff 160000 0.8 0.001 0.0000001 50",
+                "csdr agc_ff 6000 0.8 0.01 0.0001 2000",
                 "csdr limit_ff",
                 "csdr convert_f_s16",
             ]
