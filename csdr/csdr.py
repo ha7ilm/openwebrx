@@ -220,10 +220,10 @@ class dsp(object):
                     ]
                 elif which == "ysf":
                     chain += ["ysf_decoder --fifo {meta_pipe}", "mbe_synthesizer -y -f -u {unvoiced_quality}"]
-                max_gain = 0.0005
+                max_gain = 0.005
             chain += [
                 "digitalvoice_filter -f",
-                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 160000 0.8 1 0.0000001 {max_gain}".format(max_gain=max_gain),
+                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 600 0.8 0.1 0.001 {max_gain}".format(max_gain=max_gain),
                 "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
         elif which == "am":
