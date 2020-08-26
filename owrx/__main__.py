@@ -50,7 +50,7 @@ Support and info:       https://groups.io/g/openwebrx
     if not featureDetector.is_available("core"):
         logger.error(
             "you are missing required dependencies to run openwebrx. "
-            "please check that the following core requirements are installed:"
+            "please check that the following core requirements are installed and up to date:"
         )
         logger.error(", ".join(featureDetector.get_requirements("core")))
         return
