@@ -223,14 +223,14 @@ class dsp(object):
                 max_gain = 0.005
             chain += [
                 "digitalvoice_filter -f",
-                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff 600 0.8 0.1 0.001 {max_gain}".format(max_gain=max_gain),
+                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff --max {max_gain} --initial 0.0005".format(max_gain=max_gain),
                 "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
         elif which == "am":
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
             chain += [
-                "csdr agc_ff 6000 0.8 0.01 0.0001 2000",
+                "csdr agc_ff --profile slow --initial 200",
                 "csdr limit_ff",
                 "csdr convert_f_s16",
             ]
