@@ -115,7 +115,7 @@ class FeatureDetector(object):
         OpenWebRX uses the demodulator and pipeline tools provided by the csdr project. Please check out [the project
         page on github](https://github.com/jketterl/csdr) for further details and installation instructions.
         """
-        required_version = LooseVersion("0.16.1")
+        required_version = LooseVersion("0.17.0")
 
         csdr_version_regex = re.compile("^csdr version (.*)$")
 

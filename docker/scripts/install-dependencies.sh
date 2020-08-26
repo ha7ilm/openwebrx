@@ -55,7 +55,7 @@ cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
 git clone https://github.com/jketterl/csdr.git
 cd csdr
 # develop as of 2020-08-26, includes agc rework
-git checkout c73d1dd291de199299745040fa5176309e038748
+git checkout a308c6b369d3eb47242e644c0c41dd27c6a4ec47
 autoreconf -i
 ./configure
 make
