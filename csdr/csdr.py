@@ -176,7 +176,7 @@ class dsp(object):
         if self.last_decimation >= 2.0:
             # activate prefilter if signal has been oversampled, e.g. WFM
             last_decimation_block = ["csdr fractional_decimator_ff {last_decimation} 12 --prefilter"]
-        elif self.last_decimation >= 1.0:
+        elif self.last_decimation != 1.0:
             last_decimation_block = ["csdr fractional_decimator_ff {last_decimation}"]
         if which == "nfm":
             chain += ["csdr fmdemod_quadri_cf", "csdr limit_ff"]
