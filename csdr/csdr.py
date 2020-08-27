@@ -213,7 +213,7 @@ class dsp(object):
                 elif which == "nxdn":
                     chain += ["dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
                 chain += ["CSDR_FIXED_BUFSIZE=32 csdr convert_s16_f"]
-                max_gain = 5
+                max_gain = 50
             # digiham modes
             else:
                 chain += ["rrc_filter", "gfsk_demodulator"]
@@ -227,7 +227,7 @@ class dsp(object):
                 max_gain = 0.005
             chain += [
                 "digitalvoice_filter -f",
-                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff --max {max_gain} --initial 0.0005".format(max_gain=max_gain),
+                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff --max {max_gain} --initial {initial_gain}".format(max_gain=max_gain, initial_gain=max_gain / 10),
                 "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
         elif which == "am":
