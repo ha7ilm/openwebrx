@@ -212,8 +212,11 @@ class dsp(object):
                     chain += ["dsd -fd -i - -o - -u {unvoiced_quality} -g -1 "]
                 elif which == "nxdn":
                     chain += ["dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
-                chain += ["CSDR_FIXED_BUFSIZE=32 csdr convert_s16_f"]
-                max_gain = 50
+                chain += [
+                    "digitalvoice_filter",
+                    "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 50 --initial 5",
+                    "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
+                ]
             # digiham modes
             else:
                 chain += ["rrc_filter", "gfsk_demodulator"]
@@ -225,11 +228,11 @@ class dsp(object):
                 elif which == "ysf":
                     chain += ["ysf_decoder --fifo {meta_pipe}", "mbe_synthesizer -y -f -u {unvoiced_quality}"]
                 max_gain = 0.005
-            chain += [
-                "digitalvoice_filter -f",
-                "CSDR_FIXED_BUFSIZE=32 csdr agc_ff --max {max_gain} --initial {initial_gain}".format(max_gain=max_gain, initial_gain=max_gain / 10),
-                "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
-            ]
+                chain += [
+                    "digitalvoice_filter -f",
+                    "CSDR_FIXED_BUFSIZE=32 csdr agc_ff --max 0.005 --initial 0.0005",
+                    "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
+                ]
         elif which == "am":
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
@@ -245,6 +248,7 @@ class dsp(object):
                 "csdr agc_ff",
                 "csdr convert_f_s16",
                 "freedv_rx 1600 - -",
+                "csdr agc_s16",
                 "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
         elif which == "ssb":
