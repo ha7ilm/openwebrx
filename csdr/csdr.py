@@ -181,7 +181,11 @@ class dsp(object):
         if which == "nfm":
             chain += ["csdr fmdemod_quadri_cf", "csdr limit_ff"]
             chain += last_decimation_block
-            chain += ["csdr deemphasis_nfm_ff {audio_rate}"]
+            chain += [
+                "csdr deemphasis_nfm_ff {audio_rate}",
+                "csdr agc_ff --profile slow --max 3",
+                "csdr limit_ff"
+            ]
             if self.get_audio_rate() != self.get_output_rate():
                 chain += [
                     "sox -t raw -r {audio_rate} -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - "
