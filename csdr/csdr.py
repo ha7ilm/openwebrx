@@ -184,7 +184,6 @@ class dsp(object):
             chain += [
                 "csdr deemphasis_nfm_ff {audio_rate}",
                 "csdr agc_ff --profile slow --max 3",
-                "csdr limit_ff"
             ]
             if self.get_audio_rate() != self.get_output_rate():
                 chain += [
@@ -214,7 +213,7 @@ class dsp(object):
                     chain += ["dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
                 chain += [
                     "digitalvoice_filter",
-                    "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 50 --initial 5",
+                    "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
                     "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
                 ]
             # digiham modes
@@ -238,7 +237,6 @@ class dsp(object):
             chain += last_decimation_block
             chain += [
                 "csdr agc_ff --profile slow --initial 200",
-                "csdr limit_ff",
                 "csdr convert_f_s16",
             ]
         elif self.isFreeDV(which):
@@ -254,7 +252,7 @@ class dsp(object):
         elif which == "ssb":
             chain += ["csdr realpart_cf"]
             chain += last_decimation_block
-            chain += ["csdr agc_ff", "csdr limit_ff"]
+            chain += ["csdr agc_ff"]
             # fixed sample rate necessary for the wsjt-x tools. fix with sox...
             if self.get_audio_rate() != self.get_output_rate():
                 chain += [
