@@ -246,7 +246,7 @@ class dsp(object):
                 "csdr agc_ff",
                 "csdr convert_f_s16",
                 "freedv_rx 1600 - -",
-                "csdr agc_s16",
+                "csdr agc_s16 --max 30 --initial 3",
                 "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
         elif which == "ssb":
