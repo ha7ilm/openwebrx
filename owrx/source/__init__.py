@@ -183,6 +183,9 @@ class SdrSource(ABC):
             def wait_for_process_to_end():
                 rc = self.process.wait()
                 logger.debug("shut down with RC={0}".format(rc))
+                if self.getState() == SdrSource.STATE_RUNNING:
+                    self.failed = True
+                    self.setState(SdrSource.STATE_FAILED)
                 self.monitor = None
 
             self.monitor = threading.Thread(target=wait_for_process_to_end, name="source_monitor")
