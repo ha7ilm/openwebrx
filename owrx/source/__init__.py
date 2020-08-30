@@ -54,6 +54,7 @@ class SdrSource(ABC):
         self.clients = []
         self.spectrumClients = []
         self.spectrumThread = None
+        self.spectrumLock = threading.Lock()
         self.process = None
         self.modificationLock = threading.Lock()
         self.failed = False
@@ -263,22 +264,24 @@ class SdrSource(ABC):
             self.stop()
 
     def addSpectrumClient(self, c):
-        self.spectrumClients.append(c)
-        if self.spectrumThread is None:
-            # local import due to circular depencency
-            from owrx.fft import SpectrumThread
+        # local import due to circular depencency
+        from owrx.fft import SpectrumThread
 
-            self.spectrumThread = SpectrumThread(self)
-            self.spectrumThread.start()
+        self.spectrumClients.append(c)
+        with self.spectrumLock:
+            if self.spectrumThread is None:
+                self.spectrumThread = SpectrumThread(self)
+                self.spectrumThread.start()
 
     def removeSpectrumClient(self, c):
         try:
             self.spectrumClients.remove(c)
         except ValueError:
             pass
-        if not self.spectrumClients and self.spectrumThread is not None:
-            self.spectrumThread.stop()
-            self.spectrumThread = None
+        with self.spectrumLock:
+            if not self.spectrumClients and self.spectrumThread is not None:
+                self.spectrumThread.stop()
+                self.spectrumThread = None
 
     def writeSpectrumData(self, data):
         for c in self.spectrumClients:
