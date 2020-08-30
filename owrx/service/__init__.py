@@ -1,5 +1,5 @@
 import threading
-from owrx.source import SdrSource
+from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
@@ -59,7 +59,7 @@ class Js8ServiceOutput(ServiceOutput):
         return t == "js8_demod"
 
 
-class ServiceHandler(object):
+class ServiceHandler(SdrSourceEventClient):
     def __init__(self, source):
         self.lock = threading.RLock()
         self.services = []

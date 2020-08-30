@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from owrx.source import SdrSource
+from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.config import Config
 import threading
 import math
@@ -204,7 +204,7 @@ class DaylightSchedule(TimerangeSchedule):
         return entries
 
 
-class ServiceScheduler(object):
+class ServiceScheduler(SdrSourceEventClient):
     def __init__(self, source):
         self.source = source
         self.selectionTimer = None

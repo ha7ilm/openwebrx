@@ -16,6 +16,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class SdrSourceEventClient(ABC):
+    @abstractmethod
+    def onStateChange(self, state):
+        pass
+
+    @abstractmethod
+    def onBusyStateChange(self, state):
+        pass
+
+    def getClientClass(self):
+        return SdrSource.CLIENT_INACTIVE
+
+
 class SdrSource(ABC):
     STATE_STOPPED = 0
     STATE_STARTING = 1
@@ -238,7 +251,7 @@ class SdrSource(ABC):
         clients = [c for c in self.clients if c.getClientClass() in args]
         return len(clients) > 0
 
-    def addClient(self, c):
+    def addClient(self, c: SdrSourceEventClient):
         self.clients.append(c)
         hasUsers = self.hasClients(SdrSource.CLIENT_USER)
         hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
@@ -246,7 +259,7 @@ class SdrSource(ABC):
             self.start()
             self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
 
-    def removeClient(self, c):
+    def removeClient(self, c: SdrSourceEventClient):
         try:
             self.clients.remove(c)
         except ValueError:

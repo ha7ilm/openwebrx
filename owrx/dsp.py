@@ -3,7 +3,7 @@ from owrx.wsjt import WsjtParser
 from owrx.js8 import Js8Parser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
-from owrx.source import SdrSource
+from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.property import PropertyStack, PropertyLayer
 from owrx.modes import Modes
 from csdr import csdr
@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DspManager(csdr.output):
+class DspManager(csdr.output, SdrSourceEventClient):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource

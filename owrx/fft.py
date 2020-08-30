@@ -1,7 +1,7 @@
 from owrx.config import Config
 from csdr import csdr
 import threading
-from owrx.source import SdrSource
+from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.property import PropertyStack
 
 import logging
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SpectrumThread(csdr.output):
+class SpectrumThread(csdr.output, SdrSourceEventClient):
     def __init__(self, sdrSource):
         self.sdrSource = sdrSource
         super().__init__()
