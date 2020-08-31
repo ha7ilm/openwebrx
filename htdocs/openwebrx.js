@@ -83,26 +83,31 @@ var waterfall_colors;
 var waterfall_auto_level_margin;
 
 function updateWaterfallColors(which) {
-    var wfmax = e("openwebrx-waterfall-color-max");
-    var wfmin = e("openwebrx-waterfall-color-min");
-    if (parseInt(wfmin.value) >= parseInt(wfmax.value)) {
-        if (!which) wfmin.value = (parseInt(wfmax.value) - 1).toString();
-        else wfmax.value = (parseInt(wfmin.value) + 1).toString();
+    var $wfmax = $("#openwebrx-waterfall-color-max");
+    var $wfmin = $("#openwebrx-waterfall-color-min");
+    waterfall_max_level = parseInt($wfmax.val());
+    waterfall_min_level = parseInt($wfmin.val());
+    if (waterfall_min_level >= waterfall_max_level) {
+        if (!which) {
+            $wfmin.val(waterfall_max_level - 1);
+            waterfall_min_level = waterfall_max_level -1;
+        } else {
+            $wfmax.val(waterfall_min_level + 1);
+            waterfall_max_level = waterfall_min_level + 1;
+        }
     }
-    waterfall_min_level = parseInt(wfmin.value);
-    waterfall_max_level = parseInt(wfmax.value);
 }
 
 function waterfallColorsDefault() {
     waterfall_min_level = waterfall_min_level_default;
     waterfall_max_level = waterfall_max_level_default;
-    e("openwebrx-waterfall-color-min").value = waterfall_min_level.toString();
-    e("openwebrx-waterfall-color-max").value = waterfall_max_level.toString();
+    $("#openwebrx-waterfall-color-min").val(waterfall_min_level);
+    $("#openwebrx-waterfall-color-max").val(waterfall_max_level);
 }
 
-function waterfallColorsAuto() {
-    e("openwebrx-waterfall-color-min").value = (waterfall_measure_minmax_min - waterfall_auto_level_margin.min).toString();
-    e("openwebrx-waterfall-color-max").value = (waterfall_measure_minmax_max + waterfall_auto_level_margin.max).toString();
+function waterfallColorsAuto(levels) {
+    $("#openwebrx-waterfall-color-min").val(levels.min - waterfall_auto_level_margin.min);
+    $("#openwebrx-waterfall-color-max").val(levels.max + waterfall_auto_level_margin.max);
     updateWaterfallColors(0);
 }
 
@@ -1043,17 +1048,16 @@ function clear_metadata() {
     $(".openwebrx-dmr-timeslot-panel").removeClass("muted");
 }
 
-var waterfall_measure_minmax = false;
 var waterfall_measure_minmax_now = false;
-var waterfall_measure_minmax_min = 1e100;
-var waterfall_measure_minmax_max = -1e100;
 
 function waterfall_measure_minmax_do(what) {
     // this is based on an oversampling factor of about 1,25
     var ignored = .1 * what.length;
     var data = what.slice(ignored, -ignored);
-    waterfall_measure_minmax_min = Math.min(waterfall_measure_minmax_min, Math.min.apply(Math, data));
-    waterfall_measure_minmax_max = Math.max(waterfall_measure_minmax_max, Math.max.apply(Math, data));
+    return {
+        min: Math.min.apply(Math, data),
+        max: Math.max.apply(Math, data)
+    };
 }
 
 function on_ws_opened() {
@@ -1258,11 +1262,10 @@ function waterfall_add(data) {
     if (!waterfall_setup_done) return;
     var w = fft_size;
 
-    if (waterfall_measure_minmax) waterfall_measure_minmax_do(data);
     if (waterfall_measure_minmax_now) {
-        waterfall_measure_minmax_do(data);
+        var levels = waterfall_measure_minmax_do(data);
         waterfall_measure_minmax_now = false;
-        waterfallColorsAuto();
+        waterfallColorsAuto(levels);
     }
 
     //Add line to waterfall image
