@@ -19,7 +19,7 @@ function cmakebuild() {
 cd /tmp
 
 STATIC_PACKAGES="sox libfftw3-bin python3 python3-setuptools netcat-openbsd libsndfile1 liblapack3 libusb-1.0-0 libqt5core5a libreadline7 libgfortran4 libgomp1 libasound2 libudev1 ca-certificates libqt5gui5 libqt5sql5 libqt5printsupport5"
-BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev autoconf automake libtool texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev pkg-config libudev-dev libhamlib-dev patch xsltproc"
+BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev libudev-dev libhamlib-dev patch xsltproc"
 apt-get update
 apt-get -y install auto-apt-proxy
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
@@ -42,32 +42,11 @@ tar xzf s6-overlay-${PLATFORM}.tar.gz -C /
 rm s6-overlay-${PLATFORM}.tar.gz
 popd
 
-git clone https://github.com/jketterl/js8py.git
-pushd js8py
-git checkout 888e62be375316882ad2b2ac8e396c3bf857b6fc
-python3 setup.py install
-popd
-rm -rf js8py
-
 git clone https://git.code.sf.net/p/itpp/git itpp
 cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
 
-git clone https://github.com/jketterl/csdr.git
-cd csdr
-# develop as of 2020-08-28
-git checkout 6d60d8c71f3484fd502174a2af27ceaaec6e60f8
-autoreconf -i
-./configure
-make
-make install
-cd ..
-rm -rf csdr
-
 git clone https://github.com/szechyjs/mbelib.git
 cmakebuild mbelib 9a04ed5c78176a9965f3d43f7aa1b1f5330e771f
-
-git clone https://github.com/jketterl/digiham.git
-cmakebuild digiham 95206501be89b38d0267bf6c29a6898e7c65656f
 
 git clone https://github.com/f4exb/dsd.git
 cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7

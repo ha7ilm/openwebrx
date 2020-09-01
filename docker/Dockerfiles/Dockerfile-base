@@ -1,11 +1,14 @@
 FROM debian:buster-slim
 
-ADD docker/files/js8call/js8call-hamlib.patch /
-ADD docker/files/wsjtx/*.patch /
-ADD docker/scripts/install-dependencies.sh /
+COPY docker/files/js8call/js8call-hamlib.patch \
+     docker/files/wsjtx/*.patch \
+     docker/scripts/install-dependencies.sh \
+     docker/scripts/install-owrx-tools.sh /
 RUN /install-dependencies.sh && \
     rm /install-dependencies.sh && \
     rm /*.patch
+RUN /install-owrx-tools.sh && \
+    rm /install-owrx-tools.sh
 
 ENTRYPOINT ["/init"]
 

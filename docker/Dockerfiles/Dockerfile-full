@@ -1,8 +1,9 @@
 ARG ARCHTAG
 FROM openwebrx-base:$ARCHTAG
 
-ADD docker/scripts/install-dependencies-*.sh /
-ADD docker/files/sdrplay/install-lib.*.patch /
+COPY docker/scripts/install-dependencies-*.sh \
+     docker/files/sdrplay/install-lib.*.patch \
+     docker/scripts/install-connectors.sh /
 
 RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-soapysdr.sh &&\
@@ -16,13 +17,11 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-perseus.sh &&\
     /install-dependencies-fcdpp.sh &&\
     /install-dependencies-radioberry.sh &&\
+    /install-connectors.sh &&\
     rm /install-dependencies-*.sh &&\
-    rm /install-lib.*.patch
-
-ADD docker/scripts/install-connectors.sh /
-RUN /install-connectors.sh &&\
+    rm /install-lib.*.patch && \
     rm /install-connectors.sh
 
-ADD docker/files/services/sdrplay /etc/services.d/sdrplay
+COPY docker/files/services/sdrplay /etc/services.d/sdrplay
 
 ADD . /opt/openwebrx
