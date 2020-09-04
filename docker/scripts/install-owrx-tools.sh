@@ -32,8 +32,8 @@ rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
 cd csdr
-# develop as of 2020-08-28
-git checkout 6d60d8c71f3484fd502174a2af27ceaaec6e60f8
+# develop as of 2020-09-04 (include fractional_decimator_cc)
+git checkout 81f097d24905fe81d12e499c27595a9065134ec6
 autoreconf -i
 ./configure
 make
