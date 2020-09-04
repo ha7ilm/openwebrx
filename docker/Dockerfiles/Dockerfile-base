@@ -2,6 +2,7 @@ FROM debian:buster-slim
 
 COPY docker/files/js8call/js8call-hamlib.patch \
      docker/files/wsjtx/*.patch \
+     docker/files/dream/*.patch \
      docker/scripts/install-dependencies.sh \
      docker/scripts/install-owrx-tools.sh /
 RUN /install-dependencies.sh && \
