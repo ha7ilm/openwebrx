@@ -19,7 +19,7 @@ function cmakebuild() {
 cd /tmp
 
 STATIC_PACKAGES="sox libfftw3-bin python3 python3-setuptools netcat-openbsd libsndfile1 liblapack3 libusb-1.0-0 libqt5core5a libreadline7 libgfortran4 libgomp1 libasound2 libudev1 ca-certificates libqt5gui5 libqt5sql5 libqt5printsupport5"
-BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev libudev-dev libhamlib-dev patch xsltproc"
+BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev libudev-dev libhamlib-dev patch xsltproc qt5-default"
 apt-get update
 apt-get -y install auto-apt-proxy
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
@@ -36,11 +36,9 @@ case `uname -m` in
         ;;
 esac
 
-pushd /tmp
 wget https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s6-overlay-${PLATFORM}.tar.gz
 tar xzf s6-overlay-${PLATFORM}.tar.gz -C /
 rm s6-overlay-${PLATFORM}.tar.gz
-popd
 
 git clone https://git.code.sf.net/p/itpp/git itpp
 cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
@@ -92,6 +90,16 @@ make install
 install -m 0755 src/freedv_rx /usr/local/bin
 cd ../..
 rm -rf codec2
+
+wget https://downloads.sourceforge.net/project/drm/dream/2.1.1/dream-2.1.1-svn808.tar.gz
+tar xvfz dream-2.1.1-svn808.tar.gz
+pushd dream
+qmake CONFIG+=console
+make
+make install
+popd
+rm -rf dream
+rm dream-2.1.1-svn808.tar.gz
 
 git clone https://github.com/hessu/aprs-symbols /opt/aprs-symbols
 pushd /opt/aprs-symbols
