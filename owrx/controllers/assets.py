@@ -5,9 +5,39 @@ import mimetypes
 import os
 import pkg_resources
 from abc import ABCMeta, abstractmethod
+import gzip
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-class ModificationAwaraController(Controller, metaclass=ABCMeta):
+class GzipMixin(object):
+    def send_response(self, content, headers=None, content_type="text/html",  *args, **kwargs):
+        if self.zipable(content_type) and "accept-encoding" in self.request.headers:
+            accepted = [s.strip().lower() for s in self.request.headers['accept-encoding'].split(",")]
+            if "gzip" in accepted:
+                if type(content) == str:
+                    content = content.encode()
+                content = self.gzip(content)
+                if headers is None:
+                    headers = {}
+                headers["Content-Encoding"] = "gzip"
+        super().send_response(content, headers=headers, content_type=content_type, *args, **kwargs)
+
+    def zipable(self, content_type):
+        types = [
+            "application/javascript",
+            "text/css",
+            "text/html"
+        ]
+        return content_type in types
+
+    def gzip(self, content):
+        return gzip.compress(content)
+
+
+class ModificationAwareController(Controller, metaclass=ABCMeta):
     @abstractmethod
     def getModified(self, file):
         pass
@@ -28,7 +58,7 @@ class ModificationAwaraController(Controller, metaclass=ABCMeta):
         return True
 
 
-class AssetsController(ModificationAwaraController, metaclass=ABCMeta):
+class AssetsController(GzipMixin, ModificationAwareController, metaclass=ABCMeta):
     def getModified(self, file):
         return datetime.fromtimestamp(os.path.getmtime(self.getFilePath(file)), timezone.utc)
 
@@ -80,7 +110,7 @@ class AprsSymbolsController(AssetsController):
         return self.path + file
 
 
-class CompiledAssetsController(ModificationAwaraController):
+class CompiledAssetsController(GzipMixin, ModificationAwareController):
     profiles = {
         "receiver.js": [
             "openwebrx.js",
