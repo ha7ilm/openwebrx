@@ -438,4 +438,4 @@ class FeatureDetector(object):
         return self.command_is_runnable("freedv_rx")
 
     def has_dream(self):
-        return self.command_is_runnable("dream")
+        return self.command_is_runnable("dream --help")
