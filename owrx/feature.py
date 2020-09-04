@@ -45,7 +45,7 @@ class FeatureDetector(object):
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
         "js8call": ["js8", "sox"],
-        "drm": ["dream"],
+        "drm": ["dream", "sox"],
     }
 
     def feature_availability(self):
@@ -438,4 +438,17 @@ class FeatureDetector(object):
         return self.command_is_runnable("freedv_rx")
 
     def has_dream(self):
+        """
+        In order to be able to decode DRM broadcasts, OpenWebRX needs the "dream" DRM decoder. You can get it
+        [here](https://sourceforge.net/projects/drm/files/dream/).
+
+        The version supplied by most distributions will not work properly on the command line, so compiling from source
+        with a custom set of commands is recommended:
+
+        ```
+        qmake CONFIG+=console
+        make
+        sudo make install
+        ```
+        """
         return self.command_is_runnable("dream --help")
