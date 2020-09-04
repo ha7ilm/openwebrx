@@ -45,6 +45,7 @@ class FeatureDetector(object):
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
         "js8call": ["js8", "sox"],
+        "drm": ["dream"],
     }
 
     def feature_availability(self):
@@ -435,3 +436,6 @@ class FeatureDetector(object):
         You can find the codec2 source code [here](https://github.com/drowe67/codec2).
         """
         return self.command_is_runnable("freedv_rx")
+
+    def has_dream(self):
+        return self.command_is_runnable("dream")

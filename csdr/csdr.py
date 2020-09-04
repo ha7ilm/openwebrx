@@ -249,6 +249,10 @@ class dsp(object):
                 "csdr agc_s16 --max 30 --initial 3",
                 "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
+        elif self.isDrm(which):
+            chain += last_decimation_block
+            chain += ["csdr convert_f_s16"]
+            chain += ["dream -c 6 --sigsrate 48000 -w test.wav -I - -O -"]
         elif which == "ssb":
             chain += ["csdr realpart_cf"]
             chain += last_decimation_block
@@ -534,7 +538,7 @@ class dsp(object):
         return self.hd_output_rate
 
     def get_audio_rate(self):
-        if self.isDigitalVoice() or self.isPacket() or self.isPocsag():
+        if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.isDrm():
             return 48000
         elif self.isWsjtMode() or self.isJs8():
             return 12000
@@ -577,7 +581,12 @@ class dsp(object):
     def isHdAudio(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_demodulator()
-        return demodulator == "wfm"
+        return demodulator in ["wfm", "drm"]
+
+    def isDrm(self, demodulator=None):
+        if demodulator is None:
+            demodulator = self.get_demodulator()
+        return demodulator == "drm"
 
     def set_output_rate(self, output_rate):
         if self.output_rate == output_rate:
