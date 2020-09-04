@@ -274,6 +274,18 @@ input[type=range]:disabled {
 	flex-direction: column;
 }
 
+@supports(background-image: -webkit-image-set(url('../gfx/openwebrx-background-cool-blue.webp') 1x)) {
+    #webrx-canvas-background {
+        background-image: -webkit-image-set(url('../gfx/openwebrx-background-cool-blue.webp') 1x);
+    }
+}
+
+@supports(background-image: image-set(url('../gfx/openwebrx-background-cool-blue.webp') 1x)) {
+    #webrx-canvas-background {
+        background-image: image-set(url('../gfx/openwebrx-background-cool-blue.webp') 1x);
+    }
+}
+
 #webrx-canvas-container
 {
 	position: relative;
