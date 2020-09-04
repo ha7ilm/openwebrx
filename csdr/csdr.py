@@ -251,8 +251,11 @@ class dsp(object):
             ]
         elif self.isDrm(which):
             chain += last_decimation_block
-            chain += ["csdr convert_f_s16"]
-            chain += ["dream -c 6 --sigsrate 48000 -w test.wav -I - -O -"]
+            chain += [
+                "csdr convert_f_s16",
+                "dream -c 6 --sigsrate 48000 --audsrate 48000 -I - -O -",
+                "sox -t raw -r 48000 -e signed-integer -b 16 -c 2 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
+            ]
         elif which == "ssb":
             chain += ["csdr realpart_cf"]
             chain += last_decimation_block
@@ -581,7 +584,7 @@ class dsp(object):
     def isHdAudio(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_demodulator()
-        return demodulator in ["wfm", "drm"]
+        return demodulator == "wfm"
 
     def isDrm(self, demodulator=None):
         if demodulator is None:
