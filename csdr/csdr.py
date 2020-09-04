@@ -250,7 +250,9 @@ class dsp(object):
                 "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
             ]
         elif self.isDrm(which):
-            chain += last_decimation_block
+            if self.last_decimation != 1.0:
+                # we are still dealing with complex samples here, so the regular last_decimation_block doesn't fit
+                chain += ["csdr fractional_decimator_cc {last_decimation}"]
             chain += [
                 "csdr convert_f_s16",
                 "dream -c 6 --sigsrate 48000 --audsrate 48000 -I - -O -",
