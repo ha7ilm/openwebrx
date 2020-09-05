@@ -5,6 +5,7 @@
 - Add new demodulator chain for FreeDV
 - Added new HD audio streaming mode along with a new WFM demodulator
 - Reworked AGC code for better results in AM, SSB and digital modes
+- Added support for demodulation of "Digital Radio Mondiale" (DRM) broadcast using the "dream" decoder.
 - New devices supported:
   - FunCube Dongle Pro+ (`"type": "fcdpp"`)
   - Support for connections to rtl_tcp
