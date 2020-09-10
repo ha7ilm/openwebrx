@@ -18,8 +18,8 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libboost-chrono1.67.0 libboost-date-time1.67.0 libboost-filesystem1.67.0 libboost-program-options1.67.0 libboost-regex1.67.0 libboost-test1.67.0 libboost-serialization1.67.0 libboost-thread1.67.0 libboost-system1.67.0 python3-numpy python3-mako"
-BUILD_PACKAGES="git cmake make gcc g++ libboost-dev libboost-chrono-dev libboost-date-time-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev libboost-test-dev libboost-serialization-dev libboost-thread-dev libboost-system-dev"
+STATIC_PACKAGES="libusb-1.0.0 libboost-chrono1.67.0 libboost-date-time1.67.0 libboost-filesystem1.67.0 libboost-program-options1.67.0 libboost-regex1.67.0 libboost-test1.67.0 libboost-serialization1.67.0 libboost-thread1.67.0 libboost-system1.67.0 python3-numpy python3-mako"
+BUILD_PACKAGES="git cmake make gcc g++ libusb-1.0-0-dev libboost-dev libboost-chrono-dev libboost-date-time-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev libboost-test-dev libboost-serialization-dev libboost-thread-dev libboost-system-dev"
 
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
@@ -32,17 +32,19 @@ git checkout v3.15.0.0
 # see https://github.com/EttusResearch/uhd/issues/350
 case `uname -m` in
   arm*)
-    cmake -DCMAKE_CXX_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
+    cmake -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF \
+          -DCMAKE_CXX_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
             -DCMAKE_C_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
           -DCMAKE_ASM_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -g" ..
     ;;
   aarch64*)
-    cmake -DCMAKE_CXX_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
+    cmake -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF \
+          -DCMAKE_CXX_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
             -DCMAKE_C_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
           -DCMAKE_ASM_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -g" ..
     ;;
   x86_64)
-    cmake ..
+    cmake -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF ..
     ;;
 esac
 make
