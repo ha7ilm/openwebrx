@@ -54,6 +54,12 @@ AudioEngine.prototype._start = function() {
     }
     me.started = true;
 
+    var runCallbacks = function(workletType) {
+        var callbacks = me.onStartCallbacks;
+        me.onStartCallbacks = false;
+        callbacks.forEach(function(c) { c(workletType); });
+    };
+
     me.gainNode = me.audioContext.createGain();
     me.gainNode.connect(me.audioContext.destination);
 
@@ -80,7 +86,7 @@ AudioEngine.prototype._start = function() {
                 }
             });
             me.audioNode.port.start();
-            me.workletType = 'AudioWorklet';
+            runCallbacks('AudioWorklet');
         });
     } else {
         me.audioBuffers = [];
@@ -135,14 +141,10 @@ AudioEngine.prototype._start = function() {
         me.audioNode = me.audioContext[method](bufferSize, 0, 1);
         me.audioNode.onaudioprocess = audio_onprocess;
         me.audioNode.connect(me.gainNode);
-        me.workletType = 'ScriptProcessorNode';
+        runCallbacks('ScriptProcessorNode')
     }
 
     setInterval(me.reportStats.bind(me), 1000);
-
-    var callbacks = this.onStartCallbacks;
-    this.onStartCallbacks = false;
-    callbacks.forEach(function(c) { c(me.workletType); });
 };
 
 AudioEngine.prototype.onStart = function(callback) {
