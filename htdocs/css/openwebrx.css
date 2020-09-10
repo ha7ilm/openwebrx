@@ -1238,3 +1238,10 @@ img.openwebrx-mirror-img
     width: 14px;
     height: 12.5px;
 }
+
+.sprite-bookmark {
+    background-size: 101px 276px;
+    background-position: -50px -227.5px;
+    width: 20.5px;
+    height: 27px;
+}
