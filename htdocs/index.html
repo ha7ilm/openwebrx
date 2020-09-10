@@ -162,22 +162,22 @@
                 </div>
                 <div class="openwebrx-modes openwebrx-panel-line"></div>
                 <div class="openwebrx-panel-line">
-                    <div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><img src="static/gfx/openwebrx-speaker.png" class="openwebrx-sliderbtn-img" id="openwebrx-mute-img"></div>
+                    <div title="Mute on/off" id="openwebrx-mute-off" class="openwebrx-button" onclick="toggleMute();"><span class="sprite sprite-speaker openwebrx-sliderbtn-img"></span></div>
                     <input title="Volume" id="openwebrx-panel-volume" class="openwebrx-panel-slider" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
-                    <div title="Auto-adjust waterfall colors" id="openwebrx-waterfall-colors-auto" class="openwebrx-button" onclick="waterfall_measure_minmax_now=true;"><img src="static/gfx/openwebrx-waterfall-auto.png" class="openwebrx-sliderbtn-img"></div>
+                    <div title="Auto-adjust waterfall colors" id="openwebrx-waterfall-colors-auto" class="openwebrx-button" onclick="waterfall_measure_minmax_now=true;"><span class="sprite sprite-waterfall sprite-waterfall-auto openwebrx-sliderbtn-img"></span></div>
                     <input title="Waterfall minimum level" id="openwebrx-waterfall-color-min" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(0);" oninput="updateVolume()">
                 </div>
                 <div class="openwebrx-panel-line">
-                    <div title="Auto-set squelch level" class="openwebrx-squelch-default openwebrx-button"><img src="static/gfx/openwebrx-squelch-button.png" class="openwebrx-sliderbtn-img"></div>
+                    <div title="Auto-set squelch level" class="openwebrx-squelch-default openwebrx-button"><span class="sprite sprite-squelch openwebrx-sliderbtn-img"></span></div>
                     <input title="Squelch" class="openwebrx-squelch-slider openwebrx-panel-slider" type="range" min="-150" max="0" value="-150" step="1">
-                    <div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button" onclick="waterfallColorsDefault()"><img src="static/gfx/openwebrx-waterfall-default.png" class="openwebrx-sliderbtn-img"></div>
+                    <div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button" onclick="waterfallColorsDefault()"><span class="sprite sprite-waterfall sprite-waterfall-default openwebrx-sliderbtn-img"></span></div>
                     <input title="Waterfall maximum level" id="openwebrx-waterfall-color-max" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(1);" oninput="updateVolume()">
                 </div>
                 <div class="openwebrx-panel-line">
-                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomInOneStep();"  title="Zoom in one step">  <img src="static/gfx/openwebrx-zoom-in.png" /></div>
-                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"> <img src="static/gfx/openwebrx-zoom-out.png" /></div>
-                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><img src="static/gfx/openwebrx-zoom-in-total.png" /></div>
-                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><img src="static/gfx/openwebrx-zoom-out-total.png" /></div>
+                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomInOneStep();"  title="Zoom in one step"><span class="sprite sprite-zoom sprite-zoom-in"></span></div>
+                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"><span class="sprite sprite-zoom sprite-zoom-out"></span></div>
+                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><span class="sprite sprite-zoom sprite-zoom-in-total"></span></div>
+                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><span class="sprite sprite-zoom sprite-zoom-out-total"></span></div>
                     <div id="openwebrx-smeter-db">0 dB</div>
                 </div>
                 <div class="openwebrx-panel-line">

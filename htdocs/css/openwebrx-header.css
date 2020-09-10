@@ -192,3 +192,44 @@
     text-shadow: none;
 }
 
+.sprite-panel-log {
+    background-position: 0 0;
+    width: 38px;
+    height: 38px;
+}
+
+.sprite-panel-receiver {
+    background-position: -38px 0;
+    width: 40px;
+    height: 38px;
+}
+
+.sprite-panel-map {
+    background-position: -78px 0;
+    width: 38px;
+    height: 38px;
+}
+
+.sprite-panel-settings {
+    background-position: -116px 0;
+    width: 38px;
+    height: 38px;
+}
+
+.sprite-panel-status {
+    background-position: -154px 0;
+    width: 44px;
+    height: 38px;
+}
+
+.sprite-rx-details-arrow-down {
+    background-position: -141px -467px;
+    width: 43px;
+    height: 12px;
+}
+
+.sprite-rx-details-arrow-up {
+    background-position: -141px -455px;
+    width: 43px;
+    height: 12px;
+}

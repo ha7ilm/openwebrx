@@ -87,8 +87,8 @@ BookmarkBar.prototype.render = function(){
         var $bookmark = $(
             '<div class="bookmark" data-source="' + b.source + '"' + (b.editable?' editable="editable"':'') + '>' +
                 '<div class="bookmark-actions">' +
-                    '<div class="openwebrx-button action" data-action="edit"><img src="static/gfx/openwebrx-edit.png"></div>' +
-                    '<div class="openwebrx-button action" data-action="delete"><img src="static/gfx/openwebrx-trashcan.png"></div>' +
+                    '<div class="openwebrx-button action" data-action="edit"><span class="sprite sprite-edit"></span></div>' +
+                    '<div class="openwebrx-button action" data-action="delete"><span class="sprite sprite-trashcan"><span></div>' +
                 '</div>' +
                 '<div class="bookmark-content">' + b.name + '</div>' +
             '</div>'

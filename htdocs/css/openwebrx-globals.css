@@ -6,3 +6,7 @@ html, body
     font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
 }
 
+.sprite {
+    background-image: url(../gfx/openwebrx-sprites.png);
+    display: inline-block;
+}
