@@ -17,6 +17,8 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-perseus.sh &&\
     /install-dependencies-fcdpp.sh &&\
     /install-dependencies-radioberry.sh &&\
+    /install-dependencies-uhd.sh &&\
+    /install-dependencies-redpitaya.sh &&\
     /install-connectors.sh &&\
     rm /install-dependencies-*.sh &&\
     rm /install-lib.*.patch && \
