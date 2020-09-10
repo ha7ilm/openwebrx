@@ -33,7 +33,10 @@ class OwrxAudioProcessor extends AudioWorkletProcessor {
         this.port.start();
     }
     process(inputs, outputs) {
-        if (this.remaining() < 128) return true;
+        if (this.remaining() < 128) {
+            outputs[0].forEach(output => output.fill(0));
+            return true;
+        }
         outputs[0].forEach((output) => {
             output.set(this.audioBuffer.subarray(this.outPos, this.outPos + 128));
         });
