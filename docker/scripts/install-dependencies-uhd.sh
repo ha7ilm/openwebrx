@@ -29,7 +29,22 @@ git clone https://github.com/EttusResearch/uhd.git
 mkdir -p uhd/host/build
 cd uhd/host/build
 git checkout v3.15.0.0
-cmake ..
+# see https://github.com/EttusResearch/uhd/issues/350
+case `uname -m` in
+  arm*)
+    cmake -DCMAKE_CXX_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
+            -DCMAKE_C_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
+          -DCMAKE_ASM_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -g" ..
+    ;;
+  aarch64*)
+    cmake -DCMAKE_CXX_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
+            -DCMAKE_C_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
+          -DCMAKE_ASM_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -g" ..
+    ;;
+  x86_64)
+    cmake ..
+    ;;
+esac
 make
 make install
 cd ../../..
