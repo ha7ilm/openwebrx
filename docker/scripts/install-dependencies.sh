@@ -77,6 +77,10 @@ make enable_hamlib=
 make install
 cd ..
 rm -rf direwolf
+# strip lots of generic documentation that will never be read inside a docker container
+rm /usr/local/share/doc/direwolf/*.pdf
+# examples are pointless, too
+rm -rf /usr/local/share/doc/direwolf/examples/
 
 git clone https://github.com/drowe67/codec2.git
 cd codec2
