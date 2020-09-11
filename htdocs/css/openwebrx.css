@@ -1162,86 +1162,75 @@ img.openwebrx-mirror-img
     margin: -10px;
 }
 
-.sprite-zoom {
-    background-size: 55px 151px;
+.sprite-zoom-in {
+    background-position: 0 -38px;
     width: 27px;
     height: 27px;
 }
 
-.sprite-zoom-in {
-    background-position: 0 -10px;
-}
-
 .sprite-zoom-out {
-    background-position: 0 -38px;
+    background-position: -27px -38px;
+    width: 27px;
+    height: 27px;
 }
 
 .sprite-zoom-in-total {
-    background-size: 49px 133px;
-    background-position: 0 -57.5px;
+    background-position: -54px -38px;
     width: 24px;
+    height: 27px;
 }
 
 .sprite-zoom-out-total {
-    background-size: 50px 139px;
-    background-position: 0 -88.5px;
+    background-position: -78px -38px;
     width: 25px;
+    height: 27px;
 }
 
 .sprite-edit {
-    background-size: 70.7px 193.2px;
-    background-position: -35px -145.25px;
+    background-position: -131px -51px;
     width: 14px;
     height: 14px;
 }
 
 .sprite-trashcan {
-    background-size: 70.7px 193.2px;
-    background-position: -49px -145.25px;
+    background-position: -145px -38px;
     width: 14px;
     height: 14px;
 }
 
 .sprite-speaker {
-    background-size: 29.2px 79.7px;
     width: 14px;
-    height: 14.6px;
+    height: 15px;
 }
 
 #openwebrx-mute-on .sprite-speaker {
-    background-position: -14.4px -20.4px;
+    background-position: -117px -38px;
 }
 
 #openwebrx-mute-off .sprite-speaker {
-    background-position: -14.4px -5.8px;
+    background-position: -103px -38px;
 }
 
 .sprite-squelch {
-    background-size: 28.3px 77.3px;
-    background-position: 0 -64.3px;
+    background-position: -131px -38px;
     width: 14px;
     height: 13px;
 }
 
-.sprite-waterfall {
-    background-size: 27.7px 75.8px;
-}
-
 .sprite-waterfall-auto {
-    background-position: -13.7px -45.6px;
+    background-position: -103px -53px;
     width: 14px;
-    height: 11.4px;
+    height: 11px;
 }
 
 .sprite-waterfall-default {
-    background-position: -13.7px -33.2px;
+    background-position: -117px -53px;
     width: 14px;
-    height: 12.5px;
+    height: 12px;
 }
 
 .sprite-bookmark {
-    background-size: 101px 276px;
-    background-position: -50px -227.5px;
-    width: 20.5px;
+    background-position: -159px -38px;
+    width: 21px;
     height: 27px;
 }

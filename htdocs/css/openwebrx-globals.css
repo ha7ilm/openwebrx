@@ -10,3 +10,11 @@ html, body
     background-image: url(../gfx/openwebrx-sprites.png);
     display: inline-block;
 }
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2),
+only screen and (min-device-pixel-ratio: 2) {
+    .sprite {
+        background-image: url(../gfx/openwebrx-sprites-2x.png);
+        background-size: 198px 77px;
+    }
+}
