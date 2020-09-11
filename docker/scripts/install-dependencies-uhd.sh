@@ -32,19 +32,19 @@ git checkout v3.15.0.0
 # see https://github.com/EttusResearch/uhd/issues/350
 case `uname -m` in
   arm*)
-    cmake -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF \
+    cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_UTILS=OFF -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF -DSTRIP_BINARIES=ON \
           -DCMAKE_CXX_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
             -DCMAKE_C_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -Wno-psabi" \
           -DCMAKE_ASM_FLAGS:STRING="-march=armv7-a -mfloat-abi=hard -mfpu=neon -mtune=cortex-a8 -g" ..
     ;;
   aarch64*)
-    cmake -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF \
+    cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_UTILS=OFF -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF -DSTRIP_BINARIES=ON \
           -DCMAKE_CXX_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
             -DCMAKE_C_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -Wno-psabi" \
           -DCMAKE_ASM_FLAGS:STRING="-march=armv8-a -mtune=cortex-a72 -g" ..
     ;;
   x86_64)
-    cmake -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_UTILS=OFF -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_OCTOCLOCK=OFF -DENABLE_MAN_PAGES=OFF -DSTRIP_BINARIES=ON ..
     ;;
 esac
 make
