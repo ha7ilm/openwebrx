@@ -435,7 +435,7 @@ input[type=range]:disabled {
 	display: inline-block;
 }
 
-.openwebrx-button:hover, .openwebrx-demodulator-button.highlighted
+.openwebrx-button:hover, .openwebrx-demodulator-button.highlighted, .openwebrx-button.highlighted
 {
 	/*background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #3F3F3F), color-stop(1, #777777) );
 	background:-moz-linear-gradient( center top, #373737 5%, #4F4F4F 100% );*/
