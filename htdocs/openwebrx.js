@@ -104,8 +104,11 @@ function waterfallColorsDefault() {
 }
 
 function waterfallColorsAuto(levels) {
-    $("#openwebrx-waterfall-color-min").val(levels.min - waterfall_auto_level_margin.min);
-    $("#openwebrx-waterfall-color-max").val(levels.max + waterfall_auto_level_margin.max);
+    var min_level = levels.min - waterfall_auto_level_margin.min;
+    $("#openwebrx-waterfall-color-min").val(min_level);
+    var max_level = levels.max + waterfall_auto_level_margin.max;
+    max_level = Math.max(min_level + (waterfall_auto_level_margin.min_range || 0), max_level);
+    $("#openwebrx-waterfall-color-max").val(max_level);
     updateWaterfallColors(0);
 }
 

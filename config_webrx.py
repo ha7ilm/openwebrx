@@ -262,7 +262,7 @@ waterfall_colors = [0x30123bff, 0x311542ff, 0x33184aff, 0x341b51ff, 0x351e58ff, 
 
 waterfall_min_level = -88  # in dB
 waterfall_max_level = -20
-waterfall_auto_level_margin = {"min": 5, "max": 10}
+waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 
 # Note: When the auto waterfall level button is clicked, the following happens:
 #   [waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin["min"]]
