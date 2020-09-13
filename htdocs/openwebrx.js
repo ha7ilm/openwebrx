@@ -1398,7 +1398,9 @@ function initSliders() {
     }).on('contextmenu', function(){
         waterfall_measure_minmax_continuous = !waterfall_measure_minmax_continuous;
         waterfallColorsContinuousReset();
-        waterfallAutoButton[(waterfall_measure_minmax_continuous ? 'add' : 'remove') + 'Class']('highlighted')
+        waterfallAutoButton[waterfall_measure_minmax_continuous ? 'addClass' : 'removeClass']('highlighted');
+        $('#openwebrx-waterfall-color-min, #openwebrx-waterfall-color-max').prop('disabled', waterfall_measure_minmax_continuous);
+
         return false;
     });
 }
