@@ -151,7 +151,7 @@ class Decoder(ABC):
 
 
 class Jt9Decoder(Decoder):
-    locator_pattern = re.compile("[A-Z0-9]+\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
+    locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
 
     def parse(self, msg, dial_freq):
         # ft8 sample
