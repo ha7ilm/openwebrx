@@ -58,7 +58,7 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
         var index = me.digitContainer.find('.digit').index(e.target);
         if (index < 0) return;
 
-        var delta = 10 ** (Math.floor(Math.log10(me.frequency)) - index);
+        var delta = 10 ** (Math.floor(Math.max(6, Math.log10(me.frequency))) - index);
         if (e.originalEvent.deltaY > 0) delta *= -1;
         var newFrequency = me.frequency + delta;
 
