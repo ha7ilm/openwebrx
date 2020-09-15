@@ -12,7 +12,7 @@ from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.property import PropertyStack
 from owrx.modes import Modes, DigitalMode
-from queue import Queue, Full
+from queue import Queue, Full, Empty
 from js8py import Js8Frame
 from abc import ABC, ABCMeta, abstractmethod
 import json
@@ -58,7 +58,16 @@ class Client(ABC):
 
     def close(self):
         if self.multithreadingQueue is not None:
-            self.multithreadingQueue.put(PoisonPill)
+            while True:
+                try:
+                    self.multithreadingQueue.get(block=False)
+                except Empty:
+                    break
+            try:
+                self.multithreadingQueue.put(PoisonPill, block=False)
+            except Full:
+                # this shouldn't happen, we just emptied the queue, but it's not worth risking the exception
+                logger.exception("impossible queue state: Full after Empty")
         self.conn.close()
 
     def mp_send(self, data):
