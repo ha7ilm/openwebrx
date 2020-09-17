@@ -1519,7 +1519,7 @@ function initPanels() {
            |___/
 */
 
-var secondary_demod_fft_offset_db = 30; //need to calculate that later
+var secondary_demod_fft_offset_db = 18; //need to calculate that later
 var secondary_demod_canvases_initialized = false;
 var secondary_demod_listbox_updating = false;
 var secondary_demod_channel_freq = 1000;

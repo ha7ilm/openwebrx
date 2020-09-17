@@ -279,7 +279,9 @@ class dsp(object):
         if which == "fft":
             chain += [
                 "csdr fft_cc {secondary_fft_input_size} {secondary_fft_block_size}",
-                "csdr logpower_cf -70",
+                "csdr logpower_cf -70"
+                if self.fft_averages == 0
+                else "csdr logaveragepower_cf -70 {secondary_fft_size} {fft_averages}",
                 "csdr fft_exchange_sides_ff {secondary_fft_input_size}",
             ]
             if self.fft_compression == "adpcm":
@@ -318,7 +320,10 @@ class dsp(object):
         self.restart()
 
     def secondary_fft_block_size(self):
-        return (self.samp_rate / self.decimation) / self.fft_fps
+        if self.fft_averages == 0:
+            return (self.samp_rate / self.decimation) / self.fft_fps
+        else:
+            return (self.samp_rate / self.decimation) / self.fft_fps / self.fft_averages
 
     def secondary_decimation(self):
         return 1  # currently unused
@@ -383,6 +388,7 @@ class dsp(object):
                 secondary_fft_input_size=self.secondary_fft_size,
                 secondary_fft_size=self.secondary_fft_size,
                 secondary_fft_block_size=self.secondary_fft_block_size(),
+                fft_averages=self.fft_averages,
             )
             logger.debug("secondary command (fft) = %s", secondary_command_fft)
 

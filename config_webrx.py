@@ -83,7 +83,7 @@ audio_compression = "adpcm"  # valid values: "adpcm", "none"
 fft_compression = "adpcm"  # valid values: "adpcm", "none"
 
 digimodes_enable = True  # Decoding digimodes come with higher CPU usage.
-digimodes_fft_size = 1024
+digimodes_fft_size = 2048
 
 # determines the quality, and thus the cpu usage, for the ambe codec used by digital voice modes
 # if you're running on a Raspi (up to 3B+) you'll want to leave this on 1
