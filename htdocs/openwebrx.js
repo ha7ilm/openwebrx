@@ -77,7 +77,7 @@ var waterfall_min_level;
 var waterfall_max_level;
 var waterfall_min_level_default;
 var waterfall_max_level_default;
-var waterfall_colors;
+var waterfall_colors = chroma.scale(['#000', '#FFF']);
 var waterfall_auto_level_margin;
 
 function updateWaterfallColors(which) {
