@@ -49,11 +49,19 @@ class ConfigMigratorVersion1(ConfigMigrator):
         return config
 
 
+class ConfigMigratorVersion2(ConfigMigrator):
+    def migrate(self, config):
+        if "waterfall_colors" in config and any(v > 0xFFFFFF for v in config["waterfall_colors"]):
+            config["waterfall_colors"] = [v >> 8 for v in config["waterfall_colors"]]
+        return config
+
+
 class Config:
     sharedConfig = None
-    currentVersion = 2
+    currentVersion = 3
     migrators = {
-        1: ConfigMigratorVersion1()
+        1: ConfigMigratorVersion1(),
+        2: ConfigMigratorVersion2(),
     }
 
     @staticmethod
@@ -130,5 +138,7 @@ class Config:
             return config
 
         logger.debug("migrating config from version %i", version)
-        migrator = Config.migrators[version]
-        return migrator.migrate(config)
+        migrators = [Config.migrators[i] for i in range(version, Config.currentVersion)]
+        for migrator in migrators:
+            config = migrator.migrate(config)
+        return config

@@ -33,7 +33,7 @@ config_webrx: configuration options for OpenWebRX
 """
 
 # configuration version. please only modify if you're able to perform the associated migration steps.
-version = 2
+version = 3
 
 # NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
 # https://github.com/jketterl/openwebrx/wiki/Configuration-guide
