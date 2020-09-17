@@ -278,9 +278,9 @@ class dsp(object):
         chain = ["cat {input_pipe}"]
         if which == "fft":
             chain += [
-                "csdr realpart_cf",
-                "csdr fft_fc {secondary_fft_input_size} {secondary_fft_block_size}",
+                "csdr fft_cc {secondary_fft_input_size} {secondary_fft_block_size}",
                 "csdr logpower_cf -70",
+                "csdr fft_exchange_sides_ff {secondary_fft_input_size}",
             ]
             if self.fft_compression == "adpcm":
                 chain += ["csdr compress_fft_adpcm_f_u8 {secondary_fft_size}"]
@@ -318,9 +318,7 @@ class dsp(object):
         self.restart()
 
     def secondary_fft_block_size(self):
-        return (self.samp_rate / self.decimation) / (
-            self.fft_fps * 2
-        )  # *2 is there because we do FFT on real signal here
+        return (self.samp_rate / self.decimation) / self.fft_fps
 
     def secondary_decimation(self):
         return 1  # currently unused
