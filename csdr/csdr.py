@@ -320,10 +320,10 @@ class dsp(object):
         self.restart()
 
     def secondary_fft_block_size(self):
+        base = (self.samp_rate / self.decimation) / (self.fft_fps * 2)
         if self.fft_averages == 0:
-            return (self.samp_rate / self.decimation) / self.fft_fps
-        else:
-            return (self.samp_rate / self.decimation) / self.fft_fps / self.fft_averages
+            return base
+        return base / self.fft_averages
 
     def secondary_decimation(self):
         return 1  # currently unused
