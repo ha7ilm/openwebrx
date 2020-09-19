@@ -3,7 +3,7 @@ from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
-from owrx.source import SdrSource
+from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.client import ClientRegistry, TooManyClientsException
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
@@ -107,7 +107,7 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
         self.send({"type": "receiver_details", "value": details})
 
 
-class OpenWebRxReceiverClient(OpenWebRxClient):
+class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     config_keys = [
         "waterfall_colors",
         "waterfall_min_level",
@@ -151,6 +151,23 @@ class OpenWebRxReceiverClient(OpenWebRxClient):
         self.__sendProfiles()
 
         CpuUsageThread.getSharedInstance().add_client(self)
+
+    def onStateChange(self, state):
+        if state == SdrSource.STATE_RUNNING:
+            self.handleSdrAvailable()
+        elif state == SdrSource.STATE_FAILED:
+            self.handleSdrFailed()
+
+    def handleSdrFailed(self):
+        logger.warning('SDR device "%s" has failed, selecting new device', self.sdr.getName())
+        self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
+        self.setSdr()
+
+    def onBusyStateChange(self, state):
+        pass
+
+    def getClientClass(self):
+        return SdrSource.CLIENT_USER
 
     def __sendProfiles(self):
         profiles = [
@@ -200,39 +217,35 @@ class OpenWebRxReceiverClient(OpenWebRxClient):
             logger.warning("message is not json: {0}".format(message))
 
     def setSdr(self, id=None):
-        while True:
-            next = None
-            if id is not None:
-                next = SdrService.getSource(id)
-            if next is None:
-                next = SdrService.getFirstSource()
-            if next is None:
-                # exit condition: no sdrs available
-                logger.warning("no more SDR devices available")
-                self.handleNoSdrsAvailable()
-                return
+        next = None
+        if id is not None:
+            next = SdrService.getSource(id)
+        if next is None:
+            next = SdrService.getFirstSource()
 
-            # exit condition: no change
-            if next == self.sdr:
-                return
+        # exit condition: no change
+        if next == self.sdr and next is not None:
+            return
 
-            self.stopDsp()
+        self.stopDsp()
 
-            if self.configSub is not None:
-                self.configSub.cancel()
-                self.configSub = None
+        if self.configSub is not None:
+            self.configSub.cancel()
+            self.configSub = None
 
-            self.sdr = next
+        if self.sdr is not None:
+            self.sdr.removeClient(self)
 
-            self.getDsp()
+        if next is None:
+            # exit condition: no sdrs available
+            logger.warning("no more SDR devices available")
+            self.handleNoSdrsAvailable()
+            return
 
-            # found a working sdr, exit the loop
-            if self.sdr.getState() != SdrSource.STATE_FAILED:
-                break
+        self.sdr = next
+        self.sdr.addClient(self)
 
-            logger.warning('SDR device "%s" has failed, selecing new device', self.sdr.getName())
-            self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
-
+    def handleSdrAvailable(self):
         # send initial config
         self.getDsp().setProperties(self.connectionProperties)
 
@@ -261,6 +274,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient):
         self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
+        self.startDsp()
 
     def handleNoSdrsAvailable(self):
         self.write_sdr_error("No SDR Devices available")
@@ -269,6 +283,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient):
         self.getDsp().start()
 
     def close(self):
+        if self.sdr is not None:
+            self.sdr.removeClient(self)
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)

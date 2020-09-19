@@ -157,6 +157,9 @@ class SdrSource(ABC):
             if self.monitor:
                 return
 
+            if self.isFailed():
+                return
+
             try:
                 self.preStart()
             except Exception:
@@ -183,16 +186,18 @@ class SdrSource(ABC):
             def wait_for_process_to_end():
                 rc = self.process.wait()
                 logger.debug("shut down with RC={0}".format(rc))
+                self.monitor = None
                 if self.getState() == SdrSource.STATE_RUNNING:
                     self.failed = True
                     self.setState(SdrSource.STATE_FAILED)
-                self.monitor = None
+                else:
+                    self.setState(SdrSource.STATE_STOPPED)
 
             self.monitor = threading.Thread(target=wait_for_process_to_end, name="source_monitor")
             self.monitor.start()
 
             retries = 1000
-            while retries > 0:
+            while retries > 0 and not self.isFailed():
                 retries -= 1
                 if self.monitor is None:
                     break
@@ -248,14 +253,13 @@ class SdrSource(ABC):
             if self.monitor:
                 self.monitor.join()
 
-        self.setState(SdrSource.STATE_STOPPED)
-
     def hasClients(self, *args):
         clients = [c for c in self.clients if c.getClientClass() in args]
         return len(clients) > 0
 
     def addClient(self, c: SdrSourceEventClient):
         self.clients.append(c)
+        c.onStateChange(self.getState())
         hasUsers = self.hasClients(SdrSource.CLIENT_USER)
         hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
         if hasUsers or hasBackgroundTasks:
@@ -280,6 +284,9 @@ class SdrSource(ABC):
             self.stop()
 
     def addSpectrumClient(self, c):
+        if c in self.spectrumClients:
+            return
+
         # local import due to circular depencency
         from owrx.fft import SpectrumThread
 
