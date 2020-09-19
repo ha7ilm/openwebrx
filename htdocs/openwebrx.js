@@ -77,8 +77,12 @@ var waterfall_min_level;
 var waterfall_max_level;
 var waterfall_min_level_default;
 var waterfall_max_level_default;
-var waterfall_colors = chroma.scale(['#000', '#FFF']);
+var waterfall_colors = buildWaterfallColors(['#000', '#FFF'])
 var waterfall_auto_level_margin;
+
+function buildWaterfallColors(input) {
+    return chroma.scale(input).colors(256, 'rgb')
+}
 
 function updateWaterfallColors(which) {
     var $wfmax = $("#openwebrx-waterfall-color-max");
@@ -700,7 +704,7 @@ function on_ws_recv(evt) {
                 switch (json.type) {
                     case "config":
                         var config = json['value'];
-                        waterfall_colors = chroma.scale(config['waterfall_colors']);
+                        waterfall_colors = buildWaterfallColors(config['waterfall_colors']);
                         waterfall_min_level_default = config['waterfall_min_level'];
                         waterfall_max_level_default = config['waterfall_max_level'];
                         waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
@@ -1209,16 +1213,18 @@ function open_websocket() {
 function waterfall_mkcolor(db_value, waterfall_colors_arg) {
     waterfall_colors_arg = waterfall_colors_arg || waterfall_colors;
     var value_percent = (db_value - waterfall_min_level) / (waterfall_max_level - waterfall_min_level);
-    return waterfall_colors(Math.max(0, Math.min(1, value_percent)));
-}
+    value_percent = Math.max(0, Math.min(1, value_percent));
+    var percent_for_one_color = 1 / (waterfall_colors_arg.length - 1);
+    var index = Math.floor(value_percent / percent_for_one_color);
+    var remain = (value_percent - percent_for_one_color * index) / percent_for_one_color;
+    return color_between(waterfall_colors_arg[index + 1], waterfall_colors_arg[index], remain);}
 
 function color_between(first, second, percent) {
-    var output = 0;
-    for (var i = 0; i < 4; i++) {
-        var add = ((((first & (0xff << (i * 8))) >>> 0) * percent) + (((second & (0xff << (i * 8))) >>> 0) * (1 - percent))) & (0xff << (i * 8));
-        output |= add >>> 0;
+    var output = [];
+    for (var i = 0; i < 3; i++) {
+        output[i] = first[i] + percent * (first[i] - second[i]);
     }
-    return output >>> 0;
+    return output;
 }
 
 
@@ -1304,7 +1310,7 @@ function waterfall_add(data) {
     //Add line to waterfall image
     var oneline_image = canvas_context.createImageData(w, 1);
     for (var x = 0; x < w; x++) {
-        var color = waterfall_mkcolor(data[x]).rgb();
+        var color = waterfall_mkcolor(data[x]);
         for (i = 0; i < 3; i++) oneline_image.data[x * 4 + i] = color[i];
         oneline_image.data[x * 4 + 3] = 255;
     }
@@ -1612,7 +1618,7 @@ function secondary_demod_waterfall_add(data) {
     //Add line to waterfall image
     var oneline_image = secondary_demod_current_canvas_context.createImageData(w, 1);
     for (var x = 0; x < w; x++) {
-        var color = waterfall_mkcolor(data[x] + secondary_demod_fft_offset_db).rgb();
+        var color = waterfall_mkcolor(data[x] + secondary_demod_fft_offset_db);
         for (var i = 0; i < 3; i++) oneline_image.data[x * 4 + i] = color[i];
         oneline_image.data[x * 4 + 3] = 255;
     }
