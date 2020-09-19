@@ -133,6 +133,9 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.configSub = None
         self.connectionProperties = {}
 
+        # to be able to remember if the dsp has been started before
+        self.dspState = False
+
         try:
             ClientRegistry.getSharedInstance().addClient(self)
         except TooManyClientsException:
@@ -183,6 +186,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             if "type" in message:
                 if message["type"] == "dspcontrol":
                     if "action" in message and message["action"] == "start":
+                        self.dspState = True
                         self.startDsp()
 
                     if "params" in message:
@@ -274,7 +278,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
-        self.startDsp()
+        if self.dspState:
+            self.startDsp()
 
     def handleNoSdrsAvailable(self):
         self.write_sdr_error("No SDR Devices available")
