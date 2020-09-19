@@ -249,12 +249,17 @@ DemodulatorPanel.prototype.updateButtons = function() {
 }
 
 DemodulatorPanel.prototype.setCenterFrequency = function(center_freq) {
-    if (this.center_freq === center_freq) {
-        return;
+    var me = this;
+    if (me.centerFreqTimeout) {
+        clearTimeout(me.centerFreqTimeout);
+        me.centerFreqTimeout = false;
     }
-    this.stopDemodulator();
-    this.center_freq = center_freq;
-    this.startDemodulator();
+    this.centerFreqTimeout = setTimeout(function() {
+        me.stopDemodulator();
+        me.center_freq = center_freq;
+        me.startDemodulator();
+        me.centerFreqTimeout = false;
+    }, 50);
 };
 
 DemodulatorPanel.prototype.parseHash = function() {
