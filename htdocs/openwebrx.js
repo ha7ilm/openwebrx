@@ -1214,17 +1214,19 @@ function waterfall_mkcolor(db_value, waterfall_colors_arg) {
     waterfall_colors_arg = waterfall_colors_arg || waterfall_colors;
     var value_percent = (db_value - waterfall_min_level) / (waterfall_max_level - waterfall_min_level);
     value_percent = Math.max(0, Math.min(1, value_percent));
-    var percent_for_one_color = 1 / (waterfall_colors_arg.length - 1);
-    var index = Math.floor(value_percent / percent_for_one_color);
-    var remain = (value_percent - percent_for_one_color * index) / percent_for_one_color;
-    return color_between(waterfall_colors_arg[index + 1], waterfall_colors_arg[index], remain);}
+
+    var scaled = value_percent * (waterfall_colors.length - 1);
+    var index = Math.floor(scaled);
+    var remain = scaled - index;
+    if (remain == 0) return waterfall_colors_arg[index];
+    return color_between(waterfall_colors_arg[index], waterfall_colors_arg[index + 1], remain);}
 
 function color_between(first, second, percent) {
-    var output = [];
-    for (var i = 0; i < 3; i++) {
-        output[i] = first[i] + percent * (first[i] - second[i]);
-    }
-    return output;
+    return [
+        first[0] + percent * (second[0] - first[0]),
+        first[1] + percent * (second[1] - first[1]),
+        first[2] + percent * (second[2] - first[2])
+    ];
 }
 
 
