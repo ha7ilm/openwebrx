@@ -1,6 +1,6 @@
 import subprocess
 from functools import reduce
-from operator import and_, or_
+from operator import and_
 import re
 from distutils.version import LooseVersion
 import inspect
