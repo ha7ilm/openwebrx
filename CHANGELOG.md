@@ -10,7 +10,7 @@
 - Prototype of a continuous automatic waterfall calibration mode
 - New devices supported:
   - FunCube Dongle Pro+ (`"type": "fcdpp"`)
-  - Support for connections to rtl_tcp
+  - Support for connections to rtl_tcp (`"type": "rtl_tcp"`)
 
 **0.19.1**
 - Added ability to authenticate receivers with listing sites using "receiver id" tokens
