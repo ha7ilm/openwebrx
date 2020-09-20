@@ -6,6 +6,7 @@ from distutils.version import LooseVersion
 import inspect
 from owrx.config import Config
 import shlex
+import os
 
 import logging
 
@@ -102,12 +103,19 @@ class FeatureDetector(object):
     def get_requirement_description(self, requirement):
         return inspect.getdoc(self._get_requirement_method(requirement))
 
-    def command_is_runnable(self, command):
+    def command_is_runnable(self, command, expected_result=None):
         tmp_dir = Config.get()["temporary_directory"]
         cmd = shlex.split(command)
+        env = os.environ.copy()
+        # prevent X11 programs from opening windows if called from a GUI shell
+        env.pop("DISPLAY", None)
         try:
-            process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir)
-            return process.wait() != 32512
+            process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir, env=env)
+            rc = process.wait()
+            if expected_result is None:
+                return rc != 32512
+            else:
+                return rc == expected_result
         except FileNotFoundError:
             return False
 
@@ -442,6 +450,9 @@ class FeatureDetector(object):
         In order to be able to decode DRM broadcasts, OpenWebRX needs the "dream" DRM decoder. You can get it
         [here](https://sourceforge.net/projects/drm/files/dream/).
 
+        Note: Please use version 2.1.1, the latest version (2.2 at the time of writing) has been reported to cause
+        problems.
+
         The version supplied by most distributions will not work properly on the command line, so compiling from source
         with a custom set of commands is recommended:
 
@@ -451,4 +462,4 @@ class FeatureDetector(object):
         sudo make install
         ```
         """
-        return self.command_is_runnable("dream --help")
+        return self.command_is_runnable("dream --help", 0)
