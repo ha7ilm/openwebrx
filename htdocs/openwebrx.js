@@ -77,7 +77,7 @@ var waterfall_min_level;
 var waterfall_max_level;
 var waterfall_min_level_default;
 var waterfall_max_level_default;
-var waterfall_colors = buildWaterfallColors(['#000', '#FFF'])
+var waterfall_colors = buildWaterfallColors(['#000', '#FFF']);
 var waterfall_auto_level_margin;
 
 function buildWaterfallColors(input) {
@@ -177,10 +177,6 @@ function getLogSmeterValue(value) {
     return 10 * Math.log10(value);
 }
 
-function getLinearSmeterValue(db_value) {
-    return Math.pow(10, db_value / 10);
-}
-
 function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch_and_smeter_cc`
 {
     var logValue = getLogSmeterValue(value);
@@ -214,7 +210,7 @@ function getDemodulators() {
     ].filter(function(d) {
         return !!d;
     });
-};
+}
 
 function mkenvelopes(visible_range) //called from mkscale
 {
@@ -224,7 +220,7 @@ function mkenvelopes(visible_range) //called from mkscale
         demodulators[i].envelope.draw(visible_range);
     }
     if (demodulators.length) {
-        var bandpass = demodulators[0].getBandpass()
+        var bandpass = demodulators[0].getBandpass();
         secondary_demod_waterfall_set_zoom(bandpass.low_cut, bandpass.high_cut);
     }
 }
@@ -1215,10 +1211,10 @@ function waterfall_mkcolor(db_value, waterfall_colors_arg) {
     var value_percent = (db_value - waterfall_min_level) / (waterfall_max_level - waterfall_min_level);
     value_percent = Math.max(0, Math.min(1, value_percent));
 
-    var scaled = value_percent * (waterfall_colors.length - 1);
+    var scaled = value_percent * (waterfall_colors_arg.length - 1);
     var index = Math.floor(scaled);
     var remain = scaled - index;
-    if (remain == 0) return waterfall_colors_arg[index];
+    if (remain === 0) return waterfall_colors_arg[index];
     return color_between(waterfall_colors_arg[index], waterfall_colors_arg[index + 1], remain);}
 
 function color_between(first, second, percent) {
@@ -1400,7 +1396,7 @@ function initSliders() {
     });
 
     var waterfallAutoButton = $('#openwebrx-waterfall-colors-auto');
-    waterfallAutoButton.on('click', function(ev) {
+    waterfallAutoButton.on('click', function() {
         waterfall_measure_minmax_now=true;
     }).on('contextmenu', function(){
         waterfall_measure_minmax_continuous = !waterfall_measure_minmax_continuous;
@@ -1529,7 +1525,6 @@ function initPanels() {
 
 var secondary_demod_fft_offset_db = 18; //need to calculate that later
 var secondary_demod_canvases_initialized = false;
-var secondary_demod_listbox_updating = false;
 var secondary_demod_channel_freq = 1000;
 var secondary_demod_waiting_for_set = false;
 var secondary_demod_low_cut;
