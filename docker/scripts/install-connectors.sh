@@ -25,7 +25,7 @@ apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
 # this is the latest development version as of 2020-09-21 (sync device modifications)
-cmakebuild owrx_connector 80046d9d6a769206c3f48e265982ee34739728b2
+cmakebuild owrx_connector ecbadcd33135530e19a66541959e2b0207e11b39
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
