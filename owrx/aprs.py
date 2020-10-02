@@ -154,23 +154,24 @@ class AprsParser(Parser):
         super().__init__(handler)
         self.ax25parser = Ax25Parser()
         self.deframer = KissDeframer()
-        self.metric = self.getMetric()
+        self.metric = None
 
     def setDialFrequency(self, freq):
         super().setDialFrequency(freq)
-        self.metric = self.getMetric()
+        self.metric = None
 
     def getMetric(self):
-        band = "unknown"
-        if self.band is not None:
-            band = self.band.getName()
-        name = "aprs.decodes.{band}.aprs".format(band=band)
-        metrics = Metrics.getSharedInstance()
-        metric = metrics.getMetric(name)
-        if metric is None:
-            metric = CounterMetric()
-            metrics.addMetric(name, metric)
-        return metric
+        if self.metric is None:
+            band = "unknown"
+            if self.band is not None:
+                band = self.band.getName()
+            name = "aprs.decodes.{band}.aprs".format(band=band)
+            metrics = Metrics.getSharedInstance()
+            self.metric = metrics.getMetric(name)
+            if self.metric is None:
+                self.metric = CounterMetric()
+                metrics.addMetric(name, self.metric)
+        return self.metric
 
     def parse(self, raw):
         for frame in self.deframer.parse(raw):
@@ -182,7 +183,7 @@ class AprsParser(Parser):
 
                 logger.debug("decoded APRS data: %s", aprsData)
                 self.updateMap(aprsData)
-                self.metric.inc()
+                self.getMetric().inc()
                 self.handler.write_aprs_data(aprsData)
             except Exception:
                 logger.exception("exception while parsing aprs data")
