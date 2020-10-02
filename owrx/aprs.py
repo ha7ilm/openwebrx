@@ -33,6 +33,9 @@ thirdpartyeRegex = re.compile("^([a-zA-Z0-9-]+)>((([a-zA-Z0-9-]+\\*?,)*)([a-zA-Z
 # regex for getting the message id out of message
 messageIdRegex = re.compile("^(.*){([0-9]{1,5})$")
 
+# regex to filter pseudo "WIDE" path elements
+widePattern = re.compile("^WIDE[0-9]-[0-9]$")
+
 
 def decodeBase91(input):
     base = decodeBase91(input[:-1]) * 91 if len(input) > 1 else 0
@@ -154,24 +157,33 @@ class AprsParser(Parser):
         super().__init__(handler)
         self.ax25parser = Ax25Parser()
         self.deframer = KissDeframer()
-        self.metric = None
+        self.metrics = {}
 
     def setDialFrequency(self, freq):
         super().setDialFrequency(freq)
-        self.metric = None
+        self.metrics = {}
 
-    def getMetric(self):
-        if self.metric is None:
+    def getMetric(self, category):
+        if category not in self.metrics:
             band = "unknown"
             if self.band is not None:
                 band = self.band.getName()
-            name = "aprs.decodes.{band}.aprs".format(band=band)
+            name = "aprs.decodes.{band}.aprs.{category}".format(band=band, category=category)
             metrics = Metrics.getSharedInstance()
-            self.metric = metrics.getMetric(name)
-            if self.metric is None:
-                self.metric = CounterMetric()
-                metrics.addMetric(name, self.metric)
-        return self.metric
+            self.metrics[category] = metrics.getMetric(name)
+            if self.metrics[category] is None:
+                self.metrics[category] = CounterMetric()
+                metrics.addMetric(name, self.metrics[category])
+        return self.metrics[category]
+
+    def isDirect(self, aprsData):
+        if "path" in aprsData and len(aprsData["path"]) > 0:
+            hops = [host for host in aprsData["path"] if widePattern.match(host) is None]
+            if len(hops) > 0:
+                return False
+        if "type" in aprsData and aprsData["type"] in ["thirdparty", "item", "object"]:
+            return False
+        return True
 
     def parse(self, raw):
         for frame in self.deframer.parse(raw):
@@ -183,7 +195,9 @@ class AprsParser(Parser):
 
                 logger.debug("decoded APRS data: %s", aprsData)
                 self.updateMap(aprsData)
-                self.getMetric().inc()
+                self.getMetric("total").inc()
+                if self.isDirect(aprsData):
+                    self.getMetric("direct").inc()
                 self.handler.write_aprs_data(aprsData)
             except Exception:
                 logger.exception("exception while parsing aprs data")
