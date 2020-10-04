@@ -100,6 +100,7 @@ class dsp(object):
         self.csdr_through = False
         self.squelch_level = -150
         self.fft_averages = 50
+        self.wfm_deemphasis_tau = 50e-6
         self.iqtee = False
         self.iqtee2 = False
         self.secondary_demodulator = None
@@ -198,7 +199,7 @@ class dsp(object):
             ]
             chain += last_decimation_block
             chain += [
-                "csdr deemphasis_wfm_ff {audio_rate} 50e-6",
+                "csdr deemphasis_wfm_ff {audio_rate} {wfm_deemphasis_tau}",
                 "csdr convert_f_s16"
             ]
         elif self.isDigitalVoice(which):
@@ -685,6 +686,12 @@ class dsp(object):
         if self.has_pipe("dmr_control_pipe"):
             self.pipes["dmr_control_pipe"].write("{0}\n".format(filter))
 
+    def set_wfm_deemphasis_tau(self, tau):
+        if self.wfm_deemphasis_tau == tau:
+            return
+        self.wfm_deemphasis_tau = tau
+        self.restart()
+
     def ddc_transition_bw(self):
         return self.ddc_transition_bw_rate * (self.if_samp_rate() / float(self.samp_rate))
 
@@ -782,6 +789,7 @@ class dsp(object):
                 smeter_report_every=int(self.if_samp_rate() / 6000),
                 unvoiced_quality=self.get_unvoiced_quality(),
                 audio_rate=self.get_audio_rate(),
+                wfm_deemphasis_tau=self.wfm_deemphasis_tau,
             )
 
             logger.debug("Command = %s", command)
