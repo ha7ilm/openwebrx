@@ -12,7 +12,8 @@ apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/Microtelecom/libperseus-sdr.git
 cd libperseus-sdr
-git checkout 72ac67c5b7936a1991be0ec97c03a59c1a8ac8f3
+# latest from master as of 2020-09-04
+git checkout c2c95daeaa08bf0daed0e8ada970ab17cc264e1b
 ./bootstrap.sh
 ./configure
 make

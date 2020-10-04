@@ -53,7 +53,7 @@ cd ../../..
 rm -rf uhd
 
 git clone https://github.com/pothosware/SoapyUHD.git
-cmakebuild SoapyUHD 3488a7f994b0d10e50cd3b542cfc7cab9d2d9c05
+cmakebuild SoapyUHD soapy-uhd-0.4.1
 
 SUDO_FORCE_REMOVE=yes apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean

@@ -25,16 +25,19 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/airspy/airspyone_host.git
-cmakebuild airspyone_host bceca18f9e3a5f89cff78c4d949c71771d92dfd3
+# latest from master as of 2020-09-04
+cmakebuild airspyone_host 652fd7f1a8f85687641e0bd91f739694d7258ecc
 
 git clone https://github.com/pothosware/SoapyAirspy.git
 cmakebuild SoapyAirspy 10d697b209e7f1acc8b2c8d24851d46170ef77e3
 
 git clone https://github.com/airspy/airspyhf.git
-cmakebuild airspyhf 613852a2bb64af42690bf9be2201826af69a9475
+# latest from master as of 2020-09-04
+cmakebuild airspyhf 8891387edddcd185e2949e9814e9ef35f46f0722
 
 git clone https://github.com/pothosware/SoapyAirspyHF.git
-cmakebuild SoapyAirspyHF 81ca737bb044dd930a9de738bced1e4915491f1b
+# latest from master as of 2020-09-04
+cmakebuild SoapyAirspyHF 5488dac5b44f1432ce67b40b915f7e61d3bd4853
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean

@@ -26,13 +26,15 @@ apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/mossmann/hackrf.git
 cd hackrf
-git checkout 43e6f99fe8543094d18ff3a6550ed2066c398862
+# latest from master as of 2020-09-04
+git checkout 6e5cbda2945c3bab0e6e1510eae418eda60c358e
 cmakebuild host
 cd ..
 rm -rf hackrf
 
 git clone https://github.com/pothosware/SoapyHackRF.git
-cmakebuild SoapyHackRF 3c514cecd3dd2fdf4794aebc96c482940c11d7ff
+# latest from master as of 2020-09-04
+cmakebuild SoapyHackRF 7d530872f96c1cbe0ed62617c32c48ce7e103e1d
 
 SUDO_FORCE_REMOVE=yes apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean

@@ -25,7 +25,7 @@ apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/js8py.git
 pushd js8py
-git checkout 888e62be375316882ad2b2ac8e396c3bf857b6fc
+git checkout 0.1.0
 python3 setup.py install
 popd
 rm -rf js8py
@@ -42,7 +42,8 @@ cd ..
 rm -rf csdr
 
 git clone https://github.com/jketterl/digiham.git
-cmakebuild digiham 95206501be89b38d0267bf6c29a6898e7c65656f
+# latest commit from develop as of 2020-10-04
+cmakebuild digiham 66871051b5d943703c1024ba4293e45efc2a450d
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean

@@ -17,7 +17,8 @@ fi
 
 git clone https://github.com/myriadrf/LimeSuite.git
 cd LimeSuite
-git checkout 0854a51ec06b30b01f19a562149c39461e92f24d
+# latest from master as of 2020-09-04
+git checkout 9526621f8b4c9e2a7f638b5ef50c45560dcad22a
 mkdir builddir
 cd builddir
 cmake .. -DENABLE_EXAMPLES=OFF -DENABLE_DESKTOP=OFF -DENABLE_LIME_UTIL=OFF -DENABLE_QUICKTEST=OFF -DENABLE_OCTAVE=OFF -DENABLE_GUI=OFF -DCMAKE_CXX_STANDARD_LIBRARIES="-latomic" ${SIMD_FLAGS}
