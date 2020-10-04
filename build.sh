@@ -17,4 +17,5 @@ docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-fcdpp:$ARCHTAG -
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-radioberry:$ARCHTAG -f docker/Dockerfiles/Dockerfile-radioberry .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-uhd:$ARCHTAG -f docker/Dockerfiles/Dockerfile-uhd .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-redpitaya:$ARCHTAG -f docker/Dockerfiles/Dockerfile-redpitaya .
+docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-rtltcp:$ARCHTAG -f docker/Dockerfiles/Dockerfile-rtltcp .
 docker build --build-arg ARCHTAG=$ARCHTAG -t jketterl/openwebrx-full:$ARCHTAG -t jketterl/openwebrx:$ARCHTAG -f docker/Dockerfiles/Dockerfile-full .

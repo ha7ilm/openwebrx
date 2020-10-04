@@ -1,0 +1,9 @@
+ARG ARCHTAG
+FROM openwebrx-base:$ARCHTAG
+
+COPY docker/scripts/install-connectors.sh /
+
+RUN /install-connectors.sh &&\
+    rm /install-connectors.sh
+
+COPY . /opt/openwebrx
