@@ -19,7 +19,7 @@ function cmakebuild() {
 cd /tmp
 
 STATIC_PACKAGES="libusb-1.0-0 libxml2"
-BUILD_PACKAGES="git libusb-1.0-0-dev cmake make gcc g++ libxml2-dev flex bison"
+BUILD_PACKAGES="git libusb-1.0-0-dev cmake make gcc g++ libxml2-dev flex bison pkg-config"
 
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
