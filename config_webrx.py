@@ -82,6 +82,13 @@ fft_voverlap_factor = (
 audio_compression = "adpcm"  # valid values: "adpcm", "none"
 fft_compression = "adpcm"  # valid values: "adpcm", "none"
 
+# Tau setting for WFM (broadcast FM) deemphasis\
+# Quote from wikipedia https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis
+# "In most of the world a 50 µs time constant is used. In the Americas and South Korea, 75 µs is used"
+# Enable one of the following lines, depending on your location:
+# wfm_deemphasis_tau = 75e-6  # for US and South Korea
+wfm_deemphasis_tau = 50e-6  # for the rest of the world
+
 digimodes_enable = True  # Decoding digimodes come with higher CPU usage.
 digimodes_fft_size = 2048
 
