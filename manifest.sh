@@ -11,5 +11,4 @@ for image in ${IMAGES}; do
   done
   docker manifest create jketterl/$image:$TAG $IMAGE_LIST
   docker manifest push --purge jketterl/$image:$TAG
-  docker pull jketterl/$image:$TAG
 done
