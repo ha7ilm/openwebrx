@@ -102,12 +102,7 @@ class FeatureDetector(object):
         return {name: feature_details(name) for name in FeatureDetector.features}
 
     def is_available(self, feature):
-        cache = FeatureCache.getSharedInstance()
-        if cache.has(feature):
-            return cache.get(feature)
-        result = self.has_requirements(self.get_requirements(feature))
-        cache.set(feature, result)
-        return result
+        return self.has_requirements(self.get_requirements(feature))
 
     def get_requirements(self, feature):
         try:
@@ -128,12 +123,19 @@ class FeatureDetector(object):
         return None
 
     def has_requirement(self, requirement):
+        cache = FeatureCache.getSharedInstance()
+        if cache.has(requirement):
+            return cache.get(requirement)
+
         method = self._get_requirement_method(requirement)
+        result = False
         if method is not None:
-            return method()
+            result = method()
         else:
             logger.error("detection of requirement {0} not implement. please fix in code!".format(requirement))
-        return False
+
+        cache.set(requirement, result)
+        return result
 
     def get_requirement_description(self, requirement):
         return inspect.getdoc(self._get_requirement_method(requirement))
