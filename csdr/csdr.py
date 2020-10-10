@@ -643,6 +643,8 @@ class dsp(object):
             return self.samp_rate / self.fft_fps / self.fft_averages
 
     def set_offset_freq(self, offset_freq):
+        if offset_freq is None:
+            return
         self.offset_freq = offset_freq
         if self.running:
             self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
