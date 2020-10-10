@@ -7,6 +7,7 @@ import inspect
 from owrx.config import Config
 import shlex
 import os
+from datetime import datetime, timedelta
 
 import logging
 
@@ -15,6 +16,35 @@ logger = logging.getLogger(__name__)
 
 class UnknownFeatureException(Exception):
     pass
+
+
+class FeatureCache(object):
+    sharedInstance = None
+
+    @staticmethod
+    def getSharedInstance():
+        if FeatureCache.sharedInstance is None:
+            FeatureCache.sharedInstance = FeatureCache()
+        return FeatureCache.sharedInstance
+
+    def __init__(self):
+        self.cache = {}
+        self.cachetime = timedelta(hours=2)
+
+    def has(self, feature):
+        if feature not in self.cache:
+            return False
+        now = datetime.now()
+        if self.cache[feature]["valid_to"] < now:
+            return False
+        return True
+
+    def get(self, feature):
+        return self.cache[feature]["value"]
+
+    def set(self, feature, value):
+        valid_to = datetime.now() + self.cachetime
+        self.cache[feature] = {"value": value, "valid_to": valid_to}
 
 
 class FeatureDetector(object):
@@ -72,7 +102,12 @@ class FeatureDetector(object):
         return {name: feature_details(name) for name in FeatureDetector.features}
 
     def is_available(self, feature):
-        return self.has_requirements(self.get_requirements(feature))
+        cache = FeatureCache.getSharedInstance()
+        if cache.has(feature):
+            return cache.get(feature)
+        result = self.has_requirements(self.get_requirements(feature))
+        cache.set(feature, result)
+        return result
 
     def get_requirements(self, feature):
         try:
