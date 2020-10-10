@@ -724,8 +724,8 @@ function on_ws_recv(evt) {
 
                         waterfall_init();
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
-                        demodulatorPanel.setInitialParams(initial_demodulator_params);
                         demodulatorPanel.setCenterFrequency(center_freq);
+                        demodulatorPanel.setInitialParams(initial_demodulator_params);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();

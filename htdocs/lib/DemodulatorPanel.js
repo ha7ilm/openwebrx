@@ -179,7 +179,7 @@ DemodulatorPanel.prototype.collectParams = function() {
 };
 
 DemodulatorPanel.prototype.startDemodulator = function() {
-    if (!Modes.initComplete()) return;
+    if (!Modes.initComplete() || !this.center_freq) return;
     var params = this.collectParams();
     this._apply(params);
 };
