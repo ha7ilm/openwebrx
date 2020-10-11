@@ -32,8 +32,7 @@ rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
 cd csdr
-# develop as of 2020-09-06 (fractional_decimator_cc pointer fix)
-git checkout f123f81add2f84e3ada66d66afd53cf96b7fec94
+git checkout 0.17.0
 autoreconf -i
 ./configure
 make
@@ -42,8 +41,7 @@ cd ..
 rm -rf csdr
 
 git clone https://github.com/jketterl/digiham.git
-# latest commit from develop as of 2020-10-04
-cmakebuild digiham 66871051b5d943703c1024ba4293e45efc2a450d
+cmakebuild digiham 0.3.0
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
