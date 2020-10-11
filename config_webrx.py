@@ -153,7 +153,7 @@ sdrs = {
                 "name": "2m komplett",
                 "center_freq": 145000000,
                 "rf_gain": 29,
-                "samp_rate": 2400000,
+                "samp_rate": 2048000,
                 "start_freq": 145725000,
                 "start_mod": "nfm",
             },
