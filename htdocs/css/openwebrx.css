@@ -358,6 +358,13 @@ input[type=range]:disabled {
 	line-height: 22px;
 }
 
+.webrx-actual-freq .digit:hover {
+	color: #FFFF50;
+	border-radius: 5px;
+	background: -webkit-gradient( linear, left top, left bottom, color-stop(0.0 , #373737), color-stop(1, #4F4F4F) );
+	background: -moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
+}
+
 .webrx-mouse-freq {
 	width: 100%;
 	text-align: left;
