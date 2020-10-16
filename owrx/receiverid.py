@@ -77,7 +77,10 @@ class ReceiverId(object):
                 return Key(keyString)
             except KeyException as e:
                 logger.error(e)
-        keys = [parseKey(keyString) for keyString in Config.get()['receiver_keys']]
+        config = Config.get()
+        if "receiver_keys" not in config or config["receiver_keys"] is None:
+            return None
+        keys = [parseKey(keyString) for keyString in config["receiver_keys"]]
         keys = [key for key in keys if key is not None]
         matching_keys = [key for key in keys if key.source == challenge.source and key.id == challenge.id]
         if matching_keys:
