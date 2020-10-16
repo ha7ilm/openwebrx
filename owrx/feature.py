@@ -478,25 +478,17 @@ class FeatureDetector(object):
         codec2 library, but it's only a supplemental part and not installed by default or contained in its packages.
         To install it, you will need to compile codec2 from source and manually install freedv\_rx.
 
-        You can find the codec2 source code [here](https://github.com/drowe67/codec2).
+        Detailed installation instructions are available on the
+        [OpenWebRX wiki](https://github.com/jketterl/openwebrx/wiki/FreeDV-demodulator-notes).
         """
         return self.command_is_runnable("freedv_rx")
 
     def has_dream(self):
         """
-        In order to be able to decode DRM broadcasts, OpenWebRX needs the "dream" DRM decoder. You can get it
-        [here](https://sourceforge.net/projects/drm/files/dream/).
-
-        Note: Please use version 2.1.1, the latest version (2.2 at the time of writing) has been reported to cause
-        problems.
+        In order to be able to decode DRM broadcasts, OpenWebRX needs the "dream" DRM decoder.
 
         The version supplied by most distributions will not work properly on the command line, so compiling from source
-        with a custom set of commands is recommended:
-
-        ```
-        qmake CONFIG+=console
-        make
-        sudo make install
-        ```
+        with a custom set of commands is recommended. Detailed installation instructions are available on the
+        [OpenWebRX wiki](https://github.com/jketterl/openwebrx/wiki/DRM-demodulator-notes).
         """
         return self.command_is_runnable("dream --help", 0)
