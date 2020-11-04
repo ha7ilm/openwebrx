@@ -193,6 +193,7 @@ AudioEngine.prototype.resetStats = function() {
 };
 
 AudioEngine.prototype.setupResampling = function() { //both at the server and the client
+    var targetRate = this.audioContext.sampleRate;
     var audio_params = this.findRate(8000, 12000);
     if (!audio_params) {
         this.resamplingFactor = 0;
