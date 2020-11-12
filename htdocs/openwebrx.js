@@ -726,6 +726,7 @@ function on_ws_recv(evt) {
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
                         demodulatorPanel.setCenterFrequency(center_freq);
                         demodulatorPanel.setInitialParams(initial_demodulator_params);
+                        demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();
