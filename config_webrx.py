@@ -99,7 +99,7 @@ digital_voice_unvoiced_quality = 1
 digital_voice_dmr_id_lookup = True
 
 """
-Note: if you experience audio underruns while CPU usage is 100%, you can: 
+Note: if you experience audio underruns while CPU usage is 100%, you can:
 - decrease `samp_rate`,
 - set `fft_voverlap_factor` to 0,
 - decrease `fft_fps` and `fft_size`,
@@ -116,7 +116,7 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 
 # Currently supported types of sdr receivers:
 # "rtl_sdr", "rtl_sdr_soapy", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr",
-# "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote"
+# "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote", "hpsdr"
 #
 # In order to use rtl_sdr, you will need to install librtlsdr-dev and the connector.
 # In order to use sdrplay, airspy or airspyhf, you will need to install soapysdr, the corresponding driver, and the

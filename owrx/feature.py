@@ -68,6 +68,7 @@ class FeatureDetector(object):
         "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
+        "hpsdr": ["hpsdr_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -492,3 +493,10 @@ class FeatureDetector(object):
         [OpenWebRX wiki](https://github.com/jketterl/openwebrx/wiki/DRM-demodulator-notes).
         """
         return self.command_is_runnable("dream --help", 0)
+
+    def has_hpsdr_connector(self):
+        """
+        In order to use the HPSDR connector, you will need to install [hpsdrconnector]
+        (https://github.com/jancona/hpsdrconnector).
+        """
+        return self.command_is_runnable("hpsdrconnector -h")
