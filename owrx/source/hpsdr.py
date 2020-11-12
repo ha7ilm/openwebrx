@@ -29,6 +29,5 @@ class HpsdrSource(ConnectorSource):
                 "samp_rate": Option("--samplerate"),
                 "remote": Option("--radio"),
                 "rf_gain": Option("--gain"),
-                "debug": Flag("--debug"),
             })
         )
