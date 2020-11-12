@@ -99,7 +99,7 @@ digital_voice_unvoiced_quality = 1
 digital_voice_dmr_id_lookup = True
 
 """
-Note: if you experience audio underruns while CPU usage is 100%, you can: 
+Note: if you experience audio underruns while CPU usage is 100%, you can:
 - decrease `samp_rate`,
 - set `fft_voverlap_factor` to 0,
 - decrease `fft_fps` and `fft_size`,
@@ -116,21 +116,11 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 
 # Currently supported types of sdr receivers:
 # "rtl_sdr", "rtl_sdr_soapy", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr",
-# "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote"
-#
-# In order to use rtl_sdr, you will need to install librtlsdr-dev and the connector.
-# In order to use sdrplay, airspy or airspyhf, you will need to install soapysdr, the corresponding driver, and the
-# connector.
-#
-# https://github.com/jketterl/owrx_connector
-#
-# In order to use Perseus HF you need to install the libperseus-sdr
-#
-# https://github.com/Microtelecom/libperseus-sdr
-#
-# and do the proper changes to the sdrs object below
-# (see also Wiki in https://github.com/jketterl/openwebrx/wiki/Sample-configuration-for-Perseus-HF-receiver).
-#
+# "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote", "hpsdr", "red_pitaya", "uhd",
+# "radioberry", "fcdpp", "rtl_tcp"
+
+# For more details on specific types, please checkout the wiki:
+# https://github.com/jketterl/openwebrx/wiki/Supported-Hardware#sdr-devices
 
 sdrs = {
     "rtlsdr": {
