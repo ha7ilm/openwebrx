@@ -3,6 +3,7 @@ function DemodulatorPanel(el) {
     self.el = el;
     self.demodulator = null;
     self.mode = null;
+    self.squelchMargin = 10;
 
     var displayEl = el.find('.webrx-actual-freq')
     this.tuneableFrequencyDisplay = displayEl.tuneableFrequencyDisplay();
@@ -27,9 +28,9 @@ function DemodulatorPanel(el) {
             self.setMode(value);
         }
     });
-    el.on('click', '.openwebrx-squelch-default', function() {
+    el.on('click', '.openwebrx-squelch-auto', function() {
         if (!self.squelchAvailable()) return;
-        el.find('.openwebrx-squelch-slider').val(getLogSmeterValue(smeter_level) + 10);
+        el.find('.openwebrx-squelch-slider').val(getLogSmeterValue(smeter_level) + self.getSquelchMargin());
         self.updateSquelch();
     });
     el.on('change', '.openwebrx-squelch-slider', function() {
@@ -247,7 +248,7 @@ DemodulatorPanel.prototype.updateButtons = function() {
     }
     var squelch_disabled = !this.squelchAvailable();
     this.el.find('.openwebrx-squelch-slider').prop('disabled', squelch_disabled);
-    this.el.find('.openwebrx-squelch-default')[squelch_disabled ? 'addClass' : 'removeClass']('disabled');
+    this.el.find('.openwebrx-squelch-auto')[squelch_disabled ? 'addClass' : 'removeClass']('disabled');
 }
 
 DemodulatorPanel.prototype.setCenterFrequency = function(center_freq) {
@@ -320,6 +321,15 @@ DemodulatorPanel.prototype.updateSquelch = function() {
     var sliderValue = parseInt(this.el.find(".openwebrx-squelch-slider").val());
     var demod = this.getDemodulator();
     if (demod) demod.setSquelch(sliderValue);
+};
+
+DemodulatorPanel.prototype.setSquelchMargin = function(margin) {
+    if (!margin || this.squelchMargin == margin) return;
+    this.squelchMargin = margin;
+};
+
+DemodulatorPanel.prototype.getSquelchMargin = function() {
+    return this.squelchMargin;
 };
 
 $.fn.demodulatorPanel = function(){

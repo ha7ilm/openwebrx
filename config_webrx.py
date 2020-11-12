@@ -279,6 +279,11 @@ waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 #        \_waterfall_auto_level_margin["min"]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin["max"]_/
 #                                                          current_max_power_level __|
 
+# This setting tells the auto-squelch the offset to add to the current signal level to use as the new squelch level.
+# Lowering this setting will give you a more sensitive squelch, but it may also cause unwanted squelch openings when
+# using the auto squelch.
+squelch_auto_margin = 10  # in dB
+
 # === Experimental settings ===
 # Warning! The settings below are very experimental.
 csdr_dynamic_bufsize = False  # This allows you to change the buffering mode of csdr.
