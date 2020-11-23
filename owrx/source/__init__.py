@@ -59,10 +59,7 @@ class SdrSource(ABC):
         self.activateProfile()
         self.wireEvents()
 
-        if "port" in props and props["port"] is not None:
-            self.port = props["port"]
-        else:
-            self.port = getAvailablePort()
+        self.port = getAvailablePort()
         self.monitor = None
         self.clients = []
         self.spectrumClients = []
