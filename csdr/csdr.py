@@ -217,6 +217,15 @@ class dsp(object):
                     "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
                     "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
                 ]
+            # m17
+            elif which == "m17":
+                chain += [
+                    "csdr limit_ff",
+                    "csdr convert_f_s16",
+                    "m17-demod",
+                    "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
+                    "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
+                ]
             # digiham modes
             else:
                 chain += ["rrc_filter", "gfsk_demodulator"]
@@ -561,7 +570,7 @@ class dsp(object):
     def isDigitalVoice(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_demodulator()
-        return demodulator in ["dmr", "dstar", "nxdn", "ysf"]
+        return demodulator in ["dmr", "dstar", "nxdn", "ysf", "m17"]
 
     def isWsjtMode(self, demodulator=None):
         if demodulator is None:
