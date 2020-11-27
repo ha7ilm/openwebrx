@@ -68,7 +68,7 @@ class FeatureDetector(object):
         "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
-        "rf103": ["rf103_sdr"],
+        "rf103": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
@@ -495,8 +495,8 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("dream --help", 0)
 
-    def has_rf103_sdr(self):
-        return self.command_is_runnable("rf103_sdr")
+    def has_sddc_connector(self):
+        return self.command_is_runnable("sddc_connector")
 
     def has_hpsdr_connector(self):
         """
