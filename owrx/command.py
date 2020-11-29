@@ -76,4 +76,4 @@ class Option(CommandMapping):
 
 class Argument(CommandMapping):
     def map(self, value):
-        return value
+        return str(value)

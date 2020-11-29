@@ -68,6 +68,7 @@ class FeatureDetector(object):
         "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
+        "sddc": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
@@ -493,6 +494,14 @@ class FeatureDetector(object):
         [OpenWebRX wiki](https://github.com/jketterl/openwebrx/wiki/DRM-demodulator-notes).
         """
         return self.command_is_runnable("dream --help", 0)
+
+    def has_sddc_connector(self):
+        """
+        The sddc_connector allows connectivity with SDR devices powered by libsddc, e.g. RX666, RX888, HF103.
+
+        You can find more information [here](https://github.com/jketterl/sddc_connector).
+        """
+        return self.command_is_runnable("sddc_connector")
 
     def has_hpsdr_connector(self):
         """

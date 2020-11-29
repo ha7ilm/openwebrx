@@ -1,6 +1,8 @@
 **unreleased**
 - Introduced `squelch_auto_margin` config option that allows configuring the auto squelch level
 - Removed `port` configuration option; `rtltcp_compat` takes the port number with the new connectors
+- New devices supported:
+  - BBRF103 / RX666 / RX888 devices supported by libsddc
 
 **0.20.0**
 - Added the ability to sign multiple keys in a single request, thus enabling multiple users to claim a single receiver
