@@ -5,6 +5,7 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
     with the new connectors
   * New devices supported:
     - BBRF103 / RX666 / RX888 devices supported by libsddc
+    - Devices using the EB200 protocol
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 11 Oct 2020 21:12:00 +0000
 

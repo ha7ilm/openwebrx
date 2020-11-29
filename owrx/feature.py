@@ -70,6 +70,7 @@ class FeatureDetector(object):
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         "sddc": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
+        "eb200": ["eb200_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -256,7 +257,7 @@ class FeatureDetector(object):
         )
 
     def _check_connector(self, command):
-        required_version = LooseVersion("0.3")
+        required_version = LooseVersion("0.4")
 
         owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
 
@@ -501,7 +502,7 @@ class FeatureDetector(object):
 
         You can find more information [here](https://github.com/jketterl/sddc_connector).
         """
-        return self.command_is_runnable("sddc_connector")
+        return self._check_connector("sddc_connector")
 
     def has_hpsdr_connector(self):
         """
@@ -509,3 +510,11 @@ class FeatureDetector(object):
         (https://github.com/jancona/hpsdrconnector).
         """
         return self.command_is_runnable("hpsdrconnector -h")
+
+    def has_eb200_connector(self):
+        """
+        To use radios supporting the EB200 radios, you need to install the eb200_connector.
+
+        You can find more information [here](https://github.com/jketterl/eb200_connector).
+        """
+        return self._check_connector("eb200_connector")
