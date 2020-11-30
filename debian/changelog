@@ -1,3 +1,9 @@
+openwebrx (0.20.1) buster focal; urgency=low
+
+  * Remove broken OSM map fallback
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 30 Nov 2020 17:29:00 +0000
+
 openwebrx (0.20.0) buster focal; urgency=low
 
   * Added the ability to sign multiple keys in a single request, thus enabling

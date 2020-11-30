@@ -1,3 +1,6 @@
+**0.20.1**
+- Remove broken OSM map fallback
+
 **0.20.0**
 - Added the ability to sign multiple keys in a single request, thus enabling multiple users to claim a single receiver
   on receiverbook.de
