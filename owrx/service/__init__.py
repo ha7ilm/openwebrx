@@ -252,7 +252,7 @@ class ServiceHandler(SdrSourceEventClient):
         d.set_center_freq(center_freq)
         if mode == "packet":
             d.set_demodulator("nfm")
-            d.set_bpf(-4000, 4000)
+            d.set_bpf(-6250, 6250)
         elif mode == "wspr":
             d.set_demodulator("usb")
             # WSPR only samples between 1400 and 1600 Hz

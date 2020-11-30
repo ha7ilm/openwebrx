@@ -62,7 +62,13 @@ class Modes(object):
         ),
         DigitalMode("js8", "JS8Call", underlying=["usb"], requirements=["js8call"], service=True),
         DigitalMode(
-            "packet", "Packet", underlying=["nfm", "usb", "lsb"], requirements=["packet"], service=True, squelch=False
+            "packet",
+            "Packet",
+            underlying=["nfm", "usb", "lsb"],
+            bandpass=Bandpass(-6250, 6250),
+            requirements=["packet"],
+            service=True,
+            squelch=False,
         ),
         DigitalMode(
             "pocsag",
