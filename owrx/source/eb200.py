@@ -1,5 +1,5 @@
 from owrx.source.connector import ConnectorSource
-from owrx.command import Argument
+from owrx.command import Argument, Flag
 
 
 class Eb200Source(ConnectorSource):
@@ -9,6 +9,7 @@ class Eb200Source(ConnectorSource):
             .getCommandMapper()
             .setBase("eb200_connector")
             .setMappings({
+                "long": Flag("-l"),
                 "remote": Argument(),
             })
         )
