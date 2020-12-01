@@ -1,0 +1,12 @@
+ARG ARCHTAG
+FROM openwebrx-base:$ARCHTAG
+
+COPY docker/scripts/install-connectors.sh \
+     docker/scripts/install-dependencies-eb200.sh /
+
+RUN /install-connectors.sh &&\
+    rm /install-connectors.sh && \
+    /install-dependencies-eb200.sh && \
+    rm /install-dependencies-eb200.sh
+
+COPY . /opt/openwebrx

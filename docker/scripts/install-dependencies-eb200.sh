@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euxo pipefail
 export MAKEFLAGS="-j4"
 
@@ -18,14 +18,15 @@ function cmakebuild() {
 
 cd /tmp
 
-BUILD_PACKAGES="git cmake make gcc g++"
+STATIC_PACKAGES=""
+BUILD_PACKAGES="git cmake make gcc g++ pkg-config"
 
 apt-get update
-apt-get -y install --no-install-recommends $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
-git clone https://github.com/jketterl/owrx_connector.git
-# latest develop as of 2020-11-28 (int32 samples; debhelper)
-cmakebuild owrx_connector 87a2fcc54e221aad71ec0700737ca7f385c388de
+git clone https://github.com/jketterl/eb200_connector.git
+# latest from develop as of 2020-12-01
+cmakebuild eb200_connector 9c8313770c1072df72d2fdb85307ca206c29c60a
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
