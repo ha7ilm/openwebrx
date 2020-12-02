@@ -2,7 +2,7 @@
 set -euxo pipefail
 export MAKEFLAGS="-j4"
 
-BUILD_PACKAGES="git wget gcc"
+BUILD_PACKAGES="git wget gcc libc6-dev"
 
 apt-get update
 apt-get -y install --no-install-recommends $BUILD_PACKAGES
