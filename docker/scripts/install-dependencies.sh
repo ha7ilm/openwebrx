@@ -107,7 +107,7 @@ rm -rf dream
 rm dream-2.1.1-svn808.tar.gz
 
 git clone https://github.com/hessu/aprs-symbols /opt/aprs-symbols
-pushd /opt/aprs-symbols
+pushd /usr/share/aprs-symbols
 git checkout 5c2abe2658ee4d2563f3c73b90c6f59124839802
 popd
 
