@@ -326,7 +326,7 @@ aprs_igate_password = ""
 aprs_igate_beacon = False
 
 # path to the aprs symbols repository (get it here: https://github.com/hessu/aprs-symbols)
-aprs_symbols_path = "/opt/aprs-symbols/png"
+aprs_symbols_path = "/usr/share/aprs-symbols/png"
 
 # === PSK Reporter setting ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info
