@@ -24,6 +24,12 @@ class Mode(object):
     def is_service(self):
         return self.service
 
+    def get_bandpass(self):
+        return self.bandpass
+
+    def get_modulation(self):
+        return self.modulation
+
 
 class AnalogMode(Mode):
     pass
@@ -35,6 +41,14 @@ class DigitalMode(Mode):
     ):
         super().__init__(modulation, name, bandpass, requirements, service, squelch)
         self.underlying = underlying
+
+    def get_bandpass(self):
+        if self.bandpass is not None:
+            return self.bandpass
+        return Modes.findByModulation(self.underlying[0]).get_bandpass()
+
+    def get_modulation(self):
+        return Modes.findByModulation(self.underlying[0]).get_modulation()
 
 
 class Modes(object):

@@ -155,18 +155,15 @@ class ServiceHandler(SdrSourceEventClient):
                     )
             else:
                 for group in groups:
-                    frequencies = sorted([f["frequency"] for f in group])
-                    min = frequencies[0]
-                    max = frequencies[-1]
-                    cf = (min + max) / 2
-                    bw = max - min
+                    cf = self.get_center_frequency(group)
+                    bw = self.get_bandwidth(group)
+                    logger.debug(bw)
                     logger.debug(
                         "group center frequency: {0}, bandwidth: {1}".format(cf, bw)
                     )
                     resampler_props = PropertyLayer()
                     resampler_props["center_freq"] = cf
-                    # TODO the + 24000 is a temporary fix since the resampling optimizer does not account for required bandwidths
-                    resampler_props["samp_rate"] = bw + 24000
+                    resampler_props["samp_rate"] = bw
                     resampler = Resampler(resampler_props, self.source)
                     resampler.start()
 
@@ -179,6 +176,23 @@ class ServiceHandler(SdrSourceEventClient):
 
                     # resampler goes in after the services since it must not be shutdown as long as the services are still running
                     self.services.append(resampler)
+
+    def get_min_max(self, group):
+        frequencies = sorted(group, key=lambda f: f["frequency"])
+        lowest = frequencies[0]
+        min = lowest["frequency"] + Modes.findByModulation(lowest["mode"]).get_bandpass().low_cut
+        highest = frequencies[-1]
+        max = highest["frequency"] + Modes.findByModulation(highest["mode"]).get_bandpass().high_cut
+        return min, max
+
+    def get_center_frequency(self, group):
+        min, max = self.get_min_max(group)
+        return (min + max) / 2
+
+    def get_bandwidth(self, group):
+        minFreq, maxFreq = self.get_min_max(group)
+        # minimum bandwidth for a resampler: 25kHz
+        return max(maxFreq - minFreq, 25000)
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
@@ -203,12 +217,10 @@ class ServiceHandler(SdrSourceEventClient):
                 previous = split
             groups.append([f for f in freqs if previous < f["frequency"]])
 
-            def get_bandwitdh(group):
-                freqs = sorted([f["frequency"] for f in group])
-                # the group will process the full BW once, plus the reduced BW once for each group member
-                return bandwidth + len(group) * (freqs[-1] - freqs[0] + 24000)
+            def get_total_bandwidth(group):
+                return bandwidth + len(group) * self.get_bandwidth(group)
 
-            total_bandwidth = sum([get_bandwitdh(group) for group in groups])
+            total_bandwidth = sum([get_total_bandwidth(group) for group in groups])
             return {
                 "num_splits": num_splits,
                 "total_bandwidth": total_bandwidth,
@@ -250,16 +262,9 @@ class ServiceHandler(SdrSourceEventClient):
         center_freq = source.getProps()["center_freq"]
         d.set_offset_freq(frequency - center_freq)
         d.set_center_freq(center_freq)
-        if mode == "packet":
-            d.set_demodulator("nfm")
-            d.set_bpf(-6250, 6250)
-        elif mode == "wspr":
-            d.set_demodulator("usb")
-            # WSPR only samples between 1400 and 1600 Hz
-            d.set_bpf(1350, 1650)
-        else:
-            d.set_demodulator("usb")
-            d.set_bpf(0, 3000)
+        modeObject = Modes.findByModulation(mode)
+        d.set_demodulator(modeObject.get_modulation())
+        d.set_bandpass(modeObject.get_bandpass())
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(source.getProps()["samp_rate"])

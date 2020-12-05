@@ -656,6 +656,9 @@ class dsp(object):
     def get_operating_freq(self):
         return self.center_freq + self.offset_freq
 
+    def set_bandpass(self, bandpass):
+        self.set_bpf(bandpass.low_cut, bandpass.high_cut)
+
     def set_bpf(self, low_cut, high_cut):
         self.low_cut = low_cut
         self.high_cut = high_cut
