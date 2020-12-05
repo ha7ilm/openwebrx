@@ -53,14 +53,14 @@ class Modes(object):
         AnalogMode("drm", "DRM", bandpass=Bandpass(-5000, 5000), requirements=["drm"], squelch=False),
         DigitalMode("bpsk31", "BPSK31", underlying=["usb"]),
         DigitalMode("bpsk63", "BPSK63", underlying=["usb"]),
-        DigitalMode("ft8", "FT8", underlying=["usb"], requirements=["wsjt-x"], service=True),
-        DigitalMode("ft4", "FT4", underlying=["usb"], requirements=["wsjt-x"], service=True),
-        DigitalMode("jt65", "JT65", underlying=["usb"], requirements=["wsjt-x"], service=True),
-        DigitalMode("jt9", "JT9", underlying=["usb"], requirements=["wsjt-x"], service=True),
+        DigitalMode("ft8", "FT8", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True),
+        DigitalMode("ft4", "FT4", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True),
+        DigitalMode("jt65", "JT65", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True),
+        DigitalMode("jt9", "JT9", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True),
         DigitalMode(
             "wspr", "WSPR", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x"], service=True
         ),
-        DigitalMode("js8", "JS8Call", underlying=["usb"], requirements=["js8call"], service=True),
+        DigitalMode("js8", "JS8Call", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["js8call"], service=True),
         DigitalMode(
             "packet",
             "Packet",
