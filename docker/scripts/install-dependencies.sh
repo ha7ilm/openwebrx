@@ -69,7 +69,7 @@ mv /wsjtx.patch ${WSJT_DIR}
 cmakebuild ${WSJT_DIR}
 rm ${WSJT_TGZ}
 
-git clone --depth 1 -b 1.5 https://github.com/wb2osz/direwolf.git
+git clone --depth 1 -b 1.6 https://github.com/wb2osz/direwolf.git
 cd direwolf
 # hamlib is present (necessary for the wsjt-x and js8call builds) and would be used, but there's no real need.
 # by setting enable_hamlib we prevent direwolf from linking to it, and it can be stripped at the end of the script.
