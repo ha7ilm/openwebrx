@@ -157,7 +157,6 @@ class ServiceHandler(SdrSourceEventClient):
                 for group in groups:
                     cf = self.get_center_frequency(group)
                     bw = self.get_bandwidth(group)
-                    logger.debug(bw)
                     logger.debug(
                         "group center frequency: {0}, bandwidth: {1}".format(cf, bw)
                     )
