@@ -11,6 +11,8 @@ Filter.prototype.getLimits = function() {
         max_bw = 80000;
     } else if (this.demodulator.get_modulation() === 'drm') {
         max_bw = 100000;
+    } else if (this.demodulator.get_secondary_demod() === 'packet') {
+        max_bw = 12500;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
     }
