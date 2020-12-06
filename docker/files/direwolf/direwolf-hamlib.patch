@@ -1,0 +1,20 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9e710f5..da90b43 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -257,13 +257,8 @@ else()
+   set(GPSD_LIBRARIES "")
+ endif()
+ 
+-find_package(hamlib)
+-if(HAMLIB_FOUND)
+-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_HAMLIB")
+-else()
+-  set(HAMLIB_INCLUDE_DIRS "")
+-  set(HAMLIB_LIBRARIES "")
+-endif()
++set(HAMLIB_INCLUDE_DIRS "")
++set(HAMLIB_LIBRARIES "")
+ 
+ if(LINUX)
+   find_package(ALSA REQUIRED)

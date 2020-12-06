@@ -72,10 +72,14 @@ rm ${WSJT_TGZ}
 git clone --depth 1 -b 1.6 https://github.com/wb2osz/direwolf.git
 cd direwolf
 # hamlib is present (necessary for the wsjt-x and js8call builds) and would be used, but there's no real need.
-# by setting enable_hamlib we prevent direwolf from linking to it, and it can be stripped at the end of the script.
-make enable_hamlib=
+# this patch prevents direwolf from linking to it, and it can be stripped at the end of the script.
+patch -Np1 < /direwolf-hamlib.patch
+mkdir build
+cd build
+cmake ..
+make
 make install
-cd ..
+cd ../..
 rm -rf direwolf
 # strip lots of generic documentation that will never be read inside a docker container
 rm /usr/local/share/doc/direwolf/*.pdf
