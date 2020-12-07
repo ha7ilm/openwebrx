@@ -306,6 +306,14 @@ wsjt_decoding_depth = 3
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
 wsjt_decoding_depths = {"jt65": 1}
 
+# FST4 can be transmitted in different intervals. This setting determines which intervals will be decoded.
+# available values (in seconds): 15, 30, 60, 120, 300, 900, 1800
+fst4_enabled_intervals = [15, 30]
+
+# FST4W can be transmitted in different intervals. This setting determines which intervals will be decoded.
+# available values (in seconds): 120, 300, 900, 1800
+fst4w_enabled_intervals = [120, 300]
+
 # JS8 comes in different speeds: normal, slow, fast, turbo. This setting controls which ones are enabled.
 js8_enabled_profiles = ["normal", "slow"]
 # JS8 decoding depth; higher value will get more results, but will also consume more cpu
