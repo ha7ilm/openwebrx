@@ -95,7 +95,9 @@ class Fst4Profile(WsjtProfile):
         return self.interval
 
     def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M%S"
+        if self.interval < 60:
+            return "%y%m%d_%H%M%S"
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--fst4", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4")), file]
@@ -117,7 +119,9 @@ class Fst4wProfile(WsjtProfile):
         return self.interval
 
     def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M%S"
+        if self.interval < 60:
+            return "%y%m%d_%H%M%S"
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--fst4w", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
