@@ -1,5 +1,23 @@
 [
   {
+    "name": "2190m",
+    "lower_bound": 135700,
+    "upper_bound": 137800,
+    "frequencies": {
+      "fst4": 136000,
+      "fst4w": 136000
+    }
+  },
+  {
+    "name": "630m",
+    "lower_bound": 472000,
+    "upper_bound": 479000,
+    "frequencies": {
+      "fst4": 474200,
+      "fst4w": 474200
+    }
+  },
+  {
     "name": "160m",
     "lower_bound": 1810000,
     "upper_bound": 2000000,
@@ -9,7 +27,9 @@
       "wspr": 1836600,
       "jt65": 1838000,
       "jt9": 1839000,
-      "js8": 1842000
+      "js8": 1842000,
+      "fst4": 1839000,
+      "fst4w": 1836800
     }
   },
   {
