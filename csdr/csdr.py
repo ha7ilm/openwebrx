@@ -29,7 +29,7 @@ import math
 from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
-from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile
+from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile, Fst4Profile, Fst4wProfile
 from owrx.js8 import Js8Profiles
 from owrx.audio import AudioChopper
 
@@ -412,19 +412,23 @@ class dsp(object):
 
         if self.isWsjtMode():
             smd = self.get_secondary_demodulator()
-            chopper_profile = None
+            chopper_profiles = None
             if smd == "ft8":
-                chopper_profile = Ft8Profile()
+                chopper_profiles = [Ft8Profile()]
             elif smd == "wspr":
-                chopper_profile = WsprProfile()
+                chopper_profiles = [WsprProfile()]
             elif smd == "jt65":
-                chopper_profile = Jt65Profile()
+                chopper_profiles = [Jt65Profile()]
             elif smd == "jt9":
-                chopper_profile = Jt9Profile()
+                chopper_profiles = [Jt9Profile()]
             elif smd == "ft4":
-                chopper_profile = Ft4Profile()
-            if chopper_profile is not None:
-                chopper = AudioChopper(self, self.secondary_process_demod.stdout, chopper_profile)
+                chopper_profiles = [Ft4Profile()]
+            elif smd == "fst4":
+                chopper_profiles = Fst4Profile.getEnabledProfiles()
+            elif smd == "fst4w":
+                chopper_profiles = Fst4wProfile.getEnabledProfiles()
+            if chopper_profiles is not None and len(chopper_profiles):
+                chopper = AudioChopper(self, self.secondary_process_demod.stdout, *chopper_profiles)
                 chopper.start()
                 self.output.send_output("wsjt_demod", chopper.read)
         elif self.isJs8():
@@ -566,7 +570,7 @@ class dsp(object):
     def isWsjtMode(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
-        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4"]
+        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w"]
 
     def isJs8(self, demodulator = None):
         if demodulator is None:

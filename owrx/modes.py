@@ -74,6 +74,8 @@ class Modes(object):
         DigitalMode(
             "wspr", "WSPR", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x"], service=True
         ),
+        DigitalMode("fst4", "FST4", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True),
+        DigitalMode("fst4w", "FST4W", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x"], service=True),
         DigitalMode("js8", "JS8Call", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["js8call"], service=True),
         DigitalMode(
             "packet",

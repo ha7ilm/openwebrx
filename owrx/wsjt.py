@@ -85,8 +85,52 @@ class Ft4Profile(WsjtProfile):
         return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
 
 
+class Fst4Profile(WsjtProfile):
+    availableIntervals = [15, 30, 60,  120, 300, 900, 1800]
+
+    def __init__(self, interval):
+        self.interval = interval
+
+    def getInterval(self):
+        return self.interval
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M%S"
+
+    def decoder_commandline(self, file):
+        return ["jt9", "--fst4", "-b", "FST4-{0}".format(self.interval), "-d", str(self.decoding_depth("fst4")), file]
+
+    @staticmethod
+    def getEnabledProfiles():
+        config = Config.get()
+        profiles = config["fst4_enabled_intervals"] if "fst4_enabled_intervals" in config else []
+        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
+
+
+class Fst4wProfile(WsjtProfile):
+    availableIntervals = [120, 300, 900, 1800]
+
+    def __init__(self, interval):
+        self.interval = interval
+
+    def getInterval(self):
+        return self.interval
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M%S"
+
+    def decoder_commandline(self, file):
+        return ["jt9", "--fst4w", "-b", "FST4W-{0}".format(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
+
+    @staticmethod
+    def getEnabledProfiles():
+        config = Config.get()
+        profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
+        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
+
+
 class WsjtParser(Parser):
-    modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4"}
+    modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4", "`": "FST4"}
 
     def parse(self, messages):
         for data in messages:
@@ -115,7 +159,7 @@ class WsjtParser(Parser):
                         PskReporter.getSharedInstance().spot(out)
 
                 self.handler.write_wsjt_message(out)
-            except ValueError:
+            except (ValueError, IndexError):
                 logger.exception("error while parsing wsjt message")
 
     def pushDecode(self, mode):
@@ -139,6 +183,8 @@ class WsjtParser(Parser):
 
 
 class Decoder(ABC):
+    locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
+
     def parse_timestamp(self, instring, dateformat):
         ts = datetime.strptime(instring, dateformat)
         return int(
@@ -149,23 +195,36 @@ class Decoder(ABC):
     def parse(self, msg, dial_freq):
         pass
 
+    def parseMessage(self, msg):
+        m = Decoder.locator_pattern.match(msg)
+        if m is None:
+            return {}
+        # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
+        # likely this just means roger roger goodbye.
+        if m.group(2) == "RR73":
+            return {"callsign": m.group(1)}
+        return {"callsign": m.group(1), "locator": m.group(2)}
+
 
 class Jt9Decoder(Decoder):
-    locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
-
     def parse(self, msg, dial_freq):
         # ft8 sample
         # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
         # jt65 sample
         # '2352  -7  0.4 1801 #  R0WAS R2ABM KO85'
         # '0003  -4  0.4 1762 #  CQ R2ABM KO85'
+        # fst4 sample
+        # '**** -23  0.6 3023 `  <...> <...> R 591631 BI53PV'
         modes = list(WsjtParser.modes.keys())
         if msg[19] in modes:
             dateformat = "%H%M"
         else:
             dateformat = "%H%M%S"
-        timestamp = self.parse_timestamp(msg[0 : len(dateformat)], dateformat)
-        msg = msg[len(dateformat) + 1 :]
+        try:
+            timestamp = self.parse_timestamp(msg[0 : len(dateformat)], dateformat)
+        except ValueError:
+            timestamp = None
+        msg = msg[len(dateformat) + 1:]
         modeChar = msg[14:15]
         mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
         wsjt_msg = msg[17:53].strip()
@@ -180,16 +239,6 @@ class Jt9Decoder(Decoder):
         }
         result.update(self.parseMessage(wsjt_msg))
         return result
-
-    def parseMessage(self, msg):
-        m = Jt9Decoder.locator_pattern.match(msg)
-        if m is None:
-            return {}
-        # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
-        # likely this just means roger roger goodbye.
-        if m.group(2) == "RR73":
-            return {"callsign": m.group(1)}
-        return {"callsign": m.group(1), "locator": m.group(2)}
 
 
 class WsprDecoder(Decoder):
