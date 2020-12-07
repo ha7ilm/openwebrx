@@ -98,7 +98,7 @@ class Fst4Profile(WsjtProfile):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--fst4", "-b", "FST4-{0}".format(self.interval), "-d", str(self.decoding_depth("fst4")), file]
+        return ["jt9", "--fst4", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4")), file]
 
     @staticmethod
     def getEnabledProfiles():
@@ -120,7 +120,7 @@ class Fst4wProfile(WsjtProfile):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--fst4w", "-b", "FST4W-{0}".format(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
+        return ["jt9", "--fst4w", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
 
     @staticmethod
     def getEnabledProfiles():
