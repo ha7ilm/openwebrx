@@ -187,7 +187,7 @@ class WsjtParser(Parser):
 
 
 class Decoder(ABC):
-    locator_pattern = re.compile(".*\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
+    locator_pattern = re.compile(".*\\s([A-Z0-9]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
 
     def parse_timestamp(self, instring, dateformat):
         ts = datetime.strptime(instring, dateformat)
@@ -205,9 +205,9 @@ class Decoder(ABC):
             return {}
         # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
         # likely this just means roger roger goodbye.
-        if m.group(2) == "RR73":
+        if m.group(3) == "RR73":
             return {"callsign": m.group(1)}
-        return {"callsign": m.group(1), "locator": m.group(2)}
+        return {"callsign": m.group(1), "locator": m.group(3)}
 
 
 class Jt9Decoder(Decoder):
