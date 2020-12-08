@@ -68,7 +68,9 @@ class FeatureDetector(object):
         "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
+        "sddc": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
+        "eb200": ["eb200_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -256,7 +258,7 @@ class FeatureDetector(object):
         )
 
     def _check_connector(self, command):
-        required_version = LooseVersion("0.3")
+        required_version = LooseVersion("0.4")
 
         owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
 
@@ -499,9 +501,25 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("dream --help", 0)
 
+    def has_sddc_connector(self):
+        """
+        The sddc_connector allows connectivity with SDR devices powered by libsddc, e.g. RX666, RX888, HF103.
+
+        You can find more information [here](https://github.com/jketterl/sddc_connector).
+        """
+        return self._check_connector("sddc_connector")
+
     def has_hpsdr_connector(self):
         """
         In order to use the HPSDR connector, you will need to install [hpsdrconnector]
         (https://github.com/jancona/hpsdrconnector).
         """
         return self.command_is_runnable("hpsdrconnector -h")
+
+    def has_eb200_connector(self):
+        """
+        To use radios supporting the EB200 radios, you need to install the eb200_connector.
+
+        You can find more information [here](https://github.com/jketterl/eb200_connector).
+        """
+        return self._check_connector("eb200_connector")

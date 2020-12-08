@@ -194,10 +194,11 @@ class AudioWriter(object):
         try:
             rc = decoder.wait(timeout=10)
             if rc != 0:
-                logger.warning("decoder return code: %i", rc)
+                raise RuntimeError("decoder return code: {0}".format(rc))
         except subprocess.TimeoutExpired:
             logger.warning("subprocess (pid=%i}) did not terminate correctly; sending kill signal.", decoder.pid)
             decoder.kill()
+            raise
 
     def start(self):
         (self.wavefilename, self.wavefile) = self.getWaveFile()

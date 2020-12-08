@@ -117,7 +117,7 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # Currently supported types of sdr receivers:
 # "rtl_sdr", "rtl_sdr_soapy", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr",
 # "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote", "hpsdr", "red_pitaya", "uhd",
-# "radioberry", "fcdpp", "rtl_tcp"
+# "radioberry", "fcdpp", "rtl_tcp", "sddc", "eb200"
 
 # For more details on specific types, please checkout the wiki:
 # https://github.com/jketterl/openwebrx/wiki/Supported-Hardware#sdr-devices
@@ -306,6 +306,14 @@ wsjt_decoding_depth = 3
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
 wsjt_decoding_depths = {"jt65": 1}
 
+# FST4 can be transmitted in different intervals. This setting determines which intervals will be decoded.
+# available values (in seconds): 15, 30, 60, 120, 300, 900, 1800
+fst4_enabled_intervals = [15, 30]
+
+# FST4W can be transmitted in different intervals. This setting determines which intervals will be decoded.
+# available values (in seconds): 120, 300, 900, 1800
+fst4w_enabled_intervals = [120, 300]
+
 # JS8 comes in different speeds: normal, slow, fast, turbo. This setting controls which ones are enabled.
 js8_enabled_profiles = ["normal", "slow"]
 # JS8 decoding depth; higher value will get more results, but will also consume more cpu
@@ -326,7 +334,7 @@ aprs_igate_password = ""
 aprs_igate_beacon = False
 
 # path to the aprs symbols repository (get it here: https://github.com/hessu/aprs-symbols)
-aprs_symbols_path = "/opt/aprs-symbols/png"
+aprs_symbols_path = "/usr/share/aprs-symbols/png"
 
 # === PSK Reporter setting ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info

@@ -23,7 +23,7 @@ class ConnectorSource(SdrSource):
                 "controlPort": Option("-c"),
                 "device": Option("-d"),
                 "iqswap": Flag("-i"),
-                "rtltcp_compat": Flag("-r"),
+                "rtltcp_compat": Option("-r"),
                 "ppm": Option("-P"),
                 "rf_gain": Option("-g"),
             }
