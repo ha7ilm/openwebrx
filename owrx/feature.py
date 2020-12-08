@@ -421,7 +421,11 @@ class FeatureDetector(object):
         return self.command_is_runnable("dsd")
 
     def has_m17_demod(self):
-        # TODO: documentation
+        """
+        The `m17-demod` tool is used to demodulate M17 digital voice signals.
+
+        You can find more information [here](https://github.com/mobilinkd/m17-cxx-demod)
+        """
         return self.command_is_runnable("m17-demod")
 
     def has_sox(self):
