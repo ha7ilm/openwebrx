@@ -130,7 +130,7 @@ class Fst4wProfile(WsjtProfile):
     def getEnabledProfiles():
         config = Config.get()
         profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
-        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
+        return [Fst4wProfile(i) for i in profiles if i in Fst4wProfile.availableIntervals]
 
 
 class WsjtParser(Parser):
