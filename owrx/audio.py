@@ -187,7 +187,7 @@ class AudioWriter(object):
         try:
             for line in decoder.stdout:
                 self.outputWriter.send((self.profile, job.freq, line))
-        except OSError:
+        except (OSError, AttributeError):
             decoder.stdout.flush()
             # TODO uncouple parsing from the output so that decodes can still go to the map and the spotters
             logger.debug("output has gone away while decoding job.")
