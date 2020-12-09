@@ -774,7 +774,7 @@ function on_ws_recv(evt) {
                         $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
                         break;
                     case "wsjt_message":
-                        update_wsjt_panel(json['value']);
+                        $("#openwebrx-panel-wsjt-message").wsjtMessagePanel().pushMessage(json['value']);
                         break;
                     case "dial_frequencies":
                         var as_bookmarks = json['value'].map(function (d) {
@@ -939,61 +939,6 @@ function update_metadata(meta) {
         clear_metadata();
     }
 
-}
-
-function html_escape(input) {
-    return $('<div/>').text(input).html()
-}
-
-function update_wsjt_panel(msg) {
-    var $b = $('#openwebrx-panel-wsjt-message').find('tbody');
-    var t = new Date(msg['timestamp']);
-    var pad = function (i) {
-        return ('' + i).padStart(2, "0");
-    };
-    var linkedmsg = msg['msg'];
-    var matches;
-    if (['FT8', 'JT65', 'JT9', 'FT4', 'FST4', 'FST4W'].indexOf(msg['mode']) >= 0) {
-        matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
-        if (matches && matches[2] !== 'RR73') {
-            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>';
-        } else {
-            linkedmsg = html_escape(linkedmsg);
-        }
-    } else if (msg['mode'] === 'WSPR') {
-        matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
-        if (matches) {
-            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>' + html_escape(matches[3]);
-        } else {
-            linkedmsg = html_escape(linkedmsg);
-        }
-    }
-    $b.append($(
-        '<tr data-timestamp="' + msg['timestamp'] + '">' +
-        '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
-        '<td class="decimal">' + msg['db'] + '</td>' +
-        '<td class="decimal">' + msg['dt'] + '</td>' +
-        '<td class="decimal freq">' + msg['freq'] + '</td>' +
-        '<td class="message">' + linkedmsg + '</td>' +
-        '</tr>'
-    ));
-    $b.scrollTop($b[0].scrollHeight);
-}
-
-var digital_removal_interval;
-
-// remove old wsjt messages in fixed intervals
-function init_digital_removal_timer() {
-    if (digital_removal_interval) clearInterval(digital_removal_interval);
-    digital_removal_interval = setInterval(function () {
-        ['#openwebrx-panel-wsjt-message', '#openwebrx-panel-packet-message'].forEach(function (root) {
-            var $elements = $(root + ' tbody tr');
-            // limit to 1000 entries in the list since browsers get laggy at some point
-            var toRemove = $elements.length - 1000;
-            if (toRemove <= 0) return;
-            $elements.slice(0, toRemove).remove();
-        });
-    }, 15000);
 }
 
 function update_packet_panel(msg) {
@@ -1588,7 +1533,7 @@ function secondary_demod_init() {
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseleave);
-    init_digital_removal_timer();
+    $('#openwebrx-panel-wsjt-message').wsjtMessagePanel();
 }
 
 function secondary_demod_push_data(x) {
