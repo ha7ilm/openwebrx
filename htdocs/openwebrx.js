@@ -787,7 +787,7 @@ function on_ws_recv(evt) {
                         bookmarks.replace_bookmarks(as_bookmarks, 'dial_frequencies');
                         break;
                     case "aprs_data":
-                        update_packet_panel(json['value']);
+                        $('#openwebrx-panel-packet-message').packetMessagePanel().pushMessage(json['value']);
                         break;
                     case "bookmarks":
                         bookmarks.replace_bookmarks(json['value'], "server");
@@ -939,75 +939,6 @@ function update_metadata(meta) {
         clear_metadata();
     }
 
-}
-
-function update_packet_panel(msg) {
-    var $b = $('#openwebrx-panel-packet-message').find('tbody');
-    var pad = function (i) {
-        return ('' + i).padStart(2, "0");
-    };
-
-    if (msg.type && msg.type === 'thirdparty' && msg.data) {
-        msg = msg.data;
-    }
-    var source = msg.source;
-    if (msg.type) {
-        if (msg.type === 'item') {
-            source = msg.item;
-        }
-        if (msg.type === 'object') {
-            source = msg.object;
-        }
-    }
-
-    var timestamp = '';
-    if (msg.timestamp) {
-        var t = new Date(msg.timestamp);
-        timestamp = pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds())
-    }
-
-    var link = '';
-    var classes = [];
-    var styles = {};
-    var overlay = '';
-    var stylesToString = function (s) {
-        return $.map(s, function (value, key) {
-            return key + ':' + value + ';'
-        }).join('')
-    };
-    if (msg.symbol) {
-        classes.push('aprs-symbol');
-        classes.push('aprs-symboltable-' + (msg.symbol.table === '/' ? 'normal' : 'alternate'));
-        styles['background-position-x'] = -(msg.symbol.index % 16) * 15 + 'px';
-        styles['background-position-y'] = -Math.floor(msg.symbol.index / 16) * 15 + 'px';
-        if (msg.symbol.table !== '/' && msg.symbol.table !== '\\') {
-            var s = {};
-            s['background-position-x'] = -(msg.symbol.tableindex % 16) * 15 + 'px';
-            s['background-position-y'] = -Math.floor(msg.symbol.tableindex / 16) * 15 + 'px';
-            overlay = '<div class="aprs-symbol aprs-symboltable-overlay" style="' + stylesToString(s) + '"></div>';
-        }
-    } else if (msg.lat && msg.lon) {
-        classes.push('openwebrx-maps-pin');
-    }
-    var attrs = [
-        'class="' + classes.join(' ') + '"',
-        'style="' + stylesToString(styles) + '"'
-    ].join(' ');
-    if (msg.lat && msg.lon) {
-        link = '<a ' + attrs + ' href="map?callsign=' + source + '" target="openwebrx-map">' + overlay + '</a>';
-    } else {
-        link = '<div ' + attrs + '>' + overlay + '</div>'
-    }
-
-    $b.append($(
-        '<tr>' +
-        '<td>' + timestamp + '</td>' +
-        '<td class="callsign">' + source + '</td>' +
-        '<td class="coord">' + link + '</td>' +
-        '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
-        '</tr>'
-    ));
-    $b.scrollTop($b[0].scrollHeight);
 }
 
 function update_pocsag_panel(msg) {
@@ -1534,6 +1465,7 @@ function secondary_demod_init() {
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseleave);
     $('#openwebrx-panel-wsjt-message').wsjtMessagePanel();
+    $('#openwebrx-panel-packet-message').packetMessagePanel();
 }
 
 function secondary_demod_push_data(x) {

@@ -14,12 +14,16 @@ MessagePanel.prototype.initClearTimer = function() {
     var me = this;
     if (me.removalInterval) clearInterval(me.removalInterval);
     me.removalInterval = setInterval(function () {
-        var $elements = $(me.el).find('tbody tr');
-        // limit to 1000 entries in the list since browsers get laggy at some point
-        var toRemove = $elements.length - 1000;
-        if (toRemove <= 0) return;
-        $elements.slice(0, toRemove).remove();
+        me.clearMessages();
     }, 15000);
+}
+
+MessagePanel.prototype.clearMessages = function() {
+    var $elements = $(this.el).find('tbody tr');
+    // limit to 1000 entries in the list since browsers get laggy at some point
+    var toRemove = $elements.length - 1000;
+    if (toRemove <= 0) return;
+    $elements.slice(0, toRemove).remove();
 }
 
 function WsjtMessagePanel(el) {
@@ -87,6 +91,103 @@ WsjtMessagePanel.prototype.pushMessage = function(msg) {
 $.fn.wsjtMessagePanel = function(){
     if (!this.data('panel')) {
         this.data('panel', new WsjtMessagePanel(this));
+    };
+    return this.data('panel');
+};
+
+function PacketMessagePanel(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+PacketMessagePanel.prototype = new MessagePanel();
+
+PacketMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th>UTC</th>' +
+                '<th class="callsign">Callsign</th>' +
+                '<th class="coord">Coord</th>' +
+                '<th class="message">Comment</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+PacketMessagePanel.prototype.pushMessage = function(msg) {
+    var $b = $(this.el).find('tbody');
+    var pad = function (i) {
+        return ('' + i).padStart(2, "0");
+    };
+
+    if (msg.type && msg.type === 'thirdparty' && msg.data) {
+        msg = msg.data;
+    }
+    var source = msg.source;
+    if (msg.type) {
+        if (msg.type === 'item') {
+            source = msg.item;
+        }
+        if (msg.type === 'object') {
+            source = msg.object;
+        }
+    }
+
+    var timestamp = '';
+    if (msg.timestamp) {
+        var t = new Date(msg.timestamp);
+        timestamp = pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds())
+    }
+
+    var link = '';
+    var classes = [];
+    var styles = {};
+    var overlay = '';
+    var stylesToString = function (s) {
+        return $.map(s, function (value, key) {
+            return key + ':' + value + ';'
+        }).join('')
+    };
+    if (msg.symbol) {
+        classes.push('aprs-symbol');
+        classes.push('aprs-symboltable-' + (msg.symbol.table === '/' ? 'normal' : 'alternate'));
+        styles['background-position-x'] = -(msg.symbol.index % 16) * 15 + 'px';
+        styles['background-position-y'] = -Math.floor(msg.symbol.index / 16) * 15 + 'px';
+        if (msg.symbol.table !== '/' && msg.symbol.table !== '\\') {
+            var s = {};
+            s['background-position-x'] = -(msg.symbol.tableindex % 16) * 15 + 'px';
+            s['background-position-y'] = -Math.floor(msg.symbol.tableindex / 16) * 15 + 'px';
+            overlay = '<div class="aprs-symbol aprs-symboltable-overlay" style="' + stylesToString(s) + '"></div>';
+        }
+    } else if (msg.lat && msg.lon) {
+        classes.push('openwebrx-maps-pin');
+    }
+    var attrs = [
+        'class="' + classes.join(' ') + '"',
+        'style="' + stylesToString(styles) + '"'
+    ].join(' ');
+    if (msg.lat && msg.lon) {
+        link = '<a ' + attrs + ' href="map?callsign=' + source + '" target="openwebrx-map">' + overlay + '</a>';
+    } else {
+        link = '<div ' + attrs + '>' + overlay + '</div>'
+    }
+
+    $b.append($(
+        '<tr>' +
+        '<td>' + timestamp + '</td>' +
+        '<td class="callsign">' + source + '</td>' +
+        '<td class="coord">' + link + '</td>' +
+        '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
+};
+
+$.fn.packetMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new PacketMessagePanel(this));
     };
     return this.data('panel');
 };
