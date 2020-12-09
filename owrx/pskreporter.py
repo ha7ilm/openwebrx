@@ -81,11 +81,12 @@ class PskReporter(object):
             else:
                 self.spotCounter.inc()
                 self.spots.append(spot)
-        self.scheduleNextUpload()
+            self.scheduleNextUpload()
 
     def upload(self):
         try:
             with self.spotLock:
+                self.timer = None
                 spots = self.spots
                 self.spots = []
 
@@ -93,9 +94,6 @@ class PskReporter(object):
                 self.uploader.upload(spots)
         except Exception:
             logger.exception("Failed to upload spots")
-
-        self.timer = None
-        self.scheduleNextUpload()
 
     def cancelTimer(self):
         if self.timer:
