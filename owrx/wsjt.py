@@ -200,11 +200,16 @@ class Decoder(ABC):
     def __init__(self, profile):
         self.profile = profile
 
-    def parse_timestamp(self, instring, dateformat):
-        ts = datetime.strptime(instring, dateformat)
-        return int(
-            datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
-        )
+    def parse_timestamp(self, instring):
+        dateformat = self.profile.getTimestampFormat()
+        remain = instring[len(dateformat) + 1:]
+        try:
+            ts = datetime.strptime(instring[0:len(dateformat)], dateformat)
+            return remain, int(
+                datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
+            )
+        except ValueError:
+            return remain, None
 
     @abstractmethod
     def parse(self, msg, dial_freq):
@@ -230,12 +235,7 @@ class Jt9Decoder(Decoder):
         # '0003  -4  0.4 1762 #  CQ R2ABM KO85'
         # fst4 sample
         # '**** -23  0.6 3023 `  <...> <...> R 591631 BI53PV'
-        dateformat = self.profile.getTimestampFormat()
-        try:
-            timestamp = self.parse_timestamp(msg[0:len(dateformat)], dateformat)
-        except ValueError:
-            timestamp = None
-        msg = msg[len(dateformat) + 1:]
+        msg, timestamp = self.parse_timestamp(msg)
         wsjt_msg = msg[17:53].strip()
 
         result = {
@@ -256,13 +256,14 @@ class WsprDecoder(Decoder):
         # wspr sample
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
-        wsjt_msg = msg[29:].strip()
+        msg, timestamp = self.parse_timestamp(msg)
+        wsjt_msg = msg[24:].strip()
         result = {
-            "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
-            "db": float(msg[5:8]),
-            "dt": float(msg[9:13]),
-            "freq": dial_freq + int(float(msg[14:24]) * 1e6),
-            "drift": int(msg[25:28]),
+            "timestamp": timestamp,
+            "db": float(msg[0:3]),
+            "dt": float(msg[4:8]),
+            "freq": dial_freq + int(float(msg[10:20]) * 1e6),
+            "drift": int(msg[20:23]),
             "msg": wsjt_msg,
         }
         result.update(self.parseMessage(wsjt_msg))
