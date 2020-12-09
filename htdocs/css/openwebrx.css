@@ -981,6 +981,7 @@ img.openwebrx-mirror-img
 
 .openwebrx-message-panel {
     height: 180px;
+    position: relative;
 }
 
 .openwebrx-message-panel tbody {

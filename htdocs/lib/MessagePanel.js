@@ -1,6 +1,7 @@
 function MessagePanel(el) {
     this.el = el;
     this.render();
+    this.initClearButton();
 }
 
 MessagePanel.prototype.render = function() {
@@ -14,17 +15,33 @@ MessagePanel.prototype.initClearTimer = function() {
     var me = this;
     if (me.removalInterval) clearInterval(me.removalInterval);
     me.removalInterval = setInterval(function () {
-        me.clearMessages();
+        me.clearMessages(1000);
     }, 15000);
-}
+};
 
-MessagePanel.prototype.clearMessages = function() {
+MessagePanel.prototype.clearMessages = function(toRemain) {
     var $elements = $(this.el).find('tbody tr');
     // limit to 1000 entries in the list since browsers get laggy at some point
-    var toRemove = $elements.length - 1000;
+    var toRemove = $elements.length - toRemain;
     if (toRemove <= 0) return;
     $elements.slice(0, toRemove).remove();
-}
+};
+
+MessagePanel.prototype.initClearButton = function() {
+    var me = this;
+    me.clearButton = $(
+        '<div class="openwebrx-button">Clear</div>'
+    );
+    me.clearButton.css({
+        position: 'absolute',
+        top: '10px',
+        right: '10px'
+    });
+    me.clearButton.on('click', function() {
+        me.clearMessages(0);
+    });
+    $(me.el).append(me.clearButton);
+};
 
 function WsjtMessagePanel(el) {
     MessagePanel.call(this, el);
@@ -215,8 +232,8 @@ PocsagMessagePanel.prototype.pushMessage = function(msg) {
     var $b = $(this.el).find('tbody');
     $b.append($(
         '<tr>' +
-        '<td class="address">' + msg.address + '</td>' +
-        '<td class="message">' + msg.message + '</td>' +
+            '<td class="address">' + msg.address + '</td>' +
+            '<td class="message">' + msg.message + '</td>' +
         '</tr>'
     ));
     $b.scrollTop($b[0].scrollHeight);
