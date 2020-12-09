@@ -805,7 +805,7 @@ function on_ws_recv(evt) {
                         divlog(json['value'], true);
                         break;
                     case 'pocsag_data':
-                        update_pocsag_panel(json['value']);
+                        $('#openwebrx-panel-pocsag-message').pocsagMessagePanel().pushMessage(json['value']);
                         break;
                     case 'backoff':
                         divlog("Server is currently busy: " + json['reason'], true);
@@ -939,17 +939,6 @@ function update_metadata(meta) {
         clear_metadata();
     }
 
-}
-
-function update_pocsag_panel(msg) {
-    var $b = $('#openwebrx-panel-pocsag-message').find('tbody');
-    $b.append($(
-        '<tr>' +
-        '<td class="address">' + msg.address + '</td>' +
-        '<td class="message">' + msg.message + '</td>' +
-        '</tr>'
-    ));
-    $b.scrollTop($b[0].scrollHeight);
 }
 
 function clear_metadata() {
@@ -1466,6 +1455,7 @@ function secondary_demod_init() {
         .mouseleave(secondary_demod_canvas_container_mouseleave);
     $('#openwebrx-panel-wsjt-message').wsjtMessagePanel();
     $('#openwebrx-panel-packet-message').packetMessagePanel();
+    $('#openwebrx-panel-pocsag-message').pocsagMessagePanel();
 }
 
 function secondary_demod_push_data(x) {

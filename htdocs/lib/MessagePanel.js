@@ -191,3 +191,40 @@ $.fn.packetMessagePanel = function() {
     };
     return this.data('panel');
 };
+
+PocsagMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+PocsagMessagePanel.prototype = new MessagePanel();
+
+PocsagMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="address">Address</th>' +
+                '<th class="message">Message</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+PocsagMessagePanel.prototype.pushMessage = function(msg) {
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+        '<td class="address">' + msg.address + '</td>' +
+        '<td class="message">' + msg.message + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
+};
+
+$.fn.pocsagMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new PocsagMessagePanel(this));
+    };
+    return this.data('panel');
+};
