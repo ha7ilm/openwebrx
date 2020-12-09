@@ -195,7 +195,7 @@ class WsjtParser(Parser):
 
 
 class Decoder(ABC):
-    locator_pattern = re.compile(".*\\s([A-Z0-9]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
+    locator_pattern = re.compile(".*\\s([A-Z0-9/]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
 
     def __init__(self, profile):
         self.profile = profile
@@ -250,7 +250,7 @@ class Jt9Decoder(Decoder):
 
 
 class WsprDecoder(Decoder):
-    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
+    wspr_splitter_pattern = re.compile("([A-Z0-9/]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
 
     def parse(self, msg, dial_freq):
         # wspr sample
