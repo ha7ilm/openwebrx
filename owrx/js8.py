@@ -28,7 +28,7 @@ class Js8Profiles(object):
 
 
 class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
-    def decoding_depth(self, mode):
+    def decoding_depth(self):
         pm = Config.get()
         # return global default
         if "js8_decoding_depth" in pm:
@@ -40,7 +40,7 @@ class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
-        return ["js8", "--js8", "-b", self.get_sub_mode(), "-d", str(self.decoding_depth("js8")), file]
+        return ["js8", "--js8", "-b", self.get_sub_mode(), "-d", str(self.decoding_depth()), file]
 
     @abstractmethod
     def get_sub_mode(self):
@@ -85,7 +85,7 @@ class Js8Parser(Parser):
     def parse(self, messages):
         for raw in messages:
             try:
-                freq, raw_msg = raw
+                profile, freq, raw_msg = raw
                 self.setDialFrequency(freq)
                 msg = raw_msg.decode().rstrip()
                 if Js8Parser.decoderRegex.match(msg):
