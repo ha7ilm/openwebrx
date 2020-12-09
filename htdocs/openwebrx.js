@@ -1456,6 +1456,7 @@ function secondary_demod_init() {
     $('#openwebrx-panel-wsjt-message').wsjtMessagePanel();
     $('#openwebrx-panel-packet-message').packetMessagePanel();
     $('#openwebrx-panel-pocsag-message').pocsagMessagePanel();
+    $('#openwebrx-panel-js8-message').js8();
 }
 
 function secondary_demod_push_data(x) {
