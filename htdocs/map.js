@@ -44,7 +44,12 @@
         if (!colorKeys[id]) {
             var keys = Object.keys(colorKeys);
             keys.push(id);
-            keys.sort();
+            keys.sort(function(a, b) {
+                var pa = parseFloat(a);
+                var pb = parseFloat(b);
+                if (isNaN(pa) || isNaN(pb)) return a.localeCompare(b);
+                return pa - pb;
+            });
             var colors = colorScale.colors(keys.length);
             colorKeys = {};
             keys.forEach(function(key, index) {
