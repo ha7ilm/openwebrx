@@ -341,6 +341,8 @@ aprs_symbols_path = "/usr/share/aprs-symbols/png"
 # this also uses the receiver_gps setting from above, so make sure it contains a correct locator
 pskreporter_enabled = False
 pskreporter_callsign = "N0CALL"
+# optional antenna information, uncomment to enable
+#pskreporter_antenna_information = "Dipole"
 
 # === Web admin settings ===
 # this feature is experimental at the moment. it should not be enabled on shared receivers since it allows remote

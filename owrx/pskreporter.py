@@ -168,28 +168,47 @@ class Uploader(object):
             return None
 
     def getReceiverInformationHeader(self):
+        pm = Config.get()
+        with_antenna = "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None
+        num_fields = 4 if with_antenna else 3
+        length = 12 + num_fields * 8
         return bytes(
-            # id, length
-            [0x00, 0x03, 0x00, 0x24]
+            # id
+            [0x00, 0x03]
+            # length
+            + list(length.to_bytes(2, 'big'))
             + Uploader.receieverDelimiter
             # number of fields
-            + [0x00, 0x03, 0x00, 0x00]
+            + list(num_fields.to_bytes(2, 'big'))
+            # padding
+            + [0x00, 0x00]
             # receiverCallsign
             + [0x80, 0x02, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # receiverLocator
             + [0x80, 0x04, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # decodingSoftware
             + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # antennaInformation
+            + (
+                [0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F] if with_antenna else []
+            )
             # padding
             + [0x00, 0x00]
         )
 
     def getReceiverInformation(self):
         pm = Config.get()
-        callsign = pm["pskreporter_callsign"]
-        locator = Locator.fromCoordinates(pm["receiver_gps"])
-        decodingSoftware = "OpenWebRX " + openwebrx_version
-        body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
+        bodyFields = [
+            # callsign
+            pm["pskreporter_callsign"],
+            # locator
+            Locator.fromCoordinates(pm["receiver_gps"]),
+            # decodingSoftware
+            "OpenWebRX " + openwebrx_version,
+        ]
+        if "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None:
+            bodyFields += [pm["pskreporter_antenna_information"]]
+        body = [b for s in bodyFields for b in self.encodeString(s)]
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
         return body
