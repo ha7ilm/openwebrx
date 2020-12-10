@@ -50,15 +50,15 @@ IGLOGIN {callsign} {password}
                 lon = "{0:03d}^{1:05.2f}{2}".format(int(lon), (lon - int(lon)) * 60, direction_we)
 
                 #Format beacon details
-                symbol  = str(pm["aprs_igate_symbol"])             if checkKey(pm, "aprs_igate_symbol")  else "R&"
-                power   = str(pm["aprs_igate_power"])              if checkKey(pm, "aprs_igate_power")   else "0"
-                height  = "HEIGHT=" + str(pm["aprs_igate_height"]) if checkKey(pm, "aprs_igate_height")  else ""
-                gain    = "GAIN=" + str(pm["aprs_igate_gain"])     if checkKey(pm, "aprs_igate_gain")    else ""
-                adir    = "DIR=" + str(pm["aprs_igate_dir"])       if checkKey(pm, "aprs_igate_dir")     else ""
-                freq    = "FREQ=" + str(pm["aprs_igate_freq"])     if checkKey(pm, "aprs_igate_freq")    else ""
-                tone    = "TONE=" + str(pm["aprs_igate_tone"])     if checkKey(pm, "aprs_igate_tone")    else ""
-                offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if checkKey(pm, "aprs_igate_offset")  else ""
-                comment = str(pm["aprs_igate_comment"])            if checkKey(pm, "aprs_igate_comment") else "OpenWebRX APRS gateway"
+                symbol  = str(pm["aprs_igate_symbol"])             if "aprs_igate_symbol"  in pm else "R&"
+                power   = str(pm["aprs_igate_power"])              if "aprs_igate_power"   in pm else "0"
+                height  = "HEIGHT=" + str(pm["aprs_igate_height"]) if "aprs_igate_height"  in pm else ""
+                gain    = "GAIN=" + str(pm["aprs_igate_gain"])     if "aprs_igate_gain"    in pm else ""
+                adir    = "DIR=" + str(pm["aprs_igate_dir"])       if "aprs_igate_dir"     in pm else ""
+                freq    = "FREQ=" + str(pm["aprs_igate_freq"])     if "aprs_igate_freq"    in pm else ""
+                tone    = "TONE=" + str(pm["aprs_igate_tone"])     if "aprs_igate_tone"    in pm else ""
+                offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
+                comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "OpenWebRX APRS gateway"
 
                 config += """
 PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}
