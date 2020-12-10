@@ -60,15 +60,14 @@ IGLOGIN {callsign} {password}
                 offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
                 comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "OpenWebRX APRS gateway"
 
-                pbeacon= """
-PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}
-                """.format(
-                    symbol=symbol, lat=lat, lon=lon, power=power, height=height, gain=gain, adir=adir, freq=freq, tone=tone, offset=offset, comment=comment
-                )
+                pbeacon= "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
+                    symbol=symbol, lat=lat, lon=lon, power=power, height=height, gain=gain, adir=adir, freq=freq, tone=tone, offset=offset, comment=comment )
 
                 logger.info("APRS PBEACON String: " + pbeacon)
                 
-                config += pbeacon
+                config += """
+                          {pbeacon}
+                          """.format(pbeacon=pbeacon)
 
         return config
 
