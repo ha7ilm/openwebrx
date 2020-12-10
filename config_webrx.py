@@ -271,7 +271,7 @@ waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 
 # This setting allows you to modify the precision of the frequency displays in OpenWebRX.
 # Set this to the number of digits you would like to see:
-frequency_display_precision = 5
+frequency_display_precision = 4
 
 # This setting tells the auto-squelch the offset to add to the current signal level to use as the new squelch level.
 # Lowering this setting will give you a more sensitive squelch, but it may also cause unwanted squelch openings when
