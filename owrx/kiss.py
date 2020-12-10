@@ -58,7 +58,7 @@ IGLOGIN {callsign} {password}
                 freq    = "FREQ=" + str(pm["aprs_igate_freq"])     if "aprs_igate_freq"    in pm else ""
                 tone    = "TONE=" + str(pm["aprs_igate_tone"])     if "aprs_igate_tone"    in pm else ""
                 offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
-                comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "OpenWebRX APRS gateway"
+                comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "\"OpenWebRX APRS gateway\""
 
                 pbeacon= "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
                     symbol=symbol, lat=lat, lon=lon, power=power, height=height, gain=gain, adir=adir, freq=freq, tone=tone, offset=offset, comment=comment )
