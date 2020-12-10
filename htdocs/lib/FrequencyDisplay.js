@@ -1,6 +1,7 @@
 function FrequencyDisplay(element) {
     this.element = $(element);
     this.digits = [];
+    this.precision = 4;
     this.setupElements();
     this.setFrequency(0);
 }
@@ -14,7 +15,10 @@ FrequencyDisplay.prototype.setupElements = function() {
 
 FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.frequency = freq;
-    var formatted = (freq / 1e6).toLocaleString(undefined, {maximumFractionDigits: 4, minimumFractionDigits: 4});
+    var formatted = (freq / 1e6).toLocaleString(
+        undefined,
+        {maximumFractionDigits: this.precision, minimumFractionDigits: this.precision}
+    );
     var children = this.digitContainer.children();
     for (var i = 0; i < formatted.length; i++) {
         if (!this.digits[i]) {
@@ -32,6 +36,12 @@ FrequencyDisplay.prototype.setFrequency = function(freq) {
     while (this.digits.length > formatted.length) {
         this.digits.pop().remove();
     }
+};
+
+FrequencyDisplay.prototype.setFrequencyPrecision = function(precision) {
+    if (!precision) return;
+    this.precision = precision;
+    this.setFrequency(this.frequency);
 };
 
 function TuneableFrequencyDisplay(element) {

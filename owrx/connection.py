@@ -124,6 +124,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "initial_squelch_level",
         "profile_id",
         "squelch_auto_margin",
+        "frequency_display_precision",
     ]
 
     def __init__(self, conn):

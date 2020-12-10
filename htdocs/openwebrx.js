@@ -292,7 +292,7 @@ function scale_canvas_mousemove(evt) {
 
 function frequency_container_mousemove(evt) {
     var frequency = center_freq + scale_offset_freq_from_px(evt.pageX);
-    $('.webrx-mouse-freq').frequencyDisplay().setFrequency(frequency);
+    $('#openwebrx-panel-receiver').demodulatorPanel().setMouseFrequency(frequency);
 }
 
 function scale_canvas_end_drag(x) {
@@ -570,7 +570,7 @@ function canvas_mousemove(evt) {
             bookmarks.position();
         }
     } else {
-        $('.webrx-mouse-freq').frequencyDisplay().setFrequency(canvas_get_frequency(relativeX));
+        $('#openwebrx-panel-receiver').demodulatorPanel().setMouseFrequency(canvas_get_frequency(relativeX));
     }
 }
 
@@ -733,6 +733,8 @@ function on_ws_recv(evt) {
 
                         currentprofile = config['sdr_id'] + '|' + config['profile_id'];
                         $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+
+                        $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
 
                         break;
                     case "secondary_config":
@@ -1241,7 +1243,6 @@ function openwebrx_init() {
     secondary_demod_init();
     digimodes_init();
     initPanels();
-    $('.webrx-mouse-freq').frequencyDisplay();
     $('#openwebrx-panel-receiver').demodulatorPanel();
     window.addEventListener("resize", openwebrx_resize);
     bookmarks = new BookmarkBar();

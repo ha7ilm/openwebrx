@@ -11,6 +11,8 @@ function DemodulatorPanel(el) {
         self.getDemodulator().set_offset_frequency(freq - self.center_freq);
     });
 
+    this.mouseFrequencyDisplay = el.find('.webrx-mouse-freq').frequencyDisplay();
+
     Modes.registerModePanel(this);
     el.on('click', '.openwebrx-demodulator-button', function() {
         var modulation = $(this).data('modulation');
@@ -330,6 +332,15 @@ DemodulatorPanel.prototype.setSquelchMargin = function(margin) {
 
 DemodulatorPanel.prototype.getSquelchMargin = function() {
     return this.squelchMargin;
+};
+
+DemodulatorPanel.prototype.setMouseFrequency = function(freq) {
+    this.mouseFrequencyDisplay.setFrequency(freq);
+};
+
+DemodulatorPanel.prototype.setFrequencyPrecision = function(precision) {
+    this.tuneableFrequencyDisplay.setFrequencyPrecision(precision);
+    this.mouseFrequencyDisplay.setFrequencyPrecision(precision);
 };
 
 $.fn.demodulatorPanel = function(){
