@@ -426,7 +426,12 @@ class MapConnection(OpenWebRxClient):
         super().__init__(conn)
 
         pm = Config.get()
-        self.write_config(pm.filter("google_maps_api_key", "receiver_gps", "map_position_retention_time").__dict__())
+        self.write_config(pm.filter(
+            "google_maps_api_key",
+            "receiver_gps",
+            "map_position_retention_time",
+            "receiver_name",
+        ).__dict__())
 
         Map.getSharedInstance().addClient(self)
 

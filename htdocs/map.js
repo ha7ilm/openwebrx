@@ -30,6 +30,7 @@
     var map;
     var markers = {};
     var rectangles = {};
+    var receiverMarker;
     var updateQueue = [];
 
     // reasonable default; will be overriden by server
@@ -200,6 +201,7 @@
         var reset = function(callsign, item) { item.setMap(); };
         $.each(markers, reset);
         $.each(rectangles, reset);
+        receiverMarker.setMap();
         markers = {};
         rectangles = {};
     };
@@ -227,12 +229,13 @@
                 switch (json.type) {
                     case "config":
                         var config = json.value;
+                        var receiverPos = {
+                            lat: config.receiver_gps.lat,
+                            lng: config.receiver_gps.lon
+                        };
                         if (!map) $.getScript("https://maps.googleapis.com/maps/api/js?key=" + config.google_maps_api_key).done(function(){
                             map = new google.maps.Map($('.openwebrx-map')[0], {
-                                center: {
-                                    lat: config.receiver_gps.lat,
-                                    lng: config.receiver_gps.lon
-                                },
+                                center: receiverPos,
                                 zoom: 5,
                             });
 
@@ -245,7 +248,27 @@
                                 updateQueue = [];
                             });
                             map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($(".openwebrx-map-legend")[0]);
-                        });
+
+                            if (!receiverMarker) {
+                                receiverMarker = new google.maps.Marker();
+                                receiverMarker.addListener('click', function() {
+                                    showReceiverInfoWindow(receiverMarker);
+                                });
+                            }
+                            receiverMarker.setOptions({
+                                map: map,
+                                position: receiverPos,
+                                title: config['receiver_name'],
+                                config: config
+                            });
+                        }); else {
+                            receiverMarker.setOptions({
+                                map: map,
+                                position: receiverPos,
+                                title: config['receiver_name'],
+                                config: config
+                            });
+                        }
                         retention_time = config.map_position_retention_time * 1000;
                     break;
                     case "update":
@@ -340,6 +363,15 @@
             '<h3>' + callsign + '</h3>' +
             '<div>' + timestring + ' using ' + marker.mode + ( marker.band ? ' on ' + marker.band : '' ) + '</div>' +
             commentString
+        );
+        infowindow.open(map, marker);
+    }
+
+    var showReceiverInfoWindow = function(marker) {
+        var infowindow = getInfoWindow()
+        infowindow.setContent(
+            '<h3>' + marker.config['receiver_name'] + '</h3>' +
+            '<div>Receiver location</div>'
         );
         infowindow.open(map, marker);
     }
