@@ -62,7 +62,7 @@ IGLOGIN {callsign} {password}
 
                 if((len(comment) > 0) and ((comment[0] != '"') or (comment[len(comment)-1] != '"'))):
                     comment = "\"" + comment + "\""
-                else if(len(comment) == 0):
+                elif(len(comment) == 0):
                     comment = "\"\""
 
                 pbeacon= "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
