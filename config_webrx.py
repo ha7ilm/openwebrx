@@ -343,12 +343,13 @@ aprs_symbols_path = "/usr/share/aprs-symbols/png"
 # Symbol in its two-character form as specified by the APRS spec at http://www.aprs.org/symbols/symbols-new.txt
 #   Default: Receive only IGate (do not send msgs back to RF)  
 # aprs_igate_symbol = "R&"
+
 # Custom comment about igate 
 #   Default: OpenWebRX APRS gateway
 # aprs_igate_comment = "OpenWebRX APRS gateway"
 
 # Antenna Power, Height, Gain, and Direction 
-#  Unspecified by default
+#   Unspecified by default
 # Transmitter power (0 by default as only RX is supported)
 # aprs_igate_power = "0"
 # Antenna height in feet
