@@ -348,7 +348,7 @@ aprs_symbols_path = "/usr/share/aprs-symbols/png"
 #   Default: OpenWebRX APRS gateway
 # aprs_igate_comment = "OpenWebRX APRS gateway"
 
-# Antenna Power, Height, Gain, and Direction 
+# Antenna Power, Height, Gain 
 #   Unspecified by default
 # Transmitter power (0 by default as only RX is supported)
 # aprs_igate_power = "0"
