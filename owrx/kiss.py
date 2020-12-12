@@ -60,7 +60,7 @@ IGLOGIN {callsign} {password}
                 offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
                 comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "\"OpenWebRX APRS gateway\""
 
-                if(len(comment) > 0 and ((comment[0] != '"') or (comment[len(comment)-1] != '"')))):
+                if((len(comment) > 0) and ((comment[0] != '"') or (comment[len(comment)-1] != '"'))):
                     logger.info(comment)
                     comment = "\"" + comment + "\""
                     logger.info(comment)
