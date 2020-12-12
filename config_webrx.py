@@ -336,6 +336,35 @@ aprs_igate_beacon = False
 # path to the aprs symbols repository (get it here: https://github.com/hessu/aprs-symbols)
 aprs_symbols_path = "/usr/share/aprs-symbols/png"
 
+# Uncomment the following to customize gateway beacon details reported to the aprs network
+#   Plese see Dire Wolf's documentation on PBEACON configuration for complete details:
+#   https://github.com/wb2osz/direwolf/raw/master/doc/User-Guide.pdf 
+
+# Symbol in its two-character form as specified by the APRS spec at http://www.aprs.org/symbols/symbols-new.txt
+#   Default: Receive only IGate (do not send msgs back to RF)  
+# aprs_igate_symbol = "R&"
+# Custom comment about igate 
+#   Default: OpenWebRX APRS gateway
+# aprs_igate_comment = "OpenWebRX APRS gateway"
+
+# Antenna Power, Height, Gain, and Direction 
+#  Unspecified by default
+# Transmitter power (0 by default as only RX is supported)
+# aprs_igate_power = "0"
+# Antenna height in feet
+# aprs_igate_height = "20"
+# Antenna gain in dBi
+# aprs_igate_gain = "0"
+# Antenna direction (N, NE, E, SE, S, SW, W, NW).  Omnidirectional by default
+# aprs_igate_dir = "NE"
+
+# Frequency info to contact you by voice
+#   Unspecified by default
+# aprs_igate_freq = "146.955"
+# aprs_igate_tone = "74.4"
+# aprs_igate_offset = "-0.60"
+
+
 # === PSK Reporter setting ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info
 # this also uses the receiver_gps setting from above, so make sure it contains a correct locator
