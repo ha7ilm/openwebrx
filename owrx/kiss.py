@@ -60,7 +60,7 @@ IGLOGIN {callsign} {password}
                 offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
                 comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "\"OpenWebRX APRS gateway\""
 
-                if(comment[0] != '"'):
+                if(comment[0] != '"' or comment[len(comment)-1] != '"'):
                     comment = "\"" + comment + "\""
 
                 pbeacon= "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
