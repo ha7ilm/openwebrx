@@ -459,7 +459,7 @@ class WebSocketMessageHandler(object):
             self.handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
 
             conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
-            logger.debug("client connection intitialized")
+            logger.debug("client connection initialized")
 
             if "type" in self.handshake:
                 if self.handshake["type"] == "receiver":
