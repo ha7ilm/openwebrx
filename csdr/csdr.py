@@ -35,6 +35,8 @@ from owrx.audio import AudioChopper
 
 from csdr.pipe import Pipe
 
+from pycsdr import SocketClient, Fft, LogAveragePower, FftExchangeSides
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -754,6 +756,26 @@ class dsp(object):
             self.direwolf_config = None
 
     def start(self):
+        if self.demodulator == "fft":
+            with self.modification_lock:
+                if self.running:
+                    return
+                self.running = True
+
+            nc = SocketClient(self.nc_port)
+
+            fft = Fft(self.fft_size, int(self.fft_block_size()))
+            fft.setInput(nc.getBuffer())
+
+            lap = LogAveragePower(-70, self.fft_size, self.fft_averages)
+            lap.setInput(fft.getBuffer())
+
+            fes = FftExchangeSides(fft_size=self.fft_size)
+            fes.setInput(lap.getBuffer())
+
+            self.output.send_output("audio", fes.getBuffer().read)
+
+            return
         with self.modification_lock:
             if self.running:
                 return
