@@ -76,6 +76,8 @@ class output(object):
 
 class dsp(object):
     def __init__(self, output):
+        self.pycsdr_enabled = True
+
         self.samp_rate = 250000
         self.output_rate = 11025
         self.hd_output_rate = 44100
@@ -756,26 +758,27 @@ class dsp(object):
             self.direwolf_config = None
 
     def start(self):
-        if self.demodulator == "fft":
-            with self.modification_lock:
-                if self.running:
-                    return
-                self.running = True
+        if self.pycsdr_enabled:
+            if self.demodulator == "fft":
+                with self.modification_lock:
+                    if self.running:
+                        return
+                    self.running = True
 
-            nc = SocketClient(self.nc_port)
+                nc = SocketClient(self.nc_port)
 
-            fft = Fft(self.fft_size, int(self.fft_block_size()))
-            fft.setInput(nc.getBuffer())
+                fft = Fft(self.fft_size, int(self.fft_block_size()))
+                fft.setInput(nc.getBuffer())
 
-            lap = LogAveragePower(-70, self.fft_size, self.fft_averages)
-            lap.setInput(fft.getBuffer())
+                lap = LogAveragePower(-70, self.fft_size, self.fft_averages)
+                lap.setInput(fft.getBuffer())
 
-            fes = FftExchangeSides(fft_size=self.fft_size)
-            fes.setInput(lap.getBuffer())
+                fes = FftExchangeSides(fft_size=self.fft_size)
+                fes.setInput(lap.getBuffer())
 
-            self.output.send_output("audio", fes.getBuffer().read)
+                self.output.send_output("audio", fes.getBuffer().read)
 
-            return
+                return
         with self.modification_lock:
             if self.running:
                 return
