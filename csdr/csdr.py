@@ -34,8 +34,7 @@ from owrx.js8 import Js8Profiles
 from owrx.audio import AudioChopper
 
 from csdr.pipe import Pipe
-
-from pycsdr import SocketClient, Fft, LogAveragePower, FftExchangeSides
+from csdr.chain.fft import FftChain
 
 import logging
 
@@ -77,6 +76,7 @@ class output(object):
 class dsp(object):
     def __init__(self, output):
         self.pycsdr_enabled = True
+        self.pycsdr_chain = None
 
         self.samp_rate = 250000
         self.output_rate = 11025
@@ -765,18 +765,15 @@ class dsp(object):
                         return
                     self.running = True
 
-                nc = SocketClient(self.nc_port)
+                self.pycsdr_chain = FftChain(
+                    port=self.nc_port,
+                    fft_size=self.fft_size,
+                    fft_block_size=self.fft_block_size(),
+                    fft_averages=self.fft_averages,
+                    fft_compression=self.fft_compression
+                )
 
-                fft = Fft(self.fft_size, int(self.fft_block_size()))
-                fft.setInput(nc.getBuffer())
-
-                lap = LogAveragePower(-70, self.fft_size, self.fft_averages)
-                lap.setInput(fft.getBuffer())
-
-                fes = FftExchangeSides(fft_size=self.fft_size)
-                fes.setInput(lap.getBuffer())
-
-                self.output.send_output("audio", fes.getBuffer().read)
+                self.output.send_output("audio", self.pycsdr_chain.getBuffer().read)
 
                 return
         with self.modification_lock:
@@ -883,6 +880,8 @@ class dsp(object):
     def stop(self):
         with self.modification_lock:
             self.running = False
+            if self.pycsdr_enabled and self.pycsdr_chain is not None:
+                self.pycsdr_chain.stop()
             if self.process is not None:
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
