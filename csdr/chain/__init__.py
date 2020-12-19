@@ -12,5 +12,8 @@ class Chain(object):
         for w in self.workers:
             w.stop()
 
+    def setInput(self, buffer):
+        self.workers[0].setInput(buffer)
+
     def getBuffer(self):
         return self.buffer

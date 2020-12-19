@@ -31,6 +31,7 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
 
         self.dsp = dsp = csdr.dsp(self)
         dsp.nc_port = self.sdrSource.getPort()
+        dsp.setSocketClient(self.sdrSource.getSocketClient())
         dsp.set_demodulator("fft")
 
         def set_fft_averages(key, value):

@@ -11,6 +11,8 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
 
+from pycsdr import SocketClient
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,6 +50,7 @@ class SdrSource(ABC):
         self.id = id
 
         self.commandMapper = None
+        self.socketClient = None
 
         self.props = PropertyStack()
         # layer 0 reserved for profile properties
@@ -140,6 +143,12 @@ class SdrSource(ABC):
 
     def getPort(self):
         return self.port
+
+    def getSocketClient(self):
+        with self.modificationLock:
+            if self.socketClient is None:
+                self.socketClient = SocketClient(self.port)
+        return self.socketClient
 
     def getCommandValues(self):
         dict = self.sdrProps.__dict__()
@@ -249,6 +258,9 @@ class SdrSource(ABC):
                     pass
             if self.monitor:
                 self.monitor.join()
+            if self.socketClient is not None:
+                self.socketClient.stop()
+                self.socketClient = None
 
     def hasClients(self, *args):
         clients = [c for c in self.clients if c.getClientClass() in args]

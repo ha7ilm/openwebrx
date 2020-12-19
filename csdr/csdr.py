@@ -77,6 +77,7 @@ class dsp(object):
     def __init__(self, output):
         self.pycsdr_enabled = True
         self.pycsdr_chain = None
+        self.socketClient = None
 
         self.samp_rate = 250000
         self.output_rate = 11025
@@ -136,6 +137,11 @@ class dsp(object):
         self.direwolf_config = None
         self.direwolf_port = None
         self.process = None
+
+    def setSocketClient(self, socketClient):
+        self.socketClient = socketClient
+        if self.pycsdr_chain is not None:
+            self.pycsdr_chain.setInput(socketClient.getBuffer())
 
     def set_service(self, flag=True):
         self.is_service = flag
@@ -766,12 +772,14 @@ class dsp(object):
                     self.running = True
 
                 self.pycsdr_chain = FftChain(
-                    port=self.nc_port,
                     fft_size=self.fft_size,
                     fft_block_size=self.fft_block_size(),
                     fft_averages=self.fft_averages,
                     fft_compression=self.fft_compression
                 )
+
+                if self.socketClient is not None:
+                    self.pycsdr_chain.setInput(self.socketClient.getBuffer())
 
                 self.output.send_output("audio", self.pycsdr_chain.getBuffer().read)
 
