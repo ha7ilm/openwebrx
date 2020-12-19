@@ -112,6 +112,7 @@ class dsp(object):
         self.secondary_fft_size = 1024
         self.secondary_process_fft = None
         self.secondary_process_demod = None
+        self.fft_voverlap_factor = 0
         self.pipe_names = {
             "bpf_pipe": Pipe.WRITE,
             "shift_pipe": Pipe.WRITE,
@@ -523,8 +524,11 @@ class dsp(object):
             return (self.secondary_fft_size / 2) + (10 / 2)
 
     def set_samp_rate(self, samp_rate):
+        if self.samp_rate == samp_rate:
+            return
         self.samp_rate = samp_rate
         self.calculate_decimation()
+        self.update_fft_averages()
         if self.running:
             self.restart()
 
@@ -639,14 +643,35 @@ class dsp(object):
         return self.demodulator
 
     def set_fft_size(self, fft_size):
+        if self.fft_size == fft_size:
+            return
         self.fft_size = fft_size
+        self.update_fft_averages()
         self.restart()
 
     def set_fft_fps(self, fft_fps):
+        if self.fft_fps == fft_fps:
+            return
         self.fft_fps = fft_fps
+        self.update_fft_averages()
         self.restart()
 
+    def set_fft_voverlap_factor(self, fft_voverlap_factor):
+        if self.fft_voverlap_factor == fft_voverlap_factor:
+            return
+        self.fft_voverlap_factor = fft_voverlap_factor
+        self.update_fft_averages()
+
+    def update_fft_averages(self):
+        self.set_fft_averages(
+            int(round(1.0 * self.samp_rate / self.fft_size / self.fft_fps / (1.0 - self.fft_voverlap_factor)))
+            if self.fft_voverlap_factor > 0
+            else 0
+        )
+
     def set_fft_averages(self, fft_averages):
+        if self.fft_averages == fft_averages:
+            return
         self.fft_averages = fft_averages
         self.restart()
 
