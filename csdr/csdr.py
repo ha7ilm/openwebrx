@@ -113,6 +113,7 @@ class dsp(object):
         self.secondary_process_fft = None
         self.secondary_process_demod = None
         self.fft_voverlap_factor = 0
+        self.fft_block_size = 0
         self.pipe_names = {
             "bpf_pipe": Pipe.WRITE,
             "shift_pipe": Pipe.WRITE,
@@ -509,6 +510,8 @@ class dsp(object):
         return int(base)
 
     def set_fft_compression(self, what):
+        if self.fft_compression == what:
+            return
         self.fft_compression = what
 
     def get_fft_bytes_to_read(self):
@@ -529,7 +532,8 @@ class dsp(object):
         self.samp_rate = samp_rate
         self.calculate_decimation()
         self.update_fft_averages()
-        if self.running:
+        self.update_fft_block_size()
+        if self.running and self.pycsdr_chain is None:
             self.restart()
 
     def calculate_decimation(self):
@@ -654,6 +658,7 @@ class dsp(object):
             return
         self.fft_fps = fft_fps
         self.update_fft_averages()
+        self.update_fft_block_size()
         self.restart()
 
     def set_fft_voverlap_factor(self, fft_voverlap_factor):
@@ -673,13 +678,24 @@ class dsp(object):
         if self.fft_averages == fft_averages:
             return
         self.fft_averages = fft_averages
-        self.restart()
-
-    def fft_block_size(self):
-        if self.fft_averages == 0:
-            return self.samp_rate / self.fft_fps
+        self.update_fft_block_size()
+        if self.pycsdr_chain:
+            self.pycsdr_chain.setFftAverages(fft_averages)
         else:
-            return self.samp_rate / self.fft_fps / self.fft_averages
+            self.restart()
+
+    def update_fft_block_size(self):
+        if self.fft_averages == 0:
+            self.set_fft_block_size(self.samp_rate / self.fft_fps)
+        else:
+            self.set_fft_block_size(self.samp_rate / self.fft_fps / self.fft_averages)
+
+    def set_fft_block_size(self, fft_block_size):
+        if self.fft_block_size == fft_block_size:
+            return
+        self.fft_block_size = fft_block_size
+        if self.pycsdr_chain:
+            self.pycsdr_chain.setFftBlockSize(fft_block_size)
 
     def set_offset_freq(self, offset_freq):
         if offset_freq is None:
@@ -798,7 +814,7 @@ class dsp(object):
 
                 self.pycsdr_chain = FftChain(
                     fft_size=self.fft_size,
-                    fft_block_size=self.fft_block_size(),
+                    fft_block_size=self.fft_block_size,
                     fft_averages=self.fft_averages,
                     fft_compression=self.fft_compression
                 )
@@ -842,7 +858,7 @@ class dsp(object):
                 decimation=self.decimation,
                 last_decimation=self.last_decimation,
                 fft_size=self.fft_size,
-                fft_block_size=self.fft_block_size(),
+                fft_block_size=self.fft_block_size,
                 fft_averages=self.fft_averages,
                 bpf_transition_bw=float(self.bpf_transition_bw) / self.if_samp_rate(),
                 ddc_transition_bw=self.ddc_transition_bw(),
