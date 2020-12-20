@@ -6,6 +6,22 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+class FftAverager(Chain):
+    def __init__(self, fft_size, fft_averages):
+        self.fftSize = fft_size
+        self.fftAverages = fft_averages
+        self.worker = LogAveragePower(add_db=-70, fft_size=self.fftSize, avg_number=self.fftAverages)
+        workers = [self.worker]
+        super().__init__(*workers)
+
+    def setFftAverages(self, fft_averages):
+        if self.fftAverages == fft_averages:
+            return
+        self.fftAverages = fft_averages
+        # TODO replace worker with LogPower if fft_averages == 0
+        self.worker.setFftAverages(avg_number=self.fftAverages)
+
+
 class FftChain(Chain):
     def __init__(self, samp_rate, fft_size, fft_v_overlap_factor, fft_fps, fft_compression):
         self.sampleRate = samp_rate
@@ -14,14 +30,13 @@ class FftChain(Chain):
         self.size = fft_size
 
         self.blockSize = 0
-        self.fftAverages = 0
 
         self.fft = Fft(size=self.size, every_n_samples=self.blockSize)
-        self.logAveragePower = LogAveragePower(add_db=-70, fft_size=self.size, avg_number=self.fftAverages)
+        self.averager = FftAverager(fft_size=self.size, fft_averages=0)
         self.fftExchangeSides = FftExchangeSides(fft_size=self.size)
         workers = [
             self.fft,
-            self.logAveragePower,
+            self.averager,
             self.fftExchangeSides,
         ]
         self.compressFftAdpcm = None
@@ -32,12 +47,6 @@ class FftChain(Chain):
         self._updateParameters()
 
         super().__init__(*workers)
-
-    def _setFftAverages(self, fft_averages):
-        if self.fftAverages == fft_averages:
-            return
-        self.fftAverages = fft_averages
-        self.logAveragePower.setFftAverages(avg_number=self.fftAverages)
 
     def _setBlockSize(self, fft_block_size):
         if self.blockSize == int(fft_block_size):
@@ -64,14 +73,13 @@ class FftChain(Chain):
         self._updateParameters()
 
     def _updateParameters(self):
-        if self.vOverlapFactor > 0:
-            self._setFftAverages(
-                int(round(1.0 * self.sampleRate / self.size / self.fps / (1.0 - self.vOverlapFactor)))
-            )
-        else:
-            self._setFftAverages(0)
+        fftAverages = 0
 
-        if self.fftAverages == 0:
+        if self.vOverlapFactor > 0:
+            fftAverages = int(round(1.0 * self.sampleRate / self.size / self.fps / (1.0 - self.vOverlapFactor)))
+        self.averager.setFftAverages(fftAverages)
+
+        if fftAverages == 0:
             self._setBlockSize(self.sampleRate / self.fps)
         else:
-            self._setBlockSize(self.sampleRate / self.fps / self.fftAverages)
+            self._setBlockSize(self.sampleRate / self.fps / fftAverages)
