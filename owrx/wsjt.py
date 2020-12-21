@@ -14,8 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class WsjtProfile(AudioChopperProfile, metaclass=ABCMeta):
-    def decoding_depth(self, mode):
+    def decoding_depth(self):
         pm = Config.get()
+        mode = self.getMode().lower()
         # mode-specific setting?
         if "wsjt_decoding_depths" in pm and mode in pm["wsjt_decoding_depths"]:
             return pm["wsjt_decoding_depths"][mode]
@@ -25,64 +26,76 @@ class WsjtProfile(AudioChopperProfile, metaclass=ABCMeta):
         # default when no setting is provided
         return 3
 
+    def getTimestampFormat(self):
+        if self.getInterval() < 60:
+            return "%H%M%S"
+        return "%H%M"
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_" + self.getTimestampFormat()
+
+    @abstractmethod
+    def getMode(self):
+        pass
+
 
 class Ft8Profile(WsjtProfile):
     def getInterval(self):
         return 15
 
-    def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M%S"
-
     def decoder_commandline(self, file):
-        return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
+        return ["jt9", "--ft8", "-d", str(self.decoding_depth()), file]
+
+    def getMode(self):
+        return "FT8"
 
 
 class WsprProfile(WsjtProfile):
     def getInterval(self):
         return 120
 
-    def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M"
-
     def decoder_commandline(self, file):
         cmd = ["wsprd"]
-        if self.decoding_depth("wspr") > 1:
+        if self.decoding_depth() > 1:
             cmd += ["-d"]
         cmd += [file]
         return cmd
+
+    def getMode(self):
+        return "WSPR"
 
 
 class Jt65Profile(WsjtProfile):
     def getInterval(self):
         return 60
 
-    def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M"
-
     def decoder_commandline(self, file):
-        return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
+        return ["jt9", "--jt65", "-d", str(self.decoding_depth()), file]
+
+    def getMode(self):
+        return "JT65"
 
 
 class Jt9Profile(WsjtProfile):
     def getInterval(self):
         return 60
 
-    def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M"
-
     def decoder_commandline(self, file):
-        return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
+        return ["jt9", "--jt9", "-d", str(self.decoding_depth()), file]
+
+    def getMode(self):
+        return "JT9"
 
 
 class Ft4Profile(WsjtProfile):
     def getInterval(self):
         return 7.5
 
-    def getFileTimestampFormat(self):
-        return "%y%m%d_%H%M%S"
-
     def decoder_commandline(self, file):
-        return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
+        return ["jt9", "--ft4", "-d", str(self.decoding_depth()), file]
+
+    def getMode(self):
+        return "FT4"
 
 
 class Fst4Profile(WsjtProfile):
@@ -94,13 +107,11 @@ class Fst4Profile(WsjtProfile):
     def getInterval(self):
         return self.interval
 
-    def getFileTimestampFormat(self):
-        if self.interval < 60:
-            return "%y%m%d_%H%M%S"
-        return "%y%m%d_%H%M"
-
     def decoder_commandline(self, file):
-        return ["jt9", "--fst4", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4")), file]
+        return ["jt9", "--fst4", "-p", str(self.interval), "-d", str(self.decoding_depth()), file]
+
+    def getMode(self):
+        return "FST4"
 
     @staticmethod
     def getEnabledProfiles():
@@ -118,13 +129,11 @@ class Fst4wProfile(WsjtProfile):
     def getInterval(self):
         return self.interval
 
-    def getFileTimestampFormat(self):
-        if self.interval < 60:
-            return "%y%m%d_%H%M%S"
-        return "%y%m%d_%H%M"
-
     def decoder_commandline(self, file):
-        return ["jt9", "--fst4w", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
+        return ["jt9", "--fst4w", "-p", str(self.interval), "-d", str(self.decoding_depth()), file]
+
+    def getMode(self):
+        return "FST4W"
 
     @staticmethod
     def getEnabledProfiles():
@@ -134,12 +143,10 @@ class Fst4wProfile(WsjtProfile):
 
 
 class WsjtParser(Parser):
-    modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4", "`": "FST4"}
-
     def parse(self, messages):
         for data in messages:
             try:
-                freq, raw_msg = data
+                profile, freq, raw_msg = data
                 self.setDialFrequency(freq)
                 msg = raw_msg.decode().rstrip()
                 # known debug messages we know to skip
@@ -148,19 +155,20 @@ class WsjtParser(Parser):
                 if msg.startswith(" EOF on input file"):
                     return
 
-                modes = list(WsjtParser.modes.keys())
-                if msg[21] in modes or msg[19] in modes:
-                    decoder = Jt9Decoder()
+                mode = profile.getMode()
+                if mode == "WSPR":
+                    decoder = WsprDecoder(profile)
                 else:
-                    decoder = WsprDecoder()
+                    decoder = Jt9Decoder(profile)
                 out = decoder.parse(msg, freq)
-                if "mode" in out:
-                    self.pushDecode(out["mode"])
-                    if "callsign" in out and "locator" in out:
-                        Map.getSharedInstance().updateLocation(
-                            out["callsign"], LocatorLocation(out["locator"]), out["mode"], self.band
-                        )
-                        PskReporter.getSharedInstance().spot(out)
+                out["mode"] = mode
+
+                self.pushDecode(mode)
+                if "callsign" in out and "locator" in out:
+                    Map.getSharedInstance().updateLocation(
+                        out["callsign"], LocatorLocation(out["locator"]), mode, self.band
+                    )
+                    PskReporter.getSharedInstance().spot(out)
 
                 self.handler.write_wsjt_message(out)
             except (ValueError, IndexError):
@@ -187,13 +195,21 @@ class WsjtParser(Parser):
 
 
 class Decoder(ABC):
-    locator_pattern = re.compile(".*\\s([A-Z0-9]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
+    locator_pattern = re.compile(".*\\s([A-Z0-9/]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
 
-    def parse_timestamp(self, instring, dateformat):
-        ts = datetime.strptime(instring, dateformat)
-        return int(
-            datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
-        )
+    def __init__(self, profile):
+        self.profile = profile
+
+    def parse_timestamp(self, instring):
+        dateformat = self.profile.getTimestampFormat()
+        remain = instring[len(dateformat) + 1:]
+        try:
+            ts = datetime.strptime(instring[0:len(dateformat)], dateformat)
+            return remain, int(
+                datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
+            )
+        except ValueError:
+            return remain, None
 
     @abstractmethod
     def parse(self, msg, dial_freq):
@@ -219,18 +235,7 @@ class Jt9Decoder(Decoder):
         # '0003  -4  0.4 1762 #  CQ R2ABM KO85'
         # fst4 sample
         # '**** -23  0.6 3023 `  <...> <...> R 591631 BI53PV'
-        modes = list(WsjtParser.modes.keys())
-        if msg[19] in modes:
-            dateformat = "%H%M"
-        else:
-            dateformat = "%H%M%S"
-        try:
-            timestamp = self.parse_timestamp(msg[0 : len(dateformat)], dateformat)
-        except ValueError:
-            timestamp = None
-        msg = msg[len(dateformat) + 1:]
-        modeChar = msg[14:15]
-        mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
+        msg, timestamp = self.parse_timestamp(msg)
         wsjt_msg = msg[17:53].strip()
 
         result = {
@@ -238,7 +243,6 @@ class Jt9Decoder(Decoder):
             "db": float(msg[0:3]),
             "dt": float(msg[4:8]),
             "freq": dial_freq + int(msg[9:13]),
-            "mode": mode,
             "msg": wsjt_msg,
         }
         result.update(self.parseMessage(wsjt_msg))
@@ -246,20 +250,20 @@ class Jt9Decoder(Decoder):
 
 
 class WsprDecoder(Decoder):
-    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
+    wspr_splitter_pattern = re.compile("([A-Z0-9/]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
 
     def parse(self, msg, dial_freq):
         # wspr sample
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
-        wsjt_msg = msg[29:].strip()
+        msg, timestamp = self.parse_timestamp(msg)
+        wsjt_msg = msg[24:].strip()
         result = {
-            "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
-            "db": float(msg[5:8]),
-            "dt": float(msg[9:13]),
-            "freq": dial_freq + int(float(msg[14:24]) * 1e6),
-            "drift": int(msg[25:28]),
-            "mode": "WSPR",
+            "timestamp": timestamp,
+            "db": float(msg[0:3]),
+            "dt": float(msg[4:8]),
+            "freq": dial_freq + int(float(msg[10:20]) * 1e6),
+            "drift": int(msg[20:23]),
             "msg": wsjt_msg,
         }
         result.update(self.parseMessage(wsjt_msg))

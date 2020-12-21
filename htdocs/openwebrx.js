@@ -292,7 +292,7 @@ function scale_canvas_mousemove(evt) {
 
 function frequency_container_mousemove(evt) {
     var frequency = center_freq + scale_offset_freq_from_px(evt.pageX);
-    $('.webrx-mouse-freq').frequencyDisplay().setFrequency(frequency);
+    $('#openwebrx-panel-receiver').demodulatorPanel().setMouseFrequency(frequency);
 }
 
 function scale_canvas_end_drag(x) {
@@ -570,7 +570,7 @@ function canvas_mousemove(evt) {
             bookmarks.position();
         }
     } else {
-        $('.webrx-mouse-freq').frequencyDisplay().setFrequency(canvas_get_frequency(relativeX));
+        $('#openwebrx-panel-receiver').demodulatorPanel().setMouseFrequency(canvas_get_frequency(relativeX));
     }
 }
 
@@ -734,6 +734,8 @@ function on_ws_recv(evt) {
                         currentprofile = config['sdr_id'] + '|' + config['profile_id'];
                         $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
 
+                        $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
+
                         break;
                     case "secondary_config":
                         var s = json['value'];
@@ -774,7 +776,7 @@ function on_ws_recv(evt) {
                         $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
                         break;
                     case "wsjt_message":
-                        update_wsjt_panel(json['value']);
+                        $("#openwebrx-panel-wsjt-message").wsjtMessagePanel().pushMessage(json['value']);
                         break;
                     case "dial_frequencies":
                         var as_bookmarks = json['value'].map(function (d) {
@@ -787,7 +789,7 @@ function on_ws_recv(evt) {
                         bookmarks.replace_bookmarks(as_bookmarks, 'dial_frequencies');
                         break;
                     case "aprs_data":
-                        update_packet_panel(json['value']);
+                        $('#openwebrx-panel-packet-message').packetMessagePanel().pushMessage(json['value']);
                         break;
                     case "bookmarks":
                         bookmarks.replace_bookmarks(json['value'], "server");
@@ -805,7 +807,7 @@ function on_ws_recv(evt) {
                         divlog(json['value'], true);
                         break;
                     case 'pocsag_data':
-                        update_pocsag_panel(json['value']);
+                        $('#openwebrx-panel-pocsag-message').pocsagMessagePanel().pushMessage(json['value']);
                         break;
                     case 'backoff':
                         divlog("Server is currently busy: " + json['reason'], true);
@@ -939,141 +941,6 @@ function update_metadata(meta) {
         clear_metadata();
     }
 
-}
-
-function html_escape(input) {
-    return $('<div/>').text(input).html()
-}
-
-function update_wsjt_panel(msg) {
-    var $b = $('#openwebrx-panel-wsjt-message').find('tbody');
-    var t = new Date(msg['timestamp']);
-    var pad = function (i) {
-        return ('' + i).padStart(2, "0");
-    };
-    var linkedmsg = msg['msg'];
-    var matches;
-    if (['FT8', 'JT65', 'JT9', 'FT4'].indexOf(msg['mode']) >= 0) {
-        matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
-        if (matches && matches[2] !== 'RR73') {
-            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>';
-        } else {
-            linkedmsg = html_escape(linkedmsg);
-        }
-    } else if (msg['mode'] === 'WSPR') {
-        matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
-        if (matches) {
-            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>' + html_escape(matches[3]);
-        } else {
-            linkedmsg = html_escape(linkedmsg);
-        }
-    }
-    $b.append($(
-        '<tr data-timestamp="' + msg['timestamp'] + '">' +
-        '<td>' + pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds()) + '</td>' +
-        '<td class="decimal">' + msg['db'] + '</td>' +
-        '<td class="decimal">' + msg['dt'] + '</td>' +
-        '<td class="decimal freq">' + msg['freq'] + '</td>' +
-        '<td class="message">' + linkedmsg + '</td>' +
-        '</tr>'
-    ));
-    $b.scrollTop($b[0].scrollHeight);
-}
-
-var digital_removal_interval;
-
-// remove old wsjt messages in fixed intervals
-function init_digital_removal_timer() {
-    if (digital_removal_interval) clearInterval(digital_removal_interval);
-    digital_removal_interval = setInterval(function () {
-        ['#openwebrx-panel-wsjt-message', '#openwebrx-panel-packet-message'].forEach(function (root) {
-            var $elements = $(root + ' tbody tr');
-            // limit to 1000 entries in the list since browsers get laggy at some point
-            var toRemove = $elements.length - 1000;
-            if (toRemove <= 0) return;
-            $elements.slice(0, toRemove).remove();
-        });
-    }, 15000);
-}
-
-function update_packet_panel(msg) {
-    var $b = $('#openwebrx-panel-packet-message').find('tbody');
-    var pad = function (i) {
-        return ('' + i).padStart(2, "0");
-    };
-
-    if (msg.type && msg.type === 'thirdparty' && msg.data) {
-        msg = msg.data;
-    }
-    var source = msg.source;
-    if (msg.type) {
-        if (msg.type === 'item') {
-            source = msg.item;
-        }
-        if (msg.type === 'object') {
-            source = msg.object;
-        }
-    }
-
-    var timestamp = '';
-    if (msg.timestamp) {
-        var t = new Date(msg.timestamp);
-        timestamp = pad(t.getUTCHours()) + pad(t.getUTCMinutes()) + pad(t.getUTCSeconds())
-    }
-
-    var link = '';
-    var classes = [];
-    var styles = {};
-    var overlay = '';
-    var stylesToString = function (s) {
-        return $.map(s, function (value, key) {
-            return key + ':' + value + ';'
-        }).join('')
-    };
-    if (msg.symbol) {
-        classes.push('aprs-symbol');
-        classes.push('aprs-symboltable-' + (msg.symbol.table === '/' ? 'normal' : 'alternate'));
-        styles['background-position-x'] = -(msg.symbol.index % 16) * 15 + 'px';
-        styles['background-position-y'] = -Math.floor(msg.symbol.index / 16) * 15 + 'px';
-        if (msg.symbol.table !== '/' && msg.symbol.table !== '\\') {
-            var s = {};
-            s['background-position-x'] = -(msg.symbol.tableindex % 16) * 15 + 'px';
-            s['background-position-y'] = -Math.floor(msg.symbol.tableindex / 16) * 15 + 'px';
-            overlay = '<div class="aprs-symbol aprs-symboltable-overlay" style="' + stylesToString(s) + '"></div>';
-        }
-    } else if (msg.lat && msg.lon) {
-        classes.push('openwebrx-maps-pin');
-    }
-    var attrs = [
-        'class="' + classes.join(' ') + '"',
-        'style="' + stylesToString(styles) + '"'
-    ].join(' ');
-    if (msg.lat && msg.lon) {
-        link = '<a ' + attrs + ' href="map?callsign=' + source + '" target="openwebrx-map">' + overlay + '</a>';
-    } else {
-        link = '<div ' + attrs + '>' + overlay + '</div>'
-    }
-
-    $b.append($(
-        '<tr>' +
-        '<td>' + timestamp + '</td>' +
-        '<td class="callsign">' + source + '</td>' +
-        '<td class="coord">' + link + '</td>' +
-        '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
-        '</tr>'
-    ));
-    $b.scrollTop($b[0].scrollHeight);
-}
-
-function update_pocsag_panel(msg) {
-    var $b = $('#openwebrx-panel-pocsag-message').find('tbody');
-    $b.append($(
-        '<tr>' +
-        '<td class="address">' + msg.address + '</td>' +
-        '<td class="message">' + msg.message + '</td>' +
-        '</tr>'
-    ));
-    $b.scrollTop($b[0].scrollHeight);
 }
 
 function clear_metadata() {
@@ -1376,7 +1243,6 @@ function openwebrx_init() {
     secondary_demod_init();
     digimodes_init();
     initPanels();
-    $('.webrx-mouse-freq').frequencyDisplay();
     $('#openwebrx-panel-receiver').demodulatorPanel();
     window.addEventListener("resize", openwebrx_resize);
     bookmarks = new BookmarkBar();
@@ -1588,7 +1454,10 @@ function secondary_demod_init() {
         .mousedown(secondary_demod_canvas_container_mousedown)
         .mouseenter(secondary_demod_canvas_container_mousein)
         .mouseleave(secondary_demod_canvas_container_mouseleave);
-    init_digital_removal_timer();
+    $('#openwebrx-panel-wsjt-message').wsjtMessagePanel();
+    $('#openwebrx-panel-packet-message').packetMessagePanel();
+    $('#openwebrx-panel-pocsag-message').pocsagMessagePanel();
+    $('#openwebrx-panel-js8-message').js8();
 }
 
 function secondary_demod_push_data(x) {

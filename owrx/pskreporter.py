@@ -81,11 +81,12 @@ class PskReporter(object):
             else:
                 self.spotCounter.inc()
                 self.spots.append(spot)
-        self.scheduleNextUpload()
+            self.scheduleNextUpload()
 
     def upload(self):
         try:
             with self.spotLock:
+                self.timer = None
                 spots = self.spots
                 self.spots = []
 
@@ -93,9 +94,6 @@ class PskReporter(object):
                 self.uploader.upload(spots)
         except Exception:
             logger.exception("Failed to upload spots")
-
-        self.timer = None
-        self.scheduleNextUpload()
 
     def cancelTimer(self):
         if self.timer:
@@ -117,6 +115,8 @@ class Uploader(object):
 
     def getPackets(self, spots):
         encoded = [self.encodeSpot(spot) for spot in spots]
+        # filter out any erroneous encodes
+        encoded = [e for e in encoded if e is not None]
 
         def chunks(l, n):
             """Yield successive n-sized chunks from l."""
@@ -152,40 +152,63 @@ class Uploader(object):
         return [len(s)] + list(s.encode("utf-8"))
 
     def encodeSpot(self, spot):
-        return bytes(
-            self.encodeString(spot["callsign"])
-            + list(int(spot["freq"]).to_bytes(4, "big"))
-            + list(int(spot["db"]).to_bytes(1, "big", signed=True))
-            + self.encodeString(spot["mode"])
-            + self.encodeString(spot["locator"])
-            # informationsource. 1 means "automatically extracted
-            + [0x01]
-            + list(int(spot["timestamp"] / 1000).to_bytes(4, "big"))
-        )
+        try:
+            return bytes(
+                self.encodeString(spot["callsign"])
+                + list(int(spot["freq"]).to_bytes(4, "big"))
+                + list(int(spot["db"]).to_bytes(1, "big", signed=True))
+                + self.encodeString(spot["mode"])
+                + self.encodeString(spot["locator"])
+                # informationsource. 1 means "automatically extracted
+                + [0x01]
+                + list(int(spot["timestamp"] / 1000).to_bytes(4, "big"))
+            )
+        except Exception:
+            logger.exception("Error while encoding spot for pskreporter")
+            return None
 
     def getReceiverInformationHeader(self):
+        pm = Config.get()
+        with_antenna = "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None
+        num_fields = 4 if with_antenna else 3
+        length = 12 + num_fields * 8
         return bytes(
-            # id, length
-            [0x00, 0x03, 0x00, 0x24]
+            # id
+            [0x00, 0x03]
+            # length
+            + list(length.to_bytes(2, 'big'))
             + Uploader.receieverDelimiter
             # number of fields
-            + [0x00, 0x03, 0x00, 0x00]
+            + list(num_fields.to_bytes(2, 'big'))
+            # padding
+            + [0x00, 0x00]
             # receiverCallsign
             + [0x80, 0x02, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # receiverLocator
             + [0x80, 0x04, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # decodingSoftware
             + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # antennaInformation
+            + (
+                [0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F] if with_antenna else []
+            )
             # padding
             + [0x00, 0x00]
         )
 
     def getReceiverInformation(self):
         pm = Config.get()
-        callsign = pm["pskreporter_callsign"]
-        locator = Locator.fromCoordinates(pm["receiver_gps"])
-        decodingSoftware = "OpenWebRX " + openwebrx_version
-        body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
+        bodyFields = [
+            # callsign
+            pm["pskreporter_callsign"],
+            # locator
+            Locator.fromCoordinates(pm["receiver_gps"]),
+            # decodingSoftware
+            "OpenWebRX " + openwebrx_version,
+        ]
+        if "pskreporter_antenna_information" in pm and pm["pskreporter_antenna_information"] is not None:
+            bodyFields += [pm["pskreporter_antenna_information"]]
+        body = [b for s in bodyFields for b in self.encodeString(s)]
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
         return body

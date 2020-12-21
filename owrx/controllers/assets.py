@@ -126,6 +126,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/ProgressBar.js",
             "lib/Measurement.js",
             "lib/FrequencyDisplay.js",
+            "lib/MessagePanel.js",
             "lib/Js8Threads.js",
             "lib/Modes.js",
         ],

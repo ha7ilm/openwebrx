@@ -100,13 +100,41 @@ Js8Thread.prototype.purgeOldMessages = function() {
     return this.messages.length;
 };
 
+Js8Thread.prototype.purge = function() {
+    this.message = [];
+    this.el.remove();
+};
+
 Js8Threader = function(el){
+    MessagePanel.call(this, el);
     this.threads = [];
     this.tbody = $(el).find('tbody');
     var me = this;
     this.interval = setInterval(function(){
         me.purgeOldMessages();
     }, 15000);
+};
+
+Js8Threader.prototype = new MessagePanel();
+
+Js8Threader.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th>UTC</th>' +
+                '<th class="decimal freq">Freq</th>' +
+                '<th class="message">Message</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+Js8Threader.prototype.clearMessages = function() {
+    this.threads.forEach(function(t) {
+        t.purge();
+    });
+    this.threads = [];
 };
 
 Js8Threader.prototype.purgeOldMessages = function() {

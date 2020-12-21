@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-adduser --system --group --no-create-home --home /nonexistant openwebrx
+adduser --system --group --no-create-home --home /nonexistent --quiet openwebrx
 usermod -aG plugdev openwebrx
 
 #DEBHELPER#

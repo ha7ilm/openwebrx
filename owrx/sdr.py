@@ -13,7 +13,7 @@ class SdrService(object):
     lastPort = None
 
     @staticmethod
-    def loadProps():
+    def _loadProps():
         if SdrService.sdrProps is None:
             pm = Config.get()
             featureDetector = FeatureDetector()
@@ -60,7 +60,6 @@ class SdrService(object):
 
     @staticmethod
     def getSource(id):
-        SdrService.loadProps()
         sources = SdrService.getSources()
         if not sources:
             return None
@@ -70,7 +69,7 @@ class SdrService(object):
 
     @staticmethod
     def getSources():
-        SdrService.loadProps()
+        SdrService._loadProps()
         for id in SdrService.sdrProps.keys():
             if not id in SdrService.sources:
                 props = SdrService.sdrProps[id]

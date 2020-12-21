@@ -124,6 +124,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "initial_squelch_level",
         "profile_id",
         "squelch_auto_margin",
+        "frequency_display_precision",
     ]
 
     def __init__(self, conn):
@@ -425,7 +426,12 @@ class MapConnection(OpenWebRxClient):
         super().__init__(conn)
 
         pm = Config.get()
-        self.write_config(pm.filter("google_maps_api_key", "receiver_gps", "map_position_retention_time").__dict__())
+        self.write_config(pm.filter(
+            "google_maps_api_key",
+            "receiver_gps",
+            "map_position_retention_time",
+            "receiver_name",
+        ).__dict__())
 
         Map.getSharedInstance().addClient(self)
 
@@ -453,7 +459,7 @@ class WebSocketMessageHandler(object):
             self.handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
 
             conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
-            logger.debug("client connection intitialized")
+            logger.debug("client connection initialized")
 
             if "type" in self.handshake:
                 if self.handshake["type"] == "receiver":

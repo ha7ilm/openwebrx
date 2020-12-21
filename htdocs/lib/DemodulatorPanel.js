@@ -11,6 +11,8 @@ function DemodulatorPanel(el) {
         self.getDemodulator().set_offset_frequency(freq - self.center_freq);
     });
 
+    this.mouseFrequencyDisplay = el.find('.webrx-mouse-freq').frequencyDisplay();
+
     Modes.registerModePanel(this);
     el.on('click', '.openwebrx-demodulator-button', function() {
         var modulation = $(this).data('modulation');
@@ -155,7 +157,7 @@ DemodulatorPanel.prototype.updatePanels = function() {
     var modulation = this.getDemodulator().get_secondary_demod();
     $('#openwebrx-panel-digimodes').attr('data-mode', modulation);
     toggle_panel("openwebrx-panel-digimodes", !!modulation);
-    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4'].indexOf(modulation) >= 0);
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'fst4', 'fst4w'].indexOf(modulation) >= 0);
     toggle_panel("openwebrx-panel-js8-message", modulation == "js8");
     toggle_panel("openwebrx-panel-packet-message", modulation === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", modulation === "pocsag");
@@ -330,6 +332,15 @@ DemodulatorPanel.prototype.setSquelchMargin = function(margin) {
 
 DemodulatorPanel.prototype.getSquelchMargin = function() {
     return this.squelchMargin;
+};
+
+DemodulatorPanel.prototype.setMouseFrequency = function(freq) {
+    this.mouseFrequencyDisplay.setFrequency(freq);
+};
+
+DemodulatorPanel.prototype.setFrequencyPrecision = function(precision) {
+    this.tuneableFrequencyDisplay.setFrequencyPrecision(precision);
+    this.mouseFrequencyDisplay.setFrequencyPrecision(precision);
 };
 
 $.fn.demodulatorPanel = function(){
