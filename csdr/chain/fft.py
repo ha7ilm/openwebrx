@@ -1,25 +1,45 @@
 from csdr.chain import Chain
-from pycsdr import Fft, LogAveragePower, FftExchangeSides, CompressFftAdpcm
+from pycsdr import Fft, LogPower, LogAveragePower, FftExchangeSides, CompressFftAdpcm
 
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class FftAverager(Chain):
     def __init__(self, fft_size, fft_averages):
         self.fftSize = fft_size
-        self.fftAverages = fft_averages
-        self.worker = LogAveragePower(add_db=-70, fft_size=self.fftSize, avg_number=self.fftAverages)
+        self.fftAverages = None
+        self.worker = None
+        self.input = None
+        self.output = None
+        self.setFftAverages(fft_averages)
         workers = [self.worker]
         super().__init__(*workers)
 
     def setFftAverages(self, fft_averages):
         if self.fftAverages == fft_averages:
             return
+        if fft_averages == 0 and self.fftAverages != 0:
+            if self.worker is not None:
+                self.worker.stop()
+            self.worker = LogPower(add_db=70)
+            if self.output is not None:
+                self.worker.setOutput(self.output)
+            if self.input is not None:
+                self.worker.setInput(self.input)
+        elif fft_averages != 0:
+            if self.fftAverages == 0 or self.worker is None:
+                if self.worker is not None:
+                    self.worker.stop()
+                self.worker = LogAveragePower(add_db=-70, fft_size=self.fftSize, avg_number=fft_averages)
+                if self.output is not None:
+                    self.worker.setOutput(self.output)
+                if self.input is not None:
+                    self.worker.setInput(self.input)
+            else:
+                self.worker.setFftAverages(avg_number=fft_averages)
+        self.workers = [self.worker]
         self.fftAverages = fft_averages
-        # TODO replace worker with LogPower if fft_averages == 0
-        self.worker.setFftAverages(avg_number=self.fftAverages)
 
 
 class FftChain(Chain):
@@ -32,7 +52,7 @@ class FftChain(Chain):
         self.blockSize = 0
 
         self.fft = Fft(size=self.size, every_n_samples=self.blockSize)
-        self.averager = FftAverager(fft_size=self.size, fft_averages=0)
+        self.averager = FftAverager(fft_size=self.size, fft_averages=10)
         self.fftExchangeSides = FftExchangeSides(fft_size=self.size)
         workers = [
             self.fft,

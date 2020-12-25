@@ -31,7 +31,7 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
 
         self.dsp = dsp = csdr.dsp(self)
         dsp.nc_port = self.sdrSource.getPort()
-        dsp.setSocketClient(self.sdrSource.getSocketClient())
+        dsp.setBuffer(self.sdrSource.getBuffer())
         dsp.set_demodulator("fft")
 
         self.subscriptions = [

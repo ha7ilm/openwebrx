@@ -36,6 +36,8 @@ from owrx.audio import AudioChopper
 from csdr.pipe import Pipe
 from csdr.chain.fft import FftChain
 
+from pycsdr import Buffer
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -77,7 +79,7 @@ class dsp(object):
     def __init__(self, output):
         self.pycsdr_enabled = True
         self.pycsdr_chain = None
-        self.socketClient = None
+        self.buffer = None
 
         self.samp_rate = 250000
         self.output_rate = 11025
@@ -139,10 +141,10 @@ class dsp(object):
         self.direwolf_port = None
         self.process = None
 
-    def setSocketClient(self, socketClient):
-        self.socketClient = socketClient
+    def setBuffer(self, buffer):
+        self.buffer = buffer
         if self.pycsdr_chain is not None:
-            self.pycsdr_chain.setInput(socketClient.getBuffer())
+            self.pycsdr_chain.setInput(buffer)
 
     def set_service(self, flag=True):
         self.is_service = flag
@@ -790,10 +792,12 @@ class dsp(object):
                     fft_compression=self.fft_compression
                 )
 
-                if self.socketClient is not None:
-                    self.pycsdr_chain.setInput(self.socketClient.getBuffer())
+                if self.buffer is not None:
+                    self.pycsdr_chain.setInput(self.buffer)
 
-                self.output.send_output("audio", self.pycsdr_chain.getBuffer().read)
+                buffer = Buffer()
+                self.pycsdr_chain.setOutput(buffer)
+                self.output.send_output("audio", buffer.read)
 
                 return
         with self.modification_lock:
