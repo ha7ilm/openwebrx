@@ -2,6 +2,7 @@
 - Introduced `squelch_auto_margin` config option that allows configuring the auto squelch level
 - Removed `port` configuration option; `rtltcp_compat` takes the port number with the new connectors
 - Added support for new WSJT-X modes FST4 and FST4W (only available with WSJT-X 2.3)
+- Added support for demodulating M17 digital voice signals using m17-cxx-demod
 - New devices supported:
   - HPSDR devices (Hermes Lite 2)
   - BBRF103 / RX666 / RX888 devices supported by libsddc
