@@ -203,11 +203,11 @@ class dsp(object):
                 "csdr convert_f_s16"
             ]
         elif self.isDigitalVoice(which):
-            chain += ["csdr fmdemod_quadri_cf", "dc_block "]
+            chain += ["csdr fmdemod_quadri_cf"]
             chain += last_decimation_block
             # dsd modes
             if which in ["dstar", "nxdn"]:
-                chain += ["csdr limit_ff", "csdr convert_f_s16"]
+                chain += ["dc_block", "csdr limit_ff", "csdr convert_f_s16"]
                 if which == "dstar":
                     chain += ["dsd -fd -i - -o - -u {unvoiced_quality} -g -1 "]
                 elif which == "nxdn":
@@ -228,7 +228,7 @@ class dsp(object):
                 ]
             # digiham modes
             else:
-                chain += ["rrc_filter", "gfsk_demodulator"]
+                chain += ["dc_block", "rrc_filter", "gfsk_demodulator"]
                 if which == "dmr":
                     chain += [
                         "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe}",
