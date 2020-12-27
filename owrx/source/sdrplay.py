@@ -10,6 +10,7 @@ class SdrplaySource(SoapyConnectorSource):
                 "rf_notch": "rfnotch_ctrl",
                 "dab_notch": "dabnotch_ctrl",
                 "if_mode": "if_mode",
+                "external_reference": "extref_ctrl",
             }
         )
         return mappings
