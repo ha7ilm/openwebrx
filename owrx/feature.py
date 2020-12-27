@@ -75,6 +75,7 @@ class FeatureDetector(object):
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "digital_voice_freedv": ["freedv_rx", "sox"],
+        "digital_voice_m17": ["m17_demod", "sox"],
         "wsjt-x": ["wsjtx", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
@@ -150,7 +151,7 @@ class FeatureDetector(object):
         # prevent X11 programs from opening windows if called from a GUI shell
         env.pop("DISPLAY", None)
         try:
-            process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir, env=env)
+            process = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir, env=env)
             rc = process.wait()
             if expected_result is None:
                 return rc != 32512
@@ -418,6 +419,14 @@ class FeatureDetector(object):
         modified by F4EXB that provides stdin/stdout support. You can find it [here](https://github.com/f4exb/dsd).
         """
         return self.command_is_runnable("dsd")
+
+    def has_m17_demod(self):
+        """
+        The `m17-demod` tool is used to demodulate M17 digital voice signals.
+
+        You can find more information [here](https://github.com/mobilinkd/m17-cxx-demod)
+        """
+        return self.command_is_runnable("m17-demod")
 
     def has_sox(self):
         """
