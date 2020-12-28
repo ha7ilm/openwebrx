@@ -564,6 +564,7 @@ img.openwebrx-mirror-img
 	transition-property: left background-color;
 	transition-duration: 1s;
 	transition-timing-function: ease-in-out;
+	transform: translateZ(0);
 }
 
 .openwebrx-progressbar--over .openwebrx-progressbar-bar {
