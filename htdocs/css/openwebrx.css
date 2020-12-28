@@ -551,13 +551,23 @@ img.openwebrx-mirror-img
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    overflow: hidden;
 }
 
-.openwebrx-progressbar-bar
-{
+.openwebrx-progressbar-bar {
+	background-color: #00aba6;
 	border-radius: 5px;
 	height: 100%;
 	width: 100%;
+	position: absolute;
+	left: -100%;
+	transition-property: left background-color;
+	transition-duration: 1s;
+	transition-timing-function: ease-in-out;
+}
+
+.openwebrx-progressbar--over .openwebrx-progressbar-bar {
+    background-color: #ff6262;
 }
 
 .openwebrx-progressbar-text
@@ -566,6 +576,7 @@ img.openwebrx-mirror-img
 	left:0px;
 	top:4px;
 	width: inherit;
+	z-index: 1;
 }
 
 #openwebrx-panel-status

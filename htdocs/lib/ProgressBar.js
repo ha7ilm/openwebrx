@@ -3,7 +3,6 @@ ProgressBar = function(el) {
     this.$innerText = $('<span class="openwebrx-progressbar-text">' + this.getDefaultText() + '</span>');
     this.$innerBar = $('<div class="openwebrx-progressbar-bar"></div>');
     this.$el.empty().append(this.$innerText, this.$innerBar);
-    this.$innerBar.css('width', '0%');
 };
 
 ProgressBar.prototype.getDefaultText = function() {
@@ -19,7 +18,7 @@ ProgressBar.prototype.set = function(val, text, over) {
 ProgressBar.prototype.setValue = function(val) {
     if (val < 0) val = 0;
     if (val > 1) val = 1;
-    this.$innerBar.stop().animate({width: val * 100 + '%'}, 700);
+    this.$innerBar.css({left: (val - 1) * 100 + '%'});
 };
 
 ProgressBar.prototype.setText = function(text) {
@@ -27,7 +26,7 @@ ProgressBar.prototype.setText = function(text) {
 };
 
 ProgressBar.prototype.setOver = function(over) {
-    this.$innerBar.css('backgroundColor', (over) ? "#ff6262" : "#00aba6");
+    this.$el[over ? 'addClass' : 'removeClass']('openwebrx-progressbar--over');
 };
 
 AudioBufferProgressBar = function(el) {
