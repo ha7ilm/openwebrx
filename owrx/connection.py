@@ -295,9 +295,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)
-        if self.configSub is not None:
-            self.configSub.cancel()
-            self.configSub = None
+        while self.configSubs:
+            self.configSubs.pop().cancel()
         super().close()
 
     def stopDsp(self):
