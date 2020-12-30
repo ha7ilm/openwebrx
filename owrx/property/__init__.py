@@ -71,15 +71,22 @@ class PropertyManager(ABC):
             pass
         return self
 
-    def _fireCallbacks(self, name, value):
+    def _fireCallbacks(self, changes):
+        if not changes:
+            return
         for c in self.subscribers:
             try:
                 if c.getName() is None:
-                    c.call(name, value)
-                elif c.getName() == name:
-                    c.call(value)
-            except Exception as e:
-                logger.exception(e)
+                    c.call(changes)
+            except Exception:
+                logger.exception("exception while firing changes")
+        for name in changes:
+            for c in self.subscribers:
+                try:
+                    if c.getName() == name:
+                        c.call(changes[name])
+                except Exception:
+                    logger.exception("exception while firing changes")
 
 
 class PropertyLayer(PropertyManager):
@@ -97,7 +104,7 @@ class PropertyLayer(PropertyManager):
         if name in self.properties and self.properties[name] == value:
             return
         self.properties[name] = value
-        self._fireCallbacks(name, value)
+        self._fireCallbacks({name: value})
 
     def __dict__(self):
         return {k: v for k, v in self.properties.items()}
@@ -116,10 +123,9 @@ class PropertyFilter(PropertyManager):
         self.props = props
         self.pm.wire(self.receiveEvent)
 
-    def receiveEvent(self, name, value):
-        if name not in self.props:
-            return
-        self._fireCallbacks(name, value)
+    def receiveEvent(self, changes):
+        changesToForward = {name: value for name, value in changes.items() if name in self.props}
+        self._fireCallbacks(changesToForward)
 
     def __getitem__(self, item):
         if item not in self.props:
@@ -157,7 +163,7 @@ class PropertyStack(PropertyManager):
         """
         highest priority = 0
         """
-        self._fireChanges(self._addLayer(priority, pm))
+        self._fireCallbacks(self._addLayer(priority, pm))
 
     def _addLayer(self, priority: int, pm: PropertyManager):
         changes = {}
@@ -165,8 +171,8 @@ class PropertyStack(PropertyManager):
             if key not in self or self[key] != pm[key]:
                 changes[key] = pm[key]
 
-        def eventClosure(name, value):
-            self.receiveEvent(pm, name, value)
+        def eventClosure(changes):
+            self.receiveEvent(pm, changes)
 
         sub = pm.wire(eventClosure)
 
@@ -177,7 +183,7 @@ class PropertyStack(PropertyManager):
     def removeLayer(self, pm: PropertyManager):
         for layer in self.layers:
             if layer["props"] == pm:
-                self._fireChanges(self._removeLayer(layer))
+                self._fireCallbacks(self._removeLayer(layer))
 
     def _removeLayer(self, layer):
         layer["sub"].cancel()
@@ -201,16 +207,11 @@ class PropertyStack(PropertyManager):
         changes = {**changes, **self._addLayer(priority, pm)}
         changes = {k: v for k, v in changes.items() if k not in originalState or originalState[k] != v}
 
-        self._fireChanges(changes)
+        self._fireCallbacks(changes)
 
-    def _fireChanges(self, changes):
-        for k, v in changes.items():
-            self._fireCallbacks(k, v)
-
-    def receiveEvent(self, layer, name, value):
-        if layer != self._getTopLayer(name):
-            return
-        self._fireCallbacks(name, value)
+    def receiveEvent(self, layer, changes):
+        changesToForward = {name: value for name, value in changes.items() if layer == self._getTopLayer(name)}
+        self._fireCallbacks(changesToForward)
 
     def _getTopLayer(self, item):
         layers = [la["props"] for la in sorted(self.layers, key=lambda l: l["priority"])]
