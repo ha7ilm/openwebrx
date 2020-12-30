@@ -700,41 +700,59 @@ function on_ws_recv(evt) {
                 switch (json.type) {
                     case "config":
                         var config = json['value'];
-                        waterfall_colors = buildWaterfallColors(config['waterfall_colors']);
-                        waterfall_min_level_default = config['waterfall_min_level'];
-                        waterfall_max_level_default = config['waterfall_max_level'];
-                        waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
+                        if ('waterfall_colors' in config)
+                            waterfall_colors = buildWaterfallColors(config['waterfall_colors']);
+                        if ('waterfall_min_level' in config)
+                            waterfall_min_level_default = config['waterfall_min_level'];
+                        if ('waterfall_max_level' in config)
+                            waterfall_max_level_default = config['waterfall_max_level'];
+                        if ('waterfall_auto_level_margin' in config)
+                            waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
                         waterfallColorsDefault();
 
-                        var initial_demodulator_params = {
-                            mod: config['start_mod'],
-                            offset_frequency: config['start_offset_freq'],
-                            squelch_level: Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150
-                        };
+                        var initial_demodulator_params = {};
+                        if ('start_mod' in config)
+                            initial_demodulator_params['mod'] = config['start_mod'];
+                        if ('start_offset_freq' in config)
+                            initial_demodulator_params['offset_frequency'] = config['start_offset_freq'];
+                        if ('initial_squelch_level' in config)
+                            initial_demodulator_params['squelch_level'] = Number.isInteger(config['initial_squelch_level']) ? config['initial_squelch_level'] : -150;
 
-                        bandwidth = config['samp_rate'];
-                        center_freq = config['center_freq'];
-                        fft_size = config['fft_size'];
-                        var audio_compression = config['audio_compression'];
-                        audioEngine.setCompression(audio_compression);
-                        divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
-                        fft_compression = config['fft_compression'];
-                        divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
-                        $('#openwebrx-bar-clients').progressbar().setMaxClients(config['max_clients']);
+                        if ('samp_rate' in config)
+                            bandwidth = config['samp_rate'];
+                        if ('center_freq' in config)
+                            center_freq = config['center_freq'];
+                        if ('fft_size' in config)
+                            fft_size = config['fft_size'];
+                        if ('audio_compresion' in config) {
+                            var audio_compression = config['audio_compression'];
+                            audioEngine.setCompression(audio_compression);
+                            divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
+                        }
+                        if ('fft_compression' in config) {
+                            fft_compression = config['fft_compression'];
+                            divlog("FFT stream is " + ((fft_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
+                        }
+                        if ('max_clients' in config)
+                            $('#openwebrx-bar-clients').progressbar().setMaxClients(config['max_clients']);
 
                         waterfall_init();
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
                         demodulatorPanel.setCenterFrequency(center_freq);
                         demodulatorPanel.setInitialParams(initial_demodulator_params);
-                        demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
+                        if ('squelch_auto_margin' in config)
+                            demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
                         bookmarks.loadLocalBookmarks();
 
                         waterfall_clear();
 
-                        currentprofile = config['sdr_id'] + '|' + config['profile_id'];
-                        $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+                        if ('sdr_id' in config && 'profile_id' in config) {
+                            currentprofile = config['sdr_id'] + '|' + config['profile_id'];
+                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+                        }
 
-                        $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
+                        if ('frequency_display_precision' in config)
+                            $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
 
                         break;
                     case "secondary_config":
