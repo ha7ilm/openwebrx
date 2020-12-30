@@ -561,10 +561,11 @@ img.openwebrx-mirror-img
 	width: 100%;
 	position: absolute;
 	left: -100%;
-	transition-property: left background-color;
+	transition-property: left,background-color;
 	transition-duration: 1s;
 	transition-timing-function: ease-in-out;
 	transform: translateZ(0);
+	will-change: left;
 }
 
 .openwebrx-progressbar--over .openwebrx-progressbar-bar {
