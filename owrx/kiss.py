@@ -64,10 +64,10 @@ IGLOGIN {callsign} {password}
                 if "aprs_igate_height":
                     try:
                         height_m = float(pm["aprs_igate_height"])
-                        height_ft = int(height_m * FEET_PER_METER)
+                        height_ft = round(height_m * FEET_PER_METER)
                         height = "HEIGHT=" + str(height_ft)
                     except:
-                        logger.error("Cannot parse 'aprs_igate_height': " + str(pm["aprs_igate_height"]))
+                        logger.error("Cannot parse 'aprs_igate_height', expected float: " + str(pm["aprs_igate_height"]))
 
                 if((len(comment) > 0) and ((comment[0] != '"') or (comment[len(comment)-1] != '"'))):
                     comment = "\"" + comment + "\""
