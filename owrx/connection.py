@@ -248,7 +248,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.sdr.addClient(self)
 
     def handleSdrAvailable(self):
-        # send initial config
         self.getDsp().setProperties(self.connectionProperties)
 
         stack = PropertyStack()
@@ -256,23 +255,30 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         stack.addLayer(1, Config.get())
         configProps = stack.filter(*OpenWebRxReceiverClient.config_keys)
 
-        def sendConfig(key, value):
-            config = configProps.__dict__()
-            # TODO mathematical properties? hmmmm
-            config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
-            # TODO this is a hack to support multiple sdrs
-            config["sdr_id"] = self.sdr.getId()
+        def sendConfig(changes=None):
+            if changes is None:
+                config = configProps.__dict__()
+            else:
+                config = changes
+            if changes is None or "start_freq" in changes or  "center_freq" in changes:
+                config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
+            if changes is None or "profile_id" in changes:
+                config["sdr_id"] = self.sdr.getId()
             self.write_config(config)
 
-            cf = configProps["center_freq"]
-            srh = configProps["samp_rate"] / 2
-            frequencyRange = (cf - srh, cf + srh)
-            self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
-            bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
-            self.write_bookmarks(bookmarks)
+            # TODO make a separate subscription for this
+            if changes is None or "center_freq" in changes or "samp_rate" in changes:
+                cf = configProps["center_freq"]
+                srh = configProps["samp_rate"] / 2
+                frequencyRange = (cf - srh, cf + srh)
+                self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
+                bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+                self.write_bookmarks(bookmarks)
 
         self.configSub = configProps.wire(sendConfig)
-        sendConfig(None, None)
+
+        # send initial config
+        sendConfig()
         self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
