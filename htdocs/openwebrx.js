@@ -724,7 +724,7 @@ function on_ws_recv(evt) {
                             center_freq = config['center_freq'];
                         if ('fft_size' in config)
                             fft_size = config['fft_size'];
-                        if ('audio_compresion' in config) {
+                        if ('audio_compression' in config) {
                             var audio_compression = config['audio_compression'];
                             audioEngine.setCompression(audio_compression);
                             divlog("Audio stream is " + ((audio_compression === "adpcm") ? "compressed" : "uncompressed") + ".");
