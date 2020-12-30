@@ -1,3 +1,4 @@
+from owrx.modes import Modes
 import json
 
 import logging
@@ -12,7 +13,15 @@ class Band(object):
         self.upper_bound = dict["upper_bound"]
         self.frequencies = []
         if "frequencies" in dict:
+            availableModes = [mode.modulation for mode in Modes.getAvailableModes()]
             for (mode, freqs) in dict["frequencies"].items():
+                if mode not in availableModes:
+                    logger.info(
+                        "Modulation \"{mode}\" is not available, bandplan bookmark will not be displayed".format(
+                            mode=mode
+                        )
+                    )
+                    continue
                 if not isinstance(freqs, list):
                     freqs = [freqs]
                 for f in freqs:
@@ -22,8 +31,8 @@ class Band(object):
                                 mode=mode, frequency=f, band=self.name
                             )
                         )
-                    else:
-                        self.frequencies.append({"mode": mode, "frequency": f})
+                        continue
+                    self.frequencies.append({"mode": mode, "frequency": f})
 
     def inBand(self, freq):
         return self.lower_bound <= freq <= self.upper_bound
