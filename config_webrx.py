@@ -348,23 +348,14 @@ aprs_symbols_path = "/usr/share/aprs-symbols/png"
 #   Default: OpenWebRX APRS gateway
 # aprs_igate_comment = "OpenWebRX APRS gateway"
 
-# Antenna Power, Height, Gain 
+# Antenna Height and Gain details
 #   Unspecified by default
-# Transmitter power (0 by default as only RX is supported)
-# aprs_igate_power = "0"
-# Antenna height in feet
-# aprs_igate_height = "20"
+# Antenna height above average terrain (HAAT) in meters 
+# aprs_igate_height = "5"
 # Antenna gain in dBi
 # aprs_igate_gain = "0"
 # Antenna direction (N, NE, E, SE, S, SW, W, NW).  Omnidirectional by default
 # aprs_igate_dir = "NE"
-
-# Frequency info to contact you by voice
-#   Unspecified by default
-# aprs_igate_freq = "146.955"
-# aprs_igate_tone = "74.4"
-# aprs_igate_offset = "-0.60"
-
 
 # === PSK Reporter setting ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info

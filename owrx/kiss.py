@@ -11,6 +11,7 @@ FESC = 0xDB
 TFEND = 0xDC
 TFESC = 0xDD
 
+FEET_PER_METER = 3.28084
 
 class DirewolfConfig(object):
     def getConfig(self, port, is_service):
@@ -52,7 +53,6 @@ IGLOGIN {callsign} {password}
                 #Format beacon details
                 symbol  = str(pm["aprs_igate_symbol"])             if "aprs_igate_symbol"  in pm else "R&"
                 power   = str(pm["aprs_igate_power"])              if "aprs_igate_power"   in pm else "0"
-                height  = "HEIGHT=" + str(pm["aprs_igate_height"]) if "aprs_igate_height"  in pm else ""
                 gain    = "GAIN=" + str(pm["aprs_igate_gain"])     if "aprs_igate_gain"    in pm else ""
                 adir    = "DIR=" + str(pm["aprs_igate_dir"])       if "aprs_igate_dir"     in pm else ""
                 freq    = "FREQ=" + str(pm["aprs_igate_freq"])     if "aprs_igate_freq"    in pm else ""
@@ -60,19 +60,26 @@ IGLOGIN {callsign} {password}
                 offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
                 comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "\"OpenWebRX APRS gateway\""
 
+                height = ""
+                if "aprs_igate_height":
+                    try:
+                        height_m = float(pm["aprs_igate_height"])
+                        height_ft = int(height_m * FEET_PER_METER)
+                        height = "HEIGHT=" + str(height_ft)
+                    except:
+                        logger.error("Cannot parse 'aprs_igate_height': " + str(pm["aprs_igate_height"]))
+
                 if((len(comment) > 0) and ((comment[0] != '"') or (comment[len(comment)-1] != '"'))):
                     comment = "\"" + comment + "\""
                 elif(len(comment) == 0):
                     comment = "\"\""
 
-                pbeacon= "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
+                pbeacon = "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
                     symbol=symbol, lat=lat, lon=lon, power=power, height=height, gain=gain, adir=adir, freq=freq, tone=tone, offset=offset, comment=comment )
 
                 logger.info("APRS PBEACON String: " + pbeacon)
                 
-                config += """
-                          {pbeacon}
-                          """.format(pbeacon=pbeacon)
+                config += "\n" + pbeacon + "\n"
 
         return config
 
