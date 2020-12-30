@@ -11,6 +11,7 @@ FESC = 0xDB
 TFEND = 0xDC
 TFESC = 0xDD
 
+FEET_PER_METER = 3.28084
 
 class DirewolfConfig(object):
     def getConfig(self, port, is_service):
@@ -39,6 +40,7 @@ IGLOGIN {callsign} {password}
             )
 
             if pm["aprs_igate_beacon"]:
+                #Format beacon lat/lon
                 lat = pm["receiver_gps"]["lat"]
                 lon = pm["receiver_gps"]["lon"]
                 direction_ns = "N" if lat > 0 else "S"
@@ -48,11 +50,33 @@ IGLOGIN {callsign} {password}
                 lat = "{0:02d}^{1:05.2f}{2}".format(int(lat), (lat - int(lat)) * 60, direction_ns)
                 lon = "{0:03d}^{1:05.2f}{2}".format(int(lon), (lon - int(lon)) * 60, direction_we)
 
-                config += """
-PBEACON sendto=IG delay=0:30 every=60:00 symbol="igate" overlay=R lat={lat} long={lon} comment="OpenWebRX APRS gateway"
-                """.format(
-                    lat=lat, lon=lon
-                )
+                #Format beacon details
+                symbol  = str(pm["aprs_igate_symbol"])             if "aprs_igate_symbol"  in pm else "R&"
+                gain    = "GAIN=" + str(pm["aprs_igate_gain"])     if "aprs_igate_gain"    in pm else ""
+                adir    = "DIR=" + str(pm["aprs_igate_dir"])       if "aprs_igate_dir"     in pm else ""
+                comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "\"OpenWebRX APRS gateway\""
+
+                #Convert height from meters to feet if specified
+                height = ""
+                if "aprs_igate_height" in pm:
+                    try:
+                        height_m = float(pm["aprs_igate_height"])
+                        height_ft = round(height_m * FEET_PER_METER)
+                        height = "HEIGHT=" + str(height_ft)
+                    except:
+                        logger.error("Cannot parse 'aprs_igate_height', expected float: " + str(pm["aprs_igate_height"]))
+
+                if((len(comment) > 0) and ((comment[0] != '"') or (comment[len(comment)-1] != '"'))):
+                    comment = "\"" + comment + "\""
+                elif(len(comment) == 0):
+                    comment = "\"\""
+
+                pbeacon = "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} {height} {gain} {adir} comment={comment}".format(
+                    symbol=symbol, lat=lat, lon=lon, height=height, gain=gain, adir=adir, comment=comment )
+
+                logger.info("APRS PBEACON String: " + pbeacon)
+                
+                config += "\n" + pbeacon + "\n"
 
         return config
 
