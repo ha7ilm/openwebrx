@@ -33,7 +33,7 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
         dsp.nc_port = self.sdrSource.getPort()
         dsp.set_demodulator("fft")
 
-        def set_fft_averages(key, value):
+        def set_fft_averages(changes=None):
             samp_rate = props["samp_rate"]
             fft_size = props["fft_size"]
             fft_fps = props["fft_fps"]
@@ -54,7 +54,7 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
             props.filter("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages),
         ]
 
-        set_fft_averages(None, None)
+        set_fft_averages()
 
         dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
         dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]

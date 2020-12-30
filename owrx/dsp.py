@@ -71,7 +71,7 @@ class DspManager(csdr.output, SdrSourceEventClient):
             bpf[1] = cut
             self.dsp.set_bpf(*bpf)
 
-        def set_dial_freq(key, value):
+        def set_dial_freq(changes):
             if self.props["center_freq"] is None or self.props["offset_freq"] is None:
                 return
             freq = self.props["center_freq"] + self.props["offset_freq"]

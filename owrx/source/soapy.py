@@ -80,9 +80,12 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
             values["soapy_settings"] = settings
         return values
 
-    def onPropertyChange(self, prop, value):
+    def onPropertyChange(self, changes):
         mappings = self.getSoapySettingsMappings()
-        if prop in mappings.keys():
-            value = "{0}={1}".format(mappings[prop], self.convertSoapySettingsValue(value))
-            prop = "settings"
-        super().onPropertyChange(prop, value)
+        settings = {}
+        for prop, value in changes.items():
+            if prop in mappings.keys():
+                settings[mappings[prop]] = self.convertSoapySettingsValue(value)
+        if settings:
+            changes["settings"] = ",".join("{0}={1}".format(k, v) for k, v in settings.items())
+        super().onPropertyChange(changes)

@@ -92,7 +92,7 @@ class SdrSource(ABC):
         return self.commandMapper
 
     @abstractmethod
-    def onPropertyChange(self, name, value):
+    def onPropertyChange(self, changes):
         pass
 
     def wireEvents(self):

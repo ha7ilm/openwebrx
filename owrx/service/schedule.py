@@ -246,7 +246,7 @@ class ServiceScheduler(SdrSourceEventClient):
         if state == SdrSource.BUSYSTATE_IDLE:
             self.scheduleSelection()
 
-    def onFrequencyChange(self, name, value):
+    def onFrequencyChange(self, changes):
         self.scheduleSelection()
 
     def selectProfile(self):
