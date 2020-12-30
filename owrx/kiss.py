@@ -71,7 +71,7 @@ IGLOGIN {callsign} {password}
                 elif(len(comment) == 0):
                     comment = "\"\""
 
-                pbeacon = "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER=0 {height} {gain} {adir} comment={comment}".format(
+                pbeacon = "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} {height} {gain} {adir} comment={comment}".format(
                     symbol=symbol, lat=lat, lon=lon, height=height, gain=gain, adir=adir, comment=comment )
 
                 logger.info("APRS PBEACON String: " + pbeacon)
