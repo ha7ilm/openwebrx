@@ -52,16 +52,13 @@ IGLOGIN {callsign} {password}
 
                 #Format beacon details
                 symbol  = str(pm["aprs_igate_symbol"])             if "aprs_igate_symbol"  in pm else "R&"
-                power   = str(pm["aprs_igate_power"])              if "aprs_igate_power"   in pm else "0"
                 gain    = "GAIN=" + str(pm["aprs_igate_gain"])     if "aprs_igate_gain"    in pm else ""
                 adir    = "DIR=" + str(pm["aprs_igate_dir"])       if "aprs_igate_dir"     in pm else ""
-                freq    = "FREQ=" + str(pm["aprs_igate_freq"])     if "aprs_igate_freq"    in pm else ""
-                tone    = "TONE=" + str(pm["aprs_igate_tone"])     if "aprs_igate_tone"    in pm else ""
-                offset  = "OFFSET=" + str(pm["aprs_igate_offset"]) if "aprs_igate_offset"  in pm else ""
                 comment = str(pm["aprs_igate_comment"])            if "aprs_igate_comment" in pm else "\"OpenWebRX APRS gateway\""
 
+                #Convert height from meters to feet if specified
                 height = ""
-                if "aprs_igate_height":
+                if "aprs_igate_height" in pm:
                     try:
                         height_m = float(pm["aprs_igate_height"])
                         height_ft = round(height_m * FEET_PER_METER)
@@ -74,8 +71,8 @@ IGLOGIN {callsign} {password}
                 elif(len(comment) == 0):
                     comment = "\"\""
 
-                pbeacon = "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER={power} {height} {gain} {adir} {freq} {tone} {offset} comment={comment}".format(
-                    symbol=symbol, lat=lat, lon=lon, power=power, height=height, gain=gain, adir=adir, freq=freq, tone=tone, offset=offset, comment=comment )
+                pbeacon = "PBEACON sendto=IG delay=0:30 every=60:00 symbol={symbol} lat={lat} long={lon} POWER=0 {height} {gain} {adir} comment={comment}".format(
+                    symbol=symbol, lat=lat, lon=lon, height=height, gain=gain, adir=adir, comment=comment )
 
                 logger.info("APRS PBEACON String: " + pbeacon)
                 
