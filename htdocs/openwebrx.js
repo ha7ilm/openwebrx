@@ -736,7 +736,9 @@ function on_ws_recv(evt) {
                         if ('max_clients' in config)
                             $('#openwebrx-bar-clients').progressbar().setMaxClients(config['max_clients']);
 
-                        waterfall_init();
+                        if (typeof(bandwidth) != 'undefined')
+                            waterfall_init();
+
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
                         demodulatorPanel.setCenterFrequency(center_freq);
                         demodulatorPanel.setInitialParams(initial_demodulator_params);
@@ -744,12 +746,13 @@ function on_ws_recv(evt) {
                             demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
                         bookmarks.loadLocalBookmarks();
 
-                        waterfall_clear();
-
                         if ('sdr_id' in config && 'profile_id' in config) {
                             currentprofile = config['sdr_id'] + '|' + config['profile_id'];
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
                         }
+
+                        if (typeof(bandwidth) != 'undefined')
+                            waterfall_clear();
 
                         if ('frequency_display_precision' in config)
                             $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
