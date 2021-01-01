@@ -314,14 +314,16 @@ function scale_px_from_freq(f, range) {
 }
 
 function get_visible_freq_range() {
-    var out = {};
+    if (!bandwidth) return false;
     var fcalc = function (x) {
         var canvasWidth = waterfallWidth() * zoom_levels[zoom_level];
         return Math.round(((-zoom_offset_px + x) / canvasWidth) * bandwidth) + (center_freq - bandwidth / 2);
     };
-    out.start = fcalc(0);
-    out.center = fcalc(waterfallWidth() / 2);
-    out.end = fcalc(waterfallWidth());
+    var out = {
+        start: fcalc(0),
+        center: fcalc(waterfallWidth() / 2),
+        end: fcalc(waterfallWidth()),
+    }
     out.bw = out.end - out.start;
     out.hps = out.bw / waterfallWidth();
     return out;
@@ -426,6 +428,7 @@ var range;
 function mkscale() {
     //clear the lower part of the canvas (where frequency scale resides; the upper part is used by filter envelopes):
     range = get_visible_freq_range();
+    if (!range) return;
     mkenvelopes(range); //when scale changes we will always have to redraw filter envelopes, too
     scale_ctx.clearRect(0, 22, scale_ctx.canvas.width, scale_ctx.canvas.height - 22);
     scale_ctx.strokeStyle = "#fff";
@@ -442,9 +445,7 @@ function mkscale() {
     };
     var last_large;
     var x;
-    for (; ;) {
-        x = scale_px_from_freq(marker_hz, range);
-        if (x > window.innerWidth) break;
+    while ((x = scale_px_from_freq(marker_hz, range)) <= window.innerWidth) {
         scale_ctx.beginPath();
         scale_ctx.moveTo(x, 22);
         if (marker_hz % spacing.params.large_marker_per_hz === 0) {  //large marker
@@ -736,8 +737,7 @@ function on_ws_recv(evt) {
                         if ('max_clients' in config)
                             $('#openwebrx-bar-clients').progressbar().setMaxClients(config['max_clients']);
 
-                        if (typeof(bandwidth) != 'undefined')
-                            waterfall_init();
+                        waterfall_init();
 
                         var demodulatorPanel = $('#openwebrx-panel-receiver').demodulatorPanel();
                         demodulatorPanel.setCenterFrequency(center_freq);
@@ -751,8 +751,7 @@ function on_ws_recv(evt) {
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
                         }
 
-                        if (typeof(bandwidth) != 'undefined')
-                            waterfall_clear();
+                        waterfall_clear();
 
                         if ('frequency_display_precision' in config)
                             $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
