@@ -36,7 +36,7 @@ from owrx.audio import AudioChopper
 from csdr.pipe import Pipe
 from csdr.chain.fft import FftChain
 
-from pycsdr import Buffer
+from pycsdr.modules import Buffer
 
 import logging
 

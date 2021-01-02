@@ -1,5 +1,5 @@
 from csdr.chain import Chain
-from pycsdr import Fft, LogPower, LogAveragePower, FftExchangeSides, CompressFftAdpcm
+from pycsdr.modules import Fft, LogPower, LogAveragePower, FftExchangeSides, CompressFftAdpcm
 
 import logging
 logger = logging.getLogger(__name__)

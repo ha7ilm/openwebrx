@@ -11,7 +11,7 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
 
-from pycsdr import SocketClient, Buffer
+from pycsdr.modules import SocketClient, Buffer
 
 import logging
 

@@ -1,10 +1,11 @@
-from pycsdr import Buffer
+from pycsdr.modules import Buffer
+from pycsdr.api import Flow
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class Chain(object):
+class Chain(Flow):
     def __init__(self, *workers):
         self.input = None
         self.output = None
