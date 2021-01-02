@@ -4,6 +4,7 @@ function DemodulatorPanel(el) {
     self.demodulator = null;
     self.mode = null;
     self.squelchMargin = 10;
+    self.initialParams = {};
 
     var displayEl = el.find('.webrx-actual-freq')
     this.tuneableFrequencyDisplay = displayEl.tuneableFrequencyDisplay();
@@ -180,7 +181,7 @@ DemodulatorPanel.prototype.collectParams = function() {
         squelch_level: -150,
         mod: 'nfm'
     }
-    return $.extend(new Object(), defaults, this.initialParams || {}, this.transformHashParams(this.parseHash()));
+    return $.extend(new Object(), defaults, this.initialParams, this.transformHashParams(this.parseHash()));
 };
 
 DemodulatorPanel.prototype.startDemodulator = function() {
@@ -206,7 +207,7 @@ DemodulatorPanel.prototype._apply = function(params) {
 };
 
 DemodulatorPanel.prototype.setInitialParams = function(params) {
-    this.initialParams = params;
+    $.extend(this.initialParams, params);
 };
 
 DemodulatorPanel.prototype.onHashChange = function() {

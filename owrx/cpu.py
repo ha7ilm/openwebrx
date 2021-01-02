@@ -7,11 +7,13 @@ logger = logging.getLogger(__name__)
 
 class CpuUsageThread(threading.Thread):
     sharedInstance = None
+    creationLock = threading.Lock()
 
     @staticmethod
     def getSharedInstance():
-        if CpuUsageThread.sharedInstance is None:
-            CpuUsageThread.sharedInstance = CpuUsageThread()
+        with CpuUsageThread.creationLock:
+            if CpuUsageThread.sharedInstance is None:
+                CpuUsageThread.sharedInstance = CpuUsageThread()
         return CpuUsageThread.sharedInstance
 
     def __init__(self):
@@ -23,6 +25,7 @@ class CpuUsageThread(threading.Thread):
         super().__init__()
 
     def run(self):
+        logger.debug("cpu usage thread starting up")
         while self.doRun:
             try:
                 cpu_usage = self.get_cpu_usage()

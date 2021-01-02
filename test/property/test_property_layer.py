@@ -19,7 +19,7 @@ class PropertyLayerTest(TestCase):
         mock = Mock()
         pm.wire(mock.method)
         pm["testkey"] = "after"
-        mock.method.assert_called_once_with("testkey", "after")
+        mock.method.assert_called_once_with({"testkey": "after"})
 
     def testUnsubscribe(self):
         pm = PropertyLayer()
@@ -27,7 +27,7 @@ class PropertyLayerTest(TestCase):
         mock = Mock()
         sub = pm.wire(mock.method)
         pm["testkey"] = "between"
-        mock.method.assert_called_once_with("testkey", "between")
+        mock.method.assert_called_once_with({"testkey": "between"})
 
         mock.reset_mock()
         pm.unwire(sub)

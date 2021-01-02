@@ -28,35 +28,41 @@ class DspManager(csdr.output, SdrSourceEventClient):
 
         self.props = PropertyStack()
         # local demodulator properties not forwarded to the sdr
-        self.props.addLayer(0, PropertyLayer().filter(
-            "output_rate",
-            "hd_output_rate",
-            "squelch_level",
-            "secondary_mod",
-            "low_cut",
-            "high_cut",
-            "offset_freq",
-            "mod",
-            "secondary_offset_freq",
-            "dmr_filter",
-        ))
+        self.props.addLayer(
+            0,
+            PropertyLayer().filter(
+                "output_rate",
+                "hd_output_rate",
+                "squelch_level",
+                "secondary_mod",
+                "low_cut",
+                "high_cut",
+                "offset_freq",
+                "mod",
+                "secondary_offset_freq",
+                "dmr_filter",
+            ),
+        )
         # properties that we inherit from the sdr
-        self.props.addLayer(1, self.sdrSource.getProps().filter(
-            "audio_compression",
-            "fft_compression",
-            "digimodes_fft_size",
-            "csdr_dynamic_bufsize",
-            "csdr_print_bufsizes",
-            "csdr_through",
-            "digimodes_enable",
-            "samp_rate",
-            "digital_voice_unvoiced_quality",
-            "temporary_directory",
-            "center_freq",
-            "start_mod",
-            "start_freq",
-            "wfm_deemphasis_tau",
-        ))
+        self.props.addLayer(
+            1,
+            self.sdrSource.getProps().filter(
+                "audio_compression",
+                "fft_compression",
+                "digimodes_fft_size",
+                "csdr_dynamic_bufsize",
+                "csdr_print_bufsizes",
+                "csdr_through",
+                "digimodes_enable",
+                "samp_rate",
+                "digital_voice_unvoiced_quality",
+                "temporary_directory",
+                "center_freq",
+                "start_mod",
+                "start_freq",
+                "wfm_deemphasis_tau",
+            ),
+        )
 
         self.dsp = csdr.dsp(self)
         self.dsp.nc_port = self.sdrSource.getPort()
@@ -71,8 +77,13 @@ class DspManager(csdr.output, SdrSourceEventClient):
             bpf[1] = cut
             self.dsp.set_bpf(*bpf)
 
-        def set_dial_freq(key, value):
-            if self.props["center_freq"] is None or self.props["offset_freq"] is None:
+        def set_dial_freq(changes):
+            if (
+                "center_freq" not in self.props
+                or self.props["center_freq"] is None
+                or "offset_freq" not in self.props
+                or self.props["offset_freq"] is None
+            ):
                 return
             freq = self.props["center_freq"] + self.props["offset_freq"]
             for parser in self.parsers.values():

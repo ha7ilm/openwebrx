@@ -30,7 +30,6 @@ class FifiSdrSource(DirectSource):
         values = self.getCommandValues()
         self.sendRockProgFrequency(values["tuner_freq"])
 
-    def onPropertyChange(self, name, value):
-        if name != "center_freq":
-            return
-        self.sendRockProgFrequency(value)
+    def onPropertyChange(self, changes):
+        if "center_freq" in changes:
+            self.sendRockProgFrequency(changes["center_freq"])

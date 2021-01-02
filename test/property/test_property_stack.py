@@ -49,7 +49,7 @@ class PropertyStackTest(TestCase):
         mock = Mock()
         stack.wire(mock.method)
         layer["testkey"] = "testvalue"
-        mock.method.assert_called_once_with("testkey", "testvalue")
+        mock.method.assert_called_once_with({"testkey": "testvalue"})
 
     def testPropertyChangeEventPriority(self):
         low_layer = PropertyLayer()
@@ -64,7 +64,7 @@ class PropertyStackTest(TestCase):
         low_layer["testkey"] = "modified low value"
         mock.method.assert_not_called()
         high_layer["testkey"] = "modified high value"
-        mock.method.assert_called_once_with("testkey", "modified high value")
+        mock.method.assert_called_once_with({"testkey": "modified high value"})
 
     def testPropertyEventOnLayerAdd(self):
         low_layer = PropertyLayer()
@@ -162,7 +162,7 @@ class PropertyStackTest(TestCase):
         mock = Mock()
         stack.wire(mock.method)
         stack.removeLayer(layer)
-        mock.method.assert_called_once_with("testkey", None)
+        mock.method.assert_called_once_with({"testkey": None})
         mock.reset_mock()
 
         layer["testkey"] = "after"

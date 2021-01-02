@@ -11,7 +11,7 @@ class PropertyFilterTest(TestCase):
         pf = PropertyFilter(pm, "testkey")
         self.assertEqual(pf["testkey"], "testvalue")
 
-    def testMissesPropert(self):
+    def testMissesProperty(self):
         pm = PropertyLayer()
         pm["testkey"] = "testvalue"
         pf = PropertyFilter(pm, "other_key")
@@ -25,7 +25,7 @@ class PropertyFilterTest(TestCase):
         mock = Mock()
         pf.wire(mock.method)
         pm["testkey"] = "testvalue"
-        mock.method.assert_called_once_with("testkey", "testvalue")
+        mock.method.assert_called_once_with({"testkey": "testvalue"})
 
     def testForwardsPropertyEvent(self):
         pm = PropertyLayer()

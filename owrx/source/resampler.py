@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class Resampler(DirectSource):
-    def onPropertyChange(self, name, value):
-        logger.warning("Resampler is unable to handle property change ({0} changed to {1})".format(name, value))
+    def onPropertyChange(self, changes):
+        logger.warning("Resampler is unable to handle property changes: {0}".format(changes))
 
     def __init__(self, props, sdr):
         sdrProps = sdr.getProps()

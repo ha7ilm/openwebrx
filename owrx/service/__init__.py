@@ -111,7 +111,7 @@ class ServiceHandler(SdrSourceEventClient):
         for service in services:
             service.stop()
 
-    def onFrequencyChange(self, key, value):
+    def onFrequencyChange(self, changes):
         self.stopServices()
         if not self.source.isAvailable():
             return

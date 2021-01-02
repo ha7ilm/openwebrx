@@ -12,6 +12,7 @@ from owrx.bookmarks import Bookmarks
 from owrx.map import Map
 from owrx.property import PropertyStack
 from owrx.modes import Modes, DigitalMode
+from owrx.config import Config
 from queue import Queue, Full, Empty
 from js8py import Js8Frame
 from abc import ABC, ABCMeta, abstractmethod
@@ -108,22 +109,26 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
 
 
 class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
-    config_keys = [
-        "waterfall_colors",
+    sdr_config_keys = [
+        "waterfall_min_level",
         "waterfall_min_level",
         "waterfall_max_level",
-        "waterfall_auto_level_margin",
         "samp_rate",
-        "fft_size",
-        "audio_compression",
-        "fft_compression",
-        "max_clients",
         "start_mod",
         "start_freq",
         "center_freq",
         "initial_squelch_level",
         "profile_id",
         "squelch_auto_margin",
+    ]
+
+    global_config_keys = [
+        "waterfall_colors",
+        "waterfall_auto_level_margin",
+        "fft_size",
+        "audio_compression",
+        "fft_compression",
+        "max_clients",
         "frequency_display_precision",
     ]
 
@@ -132,7 +137,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
         self.dsp = None
         self.sdr = None
-        self.configSub = None
+        self.sdrConfigSubs = []
         self.connectionProperties = {}
 
         try:
@@ -141,6 +146,10 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.write_backoff_message("Too many clients")
             self.close()
             raise
+
+        globalConfig = Config.get().filter(*OpenWebRxReceiverClient.global_config_keys)
+        self.globalConfigSub = globalConfig.wire(self.write_config)
+        self.write_config(globalConfig.__dict__())
 
         self.setSdr()
 
@@ -153,6 +162,10 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.__sendProfiles()
 
         CpuUsageThread.getSharedInstance().add_client(self)
+
+    def __del__(self):
+        if hasattr(self, "globalConfigSub"):
+            self.globalConfigSub.cancel()
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
@@ -231,9 +244,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
         self.stopDsp()
 
-        if self.configSub is not None:
-            self.configSub.cancel()
-            self.configSub = None
+        while self.sdrConfigSubs:
+            self.sdrConfigSubs.pop().cancel()
 
         if self.sdr is not None:
             self.sdr.removeClient(self)
@@ -248,31 +260,38 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.sdr.addClient(self)
 
     def handleSdrAvailable(self):
-        # send initial config
         self.getDsp().setProperties(self.connectionProperties)
 
         stack = PropertyStack()
         stack.addLayer(0, self.sdr.getProps())
         stack.addLayer(1, Config.get())
-        configProps = stack.filter(*OpenWebRxReceiverClient.config_keys)
+        configProps = stack.filter(*OpenWebRxReceiverClient.sdr_config_keys)
 
-        def sendConfig(key, value):
-            config = configProps.__dict__()
-            # TODO mathematical properties? hmmmm
-            config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
-            # TODO this is a hack to support multiple sdrs
-            config["sdr_id"] = self.sdr.getId()
+        def sendConfig(changes=None):
+            if changes is None:
+                config = configProps.__dict__()
+            else:
+                config = changes
+            if changes is None or "start_freq" in changes or "center_freq" in changes:
+                config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
+            if changes is None or "profile_id" in changes:
+                config["sdr_id"] = self.sdr.getId()
             self.write_config(config)
 
+        def sendBookmarks(changes=None):
             cf = configProps["center_freq"]
             srh = configProps["samp_rate"] / 2
             frequencyRange = (cf - srh, cf + srh)
-            self.write_dial_frequendies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
+            self.write_dial_frequencies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
             bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
             self.write_bookmarks(bookmarks)
 
-        self.configSub = configProps.wire(sendConfig)
-        sendConfig(None, None)
+        self.sdrConfigSubs.append(configProps.wire(sendConfig))
+        self.sdrConfigSubs.append(stack.filter("center_freq", "samp_rate").wire(sendBookmarks))
+
+        # send initial config
+        sendConfig()
+        sendBookmarks()
         self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
@@ -289,9 +308,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)
-        if self.configSub is not None:
-            self.configSub.cancel()
-            self.configSub = None
+        while self.sdrConfigSubs:
+            self.sdrConfigSubs.pop().cancel()
         super().close()
 
     def stopDsp(self):
@@ -368,7 +386,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_wsjt_message(self, message):
         self.send({"type": "wsjt_message", "value": message})
 
-    def write_dial_frequendies(self, frequencies):
+    def write_dial_frequencies(self, frequencies):
         self.send({"type": "dial_frequencies", "value": frequencies})
 
     def write_bookmarks(self, bookmarks):

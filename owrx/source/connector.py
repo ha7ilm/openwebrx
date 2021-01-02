@@ -29,22 +29,22 @@ class ConnectorSource(SdrSource):
             }
         )
 
-    def sendControlMessage(self, prop, value):
-        logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
-        self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
+    def sendControlMessage(self, changes):
+        for prop, value in changes.items():
+            logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
+            self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
 
-    def onPropertyChange(self, prop, value):
+    def onPropertyChange(self, changes):
         if self.monitor is None:
             return
         if (
-            (prop == "center_freq" or prop == "lfo_offset")
+            ("center_freq" in changes or "lfo_offset" in changes)
             and "lfo_offset" in self.sdrProps
             and self.sdrProps["lfo_offset"] is not None
         ):
-            freq = self.sdrProps["center_freq"] + self.sdrProps["lfo_offset"]
-            self.sendControlMessage("center_freq", freq)
-        else:
-            self.sendControlMessage(prop, value)
+            changes["center_freq"] = self.sdrProps["center_freq"] + self.sdrProps["lfo_offset"]
+            changes.pop("lfo_offset", None)
+        self.sendControlMessage(changes)
 
     def postStart(self):
         logger.debug("opening control socket...")
