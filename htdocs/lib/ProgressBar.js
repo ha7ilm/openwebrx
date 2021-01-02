@@ -18,7 +18,7 @@ ProgressBar.prototype.set = function(val, text, over) {
 ProgressBar.prototype.setValue = function(val) {
     if (val < 0) val = 0;
     if (val > 1) val = 1;
-    this.$innerBar.css({left: (val - 1) * 100 + '%'});
+    this.$innerBar.css({transform: 'translate(' + ((val - 1) * 100) + '%) translateZ(0)'});
 };
 
 ProgressBar.prototype.setText = function(text) {
