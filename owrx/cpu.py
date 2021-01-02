@@ -25,6 +25,7 @@ class CpuUsageThread(threading.Thread):
         super().__init__()
 
     def run(self):
+        logger.debug("cpu usage thread starting up")
         while self.doRun:
             try:
                 cpu_usage = self.get_cpu_usage()
