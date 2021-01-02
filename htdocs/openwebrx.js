@@ -151,13 +151,19 @@ function waterfallColorsContinuous(levels) {
 function setSmeterRelativeValue(value) {
     if (value < 0) value = 0;
     if (value > 1.0) value = 1.0;
-    var bar = e("openwebrx-smeter-bar");
-    var outer = e("openwebrx-smeter-outer");
-    bar.style.width = (outer.offsetWidth * value).toString() + "px";
-    var bgRed = "linear-gradient(to top, #ff5939 , #961700)";
-    var bgGreen = "linear-gradient(to top, #22ff2f , #008908)";
-    var bgYellow = "linear-gradient(to top, #fff720 , #a49f00)";
-    bar.style.background = (value > 0.9) ? bgRed : ((value > 0.7) ? bgYellow : bgGreen);
+    var $meter = $("#openwebrx-smeter");
+    var $bar = $meter.find(".openwebrx-smeter-bar");
+    $bar.css({transform: 'translate(' + ((value - 1) * 100) + '%) translateZ(0)'});
+    if (value > 0.9) {
+        // red
+        $bar.css({background: 'linear-gradient(to top, #ff5939 , #961700)'});
+    } else if (value > 0.7) {
+        // yellow
+        $bar.css({background: 'linear-gradient(to top, #fff720 , #a49f00)'});
+    } else {
+        // red
+        $bar.css({background: 'linear-gradient(to top, #22ff2f , #008908)'});
+    }
 }
 
 function setSquelchSliderBackground(val) {
