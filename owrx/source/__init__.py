@@ -268,6 +268,7 @@ class SdrSource(ABC):
             if self.socketClient is not None:
                 self.socketClient.stop()
                 self.socketClient = None
+                self.buffer = None
 
     def hasClients(self, *args):
         clients = [c for c in self.clients if c.getClientClass() in args]
