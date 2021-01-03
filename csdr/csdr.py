@@ -914,6 +914,7 @@ class dsp(object):
             self.running = False
             if self.pycsdr_enabled and self.pycsdr_chain is not None:
                 self.pycsdr_chain.stop()
+                self.pycsdr_chain = None
             if self.process is not None:
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
