@@ -14,7 +14,11 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.onStartCallbacks = [];
 
     this.started = false;
-    this.audioContext = new ctx();
+    try {
+        this.audioContext = new ctx({sampleRate: 44100});
+    } catch (error) {
+        this.audioContext = new ctx();
+    }
     var me = this;
     this.audioContext.onstatechange = function() {
         if (me.audioContext.state !== 'running') return;
