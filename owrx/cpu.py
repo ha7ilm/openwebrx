@@ -23,7 +23,6 @@ class CpuUsageThread(threading.Thread):
         self.last_idletime = 0
         self.endEvent = threading.Event()
         super().__init__()
-        self.start()
 
     def run(self):
         logger.debug("cpu usage thread starting up")
@@ -60,6 +59,8 @@ class CpuUsageThread(threading.Thread):
 
     def add_client(self, c):
         self.clients.append(c)
+        if not self.is_alive():
+            self.start()
 
     def remove_client(self, c):
         try:
