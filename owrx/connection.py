@@ -1,4 +1,3 @@
-from owrx.config import Config
 from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
