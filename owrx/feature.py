@@ -77,6 +77,7 @@ class FeatureDetector(object):
         "digital_voice_freedv": ["freedv_rx", "sox"],
         "digital_voice_m17": ["m17_demod", "sox"],
         "wsjt-x": ["wsjtx", "sox"],
+        "wsjt-x-2-3": ["wsjtx_2_3", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
         "js8call": ["js8", "sox"],
@@ -458,6 +459,26 @@ class FeatureDetector(object):
         on how to build from source.
         """
         return reduce(and_, map(self.command_is_runnable, ["jt9", "wsprd"]), True)
+
+    def _has_wsjtx_version(self, required_version):
+        wsjt_version_regex = re.compile("^WSJT-X (.*)$")
+
+        try:
+            process = subprocess.Popen(["wsjtx_app_version", "--version"], stdout=subprocess.PIPE)
+            matches = wsjt_version_regex.match(process.stdout.readline().decode())
+            if matches is None:
+                return False
+            version = LooseVersion(matches.group(1))
+            process.wait(1)
+            return version >= required_version
+        except FileNotFoundError:
+            return False
+
+    def has_wsjtx_2_3(self):
+        """
+        Newer digital modes (e.g. FST4, FST4) require WSJT-X in at least version 2.3.
+        """
+        return self.has_wsjtx() and self._has_wsjtx_version(LooseVersion("2.3"))
 
     def has_js8(self):
         """
