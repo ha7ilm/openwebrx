@@ -181,7 +181,7 @@ DemodulatorPanel.prototype.collectParams = function() {
         squelch_level: -150,
         mod: 'nfm'
     }
-    return $.extend(new Object(), defaults, this.initialParams, this.transformHashParams(this.parseHash()));
+    return $.extend(new Object(), defaults, this.validateInitialParams(this.initialParams), this.transformHashParams(this.parseHash()));
 };
 
 DemodulatorPanel.prototype.startDemodulator = function() {
@@ -287,7 +287,7 @@ DemodulatorPanel.prototype.validateHash = function(params) {
     var self = this;
     params = Object.keys(params).filter(function(key) {
         if (key == 'freq' || key == 'mod' || key == 'secondary_mod' || key == 'sql') {
-            return params.freq && Math.abs(params.freq - self.center_freq) < bandwidth / 2;
+            return params.freq && Math.abs(params.freq - self.center_freq) <= bandwidth / 2;
         }
         return true;
     }).reduce(function(p, key) {
@@ -301,6 +301,17 @@ DemodulatorPanel.prototype.validateHash = function(params) {
     }
 
     return params;
+};
+
+DemodulatorPanel.prototype.validateInitialParams = function(params) {
+    return Object.fromEntries(
+        Object.entries(params).filter(function(a) {
+            if (a[0] == "offset_frequency") {
+                return Math.abs(a[1]) <= bandwidth / 2;
+            }
+            return true;
+        })
+    );
 };
 
 DemodulatorPanel.prototype.updateHash = function() {
