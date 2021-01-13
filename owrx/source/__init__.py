@@ -71,8 +71,37 @@ class SdrSource(ABC):
         self.state = SdrSource.STATE_STOPPED
         self.busyState = SdrSource.BUSYSTATE_IDLE
 
+        self.validateProfiles()
+
         if self.isAlwaysOn():
             self.start()
+
+    def validateProfiles(self):
+        props = PropertyStack()
+        props.addLayer(1, self.props)
+        for id, p in self.props["profiles"].items():
+            props.replaceLayer(0, self._getProfilePropertyLayer(p))
+            if "center_freq" not in props:
+                logger.warning("Profile \"%s\" does not specify a center_freq", id)
+                continue
+            if "samp_rate" not in props:
+                logger.warning("Profile \"%s\" does not specify a samp_rate", id)
+                continue
+            if "start_freq" in props:
+                start_freq = props["start_freq"]
+                srh = props["samp_rate"] / 2
+                center_freq = props["center_freq"]
+                if start_freq < center_freq - srh or start_freq > center_freq + srh:
+                    logger.warning("start_freq for profile \"%s\" is out of range", id)
+
+    def _getProfilePropertyLayer(self, profile):
+        layer = PropertyLayer()
+        for (key, value) in profile.items():
+            # skip the name, that would overwrite the source name.
+            if key == "name":
+                continue
+            layer[key] = value
+        return layer
 
     def isAlwaysOn(self):
         return "always-on" in self.props and self.props["always-on"]
@@ -115,12 +144,7 @@ class SdrSource(ABC):
         profile = profiles[profile_id]
         self.profile_id = profile_id
 
-        layer = PropertyLayer()
-        for (key, value) in profile.items():
-            # skip the name, that would overwrite the source name.
-            if key == "name":
-                continue
-            layer[key] = value
+        layer = self._getProfilePropertyLayer(profile)
         self.props.replaceLayer(0, layer)
 
     def getId(self):
