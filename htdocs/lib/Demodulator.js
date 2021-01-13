@@ -236,7 +236,7 @@ Demodulator.prototype.emit = function(event, params) {
 };
 
 Demodulator.prototype.set_offset_frequency = function(to_what) {
-    if (to_what > bandwidth / 2 || to_what < -bandwidth / 2) return;
+    if (typeof(to_what) == 'undefined' || to_what > bandwidth / 2 || to_what < -bandwidth / 2) return;
     to_what = Math.round(to_what);
     if (this.offset_frequency === to_what) {
         return;
