@@ -14,9 +14,17 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.onStartCallbacks = [];
 
     this.started = false;
-    try {
-        this.audioContext = new ctx({sampleRate: 44100});
-    } catch (error) {
+    // try common working sample rates
+    if (![48000, 44100].some(function(sr) {
+        try {
+            this.audioContext = new ctx({sampleRate: sr});
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }, this)) {
+        // fallback: let the browser decide
+        // this may cause playback problems down the line
         this.audioContext = new ctx();
     }
     var me = this;
