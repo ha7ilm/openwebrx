@@ -67,4 +67,4 @@ Support and info:       https://groups.io/g/openwebrx
     except KeyboardInterrupt:
         WebSocketConnection.closeAll()
         Services.stop()
-        ReportingEngine.stop()
+        ReportingEngine.stopAll()
