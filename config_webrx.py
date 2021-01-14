@@ -361,7 +361,7 @@ aprs_symbols_path = "/usr/share/aprs-symbols/png"
 # Antenna direction (N, NE, E, SE, S, SW, W, NW).  Omnidirectional by default
 # aprs_igate_dir = "NE"
 
-# === PSK Reporter setting ===
+# === PSK Reporter settings ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info
 # this also uses the receiver_gps setting from above, so make sure it contains a correct locator
 pskreporter_enabled = False
@@ -369,6 +369,9 @@ pskreporter_callsign = "N0CALL"
 # optional antenna information, uncomment to enable
 #pskreporter_antenna_information = "Dipole"
 
+# === WSPRNet reporting settings
+# enable this if you want to upload WSPR spots to wsprnet.ort
+# in addition to these settings also make sure that receiver_gps contains your correct location
 wsprnet_enabled = False
 wsprnet_callsign = "N0CALL"
 
