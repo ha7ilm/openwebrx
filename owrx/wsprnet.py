@@ -2,6 +2,7 @@ from owrx.reporting import Reporter
 from owrx.version import openwebrx_version
 from owrx.config import Config
 from owrx.locator import Locator
+from owrx.metrics import Metrics, CounterMetric
 from queue import Queue, Full
 from urllib import request, parse
 import threading
@@ -9,6 +10,7 @@ import logging
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
+
 
 class Worker(threading.Thread):
     def __init__(self, queue: Queue):
@@ -62,12 +64,18 @@ class WsprnetReporter(Reporter):
         # single worker
         Worker(self.queue).start()
 
+        # metrics
+        metrics = Metrics.getSharedInstance()
+        self.spotCounter = CounterMetric()
+        metrics.addMetric("wsprnet.spots", self.spotCounter)
+
     def stop(self):
         pass
 
     def spot(self, spot):
         try:
             self.queue.put(spot, block=False)
+            self.spotCounter.inc()
         except Full:
             logger.warning("WSPRNet Queue overflow, one spot lost")
 
