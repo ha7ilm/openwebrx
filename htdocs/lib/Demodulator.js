@@ -8,7 +8,7 @@ Filter.prototype.getLimits = function() {
     if (this.demodulator.get_secondary_demod() === 'pocsag') {
         max_bw = 12500;
     } else if (this.demodulator.get_modulation() === 'wfm') {
-        max_bw = 80000;
+        max_bw = 100000;
     } else if (this.demodulator.get_modulation() === 'drm') {
         max_bw = 100000;
     } else if (this.demodulator.get_secondary_demod() === 'packet') {
