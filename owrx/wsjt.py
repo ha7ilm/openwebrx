@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from owrx.map import Map, LocatorLocation
 import re
 from owrx.metrics import Metrics, CounterMetric
-from owrx.pskreporter import PskReporter
+from owrx.reporting import ReportingEngine
 from owrx.parser import Parser
 from owrx.audio import AudioChopperProfile
 from abc import ABC, ABCMeta, abstractmethod
@@ -168,7 +168,7 @@ class WsjtParser(Parser):
                     Map.getSharedInstance().updateLocation(
                         out["callsign"], LocatorLocation(out["locator"]), mode, self.band
                     )
-                    PskReporter.getSharedInstance().spot(out)
+                    ReportingEngine.getSharedInstance().spot(out)
 
                 self.handler.write_wsjt_message(out)
             except (ValueError, IndexError):
