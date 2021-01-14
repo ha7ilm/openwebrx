@@ -36,10 +36,15 @@ class ReportingEngine(object):
 
     def __init__(self):
         self.reporters = []
-        if Config.get()["pskreporter_enabled"]:
+        config = Config.get()
+        if config["pskreporter_enabled"]:
             # inline import due to circular dependencies
             from owrx.pskreporter import PskReporter
             self.reporters += [PskReporter()]
+        if config["wsprnet_enabled"]:
+            # inline import due to circular dependencies
+            from owrx.wsprnet import WsprnetReporter
+            self.reporters += [WsprnetReporter()]
 
     def stop(self):
         for r in self.reporters:

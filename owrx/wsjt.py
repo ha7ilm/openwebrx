@@ -273,4 +273,4 @@ class WsprDecoder(Decoder):
         m = WsprDecoder.wspr_splitter_pattern.match(msg)
         if m is None:
             return {}
-        return {"callsign": m.group(1), "locator": m.group(2)}
+        return {"callsign": m.group(1), "locator": m.group(2), "dbm": m.group(3)}
