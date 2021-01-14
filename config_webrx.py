@@ -369,6 +369,9 @@ pskreporter_callsign = "N0CALL"
 # optional antenna information, uncomment to enable
 #pskreporter_antenna_information = "Dipole"
 
+wsprnet_enabled = False
+wsprnet_callsign = "N0CALL"
+
 # === Web admin settings ===
 # this feature is experimental at the moment. it should not be enabled on shared receivers since it allows remote
 # changes to the receiver settings. enable for testing in controlled environment only.
