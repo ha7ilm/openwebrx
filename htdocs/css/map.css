@@ -25,10 +25,17 @@ ul {
     padding-inline-start: 25px;
 }
 
+/* don't show the filter in it's initial position */
 .openwebrx-map-legend {
+    display: none;
     background-color: #fff;
     padding: 10px;
     margin: 10px;
+}
+
+/* show it as soon as google maps has moved it to its container */
+.openwebrx-map .openwebrx-map-legend {
+    display: block;
 }
 
 .openwebrx-map-legend ul {
