@@ -43,6 +43,7 @@
     overflow: hidden;
 
     display: flex;
+    flex-direction: row;
 }
 
 .webrx-top-bar-parts > * {
