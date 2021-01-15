@@ -32,26 +32,20 @@ var fft_codec;
 var waterfall_setup_done = 0;
 var secondary_fft_size;
 
-function e(what) {
-    return document.getElementById(what);
-}
-
 function updateVolume() {
-    audioEngine.setVolume(parseFloat(e("openwebrx-panel-volume").value) / 100);
+    audioEngine.setVolume(parseFloat($("#openwebrx-panel-volume").val()) / 100);
 }
 
 function toggleMute() {
-    if (mute) {
-        mute = false;
-        e("openwebrx-mute-on").id = "openwebrx-mute-off";
-        e("openwebrx-panel-volume").disabled = false;
-        e("openwebrx-panel-volume").value = volumeBeforeMute;
+    var $muteButton = $('.openwebrx-mute-button');
+    var $volumePanel = $('#openwebrx-panel-volume');
+    if ($muteButton.hasClass('muted')) {
+        $muteButton.removeClass('muted');
+        $volumePanel.prop('disabled', false).val(volumeBeforeMute);
     } else {
-        mute = true;
-        e("openwebrx-mute-off").id = "openwebrx-mute-on";
-        e("openwebrx-panel-volume").disabled = true;
-        volumeBeforeMute = e("openwebrx-panel-volume").value;
-        e("openwebrx-panel-volume").value = 0;
+        $muteButton.addClass('muted');
+        volumeBeforeMute = $volumePanel.val();
+        $volumePanel.prop('disabled', true).val(0);
     }
 
     updateVolume();
@@ -191,7 +185,7 @@ function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch
     var highLevel = waterfall_max_level + 20;
     var percent = (logValue - lowLevel) / (highLevel - lowLevel);
     setSmeterRelativeValue(percent);
-    e("openwebrx-smeter-db").innerHTML = logValue.toFixed(1) + " dB";
+    $("#openwebrx-smeter-db").html(logValue.toFixed(1) + " dB");
 }
 
 function typeInAnimation(element, timeout, what, onFinish) {
@@ -244,14 +238,14 @@ var scale_ctx;
 var scale_canvas;
 
 function scale_setup() {
-    scale_canvas = e("openwebrx-scale-canvas");
+    scale_canvas = $("#openwebrx-scale-canvas")[0];
     scale_ctx = scale_canvas.getContext("2d");
     scale_canvas.addEventListener("mousedown", scale_canvas_mousedown, false);
     scale_canvas.addEventListener("mousemove", scale_canvas_mousemove, false);
     scale_canvas.addEventListener("mouseup", scale_canvas_mouseup, false);
     resize_scale();
-    var frequency_container = e("openwebrx-frequency-container");
-    frequency_container.addEventListener("mousemove", frequency_container_mousemove, false);
+    var frequency_container = $("#openwebrx-frequency-container");
+    frequency_container.on("mousemove", frequency_container_mousemove, false);
 }
 
 var scale_canvas_drag_params = {
@@ -784,10 +778,10 @@ function on_ws_recv(evt) {
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
                         break;
                     case "profiles":
-                        var listbox = e("openwebrx-sdr-profiles-listbox");
-                        listbox.innerHTML = json['value'].map(function (profile) {
+                        var listbox = $("#openwebrx-sdr-profiles-listbox");
+                        listbox.html(json['value'].map(function (profile) {
                             return '<option value="' + profile['id'] + '">' + profile['name'] + "</option>";
-                        }).join("");
+                        }).join(""));
                         if (currentprofile) {
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
                         }
@@ -1019,7 +1013,7 @@ function divlog(what, is_error) {
         what = "<span class=\"webrx-error\">" + what + "</span>";
         toggle_panel("openwebrx-panel-log", true); //show panel if any error is present
     }
-    e("openwebrx-debugdiv").innerHTML += what + "<br />";
+    $('#openwebrx-debugdiv')[0].innerHTML += what + "<br />";
     var nano = $('.nano');
     nano.nanoScroller();
     nano.nanoScroller({scroll: 'bottom'});
@@ -1145,14 +1139,14 @@ function add_canvas() {
 
 
 function init_canvas_container() {
-    canvas_container = e("webrx-canvas-container");
+    canvas_container = $("#webrx-canvas-container")[0];
     canvas_container.addEventListener("mouseleave", canvas_container_mouseleave, false);
     canvas_container.addEventListener("mousemove", canvas_mousemove, false);
     canvas_container.addEventListener("mouseup", canvas_mouseup, false);
     canvas_container.addEventListener("mousedown", canvas_mousedown, false);
     canvas_container.addEventListener("wheel", canvas_mousewheel, false);
-    var frequency_container = e("openwebrx-frequency-container");
-    frequency_container.addEventListener("wheel", canvas_mousewheel, false);
+    var frequency_container = $("#openwebrx-frequency-container");
+    frequency_container.on("wheel", canvas_mousewheel, false);
     add_canvas();
 }
 

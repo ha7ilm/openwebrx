@@ -1233,12 +1233,12 @@ img.openwebrx-mirror-img
     height: 15px;
 }
 
-#openwebrx-mute-on .sprite-speaker {
-    background-position: -117px -38px;
+.openwebrx-mute-button .sprite-speaker {
+    background-position: -103px -38px;
 }
 
-#openwebrx-mute-off .sprite-speaker {
-    background-position: -103px -38px;
+.openwebrx-mute-button.muted .sprite-speaker {
+    background-position: -117px -38px;
 }
 
 .sprite-squelch {
