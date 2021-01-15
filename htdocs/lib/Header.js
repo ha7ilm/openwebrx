@@ -30,18 +30,14 @@ Header.prototype.init_rx_photo = function() {
 
 Header.prototype.close_rx_photo = function() {
     this.rx_photo_state = 0;
-    this.el.find("#webrx-rx-photo-desc").animate({opacity: 0});
-    this.el.find("#webrx-rx-photo-title").animate({opacity: 0});
-    this.el.find('#webrx-top-photo-clip').animate({maxHeight: 67}, {duration: 1000, easing: 'easeOutCubic'});
+    this.el.find('#openwebrx-description-container').removeClass('expanded');
     this.el.find("#openwebrx-rx-details-arrow-down").show();
     this.el.find("#openwebrx-rx-details-arrow-up").hide();
 }
 
 Header.prototype.open_rx_photo = function() {
     this.rx_photo_state = 1;
-    this.el.find("#webrx-rx-photo-desc").animate({opacity: 1});
-    this.el.find("#webrx-rx-photo-title").animate({opacity: 1});
-    this.el.find('#webrx-top-photo-clip').animate({maxHeight: 350}, {duration: 1000, easing: 'easeOutCubic'});
+    this.el.find('#openwebrx-description-container').addClass('expanded');
     this.el.find("#openwebrx-rx-details-arrow-down").hide();
     this.el.find("#openwebrx-rx-details-arrow-up").show();
 }
