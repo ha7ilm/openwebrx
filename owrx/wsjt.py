@@ -156,12 +156,17 @@ class WsjtParser(Parser):
                     return
 
                 mode = profile.getMode()
-                if mode == "WSPR":
-                    decoder = WsprDecoder(profile)
+                if mode in ["WSPR", "FST4W"]:
+                    messageParser = BeaconMessageParser()
                 else:
-                    decoder = Jt9Decoder(profile)
+                    messageParser = QsoMessageParser()
+                if mode == "WSPR":
+                    decoder = WsprDecoder(profile, messageParser)
+                else:
+                    decoder = Jt9Decoder(profile, messageParser)
                 out = decoder.parse(msg, freq)
                 out["mode"] = mode
+                out["interval"] = profile.getInterval()
 
                 self.pushDecode(mode)
                 if "callsign" in out and "locator" in out:
@@ -195,10 +200,9 @@ class WsjtParser(Parser):
 
 
 class Decoder(ABC):
-    locator_pattern = re.compile(".*\\s([A-Z0-9/]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
-
-    def __init__(self, profile):
+    def __init__(self, profile, messageParser):
         self.profile = profile
+        self.messageParser = messageParser
 
     def parse_timestamp(self, instring):
         dateformat = self.profile.getTimestampFormat()
@@ -215,8 +219,19 @@ class Decoder(ABC):
     def parse(self, msg, dial_freq):
         pass
 
-    def parseMessage(self, msg):
-        m = Decoder.locator_pattern.match(msg)
+
+class MessageParser(ABC):
+    @abstractmethod
+    def parse(self, msg):
+        pass
+
+
+# Used in QSO-style modes (FT8, FT4, FST4)
+class QsoMessageParser(MessageParser):
+    locator_pattern = re.compile(".*\\s([A-Z0-9/]{2,})(\\sR)?\\s([A-R]{2}[0-9]{2})$")
+
+    def parse(self, msg):
+        m = QsoMessageParser.locator_pattern.match(msg)
         if m is None:
             return {}
         # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
@@ -224,6 +239,17 @@ class Decoder(ABC):
         if m.group(3) == "RR73":
             return {"callsign": m.group(1)}
         return {"callsign": m.group(1), "locator": m.group(3)}
+
+
+# Used in propagation reporting / beacon modes (WSPR / FST4W)
+class BeaconMessageParser(MessageParser):
+    wspr_splitter_pattern = re.compile("([A-Z0-9/]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
+
+    def parse(self, msg):
+        m = BeaconMessageParser.wspr_splitter_pattern.match(msg)
+        if m is None:
+            return {}
+        return {"callsign": m.group(1), "locator": m.group(2), "dbm": m.group(3)}
 
 
 class Jt9Decoder(Decoder):
@@ -245,13 +271,11 @@ class Jt9Decoder(Decoder):
             "freq": dial_freq + int(msg[9:13]),
             "msg": wsjt_msg,
         }
-        result.update(self.parseMessage(wsjt_msg))
+        result.update(self.messageParser.parse(wsjt_msg))
         return result
 
 
 class WsprDecoder(Decoder):
-    wspr_splitter_pattern = re.compile("([A-Z0-9/]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
-
     def parse(self, msg, dial_freq):
         # wspr sample
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
@@ -266,11 +290,5 @@ class WsprDecoder(Decoder):
             "drift": int(msg[20:23]),
             "msg": wsjt_msg,
         }
-        result.update(self.parseMessage(wsjt_msg))
+        result.update(self.messageParser.parse(wsjt_msg))
         return result
-
-    def parseMessage(self, msg):
-        m = WsprDecoder.wspr_splitter_pattern.match(msg)
-        if m is None:
-            return {}
-        return {"callsign": m.group(1), "locator": m.group(2), "dbm": m.group(3)}

@@ -32,6 +32,13 @@ class Worker(threading.Thread):
             except Exception:
                 logger.exception("Exception while uploading WSPRNet spot")
 
+    def _getMode(self, spot):
+        interval = round(spot["interval"] / 60)
+        # FST4W modes are mapped not to conflict with WSPR modes 2 and 15:
+        if spot["mode"] != "WSPR" and interval in [2, 15]:
+            return interval + 1
+        return interval
+
     def uploadSpot(self, spot):
         # function=wspr&date=210114&time=1732&sig=-15&dt=0.5&drift=0&tqrg=7.040019&tcall=DF2UU&tgrid=JN48&dbm=37&version=2.3.0-rc3&rcall=DD5JFK&rgrid=JN58SC&rqrg=7.040047&mode=2
         # {'timestamp': 1610655960000, 'db': -23.0, 'dt': 0.3, 'freq': 7040048, 'drift': -1, 'msg': 'LA3JJ JO59 37', 'callsign': 'LA3JJ', 'locator': 'JO59', 'mode': 'WSPR'}
@@ -42,7 +49,8 @@ class Worker(threading.Thread):
             "time": date.strftime("%H%M"),
             "sig": spot["db"],
             "dt": spot["dt"],
-            "drift": spot["drift"],
+            # FST4W does not have drift
+            "drift": spot["drift"] if "drift" in spot else 0,
             "tqrg": spot["freq"] / 1E6,
             "tcall": spot["callsign"],
             "tgrid": spot["locator"],
@@ -51,8 +59,7 @@ class Worker(threading.Thread):
             "rcall": self.callsign,
             "rgrid": self.locator,
             # mode 2 = WSPR 2 minutes
-            # TODO implement FST4W mode codes
-            "mode": 2
+            "mode": self._getMode(spot)
         }).encode()
         request.urlopen("http://wsprnet.org/post/", data)
 
@@ -80,4 +87,4 @@ class WsprnetReporter(Reporter):
             logger.warning("WSPRNet Queue overflow, one spot lost")
 
     def getSupportedModes(self):
-        return ["WSPR"]
+        return ["WSPR", "FST4W"]
