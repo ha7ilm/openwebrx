@@ -18,7 +18,7 @@ class PskReporter(Reporter):
     interval = 300
 
     def getSupportedModes(self):
-        return ["FT8", "FT4", "JT9", "JT65", "FST4", "FST4W", "JS8"]
+        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8"]
 
     def stop(self):
         self.cancelTimer()
