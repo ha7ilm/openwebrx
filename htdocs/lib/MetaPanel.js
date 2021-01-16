@@ -88,23 +88,18 @@ YsfMetaPanel.prototype.update = function(data) {
         this.setDown(data['down']);
         this.el.find(".openwebrx-meta-slot").addClass("active");
     } else {
-        this.setSource();
-        this.setLocation();
-        this.setUp();
-        this.setDown();
-        this.el.find(".openwebrx-meta-slot").removeClass("active");
+        this.clear();
     }
 };
 
 YsfMetaPanel.prototype.clear = function() {
     MetaPanel.prototype.clear.call(this);
-    this.mode = '';
-    this.source = '';
-    this.lat = 0;
-    this.lon = 0;
-    this.callsign = '';
-    this.up = '';
-    this.down = '';
+    this.setMode();
+    this.setSource();
+    this.setLocation();
+    this.setUp();
+    this.setDown();
+    this.el.find(".openwebrx-meta-slot").removeClass("active");
 };
 
 YsfMetaPanel.prototype.setMode = function(mode) {
@@ -124,9 +119,11 @@ YsfMetaPanel.prototype.setSource = function(source) {
 };
 
 YsfMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
-    if (this.lat === lat && this.lon === lon && this.callsign === callsign) return;
+    var hasLocation = lat && lon && callsign && callsign != '';
+    if (hasLocation === this.hasLocation && this.callsign === callsign) return;
+    this.hasLocation = hasLocation; this.callsign = callsign;
     var html = '';
-    if (lat && lon && callsign) {
+    if (hasLocation) {
         html = '<a class="openwebrx-maps-pin" href="map?callsign=' + callsign + '" target="_blank"></a>';
     }
     this.el.find('.openwebrx-ysf-source .location').html(html);
