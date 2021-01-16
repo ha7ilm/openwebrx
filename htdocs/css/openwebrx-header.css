@@ -125,6 +125,11 @@
     cursor:pointer;
 }
 
+#openwebrx-main-buttons .button[data-toggle-panel] {
+    /* will be enabled by javascript if the panel is present in the DOM */
+    display: none;
+}
+
 #openwebrx-main-buttons .button img {
     height: 38px;
 }

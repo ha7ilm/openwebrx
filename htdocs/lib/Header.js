@@ -1,7 +1,12 @@
 function Header(el) {
     this.el = el;
 
-    this.el.find('#openwebrx-main-buttons').find('[data-toggle-panel]').click(function () {
+    var $buttons = this.el.find('#openwebrx-main-buttons').find('[data-toggle-panel]').filter(function(){
+        // ignore buttons when the corresponding panel is not in the DOM
+        return $('#' + $(this).data('toggle-panel'))[0];
+    });
+
+    $buttons.css({display: 'block'}).click(function () {
         toggle_panel($(this).data('toggle-panel'));
     });
 
