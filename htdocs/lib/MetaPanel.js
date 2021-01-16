@@ -11,38 +11,74 @@ MetaPanel.prototype.isSupported = function(data) {
 };
 
 MetaPanel.prototype.clear = function() {
-    this.el.find(".openwebrx-meta-autoclear").text("");
     this.el.find(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
 };
 
 function DmrMetaSlot(el) {
     this.el = $(el);
+    this.clear();
 }
 
 DmrMetaSlot.prototype.update = function(data) {
-    var id = "";
-    var name = "";
-    var target = "";
-    var group = false;
     this.el[data['sync'] ? "addClass" : "removeClass"]("sync");
     if (data['sync'] && data['sync'] === "voice") {
-        id = (data['additional'] && data['additional']['callsign']) || data['source'] || "";
-        name = (data['additional'] && data['additional']['fname']) || "";
+        this.setId(data['additional'] && data['additional']['callsign'] || data['source']);
+        this.setName(data['additional'] && data['additional']['fname']);
         if (data['type'] === "group") {
-            target = "Talkgroup: ";
-            group = true;
+            this.setTalkgroup(data['target']);
         }
-        if (data['type'] === "direct") target = "Direct: ";
-        target += data['target'] || "";
+        if (data['type'] === "direct") {
+            this.setDirect(data['target']);
+        }
         this.el.addClass("active");
     } else {
-        this.el.removeClass("active");
+        this.clear();
     }
-    this.el.find(".openwebrx-dmr-id").text(id);
-    this.el.find(".openwebrx-dmr-name").text(name);
-    this.el.find(".openwebrx-dmr-target").text(target);
-    this.el.find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
+};
+
+DmrMetaSlot.prototype.setId = function(id) {
+    if (this.id === id) return;
+    this.id = id;
+    this.el.find('.openwebrx-dmr-id').text(id || '');
 }
+
+DmrMetaSlot.prototype.setName = function(name) {
+    if (this.name === name) return;
+    this.name = name;
+    this.el.find('.openwebrx-dmr-name').text(name || '');
+};
+
+DmrMetaSlot.prototype.setTalkgroup = function(talkgroup) {
+    if (this.talkgroup === talkgroup && this.targetMode === 'talkgroup') return;
+    this.talkgroup = talkgroup;
+    this.targetMode = 'talkgroup';
+    var text = '';
+    if (talkgroup && talkgroup != '') {
+        text = 'Talkgroup: ' + talkgroup;
+    }
+    this.el.find('.openwebrx-dmr-target').text(text);
+    this.el.find(".openwebrx-meta-user-image").addClass("group");
+};
+
+DmrMetaSlot.prototype.setDirect = function(call) {
+    if (this.call === call && this.targetMode === 'direct') return;
+    this.call = call;
+    this.targetMode = 'direct';
+    var text = '';
+    if (call && call != '') {
+        text = 'Direct: ' + call;
+    }
+    this.el.find('.openwebrx-dmr-target').text(text);
+    this.el.find(".openwebrx-meta-user-image").removeClass("group");
+};
+
+DmrMetaSlot.prototype.clear = function() {
+    this.setId();
+    this.setName();
+    this.setTalkgroup();
+    this.setDirect();
+    this.el.removeClass("active");
+};
 
 function DmrMetaPanel(el) {
     MetaPanel.call(this, el);
@@ -67,6 +103,9 @@ DmrMetaPanel.prototype.update = function(data) {
 DmrMetaPanel.prototype.clear = function() {
     MetaPanel.prototype.clear.call(this);
     this.el.find(".openwebrx-dmr-timeslot-panel").removeClass("muted");
+    this.slots.forEach(function(slot) {
+        slot.clear();
+    });
 };
 
 function YsfMetaPanel(el) {
