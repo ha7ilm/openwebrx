@@ -908,10 +908,15 @@ img.openwebrx-mirror-img
     border-color: Red;
 }
 
+.openwebrx-meta-panel {
+    display: flex;
+    flex-direction: row;
+}
+
 .openwebrx-meta-slot {
+    flex: 1;
     width: 145px;
     height: 196px;
-    float: left;
     margin-right: 10px;
 
     background-color: #676767;

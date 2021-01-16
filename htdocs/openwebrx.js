@@ -790,7 +790,9 @@ function on_ws_recv(evt) {
                         Modes.setFeatures(json['value']);
                         break;
                     case "metadata":
-                        update_metadata(json['value']);
+                        $('.openwebrx-meta-panel').metaPanel().each(function(){
+                            this.update(json['value']);
+                        });
                         break;
                     case "js8_message":
                         $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
@@ -898,75 +900,6 @@ function on_ws_recv(evt) {
                 console.warn('unknown type of binary message: ' + type)
         }
     }
-}
-
-function update_metadata(meta) {
-    var el;
-    if (meta['protocol']) switch (meta['protocol']) {
-        case 'DMR':
-            if (meta['slot']) {
-                el = $("#openwebrx-panel-metadata-dmr").find(".openwebrx-dmr-timeslot-panel").get(meta['slot']);
-                var id = "";
-                var name = "";
-                var target = "";
-                var group = false;
-                $(el)[meta['sync'] ? "addClass" : "removeClass"]("sync");
-                if (meta['sync'] && meta['sync'] === "voice") {
-                    id = (meta['additional'] && meta['additional']['callsign']) || meta['source'] || "";
-                    name = (meta['additional'] && meta['additional']['fname']) || "";
-                    if (meta['type'] === "group") {
-                        target = "Talkgroup: ";
-                        group = true;
-                    }
-                    if (meta['type'] === "direct") target = "Direct: ";
-                    target += meta['target'] || "";
-                    $(el).addClass("active");
-                } else {
-                    $(el).removeClass("active");
-                }
-                $(el).find(".openwebrx-dmr-id").text(id);
-                $(el).find(".openwebrx-dmr-name").text(name);
-                $(el).find(".openwebrx-dmr-target").text(target);
-                $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
-            } else {
-                clear_metadata();
-            }
-            break;
-        case 'YSF':
-            el = $("#openwebrx-panel-metadata-ysf");
-
-            var mode = " ";
-            var source = "";
-            var up = "";
-            var down = "";
-            if (meta['mode'] && meta['mode'] !== "") {
-                mode = "Mode: " + meta['mode'];
-                source = meta['source'] || "";
-                if (meta['lat'] && meta['lon'] && meta['source']) {
-                    source = "<a class=\"openwebrx-maps-pin\" href=\"map?callsign=" + meta['source'] + "\" target=\"_blank\"></a>" + source;
-                }
-                up = meta['up'] ? "Up: " + meta['up'] : "";
-                down = meta['down'] ? "Down: " + meta['down'] : "";
-                $(el).find(".openwebrx-meta-slot").addClass("active");
-            } else {
-                $(el).find(".openwebrx-meta-slot").removeClass("active");
-            }
-            $(el).find(".openwebrx-ysf-mode").text(mode);
-            $(el).find(".openwebrx-ysf-source").html(source);
-            $(el).find(".openwebrx-ysf-up").text(up);
-            $(el).find(".openwebrx-ysf-down").text(down);
-
-            break;
-    } else {
-        clear_metadata();
-    }
-
-}
-
-function clear_metadata() {
-    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-    $(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
-    $(".openwebrx-dmr-timeslot-panel").removeClass("muted");
 }
 
 var waterfall_measure_minmax_now = false;
@@ -1301,6 +1234,8 @@ function digimodes_init() {
         $(e.currentTarget).toggleClass("muted");
         update_dmr_timeslot_filtering();
     });
+
+    $('.openwebrx-meta-panel').metaPanel();
 }
 
 function update_dmr_timeslot_filtering() {
@@ -1348,7 +1283,7 @@ function toggle_panel(what, on) {
         item.style.transitionProperty = 'transform';
     } else {
         item.movement = 'expand';
-        item.style.display = 'block';
+        item.style.display = null;
         setTimeout(function(){
             item.style.transitionProperty = 'transform';
             item.style.transform = 'perspective(600px) rotateX(0deg)';

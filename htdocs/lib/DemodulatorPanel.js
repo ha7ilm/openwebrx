@@ -165,10 +165,13 @@ DemodulatorPanel.prototype.updatePanels = function() {
 
     modulation = this.getDemodulator().get_modulation();
     var showing = 'openwebrx-panel-metadata-' + modulation;
-    $(".openwebrx-meta-panel").each(function (_, p) {
+    var metaPanels = $(".openwebrx-meta-panel");
+    metaPanels.each(function (_, p) {
         toggle_panel(p.id, p.id === showing);
     });
-    clear_metadata();
+    metaPanels.metaPanel().each(function() {
+        this.clear();
+    });
 };
 
 DemodulatorPanel.prototype.getDemodulator = function() {

@@ -129,6 +129,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/MessagePanel.js",
             "lib/Js8Threads.js",
             "lib/Modes.js",
+            "lib/MetaPanel.js",
         ],
         "map.js": [
             "lib/jquery-3.2.1.min.js",
