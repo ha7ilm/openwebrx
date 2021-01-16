@@ -72,33 +72,84 @@ DmrMetaPanel.prototype.clear = function() {
 function YsfMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['YSF'];
+    this.clear();
 }
 
 YsfMetaPanel.prototype = new MetaPanel();
 
 YsfMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
+    this.setMode(data['mode']);
 
-    var mode = " ";
-    var source = "";
-    var up = "";
-    var down = "";
     if (data['mode'] && data['mode'] !== "") {
-        mode = "Mode: " + data['mode'];
-        source = data['source'] || "";
-        if (data['lat'] && data['lon'] && data['source']) {
-            source = "<a class=\"openwebrx-maps-pin\" href=\"map?callsign=" + data['source'] + "\" target=\"_blank\"></a>" + source;
-        }
-        up = data['up'] ? "Up: " + data['up'] : "";
-        down = data['down'] ? "Down: " + data['down'] : "";
+        this.setSource(data['source']);
+        this.setLocation(data['lat'], data['lon'], data['source']);
+        this.setUp(data['up']);
+        this.setDown(data['down']);
         this.el.find(".openwebrx-meta-slot").addClass("active");
     } else {
+        this.setSource();
+        this.setLocation();
+        this.setUp();
+        this.setDown();
         this.el.find(".openwebrx-meta-slot").removeClass("active");
     }
-    this.el.find(".openwebrx-ysf-mode").text(mode);
-    this.el.find(".openwebrx-ysf-source").html(source);
-    this.el.find(".openwebrx-ysf-up").text(up);
-    this.el.find(".openwebrx-ysf-down").text(down);
+};
+
+YsfMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.mode = '';
+    this.source = '';
+    this.lat = 0;
+    this.lon = 0;
+    this.callsign = '';
+    this.up = '';
+    this.down = '';
+};
+
+YsfMetaPanel.prototype.setMode = function(mode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    var text = '';
+    if (mode && mode != '') {
+        text = 'Mode: ' + mode;
+    }
+    this.el.find('.openwebrx-ysf-mode').text(text);
+};
+
+YsfMetaPanel.prototype.setSource = function(source) {
+    if (this.source === source) return;
+    this.source = source;
+    this.el.find('.openwebrx-ysf-source .callsign').text(source || '');
+};
+
+YsfMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
+    if (this.lat === lat && this.lon === lon && this.callsign === callsign) return;
+    var html = '';
+    if (lat && lon && callsign) {
+        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + callsign + '" target="_blank"></a>';
+    }
+    this.el.find('.openwebrx-ysf-source .location').html(html);
+};
+
+YsfMetaPanel.prototype.setUp = function(up) {
+    if (this.up === up) return;
+    this.up = up;
+    var text = '';
+    if (up && up != '') {
+        text = 'Up: ' + up;
+    }
+    this.el.find('.openwebrx-ysf-up').text(text);
+};
+
+YsfMetaPanel.prototype.setDown = function(down) {
+    if (this.down === down) return;
+    this.down = down;
+    var text = '';
+    if (down && down != '') {
+        text = 'Down: ' + down;
+    }
+    this.el.find('.openwebrx-ysf-down').text(text);
 }
 
 MetaPanel.types = {
