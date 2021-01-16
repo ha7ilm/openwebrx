@@ -57,6 +57,8 @@
 
 #webrx-top-logo {
     padding: 12px;
+    /* overwritten by media queries */
+    display: none;
 }
 
 #webrx-rx-avatar {
@@ -72,16 +74,24 @@
 }
 
 #webrx-rx-texts {
+    /* minimum layout width */
+    width: 0;
+    /* will be getting wider with flex */
     flex: 1;
-    padding: 10px;
+    overflow: hidden;
 }
 
 #webrx-rx-texts div {
+    margin: 0 10px;
     padding: 3px;
     white-space:nowrap;
     overflow: hidden;
     cursor:pointer;
     color: #909090;
+}
+
+#webrx-rx-texts div:first-child {
+    margin-top: 10px;
 }
 
 #webrx-rx-title {
@@ -167,6 +177,32 @@
     color: #5ca8ff;
     text-shadow: none;
 }
+
+/*
+ * Responsive stuff
+ */
+
+@media (min-width: 576px) {
+    #webrx-rx-texts {
+        display: initial;
+    }
+}
+
+@media (min-width: 768px) {
+}
+
+@media (min-width: 992px) {
+    #webrx-top-logo {
+        display: initial;
+    }
+}
+
+@media (min-width: 1200px) {
+}
+
+/*
+ * Sprites (images)
+ */
 
 .sprite-panel-status {
     background-position: 0 0;
