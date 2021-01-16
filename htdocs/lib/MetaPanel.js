@@ -93,7 +93,6 @@ YsfMetaPanel.prototype.update = function(data) {
 };
 
 YsfMetaPanel.prototype.clear = function() {
-    MetaPanel.prototype.clear.call(this);
     this.setMode();
     this.setSource();
     this.setLocation();
