@@ -35,6 +35,9 @@ If you have trouble setting up or configuring your receiver, you have some great
 you just generally want to have some OpenWebRX-related chat, come visit us over on
 [our groups.io group](https://groups.io/g/openwebrx).
 
+If you want to hang out, chat, or get in touch directly with the developers, receiver operators or users, feel free to
+drop by in [our Discord server](https://discord.gg/gnE9hPz).
+
 ## Usage tips
 
 You can zoom the waterfall display by the mouse wheel. You can also drag the waterfall to pan across it.
