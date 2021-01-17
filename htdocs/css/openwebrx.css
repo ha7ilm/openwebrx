@@ -931,6 +931,7 @@ img.openwebrx-mirror-img
 
 .openwebrx-meta-slot > * {
     flex: 0;
+    flex-basis: 1.125em;
 }
 
 .openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
