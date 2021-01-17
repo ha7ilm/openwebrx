@@ -32,26 +32,20 @@ var fft_codec;
 var waterfall_setup_done = 0;
 var secondary_fft_size;
 
-function e(what) {
-    return document.getElementById(what);
-}
-
 function updateVolume() {
-    audioEngine.setVolume(parseFloat(e("openwebrx-panel-volume").value) / 100);
+    audioEngine.setVolume(parseFloat($("#openwebrx-panel-volume").val()) / 100);
 }
 
 function toggleMute() {
-    if (mute) {
-        mute = false;
-        e("openwebrx-mute-on").id = "openwebrx-mute-off";
-        e("openwebrx-panel-volume").disabled = false;
-        e("openwebrx-panel-volume").value = volumeBeforeMute;
+    var $muteButton = $('.openwebrx-mute-button');
+    var $volumePanel = $('#openwebrx-panel-volume');
+    if ($muteButton.hasClass('muted')) {
+        $muteButton.removeClass('muted');
+        $volumePanel.prop('disabled', false).val(volumeBeforeMute);
     } else {
-        mute = true;
-        e("openwebrx-mute-off").id = "openwebrx-mute-on";
-        e("openwebrx-panel-volume").disabled = true;
-        volumeBeforeMute = e("openwebrx-panel-volume").value;
-        e("openwebrx-panel-volume").value = 0;
+        $muteButton.addClass('muted');
+        volumeBeforeMute = $volumePanel.val();
+        $volumePanel.prop('disabled', true).val(0);
     }
 
     updateVolume();
@@ -191,7 +185,7 @@ function setSmeterAbsoluteValue(value) //the value that comes from `csdr squelch
     var highLevel = waterfall_max_level + 20;
     var percent = (logValue - lowLevel) / (highLevel - lowLevel);
     setSmeterRelativeValue(percent);
-    e("openwebrx-smeter-db").innerHTML = logValue.toFixed(1) + " dB";
+    $("#openwebrx-smeter-db").html(logValue.toFixed(1) + " dB");
 }
 
 function typeInAnimation(element, timeout, what, onFinish) {
@@ -244,14 +238,14 @@ var scale_ctx;
 var scale_canvas;
 
 function scale_setup() {
-    scale_canvas = e("openwebrx-scale-canvas");
+    scale_canvas = $("#openwebrx-scale-canvas")[0];
     scale_ctx = scale_canvas.getContext("2d");
     scale_canvas.addEventListener("mousedown", scale_canvas_mousedown, false);
     scale_canvas.addEventListener("mousemove", scale_canvas_mousemove, false);
     scale_canvas.addEventListener("mouseup", scale_canvas_mouseup, false);
     resize_scale();
-    var frequency_container = e("openwebrx-frequency-container");
-    frequency_container.addEventListener("mousemove", frequency_container_mousemove, false);
+    var frequency_container = $("#openwebrx-frequency-container");
+    frequency_container.on("mousemove", frequency_container_mousemove, false);
 }
 
 var scale_canvas_drag_params = {
@@ -784,10 +778,10 @@ function on_ws_recv(evt) {
                         $('#openwebrx-bar-clients').progressbar().setClients(json['value']);
                         break;
                     case "profiles":
-                        var listbox = e("openwebrx-sdr-profiles-listbox");
-                        listbox.innerHTML = json['value'].map(function (profile) {
+                        var listbox = $("#openwebrx-sdr-profiles-listbox");
+                        listbox.html(json['value'].map(function (profile) {
                             return '<option value="' + profile['id'] + '">' + profile['name'] + "</option>";
-                        }).join("");
+                        }).join(""));
                         if (currentprofile) {
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
                         }
@@ -796,7 +790,9 @@ function on_ws_recv(evt) {
                         Modes.setFeatures(json['value']);
                         break;
                     case "metadata":
-                        update_metadata(json['value']);
+                        $('.openwebrx-meta-panel').metaPanel().each(function(){
+                            this.update(json['value']);
+                        });
                         break;
                     case "js8_message":
                         $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
@@ -906,75 +902,6 @@ function on_ws_recv(evt) {
     }
 }
 
-function update_metadata(meta) {
-    var el;
-    if (meta['protocol']) switch (meta['protocol']) {
-        case 'DMR':
-            if (meta['slot']) {
-                el = $("#openwebrx-panel-metadata-dmr").find(".openwebrx-dmr-timeslot-panel").get(meta['slot']);
-                var id = "";
-                var name = "";
-                var target = "";
-                var group = false;
-                $(el)[meta['sync'] ? "addClass" : "removeClass"]("sync");
-                if (meta['sync'] && meta['sync'] === "voice") {
-                    id = (meta['additional'] && meta['additional']['callsign']) || meta['source'] || "";
-                    name = (meta['additional'] && meta['additional']['fname']) || "";
-                    if (meta['type'] === "group") {
-                        target = "Talkgroup: ";
-                        group = true;
-                    }
-                    if (meta['type'] === "direct") target = "Direct: ";
-                    target += meta['target'] || "";
-                    $(el).addClass("active");
-                } else {
-                    $(el).removeClass("active");
-                }
-                $(el).find(".openwebrx-dmr-id").text(id);
-                $(el).find(".openwebrx-dmr-name").text(name);
-                $(el).find(".openwebrx-dmr-target").text(target);
-                $(el).find(".openwebrx-meta-user-image")[group ? "addClass" : "removeClass"]("group");
-            } else {
-                clear_metadata();
-            }
-            break;
-        case 'YSF':
-            el = $("#openwebrx-panel-metadata-ysf");
-
-            var mode = " ";
-            var source = "";
-            var up = "";
-            var down = "";
-            if (meta['mode'] && meta['mode'] !== "") {
-                mode = "Mode: " + meta['mode'];
-                source = meta['source'] || "";
-                if (meta['lat'] && meta['lon'] && meta['source']) {
-                    source = "<a class=\"openwebrx-maps-pin\" href=\"map?callsign=" + meta['source'] + "\" target=\"_blank\"></a>" + source;
-                }
-                up = meta['up'] ? "Up: " + meta['up'] : "";
-                down = meta['down'] ? "Down: " + meta['down'] : "";
-                $(el).find(".openwebrx-meta-slot").addClass("active");
-            } else {
-                $(el).find(".openwebrx-meta-slot").removeClass("active");
-            }
-            $(el).find(".openwebrx-ysf-mode").text(mode);
-            $(el).find(".openwebrx-ysf-source").html(source);
-            $(el).find(".openwebrx-ysf-up").text(up);
-            $(el).find(".openwebrx-ysf-down").text(down);
-
-            break;
-    } else {
-        clear_metadata();
-    }
-
-}
-
-function clear_metadata() {
-    $(".openwebrx-meta-panel .openwebrx-meta-autoclear").text("");
-    $(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
-    $(".openwebrx-dmr-timeslot-panel").removeClass("muted");
-}
-
 var waterfall_measure_minmax_now = false;
 var waterfall_measure_minmax_continuous = false;
 
@@ -1019,7 +946,7 @@ function divlog(what, is_error) {
         what = "<span class=\"webrx-error\">" + what + "</span>";
         toggle_panel("openwebrx-panel-log", true); //show panel if any error is present
     }
-    e("openwebrx-debugdiv").innerHTML += what + "<br />";
+    $('#openwebrx-debugdiv')[0].innerHTML += what + "<br />";
     var nano = $('.nano');
     nano.nanoScroller();
     nano.nanoScroller({scroll: 'bottom'});
@@ -1145,14 +1072,14 @@ function add_canvas() {
 
 
 function init_canvas_container() {
-    canvas_container = e("webrx-canvas-container");
+    canvas_container = $("#webrx-canvas-container")[0];
     canvas_container.addEventListener("mouseleave", canvas_container_mouseleave, false);
     canvas_container.addEventListener("mousemove", canvas_mousemove, false);
     canvas_container.addEventListener("mouseup", canvas_mouseup, false);
     canvas_container.addEventListener("mousedown", canvas_mousedown, false);
     canvas_container.addEventListener("wheel", canvas_mousewheel, false);
-    var frequency_container = e("openwebrx-frequency-container");
-    frequency_container.addEventListener("wheel", canvas_mousewheel, false);
+    var frequency_container = $("#openwebrx-frequency-container");
+    frequency_container.on("wheel", canvas_mousewheel, false);
     add_canvas();
 }
 
@@ -1307,6 +1234,8 @@ function digimodes_init() {
         $(e.currentTarget).toggleClass("muted");
         update_dmr_timeslot_filtering();
     });
+
+    $('.openwebrx-meta-panel').metaPanel();
 }
 
 function update_dmr_timeslot_filtering() {
@@ -1354,7 +1283,7 @@ function toggle_panel(what, on) {
         item.style.transitionProperty = 'transform';
     } else {
         item.movement = 'expand';
-        item.style.display = 'block';
+        item.style.display = null;
         setTimeout(function(){
             item.style.transitionProperty = 'transform';
             item.style.transform = 'perspective(600px) rotateX(0deg)';

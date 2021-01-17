@@ -8,7 +8,7 @@ Filter.prototype.getLimits = function() {
     if (this.demodulator.get_secondary_demod() === 'pocsag') {
         max_bw = 12500;
     } else if (this.demodulator.get_modulation() === 'wfm') {
-        max_bw = 80000;
+        max_bw = 100000;
     } else if (this.demodulator.get_modulation() === 'drm') {
         max_bw = 100000;
     } else if (this.demodulator.get_secondary_demod() === 'packet') {
@@ -236,7 +236,7 @@ Demodulator.prototype.emit = function(event, params) {
 };
 
 Demodulator.prototype.set_offset_frequency = function(to_what) {
-    if (to_what > bandwidth / 2 || to_what < -bandwidth / 2) return;
+    if (typeof(to_what) == 'undefined' || to_what > bandwidth / 2 || to_what < -bandwidth / 2) return;
     to_what = Math.round(to_what);
     if (this.offset_frequency === to_what) {
         return;

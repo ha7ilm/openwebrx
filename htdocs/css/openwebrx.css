@@ -573,9 +573,10 @@ img.openwebrx-mirror-img
 .openwebrx-progressbar-text
 {
 	position: absolute;
-	left:0px;
-	top:4px;
-	width: inherit;
+	left:50;
+	top:50%;
+	transform: translate(-50%, -50%);
+	white-space: nowrap;
 	z-index: 1;
 }
 
@@ -907,18 +908,30 @@ img.openwebrx-mirror-img
     border-color: Red;
 }
 
+.openwebrx-meta-panel {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
 .openwebrx-meta-slot {
+    flex: 1;
     width: 145px;
     height: 196px;
-    float: left;
-    margin-right: 10px;
 
     background-color: #676767;
     padding: 2px 0;
     color: #333;
 
     text-align: center;
-    position: relative;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.openwebrx-meta-slot > * {
+    flex: 0;
+    flex-basis: 1.125em;
 }
 
 .openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
@@ -960,13 +973,8 @@ img.openwebrx-mirror-img
     box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
 }
 
-.openwebrx-meta-slot:last-child {
-    margin-right: 0;
-}
-
 .openwebrx-meta-slot .openwebrx-meta-user-image {
-    width:100%;
-    height:133px;
+    flex: 1;
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -1233,12 +1241,12 @@ img.openwebrx-mirror-img
     height: 15px;
 }
 
-#openwebrx-mute-on .sprite-speaker {
-    background-position: -117px -38px;
+.openwebrx-mute-button .sprite-speaker {
+    background-position: -103px -38px;
 }
 
-#openwebrx-mute-off .sprite-speaker {
-    background-position: -103px -38px;
+.openwebrx-mute-button.muted .sprite-speaker {
+    background-position: -117px -38px;
 }
 
 .sprite-squelch {

@@ -54,7 +54,7 @@ class DigitalMode(Mode):
 class Modes(object):
     mappings = [
         AnalogMode("nfm", "FM", bandpass=Bandpass(-4000, 4000)),
-        AnalogMode("wfm", "WFM", bandpass=Bandpass(-50000, 50000)),
+        AnalogMode("wfm", "WFM", bandpass=Bandpass(-75000, 75000)),
         AnalogMode("am", "AM", bandpass=Bandpass(-4000, 4000)),
         AnalogMode("lsb", "LSB", bandpass=Bandpass(-3000, -300)),
         AnalogMode("usb", "USB", bandpass=Bandpass(300, 3000)),
@@ -75,8 +75,8 @@ class Modes(object):
         DigitalMode(
             "wspr", "WSPR", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x"], service=True
         ),
-        DigitalMode("fst4", "FST4", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True),
-        DigitalMode("fst4w", "FST4W", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x"], service=True),
+        DigitalMode("fst4", "FST4", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x-2-3"], service=True),
+        DigitalMode("fst4w", "FST4W", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x-2-3"], service=True),
         DigitalMode("js8", "JS8Call", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["js8call"], service=True),
         DigitalMode(
             "packet",

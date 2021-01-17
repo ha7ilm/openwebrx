@@ -32,3 +32,7 @@ class Resampler(DirectSource):
     def activateProfile(self, profile_id=None):
         logger.warning("Resampler does not support setting profiles")
         pass
+
+    def validateProfiles(self):
+        # resampler does not support profiles
+        pass

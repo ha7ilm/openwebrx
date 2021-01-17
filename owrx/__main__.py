@@ -11,8 +11,9 @@ from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
 from owrx.service import Services
 from owrx.websocket import WebSocketConnection
-from owrx.pskreporter import PskReporter
+from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
+from owrx.audio import DecoderQueue
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
@@ -67,4 +68,5 @@ Support and info:       https://groups.io/g/openwebrx
     except KeyboardInterrupt:
         WebSocketConnection.closeAll()
         Services.stop()
-        PskReporter.stop()
+        ReportingEngine.stopAll()
+        DecoderQueue.stopAll()

@@ -1,32 +1,36 @@
-#webrx-top-container
-{
+#webrx-top-container {
     position: relative;
     z-index:1000;
     background-color: #575757;
-}
 
-#webrx-top-photo
-{
-    width: 100%;
-    display: block;
-}
+    background-image: url(../gfx/openwebrx-top-photo.jpg);
+    background-position-x: center;
+    background-position-y: top;
+    background-repeat: no-repeat;
+    background-size: cover;
 
-#webrx-top-photo-clip
-{
-    min-height: 67px;
-    max-height: 67px;
-    height: 350px;
     overflow: hidden;
-    position: relative;
 }
 
-.webrx-top-bar-parts
-{
+#openwebrx-description-container {
+    transition-property: height, opacity;
+    transition-duration: 1s;
+    transition-timing-function: ease-out;
+    opacity: 0;
+    height: 0;
+    /* originally, top-bar + description was 350px */
+    max-height: 283px;
+    overflow: hidden;
+}
+
+#openwebrx-description-container.expanded {
+    opacity: 1;
+    height: 283px;
+}
+
+.webrx-top-bar-parts {
     height:67px;
-}
 
-#webrx-top-bar
-{
     background: rgba(128, 128, 128, 0.15);
     margin:0;
     padding:0;
@@ -37,31 +41,28 @@
     -moz-user-select: none;
     -ms-user-select: none;
     overflow: hidden;
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
+
+    display: flex;
+    flex-direction: row;
 }
 
-#webrx-tob-container, #webrx-top-container * {
+.webrx-top-bar-parts > * {
+    flex: 0;
+}
+
+#webrx-top-container, #webrx-top-container * {
     line-height: initial;
     box-sizing: initial;
 }
 
-#webrx-top-container img {
-    vertical-align: initial;
-}
-
-#webrx-top-logo
-{
+#webrx-top-logo {
     padding: 12px;
-    float: left;
+    /* overwritten by media queries */
+    display: none;
 }
 
-#webrx-rx-avatar
-{
+#webrx-rx-avatar {
     background-color: rgba(154, 154, 154, .5);
-    float: left;
     margin: 7px;
 
     cursor:pointer;
@@ -73,49 +74,45 @@
 }
 
 #webrx-rx-texts {
-    float: left;
-    padding: 10px;
+    /* minimum layout width */
+    width: 0;
+    /* will be getting wider with flex */
+    flex: 1;
+    overflow: hidden;
 }
 
 #webrx-rx-texts div {
+    margin: 0 10px;
     padding: 3px;
-}
-
-#webrx-rx-title
-{
     white-space:nowrap;
     overflow: hidden;
     cursor:pointer;
-    font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
     color: #909090;
+}
+
+#webrx-rx-texts div:first-child {
+    margin-top: 10px;
+}
+
+#webrx-rx-title {
+    font-family: "DejaVu Sans", Verdana, Geneva, sans-serif;
     font-size: 11pt;
     font-weight: bold;
 }
 
-#webrx-rx-desc
-{
-    white-space:nowrap;
-    overflow: hidden;
-    cursor:pointer;
+#webrx-rx-desc {
     font-size: 10pt;
-    color: #909090;
 }
 
-#webrx-rx-desc a
-{
-    color: #909090;
-}
-
-#openwebrx-rx-details-arrow
-{
+#openwebrx-rx-details-arrow {
     cursor:pointer;
     position: absolute;
-    left: 470px;
-    top: 55px;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
 }
 
-#openwebrx-rx-details-arrow a
-{
+#openwebrx-rx-details-arrow a {
     margin: 0;
     padding: 0;
     line-height: 0;
@@ -128,6 +125,11 @@
     cursor:pointer;
 }
 
+#openwebrx-main-buttons .button[data-toggle-panel] {
+    /* will be enabled by javascript if the panel is present in the DOM */
+    display: none;
+}
+
 #openwebrx-main-buttons .button img {
     height: 38px;
 }
@@ -137,23 +139,19 @@
     text-decoration: inherit;
 }
 
-#openwebrx-main-buttons .button:hover
-{
+#openwebrx-main-buttons .button:hover {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
-#openwebrx-main-buttons .button:active
-{
+#openwebrx-main-buttons .button:active {
     background-color: rgba(255, 255, 255, 0.55);
 }
 
 
-#openwebrx-main-buttons
-{
+#openwebrx-main-buttons {
     padding: 5px 15px;
     display: flex;
     list-style: none;
-    float: right;
     margin:0;
     color: white;
     text-shadow: 0px 0px 4px #000000;
@@ -162,23 +160,17 @@
     font-weight: bold;
 }
 
-#webrx-rx-photo-title
-{
-    position: absolute;
-    left: 15px;
-    top: 78px;
-    color: White;
+#webrx-rx-photo-title {
+    margin: 10px 15px;
+    color: white;
     font-size: 16pt;
     text-shadow: 1px 1px 4px #444;
     opacity: 1;
 }
 
-#webrx-rx-photo-desc
-{
-    position: absolute;
-    left: 15px;
-    top: 109px;
-    color: White;
+#webrx-rx-photo-desc {
+    margin: 10px 15px;
+    color: white;
     font-size: 10pt;
     font-weight: bold;
     text-shadow: 0px 0px 6px #444;
@@ -186,11 +178,36 @@
     line-height: 1.5em;
 }
 
-#webrx-rx-photo-desc a
-{
+#webrx-rx-photo-desc a {
     color: #5ca8ff;
     text-shadow: none;
 }
+
+/*
+ * Responsive stuff
+ */
+
+@media (min-width: 576px) {
+    #webrx-rx-texts {
+        display: initial;
+    }
+}
+
+@media (min-width: 768px) {
+}
+
+@media (min-width: 992px) {
+    #webrx-top-logo {
+        display: initial;
+    }
+}
+
+@media (min-width: 1200px) {
+}
+
+/*
+ * Sprites (images)
+ */
 
 .sprite-panel-status {
     background-position: 0 0;

@@ -4,10 +4,10 @@ import re
 from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
 from .map import Map, LocatorLocation
-from .pskreporter import PskReporter
 from .metrics import Metrics, CounterMetric
 from .config import Config
 from abc import ABCMeta, abstractmethod
+from owrx.reporting import ReportingEngine
 
 import logging
 
@@ -102,7 +102,7 @@ class Js8Parser(Parser):
                     Map.getSharedInstance().updateLocation(
                         frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
                     )
-                    PskReporter.getSharedInstance().spot({
+                    ReportingEngine.getSharedInstance().spot({
                         "callsign": frame.callsign,
                         "mode": "JS8",
                         "locator": frame.grid,

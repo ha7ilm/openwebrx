@@ -9,43 +9,19 @@ from owrx.config import Config
 from owrx.version import openwebrx_version
 from owrx.locator import Locator
 from owrx.metrics import Metrics, CounterMetric
+from owrx.reporting import Reporter
 
 logger = logging.getLogger(__name__)
 
 
-class PskReporterDummy(object):
-    """
-    used in place of the PskReporter when reporting is disabled.
-    does nothing.
-    """
-
-    def spot(self, spot):
-        pass
-
-    def cancelTimer(self):
-        pass
-
-
-class PskReporter(object):
-    sharedInstance = None
-    creationLock = threading.Lock()
+class PskReporter(Reporter):
     interval = 300
-    supportedModes = ["FT8", "FT4", "JT9", "JT65", "FST4", "FST4W", "JS8"]
 
-    @staticmethod
-    def getSharedInstance():
-        with PskReporter.creationLock:
-            if PskReporter.sharedInstance is None:
-                if Config.get()["pskreporter_enabled"]:
-                    PskReporter.sharedInstance = PskReporter()
-                else:
-                    PskReporter.sharedInstance = PskReporterDummy()
-        return PskReporter.sharedInstance
+    def getSupportedModes(self):
+        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8"]
 
-    @staticmethod
-    def stop():
-        if PskReporter.sharedInstance:
-            PskReporter.sharedInstance.cancelTimer()
+    def stop(self):
+        self.cancelTimer()
 
     def __init__(self):
         self.spots = []
@@ -72,8 +48,6 @@ class PskReporter(object):
         return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
     def spot(self, spot):
-        if not spot["mode"] in PskReporter.supportedModes:
-            return
         with self.spotLock:
             if any(x for x in self.spots if self.spotEquals(spot, x)):
                 # dupe

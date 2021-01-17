@@ -71,6 +71,7 @@ class CpuUsageThread(threading.Thread):
             self.shutdown()
 
     def shutdown(self):
-        CpuUsageThread.sharedInstance = None
+        with CpuUsageThread.creationLock:
+            CpuUsageThread.sharedInstance = None
         self.doRun = False
         self.endEvent.set()

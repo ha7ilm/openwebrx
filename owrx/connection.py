@@ -1,4 +1,3 @@
-from owrx.config import Config
 from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
@@ -110,7 +109,6 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
 
 class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     sdr_config_keys = [
-        "waterfall_min_level",
         "waterfall_min_level",
         "waterfall_max_level",
         "samp_rate",
