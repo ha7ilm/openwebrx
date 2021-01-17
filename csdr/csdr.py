@@ -885,6 +885,3 @@ class dsp(object):
             return
         self.stop()
         self.start()
-
-    def __del__(self):
-        self.stop()
