@@ -24,7 +24,7 @@ class DmrCache(object):
         self.cacheTimeout = timedelta(seconds=86400)
 
     def isValid(self, key):
-        if not key in self.cache:
+        if key not in self.cache:
             return False
         entry = self.cache[key]
         return entry["timestamp"] + self.cacheTimeout > datetime.now()
@@ -55,20 +55,20 @@ class DmrMetaEnricher(object):
 
     def enrich(self, meta):
         if not Config.get()["digital_voice_dmr_id_lookup"]:
-            return None
-        if not "source" in meta:
-            return None
+            return meta
+        if "source" not in meta:
+            return meta
         id = meta["source"]
         cache = DmrCache.getSharedInstance()
         if not cache.isValid(id):
-            if not id in self.threads:
+            if id not in self.threads:
                 self.threads[id] = threading.Thread(target=self.downloadRadioIdData, args=[id], daemon=True)
                 self.threads[id].start()
-            return None
+            return meta
         data = cache.get(id)
         if "count" in data and data["count"] > 0 and "results" in data:
-            return data["results"][0]
-        return None
+            meta["additional"] = data["results"][0]
+        return meta
 
 
 class YsfMetaEnricher(object):
@@ -76,11 +76,17 @@ class YsfMetaEnricher(object):
         self.parser = parser
 
     def enrich(self, meta):
+        for key in ["source", "up", "down", "target"]:
+            if key in meta:
+                meta[key] = meta[key].strip()
+        for key in ["lat", "lon"]:
+            if key in meta:
+                meta[key] = float(meta[key])
         if "source" in meta and "lat" in meta and "lon" in meta:
             # TODO parsing the float values should probably happen earlier
-            loc = LatLngLocation(float(meta["lat"]), float(meta["lon"]))
+            loc = LatLngLocation(meta["lat"], meta["lon"])
             Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF", self.parser.getBand())
-        return None
+        return meta
 
 
 class MetaParser(Parser):
@@ -95,7 +101,5 @@ class MetaParser(Parser):
         if "protocol" in meta:
             protocol = meta["protocol"]
             if protocol in self.enrichers:
-                additional_data = self.enrichers[protocol].enrich(meta)
-                if additional_data is not None:
-                    meta["additional"] = additional_data
+                meta = self.enrichers[protocol].enrich(meta)
         self.handler.write_metadata(meta)

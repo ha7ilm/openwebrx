@@ -186,7 +186,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         'style="' + stylesToString(styles) + '"'
     ].join(' ');
     if (msg.lat && msg.lon) {
-        link = '<a ' + attrs + ' href="map?callsign=' + source + '" target="openwebrx-map">' + overlay + '</a>';
+        link = '<a ' + attrs + ' href="map?callsign=' + encodeURIComponent(source) + '" target="openwebrx-map">' + overlay + '</a>';
     } else {
         link = '<div ' + attrs + '>' + overlay + '</div>'
     }

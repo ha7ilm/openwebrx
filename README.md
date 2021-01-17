@@ -11,11 +11,17 @@ It has the following features:
 - filter passband can be set from GUI
 - it extensively uses HTML5 features like WebSocket, Web Audio API, and Canvas
 - it works in Google Chrome, Chromium and Mozilla Firefox
-- currently supports RTL-SDR, HackRF, SDRplay, AirSpy, LimeSDR, PlutoSDR
+- supports a wide range of [SDR hardware](https://github.com/jketterl/openwebrx/wiki/Supported-Hardware#sdr-devices)
 - Multiple SDR devices can be used simultaneously
 - [digiham](https://github.com/jketterl/digiham) based demodularors (DMR, YSF, Pocsag)
 - [dsd](https://github.com/f4exb/dsdcc) based demodulators (D-Star, NXDN)
-- [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9)
+- [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9, FST4,
+  FST4W)
+- [direwolf](https://github.com/wb2osz/direwolf) based demodulation of APRS packets
+- [JS8Call](http://js8call.com/) support
+- [DRM](https://github.com/jketterl/openwebrx/wiki/DRM-demodulator-notes) support
+- [FreeDV](https://github.com/jketterl/openwebrx/wiki/FreeDV-demodulator-notes) support
+- M17 support based on [m17-cxx-demod](https://github.com/mobilinkd/m17-cxx-demod)
 
 ## Setup
 
@@ -34,6 +40,9 @@ on the respective methods.
 If you have trouble setting up or configuring your receiver, you have some great idea you want to see implemented, or
 you just generally want to have some OpenWebRX-related chat, come visit us over on
 [our groups.io group](https://groups.io/g/openwebrx).
+
+If you want to hang out, chat, or get in touch directly with the developers, receiver operators or users, feel free to
+drop by in [our Discord server](https://discord.gg/gnE9hPz).
 
 ## Usage tips
 
