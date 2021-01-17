@@ -19,6 +19,8 @@ class Chain(Flow):
         w2.setInput(buffer)
 
     def stop(self):
+        if self.output is not None:
+            self.output.stop()
         for w in self.workers:
             w.stop()
 
