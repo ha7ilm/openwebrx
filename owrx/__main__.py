@@ -13,6 +13,7 @@ from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
+from owrx.audio import DecoderQueue
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
@@ -68,3 +69,4 @@ Support and info:       https://groups.io/g/openwebrx
         WebSocketConnection.closeAll()
         Services.stop()
         ReportingEngine.stopAll()
+        DecoderQueue.stopAll()
