@@ -9,7 +9,7 @@
     });
 
     var expectedCallsign;
-    if (query.callsign) expectedCallsign = query.callsign;
+    if (query.callsign) expectedCallsign = decodeURIComponent(query.callsign);
     var expectedLocator;
     if (query.locator) expectedLocator = query.locator;
 
