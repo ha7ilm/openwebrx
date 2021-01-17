@@ -137,14 +137,13 @@
                     marker.band = update.band;
                     marker.comment = update.location.comment;
 
-                    // TODO the trim should happen on the server side
-                    if (expectedCallsign && expectedCallsign == update.callsign.trim()) {
+                    if (expectedCallsign && expectedCallsign == update.callsign) {
                         map.panTo(pos);
                         showMarkerInfoWindow(update.callsign, pos);
                         expectedCallsign = false;
                     }
 
-                    if (infowindow && infowindow.callsign && infowindow.callsign == update.callsign.trim()) {
+                    if (infowindow && infowindow.callsign && infowindow.callsign == update.callsign) {
                         showMarkerInfoWindow(infowindow.callsign, pos);
                     }
                 break;
@@ -319,6 +318,8 @@
                 delete infowindow.callsign;
             });
         }
+        delete infowindow.locator;
+        delete infowindow.callsign;
         return infowindow;
     }
 
