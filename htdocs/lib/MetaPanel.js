@@ -143,11 +143,7 @@ YsfMetaPanel.prototype.clear = function() {
 YsfMetaPanel.prototype.setMode = function(mode) {
     if (this.mode === mode) return;
     this.mode = mode;
-    var text = '';
-    if (mode && mode != '') {
-        text = 'Mode: ' + mode;
-    }
-    this.el.find('.openwebrx-ysf-mode').text(text);
+    this.el.find('.openwebrx-ysf-mode').text(mode || '');
 };
 
 YsfMetaPanel.prototype.setSource = function(source) {
@@ -170,21 +166,13 @@ YsfMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
 YsfMetaPanel.prototype.setUp = function(up) {
     if (this.up === up) return;
     this.up = up;
-    var text = '';
-    if (up && up != '') {
-        text = 'Up: ' + up;
-    }
-    this.el.find('.openwebrx-ysf-up').text(text);
+    this.el.find('.openwebrx-ysf-up').text(up || '');
 };
 
 YsfMetaPanel.prototype.setDown = function(down) {
     if (this.down === down) return;
     this.down = down;
-    var text = '';
-    if (down && down != '') {
-        text = 'Down: ' + down;
-    }
-    this.el.find('.openwebrx-ysf-down').text(text);
+    this.el.find('.openwebrx-ysf-down').text(down || '');
 }
 
 MetaPanel.types = {

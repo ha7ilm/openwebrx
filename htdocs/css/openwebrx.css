@@ -990,6 +990,18 @@ img.openwebrx-mirror-img
     cursor: pointer;
 }
 
+.openwebrx-ysf-mode:not(:empty):before {
+    content: "Mode: ";
+}
+
+.openwebrx-ysf-up:not(:empty):before {
+    content: "Up: ";
+}
+
+.openwebrx-ysf-down:not(:empty):before {
+    content: "Down: ";
+}
+
 .openwebrx-maps-pin {
     background-image: url("../gfx/google_maps_pin.svg");
     background-position: center;
