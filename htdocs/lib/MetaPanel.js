@@ -24,12 +24,8 @@ DmrMetaSlot.prototype.update = function(data) {
     if (data['sync'] && data['sync'] === "voice") {
         this.setId(data['additional'] && data['additional']['callsign'] || data['source']);
         this.setName(data['additional'] && data['additional']['fname']);
-        if (data['type'] === "group") {
-            this.setTalkgroup(data['target']);
-        }
-        if (data['type'] === "direct") {
-            this.setDirect(data['target']);
-        }
+        this.setMode(['group', 'direct'].includes(data['type']) ? data['type'] : undefined);
+        this.setTarget(data['target']);
         this.el.addClass("active");
     } else {
         this.clear();
@@ -47,6 +43,19 @@ DmrMetaSlot.prototype.setName = function(name) {
     this.name = name;
     this.el.find('.openwebrx-dmr-name').text(name || '');
 };
+
+DmrMetaSlot.prototype.setMode = function(mode) {
+    var classes = ['group', 'direct'].filter(function(c){
+        return c !== mode;
+    });
+    this.el.removeClass(classes.join(' ')).addClass(mode);
+}
+
+DmrMetaSlot.prototype.setTarget = function(target) {
+    if (this.target === target) return;
+    this.target = target;
+    this.el.find('.openwebrx-dmr-target').text(target || '');
+}
 
 DmrMetaSlot.prototype.setTalkgroup = function(talkgroup) {
     if (this.talkgroup === talkgroup && this.targetMode === 'talkgroup') return;
@@ -75,8 +84,8 @@ DmrMetaSlot.prototype.setDirect = function(call) {
 DmrMetaSlot.prototype.clear = function() {
     this.setId();
     this.setName();
-    this.setTalkgroup();
-    this.setDirect();
+    this.setMode();
+    this.setTarget();
     this.el.removeClass("active");
 };
 

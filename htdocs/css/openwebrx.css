@@ -932,7 +932,8 @@ img.openwebrx-mirror-img
 
 .openwebrx-meta-slot > * {
     flex: 0;
-    flex-basis: 1.125em;
+    flex-basis: 1.2em;
+    line-height: 1.2em;
 }
 
 .openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
@@ -982,8 +983,16 @@ img.openwebrx-mirror-img
     background-image: url("../gfx/openwebrx-directcall.png");
 }
 
-.openwebrx-meta-slot.active .openwebrx-meta-user-image.group {
+.openwebrx-meta-slot.active.group .openwebrx-meta-user-image {
     background-image: url("../gfx/openwebrx-groupcall.png");
+}
+
+.openwebrx-meta-slot.group .openwebrx-dmr-target:not(:empty):before {
+    content: "Talkgroup: ";
+}
+
+.openwebrx-meta-slot.direct .openwebrx-dmr-target:not(:empty):before {
+    content: "Direct: ";
 }
 
 .openwebrx-dmr-timeslot-panel * {
