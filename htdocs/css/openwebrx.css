@@ -979,7 +979,8 @@ img.openwebrx-mirror-img
     background-repeat: no-repeat;
 }
 
-.openwebrx-meta-slot.active .openwebrx-meta-user-image {
+.openwebrx-meta-slot.active.direct .openwebrx-meta-user-image,
+#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image {
     background-image: url("../gfx/openwebrx-directcall.png");
 }
 

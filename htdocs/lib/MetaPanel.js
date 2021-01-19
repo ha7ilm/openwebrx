@@ -45,6 +45,8 @@ DmrMetaSlot.prototype.setName = function(name) {
 };
 
 DmrMetaSlot.prototype.setMode = function(mode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
     var classes = ['group', 'direct'].filter(function(c){
         return c !== mode;
     });
@@ -56,30 +58,6 @@ DmrMetaSlot.prototype.setTarget = function(target) {
     this.target = target;
     this.el.find('.openwebrx-dmr-target').text(target || '');
 }
-
-DmrMetaSlot.prototype.setTalkgroup = function(talkgroup) {
-    if (this.talkgroup === talkgroup && this.targetMode === 'talkgroup') return;
-    this.talkgroup = talkgroup;
-    this.targetMode = 'talkgroup';
-    var text = '';
-    if (talkgroup && talkgroup != '') {
-        text = 'Talkgroup: ' + talkgroup;
-    }
-    this.el.find('.openwebrx-dmr-target').text(text);
-    this.el.find(".openwebrx-meta-user-image").addClass("group");
-};
-
-DmrMetaSlot.prototype.setDirect = function(call) {
-    if (this.call === call && this.targetMode === 'direct') return;
-    this.call = call;
-    this.targetMode = 'direct';
-    var text = '';
-    if (call && call != '') {
-        text = 'Direct: ' + call;
-    }
-    this.el.find('.openwebrx-dmr-target').text(text);
-    this.el.find(".openwebrx-meta-user-image").removeClass("group");
-};
 
 DmrMetaSlot.prototype.clear = function() {
     this.setId();
