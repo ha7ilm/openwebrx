@@ -43,6 +43,15 @@ ul {
     padding: 0;
 }
 
+.openwebrx-map-legend ul li {
+    cursor: pointer;
+}
+
+.openwebrx-map-legend ul li.disabled {
+    opacity: .3;
+    filter: grayscale(70%);
+}
+
 .openwebrx-map-legend li.square .illustration {
     display: inline-block;
     width: 30px;
