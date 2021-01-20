@@ -65,12 +65,12 @@ class ServiceHandler(SdrSourceEventClient):
         self.services = []
         self.source = source
         self.startupTimer = None
+        self.scheduler = None
         self.source.addClient(self)
         props = self.source.getProps()
         props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         if self.source.isAvailable():
             self.scheduleServiceStartup()
-        self.scheduler = None
         if "schedule" in props or "scheduler" in props:
             self.scheduler = ServiceScheduler(self.source)
 
