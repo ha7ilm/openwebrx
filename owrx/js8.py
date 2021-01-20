@@ -102,15 +102,17 @@ class Js8Parser(Parser):
                     Map.getSharedInstance().updateLocation(
                         frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
                     )
-                    ReportingEngine.getSharedInstance().spot({
-                        "callsign": frame.callsign,
-                        "mode": "JS8",
-                        "locator": frame.grid,
-                        "freq": self.dial_freq + frame.freq,
-                        "db": frame.db,
-                        "timestamp": frame.timestamp,
-                        "msg": str(frame)
-                    })
+                    ReportingEngine.getSharedInstance().spot(
+                        {
+                            "callsign": frame.callsign,
+                            "mode": "JS8",
+                            "locator": frame.grid,
+                            "freq": self.dial_freq + frame.freq,
+                            "db": frame.db,
+                            "timestamp": frame.timestamp,
+                            "msg": str(frame),
+                        }
+                    )
 
             except Exception:
                 logger.exception("error while parsing js8 message")

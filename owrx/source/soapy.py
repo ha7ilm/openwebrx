@@ -5,11 +5,16 @@ from .connector import ConnectorSource
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def getCommandMapper(self):
-        return super().getCommandMapper().setBase("soapy_connector").setMappings(
-            {
-                "antenna": Option("-a"),
-                "soapy_settings": Option("-t"),
-            }
+        return (
+            super()
+            .getCommandMapper()
+            .setBase("soapy_connector")
+            .setMappings(
+                {
+                    "antenna": Option("-a"),
+                    "soapy_settings": Option("-t"),
+                }
+            )
         )
 
     """

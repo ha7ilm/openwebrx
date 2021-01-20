@@ -10,9 +10,7 @@ class Input(ABC):
         self.infotext = infotext
 
     def bootstrap_decorate(self, input):
-        infotext = (
-            "<small>{text}</small>".format(text=self.infotext) if self.infotext else ""
-        )
+        infotext = "<small>{text}</small>".format(text=self.infotext) if self.infotext else ""
         return """
             <div class="form-group row">
                 <label class="col-form-label col-form-label-sm col-3" for="{id}">{label}</label>
@@ -108,9 +106,7 @@ class LocationInput(Input):
         )
 
     def parse(self, data):
-        return {
-            self.id: {k: float(data["{0}-{1}".format(self.id, k)][0]) for k in ["lat", "lon"]}
-        }
+        return {self.id: {k: float(data["{0}-{1}".format(self.id, k)][0]) for k in ["lat", "lon"]}}
 
 
 class TextAreaInput(Input):
@@ -195,9 +191,7 @@ class MultiCheckboxInput(Input):
 
 class ServicesCheckboxInput(MultiCheckboxInput):
     def __init__(self, id, label, infotext=None):
-        services = [
-            Option(s.modulation, s.name) for s in Modes.getAvailableServices()
-        ]
+        services = [Option(s.modulation, s.name) for s in Modes.getAvailableServices()]
         super().__init__(id, label, services, infotext)
 
 

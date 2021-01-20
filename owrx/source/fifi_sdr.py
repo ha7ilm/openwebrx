@@ -9,9 +9,13 @@ logger = logging.getLogger(__name__)
 
 class FifiSdrSource(DirectSource):
     def getCommandMapper(self):
-        return super().getCommandMapper().setBase("arecord").setMappings(
-            {"device": Option("-D"), "samp_rate": Option("-r")}
-        ).setStatic("-t raw -f S16_LE -c2 -")
+        return (
+            super()
+            .getCommandMapper()
+            .setBase("arecord")
+            .setMappings({"device": Option("-D"), "samp_rate": Option("-r")})
+            .setStatic("-t raw -f S16_LE -c2 -")
+        )
 
     def getEventNames(self):
         return super().getEventNames() + ["device"]
@@ -20,7 +24,7 @@ class FifiSdrSource(DirectSource):
         return ["csdr convert_s16_f", "csdr gain_ff 5"]
 
     def sendRockProgFrequency(self, frequency):
-        process = Popen(["rockprog", "--vco", "-w", "--freq={}".format(frequency / 1E6)])
+        process = Popen(["rockprog", "--vco", "-w", "--freq={}".format(frequency / 1e6)])
         process.communicate()
         rc = process.wait()
         if rc != 0:

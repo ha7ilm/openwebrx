@@ -112,9 +112,7 @@ class Config:
     @staticmethod
     def validateConfig():
         pm = Config.get()
-        errors = [
-            Config.checkTempDirectory(pm)
-        ]
+        errors = [Config.checkTempDirectory(pm)]
 
         return [e for e in errors if e is not None]
 

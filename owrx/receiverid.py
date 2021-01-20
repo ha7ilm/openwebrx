@@ -77,6 +77,7 @@ class ReceiverId(object):
                 return Key(keyString)
             except KeyException as e:
                 logger.error(e)
+
         config = Config.get()
         if "receiver_keys" not in config or config["receiver_keys"] is None:
             return None

@@ -198,10 +198,7 @@ class dsp(object):
                 "csdr limit_ff",
             ]
             chain += last_decimation_block
-            chain += [
-                "csdr deemphasis_wfm_ff {audio_rate} {wfm_deemphasis_tau}",
-                "csdr convert_f_s16"
-            ]
+            chain += ["csdr deemphasis_wfm_ff {audio_rate} {wfm_deemphasis_tau}", "csdr convert_f_s16"]
         elif self.isDigitalVoice(which):
             chain += ["csdr fmdemod_quadri_cf"]
             chain += last_decimation_block
@@ -460,7 +457,9 @@ class dsp(object):
     def set_secondary_offset_freq(self, value):
         self.secondary_offset_freq = value
         if self.secondary_processes_running and self.has_pipe("secondary_shift_pipe"):
-            self.pipes["secondary_shift_pipe"].write("%g\n" % (-float(self.secondary_offset_freq) / self.if_samp_rate()))
+            self.pipes["secondary_shift_pipe"].write(
+                "%g\n" % (-float(self.secondary_offset_freq) / self.if_samp_rate())
+            )
 
     def stop_secondary_demodulator(self):
         if not self.secondary_processes_running:
@@ -581,7 +580,7 @@ class dsp(object):
             demodulator = self.get_secondary_demodulator()
         return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w"]
 
-    def isJs8(self, demodulator = None):
+    def isJs8(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
         return demodulator == "js8"
@@ -689,7 +688,11 @@ class dsp(object):
     def set_squelch_level(self, squelch_level):
         self.squelch_level = squelch_level
         # no squelch required on digital voice modes
-        actual_squelch = -150 if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.isFreeDV() else self.squelch_level
+        actual_squelch = (
+            -150
+            if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.isFreeDV()
+            else self.squelch_level
+        )
         if self.running:
             self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 
@@ -842,6 +845,7 @@ class dsp(object):
             self.start_secondary_demodulator()
 
         if self.has_pipe("smeter_pipe"):
+
             def read_smeter():
                 raw = self.pipes["smeter_pipe"].readline()
                 if len(raw) == 0:
@@ -851,6 +855,7 @@ class dsp(object):
 
             self.output.send_output("smeter", read_smeter)
         if self.has_pipe("meta_pipe"):
+
             def read_meta():
                 raw = self.pipes["meta_pipe"].readline()
                 if len(raw) == 0:

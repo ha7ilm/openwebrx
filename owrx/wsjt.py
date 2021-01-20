@@ -99,7 +99,7 @@ class Ft4Profile(WsjtProfile):
 
 
 class Fst4Profile(WsjtProfile):
-    availableIntervals = [15, 30, 60,  120, 300, 900, 1800]
+    availableIntervals = [15, 30, 60, 120, 300, 900, 1800]
 
     def __init__(self, interval):
         self.interval = interval
@@ -208,7 +208,7 @@ class Decoder(ABC):
         dateformat = self.profile.getTimestampFormat()
         remain = instring[len(dateformat) + 1:]
         try:
-            ts = datetime.strptime(instring[0:len(dateformat)], dateformat)
+            ts = datetime.strptime(instring[0: len(dateformat)], dateformat)
             return remain, int(
                 datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
             )

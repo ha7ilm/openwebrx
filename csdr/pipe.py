@@ -42,6 +42,7 @@ class Pipe(object):
            immediately here), resulting in empty reads until data is available. This is handled specially in the
            ReadingPipe class.
         """
+
         def opener(path, flags):
             fd = os.open(path, flags | os.O_NONBLOCK)
             os.set_blocking(fd, True)
@@ -88,7 +89,7 @@ class WritingPipe(Pipe):
             except OSError as error:
                 # ENXIO = FIFO has not been opened for reading
                 if error.errno == 6:
-                    time.sleep(.1)
+                    time.sleep(0.1)
                     retries += 1
                 else:
                     raise

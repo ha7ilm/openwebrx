@@ -17,6 +17,7 @@ from owrx.command import Flag, Option
 # If you omit `remote` from config_webrx.py, hpsdrconnector will use the HPSDR discovery protocol
 # to find radios on your local network and will connect to the first radio it discovered.
 
+
 class HpsdrSource(ConnectorSource):
     def getCommandMapper(self):
         return (
@@ -24,10 +25,11 @@ class HpsdrSource(ConnectorSource):
             .getCommandMapper()
             .setBase("hpsdrconnector")
             .setMappings(
-            {
-                "tuner_freq": Option("--frequency"),
-                "samp_rate": Option("--samplerate"),
-                "remote": Option("--radio"),
-                "rf_gain": Option("--gain"),
-            })
+                {
+                    "tuner_freq": Option("--frequency"),
+                    "samp_rate": Option("--samplerate"),
+                    "remote": Option("--radio"),
+                    "rf_gain": Option("--gain"),
+                }
+            )
         )

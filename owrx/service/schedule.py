@@ -68,6 +68,7 @@ class DatetimeScheduleEntry(ScheduleEntry):
     def getNextActivation(self):
         return self.startTime
 
+
 class Schedule(ABC):
     @staticmethod
     def parse(props):
@@ -140,7 +141,7 @@ class DaylightSchedule(TimerangeSchedule):
         degtorad = math.pi / 180
         radtodeg = 180 / math.pi
 
-        #Number of days since 01/01
+        # Number of days since 01/01
         days = date.timetuple().tm_yday
 
         # Longitudinal correction

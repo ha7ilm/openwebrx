@@ -69,12 +69,16 @@ class SdrSettingsController(AdminController):
                     {form}
                 </div>
             </div>
-        """.format(device_name=config["name"], form=self.render_form(device_id, config))
+        """.format(
+            device_name=config["name"], form=self.render_form(device_id, config)
+        )
 
     def render_form(self, device_id, config):
         return """
             <form class="sdrdevice" data-config="{formdata}"></form>
-        """.format(device_id=device_id, formdata=quote(json.dumps(config)))
+        """.format(
+            device_id=device_id, formdata=quote(json.dumps(config))
+        )
 
     def indexAction(self):
         self.serve_template("sdrsettings.html", **self.template_variables())
@@ -119,12 +123,18 @@ class GeneralSettingsController(AdminController):
             DropdownInput(
                 "audio_compression",
                 "Audio compression",
-                options=[Option("adpcm", "ADPCM"), Option("none", "None"),],
+                options=[
+                    Option("adpcm", "ADPCM"),
+                    Option("none", "None"),
+                ],
             ),
             DropdownInput(
                 "fft_compression",
                 "Waterfall compression",
-                options=[Option("adpcm", "ADPCM"), Option("none", "None"),],
+                options=[
+                    Option("adpcm", "ADPCM"),
+                    Option("none", "None"),
+                ],
             ),
         ),
         Section(
@@ -196,10 +206,7 @@ class GeneralSettingsController(AdminController):
                 "Js8Call decoding depth",
                 infotext="A higher decoding depth will allow more results, but will also consume more cpu",
             ),
-            Js8ProfileCheckboxInput(
-                "js8_enabled_profiles",
-                "Js8Call enabled modes"
-            ),
+            Js8ProfileCheckboxInput("js8_enabled_profiles", "Js8Call enabled modes"),
         ),
         Section(
             "Background decoding",
@@ -269,9 +276,7 @@ class GeneralSettingsController(AdminController):
 
     def processFormData(self):
         data = parse_qs(self.get_body().decode("utf-8"))
-        data = {
-            k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()
-        }
+        data = {k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()}
         config = Config.get()
         for k, v in data.items():
             config[k] = v

@@ -40,10 +40,12 @@ class ReportingEngine(object):
         if "pskreporter_enabled" in config and config["pskreporter_enabled"]:
             # inline import due to circular dependencies
             from owrx.pskreporter import PskReporter
+
             self.reporters += [PskReporter()]
         if "wsprnet_enabled" in config and config["wsprnet_enabled"]:
             # inline import due to circular dependencies
             from owrx.wsprnet import WsprnetReporter
+
             self.reporters += [WsprnetReporter()]
 
     def stop(self):

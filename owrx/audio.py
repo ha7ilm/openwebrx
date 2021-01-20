@@ -69,7 +69,9 @@ class DecoderQueue(Queue):
         with DecoderQueue.creationLock:
             if DecoderQueue.sharedInstance is None:
                 pm = Config.get()
-                DecoderQueue.sharedInstance = DecoderQueue(maxsize=pm["decoding_queue_length"], workers=pm["decoding_queue_workers"])
+                DecoderQueue.sharedInstance = DecoderQueue(
+                    maxsize=pm["decoding_queue_length"], workers=pm["decoding_queue_workers"]
+                )
         return DecoderQueue.sharedInstance
 
     @staticmethod

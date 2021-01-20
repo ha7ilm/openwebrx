@@ -29,7 +29,7 @@ class Password(ABC):
 
 class CleartextPassword(Password):
     def is_valid(self, inp: str):
-        return self.pwinfo['value'] == inp
+        return self.pwinfo["value"] == inp
 
 
 class User(object):

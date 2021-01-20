@@ -82,17 +82,17 @@ class SdrSource(ABC):
         for id, p in self.props["profiles"].items():
             props.replaceLayer(0, self._getProfilePropertyLayer(p))
             if "center_freq" not in props:
-                logger.warning("Profile \"%s\" does not specify a center_freq", id)
+                logger.warning('Profile "%s" does not specify a center_freq', id)
                 continue
             if "samp_rate" not in props:
-                logger.warning("Profile \"%s\" does not specify a samp_rate", id)
+                logger.warning('Profile "%s" does not specify a samp_rate', id)
                 continue
             if "start_freq" in props:
                 start_freq = props["start_freq"]
                 srh = props["samp_rate"] / 2
                 center_freq = props["center_freq"]
                 if start_freq < center_freq - srh or start_freq > center_freq + srh:
-                    logger.warning("start_freq for profile \"%s\" is out of range", id)
+                    logger.warning('start_freq for profile "%s" is out of range', id)
 
     def _getProfilePropertyLayer(self, profile):
         layer = PropertyLayer()

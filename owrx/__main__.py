@@ -40,9 +40,7 @@ Support and info:       https://groups.io/g/openwebrx
 
     configErrors = Config.validateConfig()
     if configErrors:
-        logger.error(
-            "your configuration contains errors. please address the following errors:"
-        )
+        logger.error("your configuration contains errors. please address the following errors:")
         for e in configErrors:
             logger.error(e)
         return

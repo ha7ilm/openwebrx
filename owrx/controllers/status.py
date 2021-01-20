@@ -22,7 +22,7 @@ class StatusController(ReceiverIdController):
             "name": receiver.getName(),
             # TODO would be better to have types from the config here
             "type": type(receiver).__name__,
-            "profiles": [self.getProfileStats(p) for p in receiver.getProfiles().values()]
+            "profiles": [self.getProfileStats(p) for p in receiver.getProfiles().values()],
         }
         return stats
 
@@ -38,6 +38,6 @@ class StatusController(ReceiverIdController):
             },
             "max_clients": pm["max_clients"],
             "version": openwebrx_version,
-            "sdrs": [self.getReceiverStats(r) for r in SdrService.getSources().values()]
+            "sdrs": [self.getReceiverStats(r) for r in SdrService.getSources().values()],
         }
         self.send_response(json.dumps(status), content_type="application/json")
