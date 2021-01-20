@@ -177,7 +177,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 config = configProps.__dict__()
             else:
                 config = changes
-            if (changes is None or "start_freq" in changes or "center_freq" in changes) and "start_freq" in configProps and "center_freq" in configProps:
+            if (
+                (changes is None or "start_freq" in changes or "center_freq" in changes)
+                and "start_freq" in configProps
+                and "center_freq" in configProps
+            ):
                 config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
             if (changes is None or "profile_id" in changes) and self.sdr is not None:
                 config["sdr_id"] = self.sdr.getId()
@@ -406,15 +410,20 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send({"type": "backoff", "reason": reason})
 
     def write_js8_message(self, frame: Js8Frame, freq: int):
-        self.send({"type": "js8_message", "value": {
-            "msg": str(frame),
-            "timestamp": frame.timestamp,
-            "db": frame.db,
-            "dt": frame.dt,
-            "freq": freq + frame.freq,
-            "thread_type": frame.thread_type,
-            "mode": frame.mode
-        }})
+        self.send(
+            {
+                "type": "js8_message",
+                "value": {
+                    "msg": str(frame),
+                    "timestamp": frame.timestamp,
+                    "db": frame.db,
+                    "dt": frame.dt,
+                    "freq": freq + frame.freq,
+                    "thread_type": frame.thread_type,
+                    "mode": frame.mode,
+                },
+            }
+        )
 
     def write_modes(self, modes):
         def to_json(m):
@@ -426,10 +435,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 "squelch": m.squelch,
             }
             if m.bandpass is not None:
-                res["bandpass"] = {
-                    "low_cut": m.bandpass.low_cut,
-                    "high_cut": m.bandpass.high_cut
-                }
+                res["bandpass"] = {"low_cut": m.bandpass.low_cut, "high_cut": m.bandpass.high_cut}
             if isinstance(m, DigitalMode):
                 res["underlying"] = m.underlying
             return res
@@ -442,12 +448,14 @@ class MapConnection(OpenWebRxClient):
         super().__init__(conn)
 
         pm = Config.get()
-        self.write_config(pm.filter(
-            "google_maps_api_key",
-            "receiver_gps",
-            "map_position_retention_time",
-            "receiver_name",
-        ).__dict__())
+        self.write_config(
+            pm.filter(
+                "google_maps_api_key",
+                "receiver_gps",
+                "map_position_retention_time",
+                "receiver_name",
+            ).__dict__()
+        )
 
         Map.getSharedInstance().addClient(self)
 
