@@ -1,6 +1,5 @@
 [Unit]
 Description=OpenWebRX WebSDR receiver
-After=multi-user.target
 
 [Service]
 Type=simple
