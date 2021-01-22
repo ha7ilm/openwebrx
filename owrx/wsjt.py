@@ -176,8 +176,8 @@ class WsjtParser(Parser):
                     ReportingEngine.getSharedInstance().spot(out)
 
                 self.handler.write_wsjt_message(out)
-            except (ValueError, IndexError):
-                logger.exception("error while parsing wsjt message")
+            except Exception:
+                logger.exception("Exception while parsing wsjt message")
 
     def pushDecode(self, mode):
         metrics = Metrics.getSharedInstance()
