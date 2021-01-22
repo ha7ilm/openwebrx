@@ -46,8 +46,6 @@ class QueueWorker(threading.Thread):
             job = self.queue.get()
             if job is PoisonPill:
                 self.doRun = False
-                # put the poison pill back on the queue for the next worker
-                self.queue.put(PoisonPill)
             else:
                 try:
                     job.run()
@@ -102,10 +100,14 @@ class DecoderQueue(Queue):
             while not self.empty():
                 job = self.get()
                 job.unlink()
+                self.task_done()
         except Empty:
             pass
-        # put() PoisonPill to tell workers to shut down
-        self.put(PoisonPill)
+        # put() a PoisonPill for all active workers to shut them down
+        for w in self.workers:
+            if w.is_alive():
+                self.put(PoisonPill)
+        self.join()
 
     def put(self, item, **kwars):
         self.inCounter.inc()
