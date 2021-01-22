@@ -527,25 +527,20 @@ class dsp(object):
             self.restart()
 
     def calculate_decimation(self):
-        (self.decimation, self.last_decimation, _) = self.get_decimation(self.samp_rate, self.get_audio_rate())
+        (self.decimation, self.last_decimation) = self.get_decimation(self.samp_rate, self.get_audio_rate())
 
     def get_decimation(self, input_rate, output_rate):
         decimation = 1
-        correction = 1
+        target_rate = output_rate
         # wideband fm has a much higher frequency deviation (75kHz).
         # we cannot cover this if we immediately decimate to the sample rate the audio will have later on, so we need
         # to compensate here.
-        # the factor of 6 is by experimentation only, with a minimum audio rate of 36kHz (enforced by the client)
-        # this allows us to cover at least +/- 108kHz of frequency spectrum (may be higher, but that's the worst case).
-        # the correction factor is automatically compensated for by the secondary decimation stage, which comes
-        # after the demodulator.
-        if self.get_demodulator() == "wfm":
-            correction = 6
-        while input_rate / (decimation + 1) >= output_rate * correction:
+        if self.get_demodulator() == "wfm" and output_rate < 200000:
+            target_rate = 200000
+        while input_rate / (decimation + 1) >= target_rate:
             decimation += 1
         fraction = float(input_rate / decimation) / output_rate
-        intermediate_rate = input_rate / decimation
-        return decimation, fraction, intermediate_rate
+        return decimation, fraction
 
     def if_samp_rate(self):
         return self.samp_rate / self.decimation
