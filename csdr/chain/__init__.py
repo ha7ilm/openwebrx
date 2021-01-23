@@ -35,3 +35,23 @@ class Chain(Flow):
             return
         self.output = buffer
         self.workers[-1].setOutput(buffer)
+
+    def pump(self, write):
+        if self.output is None:
+            self.setOutput(Buffer())
+
+        def copy():
+            run = True
+            while run:
+                data = None
+                try:
+                    data = self.output.read()
+                except ValueError:
+                    pass
+                if data is None or (isinstance(data, bytes) and len(data) == 0):
+                    run = False
+                else:
+                    write(data)
+
+        return copy
+
