@@ -34,9 +34,6 @@ from owrx.js8 import Js8Profiles
 from owrx.audio import AudioChopper
 
 from csdr.pipe import Pipe
-from csdr.chain.fft import FftChain
-
-from pycsdr.modules import Buffer
 
 import logging
 
@@ -84,7 +81,6 @@ class dsp(object):
         self.samp_rate = 250000
         self.output_rate = 11025
         self.hd_output_rate = 44100
-        self.fft_size = 1024
         self.fft_fps = 5
         self.center_freq = 0
         self.offset_freq = 0
@@ -114,7 +110,6 @@ class dsp(object):
         self.secondary_fft_size = 1024
         self.secondary_process_fft = None
         self.secondary_process_demod = None
-        self.fft_voverlap_factor = 0
         self.pipe_names = {
             "bpf_pipe": Pipe.WRITE,
             "shift_pipe": Pipe.WRITE,
@@ -159,17 +154,6 @@ class dsp(object):
             chain += ["csdr setbuf {start_bufsize}"]
         if self.csdr_through:
             chain += ["csdr through"]
-        if which == "fft":
-            chain += [
-                "csdr fft_cc {fft_size} {fft_block_size}",
-                "csdr logpower_cf -70"
-                if self.fft_averages == 0
-                else "csdr logaveragepower_cf -70 {fft_size} {fft_averages}",
-                "csdr fft_exchange_sides_ff {fft_size}",
-            ]
-            if self.fft_compression == "adpcm":
-                chain += ["csdr compress_fft_adpcm_f_u8 {fft_size}"]
-            return chain
         chain += ["csdr shift_addfast_cc --fifo {shift_pipe}"]
         if self.decimation > 1:
             chain += ["csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING"]
@@ -523,12 +507,6 @@ class dsp(object):
             return
         self.fft_compression = what
 
-    def get_fft_bytes_to_read(self):
-        if self.fft_compression == "none":
-            return self.fft_size * 4
-        if self.fft_compression == "adpcm":
-            return int((self.fft_size / 2) + (10 / 2))
-
     def get_secondary_fft_bytes_to_read(self):
         if self.fft_compression == "none":
             return self.secondary_fft_size * 4
@@ -651,27 +629,6 @@ class dsp(object):
     def get_demodulator(self):
         return self.demodulator
 
-    def set_fft_size(self, fft_size):
-        if self.fft_size == fft_size:
-            return
-        self.fft_size = fft_size
-        # TODO implement setting fft size in chain dynamically
-        self.restart()
-
-    def set_fft_fps(self, fft_fps):
-        if self.fft_fps == fft_fps:
-            return
-        self.fft_fps = fft_fps
-        if self.pycsdr_chain:
-            self.pycsdr_chain.setFps(self.fft_fps)
-
-    def set_fft_voverlap_factor(self, fft_voverlap_factor):
-        if self.fft_voverlap_factor == fft_voverlap_factor:
-            return
-        self.fft_voverlap_factor = fft_voverlap_factor
-        if self.pycsdr_chain:
-            self.pycsdr_chain.setVOverlapFactor(self.fft_voverlap_factor)
-
     def set_offset_freq(self, offset_freq):
         if offset_freq is None:
             return
@@ -784,29 +741,6 @@ class dsp(object):
             self.direwolf_config = None
 
     def start(self):
-        if self.pycsdr_enabled:
-            if self.demodulator == "fft":
-                with self.modification_lock:
-                    if self.running:
-                        return
-                    self.running = True
-
-                self.pycsdr_chain = FftChain(
-                    samp_rate=self.samp_rate,
-                    fft_size=self.fft_size,
-                    fft_v_overlap_factor=self.fft_voverlap_factor,
-                    fft_fps=self.fft_fps,
-                    fft_compression=self.fft_compression
-                )
-
-                if self.buffer is not None:
-                    self.pycsdr_chain.setInput(self.buffer)
-
-                buffer = Buffer()
-                self.pycsdr_chain.setOutput(buffer)
-                self.output.send_output("audio", buffer.read)
-
-                return
         with self.modification_lock:
             if self.running:
                 return
@@ -839,8 +773,6 @@ class dsp(object):
                 dmr_control_pipe=self.pipes["dmr_control_pipe"],
                 decimation=self.decimation,
                 last_decimation=self.last_decimation,
-                fft_size=self.fft_size,
-                fft_averages=self.fft_averages,
                 bpf_transition_bw=float(self.bpf_transition_bw) / self.if_samp_rate(),
                 ddc_transition_bw=self.ddc_transition_bw(),
                 flowcontrol=int(self.samp_rate * 2),
@@ -878,7 +810,7 @@ class dsp(object):
                     audio_type,
                     partial(
                         self.process.stdout.read,
-                        self.get_fft_bytes_to_read() if self.demodulator == "fft" else self.get_audio_bytes_to_read(),
+                        self.get_audio_bytes_to_read(),
                     ),
                 )
 
