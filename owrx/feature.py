@@ -152,7 +152,14 @@ class FeatureDetector(object):
         # prevent X11 programs from opening windows if called from a GUI shell
         env.pop("DISPLAY", None)
         try:
-            process = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=tmp_dir, env=env)
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=tmp_dir,
+                env=env,
+            )
             rc = process.wait()
             if expected_result is None:
                 return rc != 32512
@@ -213,7 +220,6 @@ class FeatureDetector(object):
         ```
         """
         return self.command_is_runnable("perseustest -h")
-
 
     def has_digiham(self):
         """

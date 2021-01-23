@@ -7,7 +7,9 @@ class Controller(object):
         self.request = request
         self.options = options
 
-    def send_response(self, content, code=200, content_type="text/html", last_modified: datetime = None, max_age=None, headers=None):
+    def send_response(
+        self, content, code=200, content_type="text/html", last_modified: datetime = None, max_age=None, headers=None
+    ):
         self.handler.send_response(code)
         if headers is None:
             headers = {}
@@ -27,7 +29,7 @@ class Controller(object):
     def send_redirect(self, location, code=303, cookies=None):
         self.handler.send_response(code)
         if cookies is not None:
-            self.handler.send_header("Set-Cookie", cookies.output(header=''))
+            self.handler.send_header("Set-Cookie", cookies.output(header=""))
         self.handler.send_header("Location", location)
         self.handler.end_headers()
 

@@ -135,7 +135,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
         self.dsp = None
         self.sdr = None
-        self.sdrConfigSubs = []
+        self.configSubs = []
         self.connectionProperties = {}
 
         try:
@@ -145,9 +145,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.close()
             raise
 
-        globalConfig = Config.get().filter(*OpenWebRxReceiverClient.global_config_keys)
-        self.globalConfigSub = globalConfig.wire(self.write_config)
-        self.write_config(globalConfig.__dict__())
+        self.setupGlobalConfig()
+        self.stack = self.setupStack()
 
         self.setSdr()
 
@@ -162,8 +161,51 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         CpuUsageThread.getSharedInstance().add_client(self)
 
     def __del__(self):
-        if hasattr(self, "globalConfigSub"):
-            self.globalConfigSub.cancel()
+        if hasattr(self, "configSubs"):
+            while self.configSubs:
+                self.configSubs.pop().cancel()
+
+    def setupStack(self):
+        stack = PropertyStack()
+        # stack layer 0 reserved for sdr properties
+        # stack.addLayer(0, self.sdr.getProps())
+        stack.addLayer(1, Config.get())
+        configProps = stack.filter(*OpenWebRxReceiverClient.sdr_config_keys)
+
+        def sendConfig(changes=None):
+            if changes is None:
+                config = configProps.__dict__()
+            else:
+                config = changes
+            if (
+                (changes is None or "start_freq" in changes or "center_freq" in changes)
+                and "start_freq" in configProps
+                and "center_freq" in configProps
+            ):
+                config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
+            if (changes is None or "profile_id" in changes) and self.sdr is not None:
+                config["sdr_id"] = self.sdr.getId()
+            self.write_config(config)
+
+        def sendBookmarks(changes=None):
+            cf = configProps["center_freq"]
+            srh = configProps["samp_rate"] / 2
+            frequencyRange = (cf - srh, cf + srh)
+            self.write_dial_frequencies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
+            bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+            self.write_bookmarks(bookmarks)
+
+        self.configSubs.append(configProps.wire(sendConfig))
+        self.configSubs.append(stack.filter("center_freq", "samp_rate").wire(sendBookmarks))
+
+        # send initial config
+        sendConfig()
+        return stack
+
+    def setupGlobalConfig(self):
+        globalConfig = Config.get().filter(*OpenWebRxReceiverClient.global_config_keys)
+        self.configSubs.append(globalConfig.wire(self.write_config))
+        self.write_config(globalConfig.__dict__())
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
@@ -242,9 +284,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
         self.stopDsp()
 
-        while self.sdrConfigSubs:
-            self.sdrConfigSubs.pop().cancel()
-
         if self.sdr is not None:
             self.sdr.removeClient(self)
 
@@ -259,37 +298,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
     def handleSdrAvailable(self):
         self.getDsp().setProperties(self.connectionProperties)
+        self.stack.replaceLayer(0, self.sdr.getProps())
 
-        stack = PropertyStack()
-        stack.addLayer(0, self.sdr.getProps())
-        stack.addLayer(1, Config.get())
-        configProps = stack.filter(*OpenWebRxReceiverClient.sdr_config_keys)
-
-        def sendConfig(changes=None):
-            if changes is None:
-                config = configProps.__dict__()
-            else:
-                config = changes
-            if changes is None or "start_freq" in changes or "center_freq" in changes:
-                config["start_offset_freq"] = configProps["start_freq"] - configProps["center_freq"]
-            if changes is None or "profile_id" in changes:
-                config["sdr_id"] = self.sdr.getId()
-            self.write_config(config)
-
-        def sendBookmarks(changes=None):
-            cf = configProps["center_freq"]
-            srh = configProps["samp_rate"] / 2
-            frequencyRange = (cf - srh, cf + srh)
-            self.write_dial_frequencies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
-            bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
-            self.write_bookmarks(bookmarks)
-
-        self.sdrConfigSubs.append(configProps.wire(sendConfig))
-        self.sdrConfigSubs.append(stack.filter("center_freq", "samp_rate").wire(sendBookmarks))
-
-        # send initial config
-        sendConfig()
-        sendBookmarks()
         self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
@@ -306,8 +316,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)
-        while self.sdrConfigSubs:
-            self.sdrConfigSubs.pop().cancel()
         super().close()
 
     def stopDsp(self):
@@ -325,11 +333,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         keys = config["configurable_keys"]
         if not keys:
             return
-        # only the keys in the protected property manager can be overridden from the web
-        stack = PropertyStack()
-        stack.addLayer(0, self.sdr.getProps())
-        stack.addLayer(1, config)
-        protected = stack.filter(*keys)
+        protected = self.stack.filter(*keys)
         for key, value in params.items():
             try:
                 protected[key] = value
@@ -406,15 +410,20 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send({"type": "backoff", "reason": reason})
 
     def write_js8_message(self, frame: Js8Frame, freq: int):
-        self.send({"type": "js8_message", "value": {
-            "msg": str(frame),
-            "timestamp": frame.timestamp,
-            "db": frame.db,
-            "dt": frame.dt,
-            "freq": freq + frame.freq,
-            "thread_type": frame.thread_type,
-            "mode": frame.mode
-        }})
+        self.send(
+            {
+                "type": "js8_message",
+                "value": {
+                    "msg": str(frame),
+                    "timestamp": frame.timestamp,
+                    "db": frame.db,
+                    "dt": frame.dt,
+                    "freq": freq + frame.freq,
+                    "thread_type": frame.thread_type,
+                    "mode": frame.mode,
+                },
+            }
+        )
 
     def write_modes(self, modes):
         def to_json(m):
@@ -426,10 +435,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 "squelch": m.squelch,
             }
             if m.bandpass is not None:
-                res["bandpass"] = {
-                    "low_cut": m.bandpass.low_cut,
-                    "high_cut": m.bandpass.high_cut
-                }
+                res["bandpass"] = {"low_cut": m.bandpass.low_cut, "high_cut": m.bandpass.high_cut}
             if isinstance(m, DigitalMode):
                 res["underlying"] = m.underlying
             return res
@@ -442,12 +448,14 @@ class MapConnection(OpenWebRxClient):
         super().__init__(conn)
 
         pm = Config.get()
-        self.write_config(pm.filter(
-            "google_maps_api_key",
-            "receiver_gps",
-            "map_position_retention_time",
-            "receiver_name",
-        ).__dict__())
+        self.write_config(
+            pm.filter(
+                "google_maps_api_key",
+                "receiver_gps",
+                "map_position_retention_time",
+                "receiver_name",
+            ).__dict__()
+        )
 
         Map.getSharedInstance().addClient(self)
 

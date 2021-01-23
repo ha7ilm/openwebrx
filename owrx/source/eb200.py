@@ -8,8 +8,10 @@ class Eb200Source(ConnectorSource):
             super()
             .getCommandMapper()
             .setBase("eb200_connector")
-            .setMappings({
-                "long": Flag("-l"),
-                "remote": Argument(),
-            })
+            .setMappings(
+                {
+                    "long": Flag("-l"),
+                    "remote": Argument(),
+                }
+            )
         )

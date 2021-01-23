@@ -8,9 +8,11 @@ class RtlTcpSource(ConnectorSource):
             super()
             .getCommandMapper()
             .setBase("rtl_tcp_connector")
-            .setMappings({
-                "bias_tee": Flag("-b"),
-                "direct_sampling": Option("-e"),
-                "remote": Argument(),
-            })
+            .setMappings(
+                {
+                    "bias_tee": Flag("-b"),
+                    "direct_sampling": Option("-e"),
+                    "remote": Argument(),
+                }
+            )
         )

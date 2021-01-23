@@ -31,6 +31,7 @@ ul {
     background-color: #fff;
     padding: 10px;
     margin: 10px;
+    user-select: none;
 }
 
 /* show it as soon as google maps has moved it to its container */
@@ -41,6 +42,15 @@ ul {
 .openwebrx-map-legend ul {
     list-style-type: none;
     padding: 0;
+}
+
+.openwebrx-map-legend ul li {
+    cursor: pointer;
+}
+
+.openwebrx-map-legend ul li.disabled {
+    opacity: .3;
+    filter: grayscale(70%);
 }
 
 .openwebrx-map-legend li.square .illustration {

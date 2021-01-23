@@ -1,14 +1,6 @@
 from owrx.controllers.status import StatusController
-from owrx.controllers.template import (
-    IndexController,
-    MapController,
-    FeatureController
-)
-from owrx.controllers.assets import (
-    OwrxAssetsController,
-    AprsSymbolsController,
-    CompiledAssetsController
-)
+from owrx.controllers.template import IndexController, MapController, FeatureController
+from owrx.controllers.assets import OwrxAssetsController, AprsSymbolsController, CompiledAssetsController
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
@@ -109,7 +101,9 @@ class Router(object):
             StaticRoute("/metrics", MetricsController),
             StaticRoute("/settings", SettingsController),
             StaticRoute("/generalsettings", GeneralSettingsController),
-            StaticRoute("/generalsettings", GeneralSettingsController, method="POST", options={"action": "processFormData"}),
+            StaticRoute(
+                "/generalsettings", GeneralSettingsController, method="POST", options={"action": "processFormData"}
+            ),
             StaticRoute("/sdrsettings", SdrSettingsController),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),

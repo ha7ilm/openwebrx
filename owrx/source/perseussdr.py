@@ -17,15 +17,21 @@ from owrx.command import Flag, Option
 # floating points (option -p),no need for further conversions,
 # so the method getFormatConversion(self) is not implemented at all.
 
+
 class PerseussdrSource(DirectSource):
     def getCommandMapper(self):
-        return super().getCommandMapper().setBase("perseustest -p -d -1 -a -t 0 -o -  ").setMappings(
-            {
-                "samp_rate": Option("-s"),
-                "tuner_freq": Option("-f"),
-                "attenuator": Option("-u"),
-                "adc_preamp": Option("-m"),
-                "adc_dither": Option("-x"),
-                "wideband": Option("-w"),
-            }
+        return (
+            super()
+            .getCommandMapper()
+            .setBase("perseustest -p -d -1 -a -t 0 -o -  ")
+            .setMappings(
+                {
+                    "samp_rate": Option("-s"),
+                    "tuner_freq": Option("-f"),
+                    "attenuator": Option("-u"),
+                    "adc_preamp": Option("-m"),
+                    "adc_dither": Option("-x"),
+                    "wideband": Option("-w"),
+                }
+            )
         )

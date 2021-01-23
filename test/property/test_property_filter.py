@@ -4,7 +4,6 @@ from owrx.property import PropertyLayer, PropertyFilter
 
 
 class PropertyFilterTest(TestCase):
-
     def testPassesProperty(self):
         pm = PropertyLayer()
         pm["testkey"] = "testvalue"

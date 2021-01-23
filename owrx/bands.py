@@ -17,7 +17,7 @@ class Band(object):
             for (mode, freqs) in dict["frequencies"].items():
                 if mode not in availableModes:
                     logger.info(
-                        "Modulation \"{mode}\" is not available, bandplan bookmark will not be displayed".format(
+                        'Modulation "{mode}" is not available, bandplan bookmark will not be displayed'.format(
                             mode=mode
                         )
                     )

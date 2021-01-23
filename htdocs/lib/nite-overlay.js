@@ -30,7 +30,8 @@ var nite = {
             fillOpacity: 0.1,
             strokeOpacity: 0,
             clickable: false,
-            editable: false
+            editable: false,
+            zIndex: 1
         });
         this.marker_twilight_nautical = new google.maps.Circle({
             map: this.map,
@@ -40,7 +41,8 @@ var nite = {
             fillOpacity: 0.1,
             strokeOpacity: 0,
             clickable: false,
-            editable: false
+            editable: false,
+            zIndex: 1
         });
         this.marker_twilight_astronomical = new google.maps.Circle({
             map: this.map,
@@ -50,7 +52,8 @@ var nite = {
             fillOpacity: 0.1,
             strokeOpacity: 0,
             clickable: false,
-            editable: false
+            editable: false,
+            zIndex: 1
         });
         this.marker_night = new google.maps.Circle({
             map: this.map,
@@ -60,7 +63,8 @@ var nite = {
             fillOpacity: 0.1,
             strokeOpacity: 0,
             clickable: false,
-            editable: false
+            editable: false,
+            zIndex: 1
         });
     },
     getShadowRadiusFromAngle: function(angle) {

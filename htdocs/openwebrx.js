@@ -3,7 +3,7 @@
 	This file is part of OpenWebRX,
 	an open-source SDR receiver software with a web UI.
 	Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
-	Copyright (c) 2019-2020 by Jakob Ketterl <dd5jfk@darc.de>
+	Copyright (c) 2019-2021 by Jakob Ketterl <dd5jfk@darc.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -694,7 +694,17 @@ function on_ws_recv(evt) {
         networkSpeedMeasurement.add(evt.data.length);
 
         if (evt.data.substr(0, 16) === "CLIENT DE SERVER") {
-            divlog("Server acknowledged WebSocket connection.");
+            params = Object.fromEntries(
+                evt.data.slice(17).split(' ').map(function(param) {
+                    var args = param.split('=');
+                    return [args[0], args.slice(1).join('=')]
+                })
+            );
+            var versionInfo = 'Unknown server';
+            if (params.server && params.server === 'openwebrx' && params.version) {
+                versionInfo = 'OpenWebRX version: ' + params.version;
+            }
+            divlog('Server acknowledged WebSocket connection, ' + versionInfo);
         } else {
             try {
                 var json = JSON.parse(evt.data);

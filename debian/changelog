@@ -7,8 +7,9 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
     WSJT-X 2.3)
   * Added support for demodulating M17 digital voice signals using
     m17-cxx-demod
-  * New reporting infrastructur, allowing WSPR and FST4W spots to be sent to
+  * New reporting infrastructure, allowing WSPR and FST4W spots to be sent to
     wsprnet.org
+  * Add some basic filtering capabilities to the map
   * New devices supported:
     - HPSDR devices (Hermes Lite 2) (`"type": "hpsdr"`)
     - BBRF103 / RX666 / RX888 devices supported by libsddc (`"type": "sddc"`)

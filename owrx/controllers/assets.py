@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class GzipMixin(object):
-    def send_response(self, content, headers=None, content_type="text/html",  *args, **kwargs):
+    def send_response(self, content, headers=None, content_type="text/html", *args, **kwargs):
         if self.zipable(content_type) and "accept-encoding" in self.request.headers:
-            accepted = [s.strip().lower() for s in self.request.headers['accept-encoding'].split(",")]
+            accepted = [s.strip().lower() for s in self.request.headers["accept-encoding"].split(",")]
             if "gzip" in accepted:
                 if type(content) == str:
                     content = content.encode()
@@ -26,11 +26,7 @@ class GzipMixin(object):
         super().send_response(content, headers=headers, content_type=content_type, *args, **kwargs)
 
     def zipable(self, content_type):
-        types = [
-            "application/javascript",
-            "text/css",
-            "text/html"
-        ]
+        types = ["application/javascript", "text/css", "text/html"]
         return content_type in types
 
     def gzip(self, content):
@@ -41,11 +37,11 @@ class ModificationAwareController(Controller, metaclass=ABCMeta):
     @abstractmethod
     def getModified(self, file):
         pass
-    
+
     def wasModified(self, file):
         try:
             modified = self.getModified(file).replace(microsecond=0)
-    
+
             if modified is not None and "If-Modified-Since" in self.handler.headers:
                 client_modified = datetime.strptime(
                     self.handler.headers["If-Modified-Since"], "%a, %d %b %Y %H:%M:%S %Z"
@@ -54,7 +50,7 @@ class ModificationAwareController(Controller, metaclass=ABCMeta):
                     return False
         except FileNotFoundError:
             pass
-        
+
         return True
 
 
@@ -143,7 +139,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/settings/Input.js",
             "lib/settings/SdrDevice.js",
             "settings.js",
-        ]
+        ],
     }
 
     def indexAction(self):

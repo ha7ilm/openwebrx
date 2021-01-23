@@ -15,18 +15,22 @@ class ConnectorSource(SdrSource):
         super().__init__(id, props)
 
     def getCommandMapper(self):
-        return super().getCommandMapper().setMappings(
-            {
-                "samp_rate": Option("-s"),
-                "tuner_freq": Option("-f"),
-                "port": Option("-p"),
-                "controlPort": Option("-c"),
-                "device": Option("-d"),
-                "iqswap": Flag("-i"),
-                "rtltcp_compat": Option("-r"),
-                "ppm": Option("-P"),
-                "rf_gain": Option("-g"),
-            }
+        return (
+            super()
+            .getCommandMapper()
+            .setMappings(
+                {
+                    "samp_rate": Option("-s"),
+                    "tuner_freq": Option("-f"),
+                    "port": Option("-p"),
+                    "controlPort": Option("-c"),
+                    "device": Option("-d"),
+                    "iqswap": Flag("-i"),
+                    "rtltcp_compat": Option("-r"),
+                    "ppm": Option("-P"),
+                    "rf_gain": Option("-g"),
+                }
+            )
         )
 
     def sendControlMessage(self, changes):

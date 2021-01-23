@@ -1,8 +1,3 @@
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
 from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config import Config
@@ -14,10 +9,24 @@ from owrx.websocket import WebSocketConnection
 from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
 from owrx.audio import DecoderQueue
+import signal
+
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
     pass
+
+
+class SignalException(Exception):
+    pass
+
+
+def handleSignal(sig, frame):
+    raise SignalException("Received Signal {sig}".format(sig=sig))
 
 
 def main():
@@ -36,13 +45,14 @@ Support and info:       https://groups.io/g/openwebrx
 
     logger.info("OpenWebRX version {0} starting up...".format(openwebrx_version))
 
+    for sig in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(sig, handleSignal)
+
     pm = Config.get()
 
     configErrors = Config.validateConfig()
     if configErrors:
-        logger.error(
-            "your configuration contains errors. please address the following errors:"
-        )
+        logger.error("your configuration contains errors. please address the following errors:")
         for e in configErrors:
             logger.error(e)
         return
@@ -65,7 +75,7 @@ Support and info:       https://groups.io/g/openwebrx
     try:
         server = ThreadedHttpServer(("0.0.0.0", pm["web_port"]), RequestHandler)
         server.serve_forever()
-    except KeyboardInterrupt:
+    except SignalException:
         WebSocketConnection.closeAll()
         Services.stop()
         ReportingEngine.stopAll()

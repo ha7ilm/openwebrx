@@ -46,8 +46,6 @@ class QueueWorker(threading.Thread):
             job = self.queue.get()
             if job is PoisonPill:
                 self.doRun = False
-                # put the poison pill back on the queue for the next worker
-                self.queue.put(PoisonPill)
             else:
                 try:
                     job.run()
@@ -69,7 +67,9 @@ class DecoderQueue(Queue):
         with DecoderQueue.creationLock:
             if DecoderQueue.sharedInstance is None:
                 pm = Config.get()
-                DecoderQueue.sharedInstance = DecoderQueue(maxsize=pm["decoding_queue_length"], workers=pm["decoding_queue_workers"])
+                DecoderQueue.sharedInstance = DecoderQueue(
+                    maxsize=pm["decoding_queue_length"], workers=pm["decoding_queue_workers"]
+                )
         return DecoderQueue.sharedInstance
 
     @staticmethod
@@ -100,10 +100,14 @@ class DecoderQueue(Queue):
             while not self.empty():
                 job = self.get()
                 job.unlink()
+                self.task_done()
         except Empty:
             pass
-        # put() PoisonPill to tell workers to shut down
-        self.put(PoisonPill)
+        # put() a PoisonPill for all active workers to shut them down
+        for w in self.workers:
+            if w.is_alive():
+                self.put(PoisonPill)
+        self.join()
 
     def put(self, item, **kwars):
         self.inCounter.inc()

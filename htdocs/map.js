@@ -87,6 +87,7 @@
         $('#openwebrx-map-colormode').on('change', function(){
             colorMode = $(this).val();
             colorKeys = {};
+            filterRectangles(allRectangles);
             reColor();
             updateLegend();
         });
@@ -94,7 +95,10 @@
 
     var updateLegend = function() {
         var lis = $.map(colorKeys, function(value, key) {
-            return '<li class="square"><span class="illustration" style="background-color:' + chroma(value).alpha(fillOpacity) + ';border-color:' + chroma(value).alpha(strokeOpacity) + ';"></span>' + key + '</li>';
+            // fake rectangle to test if the filter would match
+            var fakeRectangle = Object.fromEntries([[colorMode.slice(2), key]]);
+            var disabled = rectangleFilter(fakeRectangle) ? '' : ' disabled';
+            return '<li class="square' + disabled + '" data-selector="' + key + '"><span class="illustration" style="background-color:' + chroma(value).alpha(fillOpacity) + ';border-color:' + chroma(value).alpha(strokeOpacity) + ';"></span>' + key + '</li>';
         });
         $(".openwebrx-map-legend .content").html('<ul>' + lis.join('') + '</ul>');
     }
@@ -164,11 +168,17 @@
                         });
                         rectangles[update.callsign] = rectangle;
                     }
+                    rectangle.lastseen = update.lastseen;
+                    rectangle.locator = update.location.locator;
+                    rectangle.mode = update.mode;
+                    rectangle.band = update.band;
+                    rectangle.center = center;
+
                     rectangle.setOptions($.extend({
                         strokeColor: color,
                         strokeWeight: 2,
                         fillColor: color,
-                        map: map,
+                        map: rectangleFilter(rectangle) ? map : undefined,
                         bounds:{
                             north: lat,
                             south: lat + 1,
@@ -176,11 +186,6 @@
                             east: lon + 2
                         }
                     }, getRectangleOpacityOptions(update.lastseen) ));
-                    rectangle.lastseen = update.lastseen;
-                    rectangle.locator = update.location.locator;
-                    rectangle.mode = update.mode;
-                    rectangle.band = update.band;
-                    rectangle.center = center;
 
                     if (expectedLocator && expectedLocator == update.location.locator) {
                         map.panTo(center);
@@ -246,7 +251,10 @@
                                 processUpdates(updateQueue);
                                 updateQueue = [];
                             });
-                            map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($(".openwebrx-map-legend")[0]);
+
+                            var $legend = $(".openwebrx-map-legend");
+                            setupLegendFilters($legend);
+                            map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($legend[0]);
 
                             if (!receiverMarker) {
                                 receiverMarker = new google.maps.Marker();
@@ -329,7 +337,7 @@
         infowindow.locator = locator;
         var inLocator = $.map(rectangles, function(r, callsign) {
             return {callsign: callsign, locator: r.locator, lastseen: r.lastseen, mode: r.mode, band: r.band}
-        }).filter(function(d) {
+        }).filter(rectangleFilter).filter(function(d) {
             return d.locator == locator;
         }).sort(function(a, b){
             return b.lastseen - a.lastseen;
@@ -423,5 +431,37 @@
             m.setOptions(getMarkerOpacityOptions(m.lastseen));
         });
     }, 1000);
+
+    var rectangleFilter = allRectangles = function() { return true; };
+
+    var filterRectangles = function(filter) {
+        rectangleFilter = filter;
+        $.each(rectangles, function(_, r) {
+            r.setMap(rectangleFilter(r) ? map : undefined);
+        });
+    };
+
+    var setupLegendFilters = function($legend) {
+        $content = $legend.find('.content');
+        $content.on('click', 'li', function() {
+            var $el = $(this);
+            $lis = $content.find('li');
+            if ($lis.hasClass('disabled') && !$el.hasClass('disabled')) {
+                $lis.removeClass('disabled');
+                filterRectangles(allRectangles);
+            } else {
+                $el.removeClass('disabled');
+                $lis.filter(function() {
+                    return this != $el[0]
+                }).addClass('disabled');
+
+                var key = colorMode.slice(2);
+                var selector = $el.data('selector');
+                filterRectangles(function(r) {
+                    return r[key] === selector;
+                });
+            }
+        });
+    }
 
 })();

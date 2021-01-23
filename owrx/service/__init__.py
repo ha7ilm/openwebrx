@@ -65,12 +65,12 @@ class ServiceHandler(SdrSourceEventClient):
         self.services = []
         self.source = source
         self.startupTimer = None
+        self.scheduler = None
         self.source.addClient(self)
         props = self.source.getProps()
         props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         if self.source.isAvailable():
             self.scheduleServiceStartup()
-        self.scheduler = None
         if "schedule" in props or "scheduler" in props:
             self.scheduler = ServiceScheduler(self.source)
 
@@ -137,9 +137,7 @@ class ServiceHandler(SdrSourceEventClient):
 
             dials = [
                 dial
-                for dial in Bandplan.getSharedInstance().collectDialFrequencies(
-                    frequency_range
-                )
+                for dial in Bandplan.getSharedInstance().collectDialFrequencies(frequency_range)
                 if self.isSupported(dial["mode"])
             ]
 
@@ -150,16 +148,12 @@ class ServiceHandler(SdrSourceEventClient):
             groups = self.optimizeResampling(dials, sr)
             if groups is None:
                 for dial in dials:
-                    self.services.append(
-                        self.setupService(dial["mode"], dial["frequency"], self.source)
-                    )
+                    self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
             else:
                 for group in groups:
                     cf = self.get_center_frequency(group)
                     bw = self.get_bandwidth(group)
-                    logger.debug(
-                        "group center frequency: {0}, bandwidth: {1}".format(cf, bw)
-                    )
+                    logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
                     resampler_props = PropertyLayer()
                     resampler_props["center_freq"] = cf
                     resampler_props["samp_rate"] = bw
@@ -167,11 +161,7 @@ class ServiceHandler(SdrSourceEventClient):
                     resampler.start()
 
                     for dial in group:
-                        self.services.append(
-                            self.setupService(
-                                dial["mode"], dial["frequency"], resampler
-                            )
-                        )
+                        self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
 
                     # resampler goes in after the services since it must not be shutdown as long as the services are still running
                     self.services.append(resampler)
@@ -238,9 +228,7 @@ class ServiceHandler(SdrSourceEventClient):
         results = sorted(usages, key=lambda f: f["total_bandwidth"])
 
         for r in results:
-            logger.debug(
-                "splits: {0}, total: {1}".format(r["num_splits"], r["total_bandwidth"])
-            )
+            logger.debug("splits: {0}, total: {1}".format(r["num_splits"], r["total_bandwidth"]))
 
         best = results[0]
         if best["num_splits"] is None:
@@ -267,7 +255,7 @@ class ServiceHandler(SdrSourceEventClient):
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(source.getProps()["samp_rate"])
-        d.set_temporary_directory(Config.get()['temporary_directory'])
+        d.set_temporary_directory(Config.get()["temporary_directory"])
         d.set_service()
         d.start()
         return d

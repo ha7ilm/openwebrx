@@ -43,24 +43,26 @@ class Worker(threading.Thread):
         # function=wspr&date=210114&time=1732&sig=-15&dt=0.5&drift=0&tqrg=7.040019&tcall=DF2UU&tgrid=JN48&dbm=37&version=2.3.0-rc3&rcall=DD5JFK&rgrid=JN58SC&rqrg=7.040047&mode=2
         # {'timestamp': 1610655960000, 'db': -23.0, 'dt': 0.3, 'freq': 7040048, 'drift': -1, 'msg': 'LA3JJ JO59 37', 'callsign': 'LA3JJ', 'locator': 'JO59', 'mode': 'WSPR'}
         date = datetime.fromtimestamp(spot["timestamp"] / 1000, tz=timezone.utc)
-        data = parse.urlencode({
-            "function": "wspr",
-            "date": date.strftime("%y%m%d"),
-            "time": date.strftime("%H%M"),
-            "sig": spot["db"],
-            "dt": spot["dt"],
-            # FST4W does not have drift
-            "drift": spot["drift"] if "drift" in spot else 0,
-            "tqrg": spot["freq"] / 1E6,
-            "tcall": spot["callsign"],
-            "tgrid": spot["locator"],
-            "dbm": spot["dbm"],
-            "version": openwebrx_version,
-            "rcall": self.callsign,
-            "rgrid": self.locator,
-            # mode 2 = WSPR 2 minutes
-            "mode": self._getMode(spot)
-        }).encode()
+        data = parse.urlencode(
+            {
+                "function": "wspr",
+                "date": date.strftime("%y%m%d"),
+                "time": date.strftime("%H%M"),
+                "sig": spot["db"],
+                "dt": spot["dt"],
+                # FST4W does not have drift
+                "drift": spot["drift"] if "drift" in spot else 0,
+                "tqrg": spot["freq"] / 1e6,
+                "tcall": spot["callsign"],
+                "tgrid": spot["locator"],
+                "dbm": spot["dbm"],
+                "version": openwebrx_version,
+                "rcall": self.callsign,
+                "rgrid": self.locator,
+                # mode 2 = WSPR 2 minutes
+                "mode": self._getMode(spot),
+            }
+        ).encode()
         request.urlopen("http://wsprnet.org/post/", data)
 
 

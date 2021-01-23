@@ -6,7 +6,7 @@ config_webrx: configuration options for OpenWebRX
     This file is part of OpenWebRX,
     an open-source SDR receiver software with a web UI.
     Copyright (c) 2013-2015 by Andras Retzler <randras@sdr.hu>
-    Copyright (c) 2019-2020 by Jakob Ketterl <dd5jfk@darc.de>
+    Copyright (c) 2019-2021 by Jakob Ketterl <dd5jfk@darc.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -325,11 +325,14 @@ js8_decoding_depth = 3
 
 temporary_directory = "/tmp"
 
+# Enable background service for decoding digital data. You can find more information at:
+# https://github.com/jketterl/openwebrx/wiki/Background-decoding
 services_enabled = False
 services_decoders = ["ft8", "ft4", "wspr", "packet"]
 
 # === aprs igate settings ===
-# if you want to share your APRS decodes with the aprs network, configure these settings accordingly
+# If you want to share your APRS decodes with the aprs network, configure these settings accordingly.
+# Make sure that you have set services_enabled to true and customize services_decoders to your needs.
 aprs_callsign = "N0CALL"
 aprs_igate_enabled = False
 aprs_igate_server = "euro.aprs2.net"

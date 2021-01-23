@@ -150,10 +150,10 @@ class Uploader(object):
             # id
             [0x00, 0x03]
             # length
-            + list(length.to_bytes(2, 'big'))
+            + list(length.to_bytes(2, "big"))
             + Uploader.receieverDelimiter
             # number of fields
-            + list(num_fields.to_bytes(2, 'big'))
+            + list(num_fields.to_bytes(2, "big"))
             # padding
             + [0x00, 0x00]
             # receiverCallsign
@@ -163,9 +163,7 @@ class Uploader(object):
             # decodingSoftware
             + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # antennaInformation
-            + (
-                [0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F] if with_antenna else []
-            )
+            + ([0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F] if with_antenna else [])
             # padding
             + [0x00, 0x00]
         )
