@@ -1,4 +1,4 @@
-**unreleased**
+**0.20.2**
 - Fix a security problem that allowed arbitrary commands to be executed on the receiver
   ([See github issue #215](https://github.com/jketterl/openwebrx/issues/215))
 
