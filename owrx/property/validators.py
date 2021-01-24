@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from operator import or_
+import re
 
 
 class ValidatorException(Exception):
@@ -76,6 +77,14 @@ class OrValidator(Validator):
 class NumberValidator(OrValidator):
     def __init__(self):
         super().__init__(IntegerValidator(), FloatValidator())
+
+
+class RegexValidator(Validator):
+    def __init__(self, regex: re.Pattern):
+        self.regex = regex
+
+    def isValid(self, value):
+        return self.regex.match(value) is not None
 
 
 validator_types = {
