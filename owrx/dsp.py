@@ -57,23 +57,6 @@ class DspManager(csdr.output, SdrSourceEventClient):
         self.localProps = PropertyValidator(PropertyLayer().filter(*validators.keys()), validators)
 
         self.props.addLayer(0, self.localProps)
-        # ensure strict validation since these can be set from the client
-        # and are used to build executable commands
-        validators = {
-            "output_rate": "int",
-            "hd_output_rate": "int",
-            "squelch_level": "num",
-            "secondary_mod": ModulationValidator(),
-            "low_cut": "num",
-            "high_cut": "num",
-            "offset_freq": "int",
-            "mod": ModulationValidator(),
-            "secondary_offset_freq": "int",
-            "dmr_filter": "int",
-        }
-        self.localProps = PropertyValidator(PropertyLayer().filter(*validators.keys()), validators)
-
-        self.props.addLayer(0, self.localProps)
         # properties that we inherit from the sdr
         self.props.addLayer(
             1,
