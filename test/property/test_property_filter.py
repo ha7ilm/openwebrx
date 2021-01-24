@@ -48,3 +48,11 @@ class PropertyFilterTest(TestCase):
         pf["testkey"] = "new value"
         self.assertEqual(pm["testkey"], "new value")
         self.assertEqual(pf["testkey"], "new value")
+
+    def testRejectsWrite(self):
+        pm = PropertyLayer()
+        pm["testkey"] = "old value"
+        pf = PropertyFilter(pm, "otherkey")
+        with self.assertRaises(KeyError):
+            pf["testkey"] = "new value"
+        self.assertEqual(pm["testkey"], "old value")
