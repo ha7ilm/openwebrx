@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from owrx.property.validators import Validator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ class Subscription(object):
 class PropertyManager(ABC):
     def __init__(self):
         self.subscribers = []
+        self.validators = {}
 
     @abstractmethod
     def __getitem__(self, item):
@@ -80,6 +82,9 @@ class PropertyManager(ABC):
                     c.call(value)
             except Exception as e:
                 logger.exception(e)
+
+    def setValidator(self, name, validator):
+        self.validators[name] = Validator.of(validator)
 
 
 class PropertyLayer(PropertyManager):
