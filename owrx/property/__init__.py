@@ -157,6 +157,7 @@ class PropertyValidationError(Exception):
 class PropertyValidator(PropertyManager):
     def __init__(self, pm: PropertyManager, validators=None):
         self.pm = pm
+        self.pm.wire(self._fireCallbacks)
         if validators is None:
             self.validators = {}
         else:
