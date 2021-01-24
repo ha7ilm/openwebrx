@@ -20,6 +20,7 @@ class ModulationValidator(OrValidator):
     """
     This validator only allows alphanumeric characters and numbers, but no spaces or special characters
     """
+
     def __init__(self):
         super().__init__(BoolValidator(), RegexValidator(re.compile("^[a-z0-9]+$")))
 
