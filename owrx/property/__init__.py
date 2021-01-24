@@ -24,7 +24,6 @@ class Subscription(object):
 class PropertyManager(ABC):
     def __init__(self):
         self.subscribers = []
-        self.validators = {}
 
     @abstractmethod
     def __getitem__(self, item):
@@ -82,9 +81,6 @@ class PropertyManager(ABC):
                     c.call(value)
             except Exception as e:
                 logger.exception(e)
-
-    def setValidator(self, name, validator):
-        self.validators[name] = Validator.of(validator)
 
 
 class PropertyLayer(PropertyManager):
@@ -151,6 +147,49 @@ class PropertyFilter(PropertyManager):
 
     def keys(self):
         return [k for k in self.pm.keys() if k in self.props]
+
+
+class PropertyValidationError(Exception):
+    def __init__(self, key, value):
+        super().__init__('Invalid value for property "{key}": "{value}"'.format(key=key, value=str(value)))
+
+
+class PropertyValidator(PropertyManager):
+    def __init__(self, pm: PropertyManager, validators=None):
+        self.pm = pm
+        if validators is None:
+            self.validators = {}
+        else:
+            self.validators = {k: Validator.of(v) for k, v in validators.items()}
+        super().__init__()
+
+    def validate(self, key, value):
+        if key not in self.validators:
+            return
+        if not self.validators[key].isValid(value):
+            raise PropertyValidationError(key, value)
+
+    def setValidator(self, key, validator):
+        self.validators[key] = Validator.of(validator)
+
+    def __getitem__(self, item):
+        return self.pm.__getitem__(item)
+
+    def __setitem__(self, key, value):
+        self.validate(key, value)
+        return self.pm.__setitem__(key, value)
+
+    def __contains__(self, item):
+        return self.pm.__contains__(item)
+
+    def __dict__(self):
+        return self.pm.__dict__()
+
+    def __delitem__(self, key):
+        return self.pm.__delitem__(key)
+
+    def keys(self):
+        return self.pm.keys()
 
 
 class PropertyStack(PropertyManager):
