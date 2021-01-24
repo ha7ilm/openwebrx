@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from functools import reduce
+from operator import or_
 
 
 class ValidatorException(Exception):
@@ -29,19 +31,51 @@ class LambdaValidator(Validator):
         return self.callable(value)
 
 
-class NumberValidator(Validator):
+class TypeValidator(Validator):
+    def __init__(self, type):
+        self.type = type
+        super().__init__()
+
     def isValid(self, value):
-        return isinstance(value, int) or isinstance(value, float)
+        return isinstance(value, self.type)
 
 
-class IntegerValidator(Validator):
+class IntegerValidator(TypeValidator):
+    def __init__(self):
+        super().__init__(int)
+
+
+class FloatValidator(TypeValidator):
+    def __init__(self):
+        super().__init__(float)
+
+
+class StringValidator(TypeValidator):
+    def __init__(self):
+        super().__init__(str)
+
+
+class BoolValidator(TypeValidator):
+    def __init__(self):
+        super().__init__(bool)
+
+
+class OrValidator(Validator):
+    def __init__(self, *validators):
+        self.validators = validators
+        super().__init__()
+
     def isValid(self, value):
-        return isinstance(value, int)
+        return reduce(
+            or_,
+            [v.isValid(value) for v in self.validators],
+            False
+        )
 
 
-class StringValidator(Validator):
-    def isValid(self, value):
-        return isinstance(value, str)
+class NumberValidator(OrValidator):
+    def __init__(self):
+        super().__init__(IntegerValidator(), FloatValidator())
 
 
 validator_types = {
