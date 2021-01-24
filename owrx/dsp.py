@@ -28,7 +28,7 @@ class DspManager(csdr.output, SdrSourceEventClient):
 
         self.props = PropertyStack()
         # local demodulator properties not forwarded to the sdr
-        self.props.addLayer(0, PropertyLayer().filter(
+        self.localProps = PropertyLayer().filter(
             "output_rate",
             "hd_output_rate",
             "squelch_level",
@@ -39,7 +39,8 @@ class DspManager(csdr.output, SdrSourceEventClient):
             "mod",
             "secondary_offset_freq",
             "dmr_filter",
-        ))
+        )
+        self.props.addLayer(0, self.localProps)
         # properties that we inherit from the sdr
         self.props.addLayer(1, self.sdrSource.getProps().filter(
             "audio_compression",
@@ -177,7 +178,7 @@ class DspManager(csdr.output, SdrSourceEventClient):
             self.setProperty(k, v)
 
     def setProperty(self, prop, value):
-        self.props[prop] = value
+        self.localProps[prop] = value
 
     def getClientClass(self):
         return SdrSource.CLIENT_USER
