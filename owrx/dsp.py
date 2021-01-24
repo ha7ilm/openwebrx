@@ -4,14 +4,24 @@ from owrx.js8 import Js8Parser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
 from owrx.source import SdrSource, SdrSourceEventClient
-from owrx.property import PropertyStack, PropertyLayer
+from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
+from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from csdr import csdr
 import threading
+import re
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ModulationValidator(OrValidator):
+    """
+    This validator only allows alphanumeric characters and numbers, but no spaces or special characters
+    """
+    def __init__(self):
+        super().__init__(BoolValidator(), RegexValidator(re.compile("^[a-z0-9]+$")))
 
 
 class DspManager(csdr.output, SdrSourceEventClient):
@@ -27,19 +37,24 @@ class DspManager(csdr.output, SdrSourceEventClient):
         }
 
         self.props = PropertyStack()
+
         # local demodulator properties not forwarded to the sdr
-        self.localProps = PropertyLayer().filter(
-            "output_rate",
-            "hd_output_rate",
-            "squelch_level",
-            "secondary_mod",
-            "low_cut",
-            "high_cut",
-            "offset_freq",
-            "mod",
-            "secondary_offset_freq",
-            "dmr_filter",
-        )
+        # ensure strict validation since these can be set from the client
+        # and are used to build executable commands
+        validators = {
+            "output_rate": "int",
+            "hd_output_rate": "int",
+            "squelch_level": "num",
+            "secondary_mod": ModulationValidator(),
+            "low_cut": "num",
+            "high_cut": "num",
+            "offset_freq": "int",
+            "mod": ModulationValidator(),
+            "secondary_offset_freq": "int",
+            "dmr_filter": "int",
+        }
+        self.localProps = PropertyValidator(PropertyLayer().filter(*validators.keys()), validators)
+
         self.props.addLayer(0, self.localProps)
         # properties that we inherit from the sdr
         self.props.addLayer(1, self.sdrSource.getProps().filter(
