@@ -1,3 +1,7 @@
+**unreleased**
+- Fix a security problem that allowed arbitrary commands to be executed on the receiver
+  ([See github issue #215](https://github.com/jketterl/openwebrx/issues/215))
+
 **0.20.1**
 - Remove broken OSM map fallback
 

@@ -1,3 +1,11 @@
+openwebrx (0.20.2) buster focal; urgency=high
+
+  * Fix a security problem that allowed arbitrary commands to be executed on
+    the receiver (See github issue #215:
+    https://github.com/jketterl/openwebrx/issues/215)
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 24 Jan 2021 22:50:00 +0000
+
 openwebrx (0.20.1) buster focal; urgency=low
 
   * Remove broken OSM map fallback
