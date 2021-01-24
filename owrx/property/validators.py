@@ -12,6 +12,8 @@ class Validator(ABC):
             return x
         if callable(x):
             return LambdaValidator(x)
+        if x in validator_types:
+            return validator_types[x]()
         raise ValidatorException("Cannot create validator")
 
     @abstractmethod
@@ -40,3 +42,13 @@ class IntegerValidator(Validator):
 class StringValidator(Validator):
     def isValid(self, value):
         return isinstance(value, str)
+
+
+validator_types = {
+    "string": StringValidator,
+    "str": StringValidator,
+    "integer": IntegerValidator,
+    "int": IntegerValidator,
+    "number": NumberValidator,
+    "num": NumberValidator,
+}
