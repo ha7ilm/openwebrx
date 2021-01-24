@@ -79,12 +79,13 @@ class NumberValidator(OrValidator):
         super().__init__(IntegerValidator(), FloatValidator())
 
 
-class RegexValidator(Validator):
+class RegexValidator(StringValidator):
     def __init__(self, regex: re.Pattern):
         self.regex = regex
+        super().__init__()
 
     def isValid(self, value):
-        return isinstance(value, str) and self.regex.match(value) is not None
+        return super().isValid(value) and self.regex.match(value) is not None
 
 
 validator_types = {
