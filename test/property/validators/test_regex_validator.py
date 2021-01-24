@@ -11,3 +11,7 @@ class RegexValidatorTest(TestCase):
     def testDoesntMatchRegex(self):
         validator = RegexValidator(re.compile("abc"))
         self.assertFalse(validator.isValid("xyz"))
+
+    def testFailsIfValueIsNoString(self):
+        validator = RegexValidator(re.compile("abc"))
+        self.assertFalse(validator.isValid(42))

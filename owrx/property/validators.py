@@ -84,7 +84,7 @@ class RegexValidator(Validator):
         self.regex = regex
 
     def isValid(self, value):
-        return self.regex.match(value) is not None
+        return isinstance(value, str) and self.regex.match(value) is not None
 
 
 validator_types = {
