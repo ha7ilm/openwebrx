@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from operator import or_
-import re
 
 
 class ValidatorException(Exception):
