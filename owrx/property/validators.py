@@ -80,7 +80,7 @@ class NumberValidator(OrValidator):
 
 
 class RegexValidator(StringValidator):
-    def __init__(self, regex: re.Pattern):
+    def __init__(self, regex):
         self.regex = regex
         super().__init__()
 
