@@ -17,6 +17,12 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 11 Oct 2020 21:12:00 +0000
 
+openwebrx (0.20.3) buster focal; urgency=low
+
+  * Fix a compatibility issue with python versions <= 3.6
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 26 Jan 2021 15:28:00 +0000
+
 openwebrx (0.20.2) buster focal; urgency=high
 
   * Fix a security problem that allowed arbitrary commands to be executed on
