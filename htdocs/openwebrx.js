@@ -759,9 +759,9 @@ function on_ws_recv(evt) {
                         if ('sdr_id' in config && 'profile_id' in config) {
                             currentprofile = config['sdr_id'] + '|' + config['profile_id'];
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
-                        }
 
-                        waterfall_clear();
+                            waterfall_clear();
+                        }
 
                         if ('frequency_display_precision' in config)
                             $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
