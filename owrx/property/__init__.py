@@ -5,6 +5,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class PropertyError(Exception):
+    pass
+
+
 class Subscription(object):
     def __init__(self, subscriptee, name, subscriber):
         self.subscriptee = subscriptee
@@ -51,6 +55,9 @@ class PropertyManager(ABC):
 
     def filter(self, *props):
         return PropertyFilter(self, *props)
+
+    def readonly(self):
+        return PropertyReadOnly(self)
 
     def wire(self, callback):
         sub = Subscription(self, None, callback)
@@ -155,35 +162,16 @@ class PropertyFilter(PropertyManager):
         return [k for k in self.pm.keys() if k in self.props]
 
 
-class PropertyValidationError(Exception):
-    def __init__(self, key, value):
-        super().__init__('Invalid value for property "{key}": "{value}"'.format(key=key, value=str(value)))
-
-
-class PropertyValidator(PropertyManager):
-    def __init__(self, pm: PropertyManager, validators=None):
+class PropertyDelegator(PropertyManager):
+    def __init__(self, pm: PropertyManager):
         self.pm = pm
         self.pm.wire(self._fireCallbacks)
-        if validators is None:
-            self.validators = {}
-        else:
-            self.validators = {k: Validator.of(v) for k, v in validators.items()}
         super().__init__()
-
-    def validate(self, key, value):
-        if key not in self.validators:
-            return
-        if not self.validators[key].isValid(value):
-            raise PropertyValidationError(key, value)
-
-    def setValidator(self, key, validator):
-        self.validators[key] = Validator.of(validator)
 
     def __getitem__(self, item):
         return self.pm.__getitem__(item)
 
     def __setitem__(self, key, value):
-        self.validate(key, value)
         return self.pm.__setitem__(key, value)
 
     def __contains__(self, item):
@@ -197,6 +185,43 @@ class PropertyValidator(PropertyManager):
 
     def keys(self):
         return self.pm.keys()
+
+
+class PropertyValidationError(PropertyError):
+    def __init__(self, key, value):
+        super().__init__('Invalid value for property "{key}": "{value}"'.format(key=key, value=str(value)))
+
+
+class PropertyValidator(PropertyDelegator):
+    def __init__(self, pm: PropertyManager, validators=None):
+        super().__init__(pm)
+        if validators is None:
+            self.validators = {}
+        else:
+            self.validators = {k: Validator.of(v) for k, v in validators.items()}
+
+    def validate(self, key, value):
+        if key not in self.validators:
+            return
+        if not self.validators[key].isValid(value):
+            raise PropertyValidationError(key, value)
+
+    def setValidator(self, key, validator):
+        self.validators[key] = Validator.of(validator)
+
+    def __setitem__(self, key, value):
+        self.validate(key, value)
+        return self.pm.__setitem__(key, value)
+
+
+class PropertyWriteError(PropertyError):
+    def __init__(self, key):
+        super().__init__('Key "{key}" is not writeable'.format(key=key))
+
+
+class PropertyReadOnly(PropertyDelegator):
+    def __setitem__(self, key, value):
+        raise PropertyWriteError(key)
 
 
 class PropertyStack(PropertyManager):
