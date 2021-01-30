@@ -761,8 +761,8 @@ function on_ws_recv(evt) {
                         bookmarks.loadLocalBookmarks();
 
                         if ('sdr_id' in config || 'profile_id' in config) {
-                            currentprofile['sdr_id'] = config['sdr_id'] || current_profile['sdr_id'];
-                            currentprofile['profile_id'] = config['profile_id'] || current_profile['profile_id'];
+                            currentprofile['sdr_id'] = config['sdr_id'] || currentprofile['sdr_id'];
+                            currentprofile['profile_id'] = config['profile_id'] || currentprofile['profile_id'];
                             $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
 
                             waterfall_clear();
