@@ -425,7 +425,7 @@ class FeatureDetector(object):
         The digital voice modes NXDN and D-Star can be decoded by the dsd project. Please note that you need the version
         modified by F4EXB that provides stdin/stdout support. You can find it [here](https://github.com/f4exb/dsd).
         """
-        return self.command_is_runnable("dsd")
+        return self.command_is_runnable("dsd -h")
 
     def has_m17_demod(self):
         """
