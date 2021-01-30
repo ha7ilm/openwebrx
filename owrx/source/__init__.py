@@ -52,7 +52,12 @@ class SdrSource(ABC):
         self.props = PropertyStack()
         # layer 0 reserved for profile properties
         self.props.addLayer(1, props)
-        self.props.addLayer(2, Config.get())
+        # the sdr_id is constant, so we put it in a separate layer
+        # this is used to detect device changes, that are then sent to the client
+        sdrIdLayer = PropertyLayer()
+        sdrIdLayer["sdr_id"] = id
+        self.props.addLayer(2, sdrIdLayer.readonly())
+        self.props.addLayer(3, Config.get())
         self.sdrProps = self.props.filter(*self.getEventNames())
 
         self.profile_id = None
