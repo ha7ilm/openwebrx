@@ -684,7 +684,11 @@ function zoom_calc() {
 }
 
 var networkSpeedMeasurement;
-var currentprofile;
+var currentprofile = {
+    toString: function() {
+        return this['sdr_id'] + '|' + this['profile_id'];
+    }
+};
 
 var COMPRESS_FFT_PAD_N = 10; //should be the same as in csdr.c
 
@@ -756,9 +760,10 @@ function on_ws_recv(evt) {
                             demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
                         bookmarks.loadLocalBookmarks();
 
-                        if ('sdr_id' in config && 'profile_id' in config) {
-                            currentprofile = config['sdr_id'] + '|' + config['profile_id'];
-                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+                        if ('sdr_id' in config || 'profile_id' in config) {
+                            currentprofile['sdr_id'] = config['sdr_id'] || current_profile['sdr_id'];
+                            currentprofile['profile_id'] = config['profile_id'] || current_profile['profile_id'];
+                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
 
                             waterfall_clear();
                         }
@@ -792,9 +797,7 @@ function on_ws_recv(evt) {
                         listbox.html(json['value'].map(function (profile) {
                             return '<option value="' + profile['id'] + '">' + profile['name'] + "</option>";
                         }).join(""));
-                        if (currentprofile) {
-                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
-                        }
+                        $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
                         break;
                     case "features":
                         Modes.setFeatures(json['value']);
