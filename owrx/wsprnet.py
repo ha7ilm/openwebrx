@@ -63,7 +63,7 @@ class Worker(threading.Thread):
                 "mode": self._getMode(spot),
             }
         ).encode()
-        request.urlopen("http://wsprnet.org/post/", data)
+        request.urlopen("http://wsprnet.org/post/", data, timeout=60)
 
 
 class WsprnetReporter(Reporter):
