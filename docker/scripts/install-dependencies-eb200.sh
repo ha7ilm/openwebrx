@@ -25,8 +25,8 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/eb200_connector.git
-# latest from develop as of 2020-12-01
-cmakebuild eb200_connector 9c8313770c1072df72d2fdb85307ca206c29c60a
+# latest from develop as of 2021-01-31
+cmakebuild eb200_connector bb7f75be6e7fb4b987eea4b81821663ca4b9f19f
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
