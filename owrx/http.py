@@ -98,6 +98,7 @@ class Router(object):
             StaticRoute("/features", FeatureController),
             StaticRoute("/api/features", ApiController),
             StaticRoute("/api/receiverdetails", ApiController, options={"action": "receiverDetails"}),
+            StaticRoute("/metrics", MetricsController, options={"action": "prometheusAction"}),
             StaticRoute("/metrics.json", MetricsController),
             StaticRoute("/settings", SettingsController),
             StaticRoute("/generalsettings", GeneralSettingsController),

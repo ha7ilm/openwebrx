@@ -52,7 +52,10 @@ class Metrics(object):
             return None
         return self.metrics[name]
 
-    def getMetrics(self):
+    def getFlatMetrics(self):
+        return self.metrics
+
+    def getHierarchicalMetrics(self):
         result = {}
 
         for (key, metric) in self.metrics.items():
