@@ -117,6 +117,8 @@ cmakebuild m17-cxx-demod bab44d625cfd6ab9d8c2ca7ace6ebc76aaab28fc
 git clone https://github.com/hessu/aprs-symbols /usr/share/aprs-symbols
 pushd /usr/share/aprs-symbols
 git checkout 5c2abe2658ee4d2563f3c73b90c6f59124839802
+# remove unused files (including git meta information)
+rm -rf .git aprs-symbols.ai aprs-sym-export.js
 popd
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
