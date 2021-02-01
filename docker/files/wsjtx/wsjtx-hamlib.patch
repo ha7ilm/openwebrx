@@ -1,17 +1,16 @@
---- CMakeLists.txt.orig	2020-07-21 20:59:55.982026645 +0200
-+++ CMakeLists.txt	2020-07-21 21:01:25.444836112 +0200
-@@ -80,24 +80,6 @@
+--- CMakeLists.txt.orig	2021-02-01 21:00:44.879969236 +0100
++++ CMakeLists.txt	2021-02-01 21:04:58.184642042 +0100
+@@ -106,24 +106,6 @@
  
- include (ExternalProject)
  
--
--#
+ #
 -# build and install hamlib locally so it can be referenced by the
 -# WSJT-X build
 -#
 -ExternalProject_Add (hamlib
 -  GIT_REPOSITORY ${hamlib_repo}
 -  GIT_TAG ${hamlib_TAG}
+-  GIT_SHALLOW False
 -  URL ${CMAKE_CURRENT_SOURCE_DIR}/src/${__hamlib_upstream}
 -  URL_HASH MD5=${hamlib_md5sum}
 -  #UPDATE_COMMAND ${CMAKE_COMMAND} -E env "[ -f ./bootstrap ] && ./bootstrap"
@@ -22,10 +21,11 @@
 -  STEP_TARGETS update install
 -  )
 -
- #
+-#
  # custom target to make a hamlib source tarball
  #
-@@ -136,7 +118,6 @@
+ add_custom_target (hamlib_sources
+@@ -161,7 +143,6 @@
  # build and optionally install WSJT-X using the hamlib package built
  # above
  #
@@ -33,11 +33,18 @@
  ExternalProject_Add (wsjtx
    GIT_REPOSITORY ${wsjtx_repo}
    GIT_TAG ${WSJTX_TAG}
-@@ -160,7 +141,6 @@
+@@ -186,14 +167,8 @@
    DEPENDEES build
    )
  
 -set_target_properties (hamlib PROPERTIES EXCLUDE_FROM_ALL 1)
  set_target_properties (wsjtx PROPERTIES EXCLUDE_FROM_ALL 1)
  
- add_dependencies (wsjtx-configure hamlib-install)
+-add_dependencies (wsjtx-configure hamlib-install)
+-add_dependencies (wsjtx-build hamlib-install)
+-add_dependencies (wsjtx-install hamlib-install)
+-add_dependencies (wsjtx-package hamlib-install)
+-
+ # export traditional targets
+ add_custom_target (build ALL DEPENDS wsjtx-build)
+ add_custom_target (install DEPENDS wsjtx-install)

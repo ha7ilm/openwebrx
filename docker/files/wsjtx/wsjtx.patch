@@ -1,6 +1,6 @@
 diff -ur wsjtx-orig/CMake/Modules/Findhamlib.cmake wsjtx/CMake/Modules/Findhamlib.cmake
---- wsjtx-orig/CMake/Modules/Findhamlib.cmake	2020-07-21 21:10:43.124810140 +0200
-+++ wsjtx/CMake/Modules/Findhamlib.cmake	2020-07-21 21:11:03.368019114 +0200
+--- wsjtx-orig/CMake/Modules/Findhamlib.cmake	2021-02-01 20:38:00.947536514 +0100
++++ wsjtx/CMake/Modules/Findhamlib.cmake	2021-02-01 20:39:06.273680932 +0100
 @@ -85,4 +85,4 @@
  # Handle the  QUIETLY and REQUIRED  arguments and set  HAMLIB_FOUND to
  # TRUE if all listed variables are TRUE
@@ -8,9 +8,18 @@ diff -ur wsjtx-orig/CMake/Modules/Findhamlib.cmake wsjtx/CMake/Modules/Findhamli
 -find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES hamlib_LIBRARY_DIRS)
 +find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES)
 diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
---- wsjtx-orig/CMakeLists.txt	2020-07-21 21:10:43.124810140 +0200
-+++ wsjtx/CMakeLists.txt	2020-07-21 22:14:04.454639589 +0200
-@@ -871,7 +871,7 @@
+--- wsjtx-orig/CMakeLists.txt	2021-02-01 20:38:00.947536514 +0100
++++ wsjtx/CMakeLists.txt	2021-02-01 23:02:22.503027275 +0100
+@@ -122,7 +122,7 @@
+ option (WSJT_QDEBUG_TO_FILE "Redirect Qt debuging messages to a trace file.")
+ option (WSJT_SOFT_KEYING "Apply a ramp to CW keying envelope to reduce transients." ON)
+ option (WSJT_SKIP_MANPAGES "Skip *nix manpage generation.")
+-option (WSJT_GENERATE_DOCS "Generate documentation files." ON)
++option (WSJT_GENERATE_DOCS "Generate documentation files.")
+ option (WSJT_RIG_NONE_CAN_SPLIT "Allow split operation with \"None\" as rig.")
+ option (WSJT_TRACE_UDP "Debugging option that turns on UDP message protocol diagnostics.")
+ option (WSJT_BUILD_UTILS "Build simulators and code demonstrators." ON)
+@@ -856,7 +856,7 @@
  #
  # libhamlib setup
  #
@@ -19,31 +28,37 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  find_package (hamlib 3 REQUIRED)
  find_program (RIGCTL_EXE rigctl)
  find_program (RIGCTLD_EXE rigctld)
-@@ -1348,53 +1348,10 @@
- 
- endif(WSJT_BUILD_UTILS)
+@@ -1376,60 +1376,6 @@
+   target_link_libraries (jt9 wsjt_fort wsjt_cxx fort_qt)
+ endif (${OPENMP_FOUND} OR APPLE)
  
 -# build the main application
+-generate_version_info (wsjtx_VERSION_RESOURCES
+-  NAME wsjtx
+-  BUNDLE ${PROJECT_BUNDLE_NAME}
+-  ICON ${WSJTX_ICON_FILE}
+-  )
+-
 -add_executable (wsjtx MACOSX_BUNDLE
 -  ${wsjtx_CXXSRCS}
 -  ${wsjtx_GENUISRCS}
--  wsjtx.rc
 -  ${WSJTX_ICON_FILE}
 -  ${wsjtx_RESOURCES_RCC}
+-  ${wsjtx_VERSION_RESOURCES}
 -  )
 -
- if (WSJT_CREATE_WINMAIN)
-   set_target_properties (wsjtx PROPERTIES WIN32_EXECUTABLE ON)
- endif (WSJT_CREATE_WINMAIN)
- 
+-if (WSJT_CREATE_WINMAIN)
+-  set_target_properties (wsjtx PROPERTIES WIN32_EXECUTABLE ON)
+-endif (WSJT_CREATE_WINMAIN)
+-
 -set_target_properties (wsjtx PROPERTIES
 -  MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Darwin/Info.plist.in"
--  MACOSX_BUNDLE_INFO_STRING "${WSJTX_DESCRIPTION_SUMMARY}"
+-  MACOSX_BUNDLE_INFO_STRING "${PROJECT_DESCRIPTION}"
 -  MACOSX_BUNDLE_ICON_FILE "${WSJTX_ICON_FILE}"
--  MACOSX_BUNDLE_BUNDLE_VERSION ${wsjtx_VERSION}
--  MACOSX_BUNDLE_SHORT_VERSION_STRING "v${wsjtx_VERSION}"
--  MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${wsjtx_VERSION}"
--  MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}"
+-  MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
+-  MACOSX_BUNDLE_SHORT_VERSION_STRING "v${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
+-  MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}${SCS_VERSION_STR}"
+-  MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_BUNDLE_NAME}"
 -  MACOSX_BUNDLE_BUNDLE_EXECUTABLE_NAME "${PROJECT_NAME}"
 -  MACOSX_BUNDLE_COPYRIGHT "${PROJECT_COPYRIGHT}"
 -  MACOSX_BUNDLE_GUI_IDENTIFIER "org.k1jt.wsjtx"
@@ -51,9 +66,9 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -
 -target_include_directories (wsjtx PRIVATE ${FFTW3_INCLUDE_DIRS})
 -if (APPLE)
--  target_link_libraries (wsjtx Qt5::SerialPort wsjt_fort wsjt_cxx wsjt_qt wsjt_qtmm ${hamlib_LIBRARIES} ${FFTW3_LIBRARIES})
+-  target_link_libraries (wsjtx wsjt_fort)
 -else ()
--  target_link_libraries (wsjtx Qt5::SerialPort wsjt_fort_omp wsjt_cxx wsjt_qt wsjt_qtmm ${hamlib_LIBRARIES} ${FFTW3_LIBRARIES})
+-  target_link_libraries (wsjtx wsjt_fort_omp)
 -  if (OpenMP_C_FLAGS)
 -    set_target_properties (wsjtx PROPERTIES
 -      COMPILE_FLAGS "${OpenMP_C_FLAGS}"
@@ -65,15 +80,16 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -    )
 -  if (WIN32)
 -    set_target_properties (wsjtx PROPERTIES
--      LINK_FLAGS -Wl,--stack,16777216
+-      LINK_FLAGS -Wl,--stack,0x1000000,--heap,0x20000000
 -      )
 -  endif ()
 -endif ()
+-target_link_libraries (wsjtx Qt5::SerialPort wsjt_cxx wsjt_qt wsjt_qtmm ${hamlib_LIBRARIES} ${FFTW3_LIBRARIES} ${LIBM_LIBRARIES})
 -
  # make a library for WSJT-X UDP servers
  # add_library (wsjtx_udp SHARED ${UDP_library_CXXSRCS})
  add_library (wsjtx_udp-static STATIC ${UDP_library_CXXSRCS})
-@@ -1437,24 +1394,9 @@
+@@ -1492,24 +1438,9 @@
    set_target_properties (message_aggregator PROPERTIES WIN32_EXECUTABLE ON)
  endif (WSJT_CREATE_WINMAIN)
  
@@ -98,21 +114,21 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  
  # install (TARGETS wsjtx_udp EXPORT udp
  #   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-@@ -1473,12 +1415,7 @@
+@@ -1528,12 +1459,7 @@
  #   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wsjtx
  #   )
  
--install (TARGETS udp_daemon message_aggregator
+-install (TARGETS udp_daemon message_aggregator wsjtx_app_version
 -  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
 -  BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
 -  )
 -
 -install (TARGETS jt9 wsprd fmtave fcal fmeasure
-+install (TARGETS jt9 wsprd
++install (TARGETS wsjtx_app_version jt9 wsprd
    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    )
-@@ -1491,39 +1428,6 @@
+@@ -1546,38 +1472,6 @@
    )
  endif(WSJT_BUILD_UTILS)  
  
@@ -143,13 +159,25 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -  AUTHORS
 -  THANKS
 -  NEWS
--  INSTALL
 -  BUGS
 -  DESTINATION ${CMAKE_INSTALL_DOCDIR}
 -  #COMPONENT runtime
 -  )
 -
  install (FILES
-   contrib/Ephemeris/JPLEPH
-   DESTINATION ${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}
-Only in wsjtx: .idea
+   cty.dat
+   cty.dat_copyright.txt
+@@ -1586,13 +1480,6 @@
+   #COMPONENT runtime
+   )
+ 
+-install (DIRECTORY
+-  example_log_configurations
+-  DESTINATION ${CMAKE_INSTALL_DOCDIR}
+-  FILES_MATCHING REGEX "^.*[^~]$"
+-  #COMPONENT runtime
+-  )
+-
+ #
+ # Mac installer files
+ #
