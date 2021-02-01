@@ -24,8 +24,8 @@ apt-get update
 apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
-# latest develop as of 2021-01-31 (fix for 32bit overflows)
-cmakebuild owrx_connector 47872fada2871b4b8ee8ba7ca1e8c98a2340be2b
+# latest develop as of 2021-02-01 (string parsing fixes)
+cmakebuild owrx_connector 4789a82015a66f11440bdfd4a935bafa7da22fbe
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
