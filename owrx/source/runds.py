@@ -1,17 +1,18 @@
 from owrx.source.connector import ConnectorSource
-from owrx.command import Argument, Flag
+from owrx.command import Argument, Flag, Option
 
 
-class Eb200Source(ConnectorSource):
+class RundsSource(ConnectorSource):
     def getCommandMapper(self):
         return (
             super()
             .getCommandMapper()
-            .setBase("eb200_connector")
+            .setBase("runds_connector")
             .setMappings(
                 {
                     "long": Flag("-l"),
                     "remote": Argument(),
+                    "protocol": Option("-m"),
                 }
             )
         )

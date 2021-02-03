@@ -8,7 +8,7 @@
 - New devices supported:
   - HPSDR devices (Hermes Lite 2)
   - BBRF103 / RX666 / RX888 devices supported by libsddc
-  - Devices using the EB200 protocol
+  - R&S devices using the EB200 or Ammos protocols
 
 **0.20.3**
 - Fix a compatibility issue with python versions <= 3.6

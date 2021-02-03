@@ -21,7 +21,7 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-redpitaya.sh &&\
     /install-dependencies-hpsdr.sh &&\
     /install-connectors.sh &&\
-    /install-dependencies-eb200.sh &&\
+    /install-dependencies-runds.sh &&\
     rm /install-dependencies-*.sh &&\
     rm /install-lib.*.patch && \
     rm /install-connectors.sh

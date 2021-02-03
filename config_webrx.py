@@ -117,7 +117,7 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # Currently supported types of sdr receivers:
 # "rtl_sdr", "rtl_sdr_soapy", "sdrplay", "hackrf", "airspy", "airspyhf", "fifi_sdr",
 # "perseussdr", "lime_sdr", "pluto_sdr", "soapy_remote", "hpsdr", "red_pitaya", "uhd",
-# "radioberry", "fcdpp", "rtl_tcp", "sddc", "eb200"
+# "radioberry", "fcdpp", "rtl_tcp", "sddc", "runds"
 
 # For more details on specific types, please checkout the wiki:
 # https://github.com/jketterl/openwebrx/wiki/Supported-Hardware#sdr-devices

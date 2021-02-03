@@ -13,7 +13,7 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
   * New devices supported:
     - HPSDR devices (Hermes Lite 2) (`"type": "hpsdr"`)
     - BBRF103 / RX666 / RX888 devices supported by libsddc (`"type": "sddc"`)
-    - Devices using the EB200 protocol (`"type": "eb200"`)
+    - R&S devices using the EB200 or Ammos protocols (`"type": "runds"`)
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 11 Oct 2020 21:12:00 +0000
 

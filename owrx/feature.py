@@ -70,7 +70,7 @@ class FeatureDetector(object):
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         "sddc": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
-        "eb200": ["eb200_connector"],
+        "runds": ["runds_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
@@ -547,10 +547,10 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("hpsdrconnector -h")
 
-    def has_eb200_connector(self):
+    def has_runds_connector(self):
         """
-        To use radios supporting the EB200 radios, you need to install the eb200_connector.
+        To use radios supporting R&S radios via EB200 or Ammos, you need to install the runds_connector.
 
-        You can find more information [here](https://github.com/jketterl/eb200_connector).
+        You can find more information [here](https://github.com/jketterl/runds_connector).
         """
-        return self._check_connector("eb200_connector")
+        return self._check_connector("runds_connector")

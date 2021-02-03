@@ -24,9 +24,9 @@ BUILD_PACKAGES="git cmake make gcc g++ pkg-config"
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
-git clone https://github.com/jketterl/eb200_connector.git
-# latest from develop as of 2021-01-31
-cmakebuild eb200_connector bb7f75be6e7fb4b987eea4b81821663ca4b9f19f
+git clone https://github.com/jketterl/runds_connector.git
+# latest from develop as of 2021-02-03 (first working ammos implementation)
+cmakebuild runds_connector 19531c4e3e46107960656b3eed9952adebf1ec65
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
