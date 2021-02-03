@@ -25,8 +25,8 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/runds_connector.git
-# latest from develop as of 2021-02-03 (first working ammos implementation)
-cmakebuild runds_connector 19531c4e3e46107960656b3eed9952adebf1ec65
+# latest from develop as of 2021-02-03 (clean-up after ammos)
+cmakebuild runds_connector b10f3d9a8c98483db0b11b055e357a9dea54de1b
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
