@@ -164,7 +164,8 @@
       "jt65": 50310000,
       "jt9": 50312000,
       "ft4": 50318000,
-      "js8": 50318000
+      "js8": 50318000,
+      "q65": [50211000, 50275000]
     }
   },
   {
@@ -184,7 +185,8 @@
       "ft8": 144174000,
       "ft4": 144170000,
       "jt65": 144120000,
-      "packet": 144800000
+      "packet": 144800000,
+      "q65": 144116000
     }
   },
   {
@@ -192,33 +194,49 @@
     "lower_bound": 430000000,
     "upper_bound": 440000000,
     "frequencies": {
-      "pocsag": 439987500
+      "pocsag": 439987500,
+      "q65": 432065000
     }
   },
   {
     "name": "23cm",
     "lower_bound": 1240000000,
-    "upper_bound": 1300000000
+    "upper_bound": 1300000000,
+    "frequencies": {
+      "q65": 1296065000
+    }
   },
   {
     "name": "13cm",
     "lower_bound": 2320000000,
-    "upper_bound": 2450000000
+    "upper_bound": 2450000000,
+    "frequencies": {
+      "q65": [2301065000, 2304065000, 2320065000]
+    }
   },
   {
     "name": "9cm",
     "lower_bound": 3400000000,
-    "upper_bound": 3475000000
+    "upper_bound": 3475000000,
+    "frequencies": {
+      "q65": 3400065000
+    }
   },
   {
     "name": "6cm",
     "lower_bound": 5650000000,
-    "upper_bound": 5850000000
+    "upper_bound": 5850000000,
+    "frequencies": {
+      "q65": 5760200000
+    }
   },
   {
     "name": "3cm",
     "lower_bound": 10000000000,
-    "upper_bound": 10500000000
+    "upper_bound": 10500000000,
+    "frequencies": {
+      "q65": 10368200000
+    }
   },
   {
     "name": "120m Broadcast",
