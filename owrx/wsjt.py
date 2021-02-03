@@ -7,6 +7,7 @@ from owrx.parser import Parser
 from owrx.audio import AudioChopperProfile
 from abc import ABC, ABCMeta, abstractmethod
 from owrx.config import Config
+from enum import Enum
 
 import logging
 
@@ -140,6 +141,37 @@ class Fst4wProfile(WsjtProfile):
         config = Config.get()
         profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
         return [Fst4wProfile(i) for i in profiles if i in Fst4wProfile.availableIntervals]
+
+
+class Q65Mode(Enum):
+    A = 1
+    B = 2
+    C = 3
+    D = 4
+    E = 5
+
+
+class Q65Profile(WsjtProfile):
+    availableIntervals = [15, 30, 60, 120, 300]
+
+    def __init__(self, interval, mode: Q65Mode):
+        self.interval = interval
+        self.mode = mode
+
+    def getMode(self):
+        return "Q65"
+
+    def getInterval(self):
+        return self.interval
+
+    def decoder_commandline(self, file):
+        return ["jt9", "--q65", "-p", str(self.interval), "-b", self.mode.name, "-d", str(self.decoding_depth()), file]
+
+    @staticmethod
+    def getEnabledProfiles():
+        config = Config.get()
+        profiles = config["q65_enabled_combinations"] if "q65_enabled_combinations" in config else []
+        return [Q65Profile(i, Q65Mode[m]) for i, m in profiles if i in Fst4wProfile.availableIntervals]
 
 
 class WsjtParser(Parser):

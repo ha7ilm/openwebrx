@@ -318,6 +318,10 @@ fst4_enabled_intervals = [15, 30]
 # available values (in seconds): 120, 300, 900, 1800
 fst4w_enabled_intervals = [120, 300]
 
+# Q65 allows many combinations of intervals and submodes. This setting determines which combinations will be decoded.
+# Please use python tuples of (interval: int, mode: str) to specify the combinations. For example:
+q65_enabled_combinations = [(30, "A"), (120, "E"), (60, "C")]
+
 # JS8 comes in different speeds: normal, slow, fast, turbo. This setting controls which ones are enabled.
 js8_enabled_profiles = ["normal", "slow"]
 # JS8 decoding depth; higher value will get more results, but will also consume more cpu

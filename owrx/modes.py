@@ -99,6 +99,9 @@ class Modes(object):
             service=True,
         ),
         DigitalMode(
+            "q65", "Q65", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x-2-4"], service=True
+        ),
+        DigitalMode(
             "js8", "JS8Call", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["js8call"], service=True
         ),
         DigitalMode(

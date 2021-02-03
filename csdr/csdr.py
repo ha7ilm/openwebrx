@@ -29,7 +29,7 @@ import math
 from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
-from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile, Fst4Profile, Fst4wProfile
+from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile, Fst4Profile, Fst4wProfile, Q65Profile
 from owrx.js8 import Js8Profiles
 from owrx.audio import AudioChopper
 
@@ -433,6 +433,8 @@ class dsp(object):
                 chopper_profiles = Fst4Profile.getEnabledProfiles()
             elif smd == "fst4w":
                 chopper_profiles = Fst4wProfile.getEnabledProfiles()
+            elif smd == "q65":
+                chopper_profiles = Q65Profile.getEnabledProfiles()
             if chopper_profiles is not None and len(chopper_profiles):
                 chopper = AudioChopper(self, self.secondary_process_demod.stdout, *chopper_profiles)
                 chopper.start()
@@ -573,7 +575,7 @@ class dsp(object):
     def isWsjtMode(self, demodulator=None):
         if demodulator is None:
             demodulator = self.get_secondary_demodulator()
-        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w"]
+        return demodulator in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]
 
     def isJs8(self, demodulator=None):
         if demodulator is None:

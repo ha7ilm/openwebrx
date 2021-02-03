@@ -78,7 +78,7 @@ WsjtMessagePanel.prototype.pushMessage = function(msg) {
         return $('<div/>').text(input).html()
     };
 
-    if (['FT8', 'JT65', 'JT9', 'FT4', 'FST4'].indexOf(msg['mode']) >= 0) {
+    if (['FT8', 'JT65', 'JT9', 'FT4', 'FST4', 'Q65'].indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] !== 'RR73') {
             linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>';

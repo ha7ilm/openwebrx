@@ -1,7 +1,8 @@
 **unreleased**
 - Introduced `squelch_auto_margin` config option that allows configuring the auto squelch level
 - Removed `port` configuration option; `rtltcp_compat` takes the port number with the new connectors
-- Added support for new WSJT-X modes FST4 and FST4W (only available with WSJT-X 2.3)
+- Added support for new WSJT-X modes FST4, FST4W (only available with WSJT-X 2.3) and Q65 (only avilable with
+  WSJT-X 2.4)
 - Added support for demodulating M17 digital voice signals using m17-cxx-demod
 - New reporting infrastructure, allowing WSPR and FST4W spots to be sent to wsprnet.org
 - Add some basic filtering capabilities to the map
