@@ -78,6 +78,7 @@ class FeatureDetector(object):
         "digital_voice_m17": ["m17_demod", "sox"],
         "wsjt-x": ["wsjtx", "sox"],
         "wsjt-x-2-3": ["wsjtx_2_3", "sox"],
+        "wsjt-x-2-4": ["wsjtx_2_4", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
         "js8call": ["js8", "sox"],
@@ -485,6 +486,12 @@ class FeatureDetector(object):
         Newer digital modes (e.g. FST4, FST4) require WSJT-X in at least version 2.3.
         """
         return self.has_wsjtx() and self._has_wsjtx_version(LooseVersion("2.3"))
+
+    def has_wsjtx_2_4(self):
+        """
+        WSJT-X version 2.4 introduced the Q65 mode.
+        """
+        return self.has_wsjtx() and self._has_wsjtx_version(LooseVersion("2.4"))
 
     def has_js8(self):
         """
