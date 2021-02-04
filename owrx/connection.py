@@ -161,11 +161,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
-    def __del__(self):
-        if hasattr(self, "configSubs"):
-            while self.configSubs:
-                self.configSubs.pop().cancel()
-
     def setupStack(self):
         stack = PropertyStack()
         # stack layer 0 reserved for sdr properties
@@ -317,6 +312,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)
+        while self.configSubs:
+            self.configSubs.pop().cancel()
         super().close()
 
     def stopDsp(self):
