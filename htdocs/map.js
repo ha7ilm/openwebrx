@@ -282,7 +282,7 @@
                         processUpdates(json.value);
                     break;
                     case 'receiver_details':
-                        $('#webrx-top-container').header().setDetails(json['value']);
+                        $('.webrx-top-container').header().setDetails(json['value']);
                     break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);

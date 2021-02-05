@@ -780,7 +780,7 @@ function on_ws_recv(evt) {
                         secondary_demod_init_canvases();
                         break;
                     case "receiver_details":
-                        $('#webrx-top-container').header().setDetails(json['value']);
+                        $('.webrx-top-container').header().setDetails(json['value']);
                         break;
                     case "smeter":
                         smeter_level = json['value'];
