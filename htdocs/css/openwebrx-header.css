@@ -28,7 +28,7 @@
     height: 283px;
 }
 
-.webrx-top-bar-parts {
+.webrx-top-bar {
     height:67px;
 
     background: rgba(128, 128, 128, 0.15);
@@ -46,7 +46,7 @@
     flex-direction: row;
 }
 
-.webrx-top-bar-parts > * {
+.webrx-top-bar > * {
     flex: 0;
 }
 
