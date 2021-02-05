@@ -79,6 +79,7 @@
     /* will be getting wider with flex */
     flex: 1;
     overflow: hidden;
+    margin: auto 0;
 }
 
 #webrx-rx-texts div {
@@ -88,10 +89,6 @@
     overflow: hidden;
     cursor:pointer;
     color: #909090;
-}
-
-#webrx-rx-texts div:first-child {
-    margin-top: 10px;
 }
 
 #webrx-rx-title {
