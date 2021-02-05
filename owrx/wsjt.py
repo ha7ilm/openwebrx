@@ -197,6 +197,9 @@ class WsjtParser(Parser):
                 else:
                     decoder = Jt9Decoder(profile, messageParser)
                 out = decoder.parse(msg, freq)
+                if isinstance(profile, Q65Profile) and not out["msg"]:
+                    # all efforts in vain, it's just a potential signal indicator
+                    return
                 out["mode"] = mode
                 out["interval"] = profile.getInterval()
 
