@@ -63,10 +63,16 @@ class CoreConfig(object):
         "web": {
             "port": 8073,
         },
+        "aprs": {
+            "symbols_path": "/usr/share/aprs-symbols/png"
+        }
     }
 
     def __init__(self):
         config = ConfigParser()
+        # set up config defaults
+        config.read_dict(CoreConfig.defaults)
+        # check for overrides
         overrides_dir = "/etc/openwebrx/openwebrx.conf.d"
         if os.path.exists(overrides_dir) and os.path.isdir(overrides_dir):
             overrides = glob(overrides_dir + "/*.conf")
@@ -74,15 +80,12 @@ class CoreConfig(object):
             overrides = []
         # sequence things together
         config.read(["./openwebrx.conf", "/etc/openwebrx/openwebrx.conf"] + overrides)
-        self.data_directory = config.get(
-            "core", "data_directory", fallback=CoreConfig.defaults["core"]["data_directory"]
-        )
+        self.data_directory = config.get("core", "data_directory")
         CoreConfig.checkDirectory(self.data_directory, "data_directory")
-        self.temporary_directory = config.get(
-            "core", "temporary_directory", fallback=CoreConfig.defaults["core"]["temporary_directory"]
-        )
+        self.temporary_directory = config.get("core", "temporary_directory")
         CoreConfig.checkDirectory(self.temporary_directory, "temporary_directory")
-        self.web_port = config.getint("web", "port", fallback=CoreConfig.defaults["web"]["port"])
+        self.web_port = config.getint("web", "port")
+        self.aprs_symbols_path = config.get("aprs", "symbols_path")
 
     @staticmethod
     def checkDirectory(dir, key):
@@ -101,6 +104,9 @@ class CoreConfig(object):
 
     def get_temporary_directory(self):
         return self.temporary_directory
+
+    def get_aprs_symbols_path(self):
+        return self.aprs_symbols_path
 
 
 class Config:

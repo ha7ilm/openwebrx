@@ -341,9 +341,6 @@ aprs_igate_password = ""
 # beacon uses the receiver_gps setting, so if you enable this, make sure the location is correct there
 aprs_igate_beacon = False
 
-# path to the aprs symbols repository (get it here: https://github.com/hessu/aprs-symbols)
-aprs_symbols_path = "/usr/share/aprs-symbols/png"
-
 # Uncomment the following to customize gateway beacon details reported to the aprs network
 #   Plese see Dire Wolf's documentation on PBEACON configuration for complete details:
 #   https://github.com/wb2osz/direwolf/raw/master/doc/User-Guide.pdf 
