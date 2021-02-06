@@ -1,5 +1,5 @@
 from abc import ABC, ABCMeta, abstractmethod
-from owrx.config import Config
+from owrx.config import Config, CoreConfig
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
 import threading
 import wave
@@ -151,7 +151,7 @@ class AudioWriter(object):
         self.dsp = dsp
         self.source = source
         self.profile = profile
-        self.tmp_dir = Config.get()["temporary_directory"]
+        self.tmp_dir = CoreConfig().get_temporary_directory()
         self.wavefile = None
         self.wavefilename = None
         self.switchingLock = threading.Lock()

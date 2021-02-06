@@ -1,10 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
-mkdir -p /etc/openwebrx/
+mkdir -p /etc/openwebrx/openwebrx.conf.d
+mkdir -p /var/lib/openwebrx
 mkdir -p /tmp/openwebrx/
 if [[ ! -f /etc/openwebrx/config_webrx.py ]] ; then
-  sed 's/temporary_directory = "\/tmp"/temporary_directory = "\/tmp\/openwebrx"/' < "/opt/openwebrx/config_webrx.py" > "/etc/openwebrx/config_webrx.py"
+  cp config_webrx.py /etc/openwebrx
+fi
+if [[ ! -f /etc/openwebrx/openwebrx.conf.d/20-temporary-directory.conf ]] ; then
+  cat << EOF > /etc/openwebrx/openwebrx.conf.d/20-temporary-directory.conf
+[core]
+temporary_directory = /tmp/openwebrx
+EOF
 fi
 if [[ ! -f /etc/openwebrx/bands.json ]] ; then
   cp bands.json /etc/openwebrx/

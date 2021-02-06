@@ -6,7 +6,7 @@ from csdr.csdr import dsp, output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.js8 import Js8Parser
-from owrx.config import Config
+from owrx.config import Config, CoreConfig
 from owrx.source.resampler import Resampler
 from owrx.property import PropertyLayer
 from js8py import Js8Frame
@@ -255,7 +255,7 @@ class ServiceHandler(SdrSourceEventClient):
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(source.getProps()["samp_rate"])
-        d.set_temporary_directory(Config.get()["temporary_directory"])
+        d.set_temporary_directory(CoreConfig().get_temporary_directory())
         d.set_service()
         d.start()
         return d

@@ -7,6 +7,7 @@ from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
+from owrx.config import CoreConfig
 from csdr import csdr
 import threading
 import re
@@ -70,7 +71,6 @@ class DspManager(csdr.output, SdrSourceEventClient):
                 "digimodes_enable",
                 "samp_rate",
                 "digital_voice_unvoiced_quality",
-                "temporary_directory",
                 "center_freq",
                 "start_mod",
                 "start_freq",
@@ -132,7 +132,6 @@ class DspManager(csdr.output, SdrSourceEventClient):
             self.props.wireProperty("mod", self.dsp.set_demodulator),
             self.props.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
             self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
-            self.props.wireProperty("temporary_directory", self.dsp.set_temporary_directory),
             self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
             self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
@@ -140,6 +139,7 @@ class DspManager(csdr.output, SdrSourceEventClient):
         self.dsp.csdr_dynamic_bufsize = self.props["csdr_dynamic_bufsize"]
         self.dsp.csdr_print_bufsizes = self.props["csdr_print_bufsizes"]
         self.dsp.csdr_through = self.props["csdr_through"]
+        self.dsp.set_temporary_directory(CoreConfig().get_temporary_directory())
 
         if self.props["digimodes_enable"]:
 

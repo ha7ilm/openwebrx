@@ -1,4 +1,4 @@
-from owrx.config import Config
+from owrx.config import Config, CoreConfig
 from csdr import csdr
 import threading
 from owrx.source import SdrSource, SdrSourceEventClient
@@ -26,7 +26,6 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
             "csdr_dynamic_bufsize",
             "csdr_print_bufsizes",
             "csdr_through",
-            "temporary_directory",
         )
 
         self.dsp = dsp = csdr.dsp(self)
@@ -50,7 +49,6 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
             props.wireProperty("fft_size", dsp.set_fft_size),
             props.wireProperty("fft_fps", dsp.set_fft_fps),
             props.wireProperty("fft_compression", dsp.set_fft_compression),
-            props.wireProperty("temporary_directory", dsp.set_temporary_directory),
             props.filter("samp_rate", "fft_size", "fft_fps", "fft_voverlap_factor").wire(set_fft_averages),
         ]
 
@@ -59,6 +57,7 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
         dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
         dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]
         dsp.csdr_through = props["csdr_through"]
+        dsp.set_temporary_directory(CoreConfig().get_temporary_directory())
         logger.debug("Spectrum thread initialized successfully.")
 
     def start(self):

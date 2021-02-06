@@ -4,7 +4,7 @@ from operator import and_
 import re
 from distutils.version import LooseVersion
 import inspect
-from owrx.config import Config
+from owrx.config import CoreConfig
 import shlex
 import os
 from datetime import datetime, timedelta
@@ -147,7 +147,7 @@ class FeatureDetector(object):
         return inspect.getdoc(self._get_requirement_method(requirement))
 
     def command_is_runnable(self, command, expected_result=None):
-        tmp_dir = Config.get()["temporary_directory"]
+        tmp_dir = CoreConfig().get_temporary_directory()
         cmd = shlex.split(command)
         env = os.environ.copy()
         # prevent X11 programs from opening windows if called from a GUI shell

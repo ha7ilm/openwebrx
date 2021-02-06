@@ -1,8 +1,9 @@
-from owrx.property import PropertyManager, PropertyLayer
+from owrx.property import PropertyLayer
 import importlib.util
 import os
 import logging
 import json
+from glob import glob
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 
@@ -28,7 +29,7 @@ class ConfigMigrator(ABC):
         pass
 
     def renameKey(self, config, old, new):
-        if old in config and not new in config:
+        if old in config and new not in config:
             config[new] = config[old]
             del config[old]
 
@@ -61,6 +62,7 @@ class CoreConfig(object):
     defaults = {
         "core": {
             "data_directory": "/var/lib/openwebrx",
+            "temporary_directory": "/tmp",
         },
         "web": {
             "port": 8073,
@@ -69,17 +71,40 @@ class CoreConfig(object):
 
     def __init__(self):
         config = ConfigParser()
-        config.read(["./openwebrx.conf", "/etc/openwebrx/openwebrx.conf"])
+        overrides_dir = "/etc/openwebrx/openwebrx.conf.d"
+        if os.path.exists(overrides_dir) and os.path.isdir(overrides_dir):
+            overrides = glob(overrides_dir + "/*.conf")
+        else:
+            overrides = []
+        # sequence things together
+        config.read(["./openwebrx.conf", "/etc/openwebrx/openwebrx.conf"] + overrides)
         self.data_directory = config.get(
             "core", "data_directory", fallback=CoreConfig.defaults["core"]["data_directory"]
         )
+        CoreConfig.checkDirectory(self.data_directory, "data_directory")
+        self.temporary_directory = config.get(
+            "core", "temporary_directory", fallback=CoreConfig.defaults["core"]["temporary_directory"]
+        )
+        CoreConfig.checkDirectory(self.temporary_directory, "temporary_directory")
         self.web_port = config.getint("web", "port", fallback=CoreConfig.defaults["web"]["port"])
+
+    @staticmethod
+    def checkDirectory(dir, key):
+        if not os.path.exists(dir):
+            raise ConfigError(key, "{dir} doesn't exist".format(dir=dir))
+        if not os.path.isdir(dir):
+            raise ConfigError(key, "{dir} is not a directory".format(dir=dir))
+        if not os.access(dir, os.W_OK):
+            raise ConfigError(key, "{dir} is not writable".format(dir=dir))
 
     def get_web_port(self):
         return self.web_port
 
     def get_data_directory(self):
         return self.data_directory
+
+    def get_temporary_directory(self):
+        return self.temporary_directory
 
 
 class Config:
@@ -142,23 +167,8 @@ class Config:
 
     @staticmethod
     def validateConfig():
-        pm = Config.get()
-        errors = [Config.checkTempDirectory(pm)]
-
-        return [e for e in errors if e is not None]
-
-    @staticmethod
-    def checkTempDirectory(pm: PropertyManager):
-        key = "temporary_directory"
-        if key not in pm or pm[key] is None:
-            return ConfigError(key, "temporary directory is not set")
-        if not os.path.exists(pm[key]):
-            return ConfigError(key, "temporary directory doesn't exist")
-        if not os.path.isdir(pm[key]):
-            return ConfigError(key, "temporary directory path is not a directory")
-        if not os.access(pm[key], os.W_OK):
-            return ConfigError(key, "temporary directory is not writable")
-        return None
+        # no config check atm
+        return []
 
     @staticmethod
     def _migrate(config):
