@@ -10,7 +10,9 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("command", help="One of the following commands: adduser, removeuser")
-    parser.add_argument("--noninteractive", action="store_true", help="Don't ask for any user input (useful for automation)")
+    parser.add_argument(
+        "--noninteractive", action="store_true", help="Don't ask for any user input (useful for automation)"
+    )
     parser.add_argument("--silent", action="store_true", help="Ignore errors (useful for automation)")
     parser.add_argument("-u", "--user", help="User name to perform action upon")
     args = parser.parse_args()
