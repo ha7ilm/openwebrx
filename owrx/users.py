@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from owrx.config import CoreConfig
 import json
 import hashlib
+import os
 
 import logging
 
@@ -61,20 +62,19 @@ class HashedPassword(Password):
 
     def _createFromString(self, pw: str, algorithm: str):
         self._algorithm = algorithm
-        # TODO: random salt
-        self._salt = "constant"
-        dk = hashlib.pbkdf2_hmac(self._algorithm, pw.encode(), self._salt.encode(), self.iterations)
+        self._salt = os.urandom(32)
+        dk = hashlib.pbkdf2_hmac(self._algorithm, pw.encode(), self._salt, self.iterations)
         self._hash = dk.hex()
         pass
 
     def _loadFromDict(self, d: dict):
         self._hash = d["value"]
         self._algorithm = d["algorithm"]
-        self._salt = d["salt"]
+        self._salt = bytes.fromhex(d["salt"])
         pass
 
     def is_valid(self, inp: str) -> bool:
-        dk = hashlib.pbkdf2_hmac(self._algorithm, inp.encode(), self._salt.encode(), self.iterations)
+        dk = hashlib.pbkdf2_hmac(self._algorithm, inp.encode(), self._salt, self.iterations)
         return dk.hex() == self._hash
 
     def toJson(self) -> dict:
@@ -82,7 +82,7 @@ class HashedPassword(Password):
             "encoding": "hash",
             "value": self._hash,
             "algorithm": self._algorithm,
-            "salt": self._salt,
+            "salt": self._salt.hex(),
         }
 
 
