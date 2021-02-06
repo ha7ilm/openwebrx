@@ -261,7 +261,7 @@ class GeneralSettingsController(AdminController):
             TextInput(
                 "wsprnet_callsign",
                 "wsprnet callsign",
-                infotext="This callsign will be used to send spots to pskreporter.info",
+                infotext="This callsign will be used to send spots to wsprnet.org",
             ),
         ),
     ]
