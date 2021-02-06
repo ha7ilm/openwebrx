@@ -48,6 +48,9 @@ class CleartextPassword(Password):
         }
 
 
+DefaultPasswordClass = CleartextPassword
+
+
 class User(object):
     def __init__(self, name: str, enabled: bool, password: Password):
         self.name = name

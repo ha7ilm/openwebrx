@@ -1,6 +1,6 @@
 from abc import ABC, ABCMeta, abstractmethod
 from getpass import getpass
-from owrx.users import UserList, User, CleartextPassword
+from owrx.users import UserList, User, DefaultPasswordClass
 import sys
 import random
 import string
@@ -44,7 +44,7 @@ class NewUser(UserCommand):
 
         print("Creating user {username}...".format(username=username))
         userList = UserList()
-        user = User(name=username, enabled=True, password=CleartextPassword(password))
+        user = User(name=username, enabled=True, password=DefaultPasswordClass(password))
         userList.addUser(user)
 
     def getRandomPassword(self, length=10):
