@@ -251,6 +251,19 @@ class GeneralSettingsController(AdminController):
                 infotext="This callsign will be used to send spots to pskreporter.info",
             ),
         ),
+        Section(
+            "WSPRnet settings",
+            CheckboxInput(
+                "wsprnet_enabled",
+                "Reporting",
+                checkboxText="Enable sending spots to wsprnet.org",
+            ),
+            TextInput(
+                "wsprnet_callsign",
+                "wsprnet callsign",
+                infotext="This callsign will be used to send spots to pskreporter.info",
+            ),
+        ),
     ]
 
     def render_sections(self):
