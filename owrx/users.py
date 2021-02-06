@@ -151,15 +151,19 @@ class UserList(object):
         except Exception:
             logger.exception("error while writing users file %s", usersFile)
 
+    def _getUsername(self, user):
+        if isinstance(user, User):
+            return user.name
+        elif isinstance(user, str):
+            return user
+        else:
+            raise ValueError("invalid user type")
+
     def addUser(self, user: User):
         self[user.name] = user
 
     def deleteUser(self, user):
-        if isinstance(user, User):
-            username = user.name
-        else:
-            username = user
-        del self[username]
+        del self[self._getUsername(user)]
 
     def __delitem__(self, key):
         if key not in self.users:

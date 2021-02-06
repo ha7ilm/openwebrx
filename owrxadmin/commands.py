@@ -27,6 +27,10 @@ class UserCommand(Command, metaclass=ABCMeta):
 class NewUser(UserCommand):
     def run(self, args):
         username = self.getUser(args)
+        userList = UserList()
+        # early test to bypass the password stuff if the user already exists
+        if username in userList:
+            raise KeyError("User {username} already exists".format(username=username))
 
         if args.noninteractive:
             print("Generating password for user {username}...".format(username=username))
@@ -43,7 +47,6 @@ class NewUser(UserCommand):
                 sys.exit(1)
 
         print("Creating user {username}...".format(username=username))
-        userList = UserList()
         user = User(name=username, enabled=True, password=DefaultPasswordClass(password))
         userList.addUser(user)
 
