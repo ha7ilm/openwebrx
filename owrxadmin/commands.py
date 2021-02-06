@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from getpass import getpass
 from owrx.users import UserList, User, CleartextPassword
 import sys
@@ -12,16 +12,22 @@ class Command(ABC):
         pass
 
 
-class NewUserCommand(Command):
-    def run(self, args):
+class UserCommand(Command, metaclass=ABCMeta):
+    def getUser(self, args):
         if args.user:
-            username = args.user
+            return args.user
         else:
             if args.noninteractive:
                 print("ERROR: User name not specified")
                 sys.exit(1)
             else:
-                username = input("Please enter the user name: ")
+                return input("Please enter the user name: ")
+
+
+class NewUser(UserCommand):
+    def run(self, args):
+        username = self.getUser(args)
+
         if args.noninteractive:
             print("Generating password for user {username}...".format(username=username))
             password = self.getRandomPassword()
@@ -44,3 +50,11 @@ class NewUserCommand(Command):
     def getRandomPassword(self, length=10):
         printable = list(string.ascii_letters) + list(string.digits)
         return ''.join(random.choices(printable, k=length))
+
+
+class DeleteUser(UserCommand):
+    def run(self, args):
+        username = self.getUser(args)
+        print("Deleting user {username}...".format(username=username))
+        userList = UserList()
+        userList.deleteUser(username)

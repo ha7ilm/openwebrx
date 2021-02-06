@@ -1,5 +1,5 @@
 from owrx.version import openwebrx_version
-from owrxadmin.commands import NewUserCommand
+from owrxadmin.commands import NewUser, DeleteUser
 import argparse
 import sys
 
@@ -14,9 +14,9 @@ def main():
     args = parser.parse_args()
 
     if args.command == "adduser":
-        NewUserCommand().run(args)
+        NewUser().run(args)
     elif args.command == "removeuser":
-        print("removing user")
+        DeleteUser().run(args)
     else:
         print("Unknown command: {command}".format(command=args.command))
         sys.exit(1)

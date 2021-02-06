@@ -113,6 +113,19 @@ class UserList(object):
     def addUser(self, user: User):
         self[user.name] = user
 
+    def deleteUser(self, user):
+        if isinstance(user, User):
+            username = user.name
+        else:
+            username = user
+        del self[username]
+
+    def __delitem__(self, key):
+        if key not in self.users:
+            raise KeyError("User {user} doesn't exist".format(user=key))
+        del self.users[key]
+        self._store()
+
     def __getitem__(self, item):
         return self.users[item]
 
