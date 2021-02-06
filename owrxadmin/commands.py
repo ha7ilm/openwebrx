@@ -38,7 +38,7 @@ class NewUser(UserCommand):
             print('Password for {username} is "{password}".'.format(username=username, password=password))
             # TODO implement this threat
             print('This password is suitable for initial setup only, you will be asked to reset it on initial use.')
-            print('This password cannot be recovered from the system, please note it down now.')
+            print('This password cannot be recovered from the system, please copy it now.')
         else:
             password = getpass("Please enter the password for {username}: ".format(username=username))
             confirm = getpass("Please confirm password: ")
