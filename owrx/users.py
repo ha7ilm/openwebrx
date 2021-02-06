@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from owrx.config import CoreConfig
 import json
+import hashlib
 
 import logging
 
@@ -18,14 +19,16 @@ class Password(ABC):
             raise PasswordException("password encoding not set")
         if d["encoding"] == "string":
             return CleartextPassword(d)
+        elif d["encoding"] == "hash":
+            return HashedPassword(d)
         raise PasswordException("invalid passord encoding: {0}".format(d["type"]))
 
     @abstractmethod
-    def is_valid(self, inp: str):
+    def is_valid(self, inp: str) -> bool:
         pass
 
     @abstractmethod
-    def toJson(self):
+    def toJson(self) -> dict:
         pass
 
 
@@ -38,17 +41,52 @@ class CleartextPassword(Password):
         else:
             raise ValueError("invalid argument to ClearTextPassword()")
 
-    def is_valid(self, inp: str):
+    def is_valid(self, inp: str) -> bool:
         return self._value == inp
 
-    def toJson(self):
+    def toJson(self) -> dict:
         return {
             "encoding": "string",
             "value": self._value
         }
 
 
-DefaultPasswordClass = CleartextPassword
+class HashedPassword(Password):
+    def __init__(self, pwinfo, algorithm="sha256"):
+        self.iterations = 100000
+        if (isinstance(pwinfo, str)):
+            self._createFromString(pwinfo, algorithm)
+        else:
+            self._loadFromDict(pwinfo)
+
+    def _createFromString(self, pw: str, algorithm: str):
+        self._algorithm = algorithm
+        # TODO: random salt
+        self._salt = "constant"
+        dk = hashlib.pbkdf2_hmac(self._algorithm, pw.encode(), self._salt.encode(), self.iterations)
+        self._hash = dk.hex()
+        pass
+
+    def _loadFromDict(self, d: dict):
+        self._hash = d["value"]
+        self._algorithm = d["algorithm"]
+        self._salt = d["salt"]
+        pass
+
+    def is_valid(self, inp: str) -> bool:
+        dk = hashlib.pbkdf2_hmac(self._algorithm, inp.encode(), self._salt.encode(), self.iterations)
+        return dk.hex() == self._hash
+
+    def toJson(self) -> dict:
+        return {
+            "encoding": "hash",
+            "value": self._hash,
+            "algorithm": self._algorithm,
+            "salt": self._salt,
+        }
+
+
+DefaultPasswordClass = HashedPassword
 
 
 class User(object):
