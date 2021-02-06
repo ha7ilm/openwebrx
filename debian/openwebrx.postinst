@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euxo pipefail
+
+OWRX_USER="openwebrx"
+OWRX_DATADIR="/var/lib/openwebrx"
+
+case "$1" in
+  configure)
+    adduser --system --group --no-create-home --home /nonexistent --quiet "${OWRX_USER}"
+    usermod -aG plugdev openwebrx
+
+    # create OpenWebRX data directory and set the correct permissions
+    if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
+    chown -R "${OWRX_USER}". ${OWRX_DATADIR}
+  ;;
+  *)
+    echo "postinst called with unknown argument '$1'" 1>&2
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#
