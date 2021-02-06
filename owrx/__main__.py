@@ -1,6 +1,6 @@
 from http.server import HTTPServer
 from owrx.http import RequestHandler
-from owrx.config import Config
+from owrx.config import Config, CoreConfig
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
@@ -73,7 +73,7 @@ Support and info:       https://groups.io/g/openwebrx
     Services.start()
 
     try:
-        server = ThreadedHttpServer(("0.0.0.0", pm["web_port"]), RequestHandler)
+        server = ThreadedHttpServer(("0.0.0.0", CoreConfig().get_web_port()), RequestHandler)
         server.serve_forever()
     except SignalException:
         WebSocketConnection.closeAll()

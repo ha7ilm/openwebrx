@@ -4,6 +4,7 @@ import os
 import logging
 import json
 from abc import ABC, abstractmethod
+from configparser import ConfigParser
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,31 @@ class ConfigMigratorVersion2(ConfigMigrator):
         return config
 
 
+class CoreConfig(object):
+    defaults = {
+        "core": {
+            "data_directory": "/var/lib/openwebrx",
+        },
+        "web": {
+            "port": 8073,
+        },
+    }
+
+    def __init__(self):
+        config = ConfigParser()
+        config.read(["./openwebrx.conf", "/etc/openwebrx/openwebrx.conf"])
+        self.data_directory = config.get(
+            "core", "data_directory", fallback=CoreConfig.defaults["core"]["data_directory"]
+        )
+        self.web_port = config.getint("web", "port", fallback=CoreConfig.defaults["web"]["port"])
+
+    def get_web_port(self):
+        return self.web_port
+
+    def get_data_directory(self):
+        return self.data_directory
+
+
 class Config:
     sharedConfig = None
     currentVersion = 3
@@ -85,8 +111,13 @@ class Config:
             return pm
 
     @staticmethod
+    def _getSettingsFile():
+        coreConfig = CoreConfig()
+        return "{data_directory}/settings.json".format(data_directory=coreConfig.get_data_directory())
+
+    @staticmethod
     def _loadConfig():
-        for file in ["./settings.json", "/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
+        for file in [Config._getSettingsFile(), "/etc/openwebrx/config_webrx.py", "./config_webrx.py"]:
             try:
                 if file.endswith(".py"):
                     return Config._loadPythonFile(file)
@@ -106,7 +137,7 @@ class Config:
 
     @staticmethod
     def store():
-        with open("settings.json", "w") as file:
+        with open(Config._getSettingsFile(), "w") as file:
             json.dump(Config.get().__dict__(), file, indent=4)
 
     @staticmethod

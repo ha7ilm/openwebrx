@@ -15,6 +15,9 @@ fi
 if [[ ! -f /etc/openwebrx/users.json ]] ; then
   cp users.json /etc/openwebrx/
 fi
+if [[ ! -f /etc/openwebrx/openwebrx.conf ]] ; then
+  cp openwebrx.conf /etc/openwebrx/
+fi
 
 
 _term() {
