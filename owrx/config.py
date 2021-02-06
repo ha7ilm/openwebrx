@@ -14,13 +14,9 @@ class ConfigNotFoundException(Exception):
     pass
 
 
-class ConfigError(object):
+class ConfigError(Exception):
     def __init__(self, key, message):
-        self.key = key
-        self.message = message
-
-    def __str__(self):
-        return "Configuration Error (key: {0}): {1}".format(self.key, self.message)
+        super().__init__("Configuration Error (key: {0}): {1}".format(key, message))
 
 
 class ConfigMigrator(ABC):
@@ -167,8 +163,9 @@ class Config:
 
     @staticmethod
     def validateConfig():
-        # no config check atm
-        return []
+        # no config checks atm
+        # just basic loading verification
+        Config.get()
 
     @staticmethod
     def _migrate(config):

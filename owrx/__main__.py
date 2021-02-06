@@ -48,14 +48,9 @@ Support and info:       https://groups.io/g/openwebrx
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, handleSignal)
 
-    pm = Config.get()
-
-    configErrors = Config.validateConfig()
-    if configErrors:
-        logger.error("your configuration contains errors. please address the following errors:")
-        for e in configErrors:
-            logger.error(e)
-        return
+    # config warmup
+    Config.validateConfig()
+    coreConfig = CoreConfig()
 
     featureDetector = FeatureDetector()
     if not featureDetector.is_available("core"):
@@ -73,7 +68,7 @@ Support and info:       https://groups.io/g/openwebrx
     Services.start()
 
     try:
-        server = ThreadedHttpServer(("0.0.0.0", CoreConfig().get_web_port()), RequestHandler)
+        server = ThreadedHttpServer(("0.0.0.0", coreConfig.get_web_port()), RequestHandler)
         server.serve_forever()
     except SignalException:
         WebSocketConnection.closeAll()
