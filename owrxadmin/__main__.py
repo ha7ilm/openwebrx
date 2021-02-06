@@ -1,5 +1,5 @@
 from owrx.version import openwebrx_version
-from owrxadmin.commands import NewUser, DeleteUser
+from owrxadmin.commands import NewUser, DeleteUser, ResetPassword
 import argparse
 import sys
 import traceback
@@ -9,7 +9,7 @@ def main():
     print("OpenWebRX admin version {version}".format(version=openwebrx_version))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", help="One of the following commands: adduser, removeuser")
+    parser.add_argument("command", help="One of the following commands: adduser, removeuser, resetpassword")
     parser.add_argument(
         "--noninteractive", action="store_true", help="Don't ask for any user input (useful for automation)"
     )
@@ -21,6 +21,8 @@ def main():
         command = NewUser()
     elif args.command == "removeuser":
         command = DeleteUser()
+    elif args.command == "resetpassword":
+        command = ResetPassword()
     else:
         if not args.silent:
             print("Unknown command: {command}".format(command=args.command))

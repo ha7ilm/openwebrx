@@ -23,6 +23,26 @@ class UserCommand(Command, metaclass=ABCMeta):
             else:
                 return input("Please enter the user name: ")
 
+    def getPassword(self, args, username):
+        if args.noninteractive:
+            print("Generating password for user {username}...".format(username=username))
+            password = self.getRandomPassword()
+            print('Password for {username} is "{password}".'.format(username=username, password=password))
+            # TODO implement this threat
+            print('This password is suitable for initial setup only, you will be asked to reset it on initial use.')
+            print('This password cannot be recovered from the system, please copy it now.')
+        else:
+            password = getpass("Please enter the new password for {username}: ".format(username=username))
+            confirm = getpass("Please confirm the new password: ")
+            if password != confirm:
+                print("ERROR: Password mismatch.")
+                sys.exit(1)
+        return password
+
+    def getRandomPassword(self, length=10):
+        printable = list(string.ascii_letters) + list(string.digits)
+        return ''.join(random.choices(printable, k=length))
+
 
 class NewUser(UserCommand):
     def run(self, args):
@@ -32,27 +52,11 @@ class NewUser(UserCommand):
         if username in userList:
             raise KeyError("User {username} already exists".format(username=username))
 
-        if args.noninteractive:
-            print("Generating password for user {username}...".format(username=username))
-            password = self.getRandomPassword()
-            print('Password for {username} is "{password}".'.format(username=username, password=password))
-            # TODO implement this threat
-            print('This password is suitable for initial setup only, you will be asked to reset it on initial use.')
-            print('This password cannot be recovered from the system, please copy it now.')
-        else:
-            password = getpass("Please enter the password for {username}: ".format(username=username))
-            confirm = getpass("Please confirm password: ")
-            if password != confirm:
-                print("ERROR: Password mismatch.")
-                sys.exit(1)
+        password = self.getPassword(args, username)
 
         print("Creating user {username}...".format(username=username))
         user = User(name=username, enabled=True, password=DefaultPasswordClass(password))
         userList.addUser(user)
-
-    def getRandomPassword(self, length=10):
-        printable = list(string.ascii_letters) + list(string.digits)
-        return ''.join(random.choices(printable, k=length))
 
 
 class DeleteUser(UserCommand):
@@ -61,3 +65,14 @@ class DeleteUser(UserCommand):
         print("Deleting user {username}...".format(username=username))
         userList = UserList()
         userList.deleteUser(username)
+
+
+class ResetPassword(UserCommand):
+    def run(self, args):
+        username = self.getUser(args)
+        password = self.getPassword(args, username)
+        userList = UserList()
+        userList[username].setPassword(DefaultPasswordClass(password))
+        # this is a change to an object in the list, not the list itself
+        # in this case, store() is explicit
+        userList.store()

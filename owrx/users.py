@@ -102,6 +102,9 @@ class User(object):
             "password": self.password.toJson()
         }
 
+    def setPassword(self, password: Password):
+        self.password = password
+
 
 class UserList(object):
     sharedInstance = None
@@ -142,7 +145,7 @@ class UserList(object):
     def _userToJson(self, u):
         return u.toJson()
 
-    def _store(self):
+    def store(self):
         usersFile = self._getUsersFile()
         users = [u.toJson() for u in self.users.values()]
         try:
@@ -169,7 +172,7 @@ class UserList(object):
         if key not in self.users:
             raise KeyError("User {user} doesn't exist".format(user=key))
         del self.users[key]
-        self._store()
+        self.store()
 
     def __getitem__(self, item):
         return self.users[item]
@@ -181,4 +184,4 @@ class UserList(object):
         if key in self.users:
             raise KeyError("User {user} already exists".format(user=key))
         self.users[key] = value
-        self._store()
+        self.store()
