@@ -326,8 +326,6 @@ js8_enabled_profiles = ["normal", "slow"]
 # JS8 decoding depth; higher value will get more results, but will also consume more cpu
 js8_decoding_depth = 3
 
-temporary_directory = "/tmp"
-
 # Enable background service for decoding digital data. You can find more information at:
 # https://github.com/jketterl/openwebrx/wiki/Background-decoding
 services_enabled = False
