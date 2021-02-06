@@ -39,7 +39,6 @@ version = 3
 # https://github.com/jketterl/openwebrx/wiki/Configuration-guide
 
 # ==== Server settings ====
-web_port = 8073
 max_clients = 20
 
 # ==== Web GUI configuration ====
