@@ -22,10 +22,11 @@ setup(
             "owrx.form",
             "csdr",
             "htdocs",
+            "owrxadmin",
         ]
     ),
     package_data={"htdocs": [f[len("htdocs/") :] for f in glob("htdocs/**/*", recursive=True)]},
-    entry_points={"console_scripts": ["openwebrx=owrx.__main__:main"]},
+    entry_points={"console_scripts": ["openwebrx=owrx.__main__:main", "owrxadmin=owrxadmin.__main__:main"]},
     url="https://www.openwebrx.de/",
     author="Jakob Ketterl",
     author_email="jakob.ketterl@gmx.de",
