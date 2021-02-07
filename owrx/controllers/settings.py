@@ -96,8 +96,7 @@ class GeneralSettingsController(AdminController):
             NumberInput(
                 "receiver_asl",
                 "Receiver elevation",
-                infotext="Elevation in meters above mean see level",
-                append="m MSL",
+                append="meters above mean sea level",
             ),
             TextInput("receiver_admin", "Receiver admin"),
             LocationInput("receiver_gps", "Receiver coordinates"),
@@ -158,15 +157,29 @@ class GeneralSettingsController(AdminController):
             NumberInput("digimodes_fft_size", "Digimodes FFT size", append="bins"),
         ),
         Section(
-            "Wideband FM settings",
+            "Demodulator settings",
+            NumberInput(
+                "squelch_auto_margin",
+                "Auto-Squelch threshold",
+                infotext="Offset to be added to the current signal level when using the auto-squelch",
+                append="dB",
+            ),
             DropdownInput(
                 "wfm_deemphasis_tau",
                 "Tau setting for WFM (broadcast FM) deemphasis",
                 options=[o.toOption() for o in WfmTauValues],
                 converter=WfmTauConverter(),
                 infotext='See <a href="https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis">'
-                + "this Wikipedia article for more information</a>",
+                + "this Wikipedia article</a> for more information",
             ),
+        ),
+        Section(
+            "Display settings",
+            NumberInput(
+                "frequency_display_precision",
+                "Frequency display precision",
+                infotext="Number of decimal digits to show on the frequency display"
+            )
         ),
         Section(
             "Digital voice",
