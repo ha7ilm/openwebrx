@@ -16,6 +16,7 @@ from owrx.form import (
     WfmTauValues,
     WfmTauConverter,
     MultiCheckboxInput,
+    OptionalConverter,
 )
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
@@ -237,7 +238,8 @@ class GeneralSettingsController(AdminController):
                 "fst4w_enabled_intervals",
                 "Enabled FST4W intervals",
                 [Option(v, "{}s".format(v)) for v in Fst4wProfile.availableIntervals],
-            )
+            ),
+            # TODO: q65_enabled_combinations
         ),
         Section(
             "Background decoding",
@@ -258,7 +260,7 @@ class GeneralSettingsController(AdminController):
             CheckboxInput(
                 "aprs_igate_enabled",
                 "APRS I-Gate",
-                checkboxText="Enable APRS receive-only I-Gate",
+                checkboxText="Send received APRS data to APRS-IS",
             ),
             TextInput("aprs_igate_server", "APRS-IS server"),
             TextInput("aprs_igate_password", "APRS-IS network password"),
@@ -268,6 +270,27 @@ class GeneralSettingsController(AdminController):
                 checkboxText="Send the receiver position to the APRS-IS network",
                 infotext="Please check that your receiver location is setup correctly",
             ),
+            # TODO: aprs_igate_symbol
+            TextInput(
+                "aprs_igate_comment",
+                "APRS beacon text",
+                infotext="This text will be sent as APRS comment along with your beacon",
+                converter=OptionalConverter(),
+            ),
+            NumberInput(
+                "aprs_igate_height",
+                "Antenna height",
+                infotext="Antenna height above average terrain (HAAT)",
+                append="m",
+                converter=OptionalConverter(),
+            ),
+            NumberInput(
+                "aprs_igate_gain",
+                "Antenna gain",
+                append="dBi",
+                converter=OptionalConverter(),
+            ),
+            # TODO: aprs_igate_dir
         ),
         Section(
             "pskreporter settings",
@@ -280,6 +303,12 @@ class GeneralSettingsController(AdminController):
                 "pskreporter_callsign",
                 "pskreporter callsign",
                 infotext="This callsign will be used to send spots to pskreporter.info",
+            ),
+            TextInput(
+                "pskreporter_antenna_information",
+                "Antenna information",
+                infotext="Antenna description to be sent along with spots to pskreporter",
+                converter=OptionalConverter(),
             ),
         ),
         Section(
@@ -319,7 +348,7 @@ class GeneralSettingsController(AdminController):
         return variables
 
     def processFormData(self):
-        data = parse_qs(self.get_body().decode("utf-8"))
+        data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)
         data = {k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()}
         config = Config.get()
         for k, v in data.items():

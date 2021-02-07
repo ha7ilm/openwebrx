@@ -22,6 +22,19 @@ class NullConverter(Converter):
         return value
 
 
+class OptionalConverter(Converter):
+    """
+    Maps None to an empty string, and reverse
+    useful for optional fields
+    """
+
+    def convert_to_form(self, value):
+        return "" if value is None else value
+
+    def convert_from_form(self, value):
+        return value if value else None
+
+
 class Input(ABC):
     def __init__(self, id, label, infotext=None, converter: Converter = None):
         self.id = id
@@ -54,7 +67,8 @@ class Input(ABC):
         pass
 
     def render(self, config):
-        return self.bootstrap_decorate(self.render_input(self.converter.convert_to_form(config[self.id])))
+        value = config[self.id] if self.id in config else None
+        return self.bootstrap_decorate(self.render_input(self.converter.convert_to_form(value)))
 
     def parse(self, data):
         return {self.id: self.converter.convert_from_form(data[self.id][0])} if self.id in data else {}
