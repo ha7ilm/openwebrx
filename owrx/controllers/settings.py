@@ -95,6 +95,7 @@ class GeneralSettingsController(AdminController):
                 "receiver_asl",
                 "Receiver elevation",
                 infotext="Elevation in meters above mean see level",
+                append="m MSL",
             ),
             TextInput("receiver_admin", "Receiver admin"),
             LocationInput("receiver_gps", "Receiver coordinates"),
@@ -114,19 +115,20 @@ class GeneralSettingsController(AdminController):
             "Waterfall settings",
             NumberInput(
                 "fft_fps",
-                "FFT frames per second",
+                "FFT speed",
                 infotext="This setting specifies how many lines are being added to the waterfall per second. "
                 + "Higher values will give you a faster waterfall, but will also use more CPU.",
+                append="frames per second",
             ),
-            NumberInput("fft_size", "FFT size"),
+            NumberInput("fft_size", "FFT size", append="bins"),
             FloatInput(
                 "fft_voverlap_factor",
                 "FFT vertical overlap factor",
                 infotext="If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the "
                 + "diagram.",
             ),
-            NumberInput("waterfall_min_level", "Lowest waterfall level"),
-            NumberInput("waterfall_max_level", "Highest waterfall level"),
+            NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS"),
+            NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS"),
         ),
         Section(
             "Compression",
@@ -150,7 +152,7 @@ class GeneralSettingsController(AdminController):
         Section(
             "Digimodes",
             CheckboxInput("digimodes_enable", "", checkboxText="Enable Digimodes"),
-            NumberInput("digimodes_fft_size", "Digimodes FFT size"),
+            NumberInput("digimodes_fft_size", "Digimodes FFT size", append="bins"),
         ),
         Section(
             "Digital voice",
@@ -199,7 +201,8 @@ class GeneralSettingsController(AdminController):
             NumberInput(
                 "map_position_retention_time",
                 "Map retention time",
-                infotext="Unit is seconds<br/>Specifies how log markers / grids will remain visible on the map",
+                infotext="Specifies how log markers / grids will remain visible on the map",
+                append="s",
             ),
         ),
         Section(

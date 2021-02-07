@@ -53,19 +53,35 @@ class TextInput(Input):
 
 
 class NumberInput(Input):
-    def __init__(self, id, label, infotext=None):
+    def __init__(self, id, label, infotext=None, append=""):
         super().__init__(id, label, infotext)
         self.step = None
+        self.append = append
 
     def render_input(self, value):
+        if self.append:
+            append = """
+                <div class="input-group-append">
+                    <span class="input-group-text">{append}</span>
+                </div>
+            """.format(
+                append=self.append
+            )
+        else:
+            append = ""
+
         return """
-            <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}" {step}>
+            <div class="input-group input-group-sm">
+                <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}" {step}>
+                {append}
+            </div>
         """.format(
             id=self.id,
             label=self.label,
             classes=self.input_classes(),
             value=value,
             step='step="{0}"'.format(self.step) if self.step else "",
+            append=append,
         )
 
     def convert_from_form(self, v):
