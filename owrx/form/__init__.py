@@ -325,9 +325,43 @@ class WfmTauValues(Enum):
         return Option(self.name, str(self))
 
 
+class EnumConverter(Converter):
+    def __init__(self, enumCls):
+        self.enumCls = enumCls
+
+    def convert_to_form(self, value):
+        return None if value is None else self.enumCls(value).name
+
+    def convert_from_form(self, value):
+        return self.enumCls[value].value
+
+
 class WfmTauConverter(Converter):
     def convert_to_form(self, value):
         return WfmTauValues(value * 1e6).name
 
     def convert_from_form(self, value):
         return WfmTauValues[value].value / 1e6
+
+
+class AprsBeaconSymbols(Enum):
+    BEACON_RECEIVE_ONLY = ("R&", "Receive only IGate")
+    BEACON_HF_GATEWAY = ("/&", "HF Gateway")
+    BEACON_IGATE_GENERIC = ("I&", "Igate Generic (please use more specific overlay)")
+    BEACON_PSKMAIL = ("P&", "PSKmail node")
+    BEACON_TX_1 = ("T&", "TX IGate with path set to 1 hop")
+    BEACON_WIRES_X = ("W&", "Wires-X")
+    BEACON_TX_2 = ("2&", "TX IGate with path set to 2 hops")
+
+    def __new__(cls, *args, **kwargs):
+        value, description = args
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.description = description
+        return obj
+
+    def __str__(self):
+        return self.description
+
+    def toOption(self):
+        return Option(self.name, "{description} ({symbol})".format(description=str(self), symbol=self.value))

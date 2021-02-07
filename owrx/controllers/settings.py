@@ -17,6 +17,8 @@ from owrx.form import (
     WfmTauConverter,
     MultiCheckboxInput,
     OptionalConverter,
+    AprsBeaconSymbols,
+    EnumConverter,
 )
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
@@ -268,9 +270,14 @@ class GeneralSettingsController(AdminController):
                 "aprs_igate_beacon",
                 "APRS beacon",
                 checkboxText="Send the receiver position to the APRS-IS network",
-                infotext="Please check that your receiver location is setup correctly",
+                infotext="Please check that your receiver location is setup correctly before enabling the beacon",
             ),
-            # TODO: aprs_igate_symbol
+            DropdownInput(
+                "aprs_igate_symbol",
+                "APRS beacon symbol",
+                [o.toOption() for o in AprsBeaconSymbols],
+                converter=EnumConverter(AprsBeaconSymbols),
+            ),
             TextInput(
                 "aprs_igate_comment",
                 "APRS beacon text",
