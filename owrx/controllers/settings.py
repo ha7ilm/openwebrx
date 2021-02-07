@@ -87,7 +87,7 @@ class SdrSettingsController(AdminController):
 class GeneralSettingsController(AdminController):
     sections = [
         Section(
-            "General settings",
+            "Receiver information",
             TextInput("receiver_name", "Receiver name"),
             TextInput("receiver_location", "Receiver location"),
             NumberInput(
