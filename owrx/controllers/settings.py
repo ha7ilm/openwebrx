@@ -106,7 +106,7 @@ class GeneralSettingsController(AdminController):
         ),
         Section(
             "Receiver listings",
-            TextInput(
+            TextAreaInput(
                 "receiver_keys",
                 "Receiver keys",
                 converter=ReceiverKeysConverter(),
