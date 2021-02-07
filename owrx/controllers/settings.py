@@ -12,7 +12,9 @@ from owrx.form import (
     Option,
     ServicesCheckboxInput,
     Js8ProfileCheckboxInput,
-    ReceiverKeysInput,
+    ReceiverKeysConverter,
+    WfmTauValues,
+    WfmTauConverter
 )
 from urllib.parse import quote
 import json
@@ -104,9 +106,10 @@ class GeneralSettingsController(AdminController):
         ),
         Section(
             "Receiver listings",
-            ReceiverKeysInput(
+            TextInput(
                 "receiver_keys",
                 "Receiver keys",
+                converter=ReceiverKeysConverter(),
                 infotext="Put the keys you receive on listing sites (e.g. "
                 + '<a href="https://www.receiverbook.de">Receiverbook</a>) here, one per line',
             ),
@@ -153,6 +156,17 @@ class GeneralSettingsController(AdminController):
             "Digimodes",
             CheckboxInput("digimodes_enable", "", checkboxText="Enable Digimodes"),
             NumberInput("digimodes_fft_size", "Digimodes FFT size", append="bins"),
+        ),
+        Section(
+            "Wideband FM settings",
+            DropdownInput(
+                "wfm_deemphasis_tau",
+                "Tau setting for WFM (broadcast FM) deemphasis",
+                options=[o.toOption() for o in WfmTauValues],
+                converter=WfmTauConverter(),
+                infotext='See <a href="https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis">'
+                + "this Wikipedia article for more information</a>",
+            ),
         ),
         Section(
             "Digital voice",

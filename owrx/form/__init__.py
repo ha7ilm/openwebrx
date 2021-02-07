@@ -1,13 +1,36 @@
 from abc import ABC, abstractmethod
 from owrx.modes import Modes
 from owrx.config import Config
+from enum import Enum
+
+
+class Converter(ABC):
+    @abstractmethod
+    def convert_to_form(self, value):
+        pass
+
+    @abstractmethod
+    def convert_from_form(self, value):
+        pass
+
+
+class NullConverter(Converter):
+    def convert_to_form(self, value):
+        return value
+
+    def convert_from_form(self, value):
+        return value
 
 
 class Input(ABC):
-    def __init__(self, id, label, infotext=None):
+    def __init__(self, id, label, infotext=None, converter: Converter = None):
         self.id = id
         self.label = label
         self.infotext = infotext
+        self.converter = self.defaultConverter() if converter is None else converter
+
+    def defaultConverter(self):
+        return NullConverter()
 
     def bootstrap_decorate(self, input):
         infotext = "<small>{text}</small>".format(text=self.infotext) if self.infotext else ""
@@ -30,17 +53,11 @@ class Input(ABC):
     def render_input(self, value):
         pass
 
-    def convert_to_form(self, value):
-        return value
-
-    def convert_from_form(self, value):
-        return value
-
     def render(self, config):
-        return self.bootstrap_decorate(self.render_input(self.convert_to_form(config[self.id])))
+        return self.bootstrap_decorate(self.render_input(self.converter.convert_to_form(config[self.id])))
 
     def parse(self, data):
-        return {self.id: self.convert_from_form(data[self.id][0])} if self.id in data else {}
+        return {self.id: self.converter.convert_from_form(data[self.id][0])} if self.id in data else {}
 
 
 class TextInput(Input):
@@ -52,11 +69,22 @@ class TextInput(Input):
         )
 
 
+class IntConverter(Converter):
+    def convert_to_form(self, value):
+        return str(value)
+
+    def convert_from_form(self, value):
+        return int(value)
+
+
 class NumberInput(Input):
-    def __init__(self, id, label, infotext=None, append=""):
-        super().__init__(id, label, infotext)
+    def __init__(self, id, label, infotext=None, append="", converter: Converter = None):
+        super().__init__(id, label, infotext, converter=converter)
         self.step = None
         self.append = append
+
+    def defaultConverter(self):
+        return IntConverter()
 
     def render_input(self, value):
         if self.append:
@@ -84,17 +112,22 @@ class NumberInput(Input):
             append=append,
         )
 
-    def convert_from_form(self, v):
-        return int(v)
+
+class FloatConverter(Converter):
+    def convert_to_form(self, value):
+        return str(value)
+
+    def convert_from_form(self, value):
+        return float(value)
 
 
 class FloatInput(NumberInput):
-    def __init__(self, id, label, infotext=None):
-        super().__init__(id, label, infotext)
+    def __init__(self, id, label, infotext=None, converter: Converter = None):
+        super().__init__(id, label, infotext, converter=converter)
         self.step = "any"
 
-    def convert_from_form(self, v):
-        return float(v)
+    def defaultConverter(self):
+        return FloatConverter()
 
 
 class LocationInput(Input):
@@ -137,7 +170,7 @@ class TextAreaInput(Input):
         )
 
 
-class ReceiverKeysInput(TextAreaInput):
+class ReceiverKeysConverter(Converter):
     def convert_to_form(self, value):
         return "\n".join(value)
 
@@ -235,8 +268,8 @@ class Js8ProfileCheckboxInput(MultiCheckboxInput):
 
 
 class DropdownInput(Input):
-    def __init__(self, id, label, options, infotext=None):
-        super().__init__(id, label, infotext=infotext)
+    def __init__(self, id, label, options, infotext=None, converter: Converter = None):
+        super().__init__(id, label, infotext=infotext, converter=converter)
         self.options = options
 
     def render_input(self, value):
@@ -258,3 +291,29 @@ class DropdownInput(Input):
             for o in self.options
         ]
         return "".join(options)
+
+
+class WfmTauValues(Enum):
+    TAU_50_MICRO = (50, "most regions")
+    TAU_75_MICRO = (75, "Americas and South Korea")
+
+    def __new__(cls, *args, **kwargs):
+        value, description = args
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.description = description
+        return obj
+
+    def __str__(self):
+        return "{}µs ({})".format(self.value, self.description)
+
+    def toOption(self):
+        return Option(self.name, str(self))
+
+
+class WfmTauConverter(Converter):
+    def convert_to_form(self, value):
+        return WfmTauValues(value * 1e6).name
+
+    def convert_from_form(self, value):
+        return WfmTauValues[value].value / 1e6
