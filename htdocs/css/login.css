@@ -1,6 +1,16 @@
 @import url("openwebrx-header.css");
 @import url("openwebrx-globals.css");
 
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-container {
+    flex: 1;
+    position: relative;
+}
+
 .login {
     position: absolute;
     left: 50%;
