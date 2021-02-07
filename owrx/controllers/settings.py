@@ -34,7 +34,7 @@ class Section(object):
 
     def render(self):
         return """
-            <div class="col-12 settings-category">
+            <div class="col-12 settings-section">
                 <h3 class="settings-header">
                     {title}
                 </h3>

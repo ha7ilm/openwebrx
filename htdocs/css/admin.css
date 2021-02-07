@@ -12,3 +12,16 @@
 .device {
     margin-top: 20px;
 }
+
+.settings-section {
+    margin-top: 3em;
+}
+
+.settings-section h3 {
+    margin-bottom: 1em;
+}
+
+h1 {
+    margin: 1em 0;
+    text-align: center;
+}
