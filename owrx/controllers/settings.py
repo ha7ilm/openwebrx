@@ -14,9 +14,11 @@ from owrx.form import (
     Js8ProfileCheckboxInput,
     ReceiverKeysConverter,
     WfmTauValues,
-    WfmTauConverter
+    WfmTauConverter,
+    MultiCheckboxInput,
 )
 from urllib.parse import quote
+from owrx.wsjt import Fst4Profile, Fst4wProfile
 import json
 import logging
 
@@ -178,8 +180,8 @@ class GeneralSettingsController(AdminController):
             NumberInput(
                 "frequency_display_precision",
                 "Frequency display precision",
-                infotext="Number of decimal digits to show on the frequency display"
-            )
+                infotext="Number of decimal digits to show on the frequency display",
+            ),
         ),
         Section(
             "Digital voice",
@@ -226,6 +228,16 @@ class GeneralSettingsController(AdminController):
                 infotext="A higher decoding depth will allow more results, but will also consume more cpu",
             ),
             Js8ProfileCheckboxInput("js8_enabled_profiles", "Js8Call enabled modes"),
+            MultiCheckboxInput(
+                "fst4_enabled_intervals",
+                "Enabled FST4 intervals",
+                [Option(v, "{}s".format(v)) for v in Fst4Profile.availableIntervals],
+            ),
+            MultiCheckboxInput(
+                "fst4w_enabled_intervals",
+                "Enabled FST4W intervals",
+                [Option(v, "{}s".format(v)) for v in Fst4wProfile.availableIntervals],
+            )
         ),
         Section(
             "Background decoding",
