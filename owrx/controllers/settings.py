@@ -169,27 +169,6 @@ class GeneralSettingsController(AdminController):
             ),
         ),
         Section(
-            "Experimental pipe settings",
-            CheckboxInput(
-                "csdr_dynamic_bufsize",
-                "",
-                checkboxText="Enable dynamic buffer sizes",
-                infotext="This allows you to change the buffering mode of csdr.",
-            ),
-            CheckboxInput(
-                "csdr_print_bufsizes",
-                "",
-                checkboxText="Print buffer sizez",
-                infotext="This prints the buffer sizes used for csdr processes.",
-            ),
-            CheckboxInput(
-                "csdr_through",
-                "",
-                checkboxText="Print throughput",
-                infotext="Enabling this will print out how much data is going into the DSP chains.",
-            ),
-        ),
-        Section(
             "Map settings",
             TextInput(
                 "google_maps_api_key",
