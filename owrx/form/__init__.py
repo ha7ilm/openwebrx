@@ -30,11 +30,17 @@ class Input(ABC):
     def render_input(self, value):
         pass
 
+    def convert_to_form(self, value):
+        return value
+
+    def convert_from_form(self, value):
+        return value
+
     def render(self, config):
-        return self.bootstrap_decorate(self.render_input(config[self.id]))
+        return self.bootstrap_decorate(self.render_input(self.convert_to_form(config[self.id])))
 
     def parse(self, data):
-        return {self.id: data[self.id][0]} if self.id in data else {}
+        return {self.id: self.convert_from_form(data[self.id][0])} if self.id in data else {}
 
 
 class TextInput(Input):
@@ -62,11 +68,8 @@ class NumberInput(Input):
             step='step="{0}"'.format(self.step) if self.step else "",
         )
 
-    def convert_value(self, v):
+    def convert_from_form(self, v):
         return int(v)
-
-    def parse(self, data):
-        return {k: self.convert_value(v) for k, v in super().parse(data).items()}
 
 
 class FloatInput(NumberInput):
@@ -74,7 +77,7 @@ class FloatInput(NumberInput):
         super().__init__(id, label, infotext)
         self.step = "any"
 
-    def convert_value(self, v):
+    def convert_from_form(self, v):
         return float(v)
 
 
@@ -116,6 +119,15 @@ class TextAreaInput(Input):
         """.format(
             id=self.id, classes=self.input_classes(), value=value
         )
+
+
+class ReceiverKeysInput(TextAreaInput):
+    def convert_to_form(self, value):
+        return "\n".join(value)
+
+    def convert_from_form(self, value):
+        # \r\n or \n? this should work with both.
+        return [v.strip("\r ") for v in value.split("\n")]
 
 
 class CheckboxInput(Input):

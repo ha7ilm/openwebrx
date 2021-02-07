@@ -12,6 +12,7 @@ from owrx.form import (
     Option,
     ServicesCheckboxInput,
     Js8ProfileCheckboxInput,
+    ReceiverKeysInput,
 )
 from urllib.parse import quote
 import json
@@ -99,6 +100,15 @@ class GeneralSettingsController(AdminController):
             LocationInput("receiver_gps", "Receiver coordinates"),
             TextInput("photo_title", "Photo title"),
             TextAreaInput("photo_desc", "Photo description"),
+        ),
+        Section(
+            "Receiver listings",
+            ReceiverKeysInput(
+                "receiver_keys",
+                "Receiver keys",
+                infotext="Put the keys you receive on listing sites (e.g. "
+                + '<a href="https://www.receiverbook.de">Receiverbook</a>) here, one per line',
+            ),
         ),
         Section(
             "Waterfall settings",
@@ -294,4 +304,4 @@ class GeneralSettingsController(AdminController):
         for k, v in data.items():
             config[k] = v
         Config.store()
-        self.send_redirect("/admin")
+        self.send_redirect("/generalsettings")
