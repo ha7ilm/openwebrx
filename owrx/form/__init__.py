@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from owrx.modes import Modes
 from owrx.config import Config
-from owrx.wsjt import Q65Mode, Q65Profile
+from owrx.wsjt import Q65Mode, Q65Interval
 from enum import Enum
 
 
@@ -327,28 +327,27 @@ class Q65ModeConverter(Converter):
 
 class Q65ModeMatrix(Input):
     def checkbox_id(self, mode, interval):
-        return "{0}-{1}-{2}".format(self.id, mode.value, interval)
+        return "{0}-{1}-{2}".format(self.id, mode.value, interval.value)
 
-    def render_checkbox(self, mode, interval, value):
+    def render_checkbox(self, mode: Q65Mode, interval: Q65Interval, value):
         return """
-          <div class="{classes}">
-            <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked}>
-            <label class="form-check-label" for="{id}">
-              {checkboxText}
-            </label>
-          </div>
+            <div class="{classes}">
+                <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked} {disabled}>
+                <label class="form-check-label" for="{id}">
+                    {checkboxText}
+                </label>
+            </div>
         """.format(
-            id=self.checkbox_id(mode, interval),
             classes=self.input_classes(),
-            checked="checked" if [interval, mode.name] in value else "",
-            checkboxText="Mode {} interval {}s".format(mode.name, interval),
+            id=self.checkbox_id(mode, interval),
+            checked="checked" if "{}{}".format(mode.name, interval.value) in value else "",
+            checkboxText="Mode {} interval {}s".format(mode.name, interval.value),
+            disabled="" if interval.is_available(mode) else "disabled",
         )
 
     def render_input(self, value):
         checkboxes = "".join(
-            self.render_checkbox(mode, interval, value)
-            for interval in Q65Profile.availableIntervals
-            for mode in Q65Mode
+            self.render_checkbox(mode, interval, value) for interval in Q65Interval for mode in Q65Mode
         )
         return """
             <div class="matrix q65-matrix">
