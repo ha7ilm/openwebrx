@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from owrx.config import CoreConfig
+from datetime import datetime, timezone
 import json
 import hashlib
 import os
@@ -125,19 +126,33 @@ class UserList(object):
         return UserList.sharedInstance
 
     def __init__(self):
-        self.users = self._loadUsers()
+        self.file_modified = None
+        self.users = {}
+
+    def refresh(self):
+        if self.file_modified is None or self._getUsersFileModifiedTimestamp() > self.file_modified:
+            logger.debug("reloading users from disk due to file modification")
+            self.users = self._loadUsers()
 
     def _getUsersFile(self):
         config = CoreConfig()
         return "{data_directory}/users.json".format(data_directory=config.get_data_directory())
 
+    def _getUsersFileModifiedTimestamp(self):
+        return datetime.fromtimestamp(os.path.getmtime(self._getUsersFile()), timezone.utc)
+
     def _loadUsers(self):
         usersFile = self._getUsersFile()
+        # to avoid concurrency issues and problems when parsing errors occur:
+        # get early, store late
+        modified = self._getUsersFileModifiedTimestamp()
         try:
             with open(usersFile, "r") as f:
                 users_json = json.load(f)
 
-            return {u.name: u for u in [self._jsonToUser(d) for d in users_json]}
+            users = {u.name: u for u in [self._jsonToUser(d) for d in users_json]}
+            self.file_modified = modified
+            return users
         except FileNotFoundError:
             return {}
         except json.JSONDecodeError:
@@ -156,12 +171,13 @@ class UserList(object):
 
     def store(self):
         usersFile = self._getUsersFile()
-        users = [u.toJson() for u in self.users.values()]
+        users = [u.toJson() for u in self.values()]
         try:
             with open(usersFile, "w") as f:
                 json.dump(users, f, indent=4)
         except Exception:
             logger.exception("error while writing users file %s", usersFile)
+        self.refresh()
 
     def _getUsername(self, user):
         if isinstance(user, User):
@@ -178,22 +194,27 @@ class UserList(object):
         del self[self._getUsername(user)]
 
     def __delitem__(self, key):
+        self.refresh()
         if key not in self.users:
             raise KeyError("User {user} doesn't exist".format(user=key))
         del self.users[key]
         self.store()
 
     def __getitem__(self, item):
+        self.refresh()
         return self.users[item]
 
     def __contains__(self, item):
+        self.refresh()
         return item in self.users
 
     def __setitem__(self, key, value):
+        self.refresh()
         if key in self.users:
             raise KeyError("User {user} already exists".format(user=key))
         self.users[key] = value
         self.store()
 
     def values(self):
+        self.refresh()
         return self.users.values()
