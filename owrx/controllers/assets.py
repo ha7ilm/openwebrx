@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class GzipMixin(object):
-    def send_response(self, content, headers=None, content_type="text/html", *args, **kwargs):
+    def send_response(self, content, code=200, headers=None, content_type="text/html", *args, **kwargs):
         if self.zipable(content_type) and "accept-encoding" in self.request.headers:
             accepted = [s.strip().lower() for s in self.request.headers["accept-encoding"].split(",")]
             if "gzip" in accepted:
@@ -23,7 +23,7 @@ class GzipMixin(object):
                 if headers is None:
                     headers = {}
                 headers["Content-Encoding"] = "gzip"
-        super().send_response(content, headers=headers, content_type=content_type, *args, **kwargs)
+        super().send_response(content, code, headers=headers, content_type=content_type, *args, **kwargs)
 
     def zipable(self, content_type):
         types = ["application/javascript", "text/css", "text/html"]
@@ -78,7 +78,7 @@ class AssetsController(GzipMixin, ModificationAwareController, metaclass=ABCMeta
             f.close()
 
             if content_type is None:
-                (content_type, encoding) = mimetypes.MimeTypes().guess_type(file)
+                (content_type, encoding) = mimetypes.MimeTypes().guess_type(self.getFilePath(file))
             self.send_response(data, content_type=content_type, last_modified=modified, max_age=3600)
         except FileNotFoundError:
             self.send_response("file not found", code=404)
@@ -137,6 +137,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/Header.js",
             "lib/settings/Input.js",
             "lib/settings/SdrDevice.js",
+            "lib/settings/ImageUpload.js",
             "settings.js",
         ],
     }

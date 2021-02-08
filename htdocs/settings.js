@@ -22,4 +22,5 @@ $(function(){
     });
 
     $(".sdrdevice").sdrdevice();
+    $(".imageupload").imageUpload();
 });

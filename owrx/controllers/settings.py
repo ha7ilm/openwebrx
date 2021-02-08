@@ -19,6 +19,7 @@ from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.wfm import WfmTauValues
 from owrx.form.wsjt import Q65ModeMatrix
+from owrx.form.gfx import AvatarInput
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 import json
@@ -106,6 +107,13 @@ class GeneralSettingsController(AdminController):
             LocationInput("receiver_gps", "Receiver coordinates"),
             TextInput("photo_title", "Photo title"),
             TextAreaInput("photo_desc", "Photo description"),
+        ),
+        Section(
+            "Receiver images",
+            AvatarInput(
+                "receiver_avatar",
+                "Receiver Avatar",
+            ),
         ),
         Section(
             "Receiver listings",
