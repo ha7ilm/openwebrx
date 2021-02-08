@@ -19,6 +19,7 @@ from owrx.form import (
     OptionalConverter,
     AprsBeaconSymbols,
     EnumConverter,
+    AprsAntennaDirections,
 )
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
@@ -297,7 +298,12 @@ class GeneralSettingsController(AdminController):
                 append="dBi",
                 converter=OptionalConverter(),
             ),
-            # TODO: aprs_igate_dir
+            DropdownInput(
+                "aprs_igate_dir",
+                "Antenna direction",
+                [o.toOption() for o in AprsAntennaDirections],
+                converter=EnumConverter(AprsAntennaDirections),
+            ),
         ),
         Section(
             "pskreporter settings",
@@ -359,6 +365,10 @@ class GeneralSettingsController(AdminController):
         data = {k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()}
         config = Config.get()
         for k, v in data.items():
-            config[k] = v
+            if v is None:
+                if k in config:
+                    del config[k]
+            else:
+                config[k] = v
         Config.store()
         self.send_redirect("/generalsettings")

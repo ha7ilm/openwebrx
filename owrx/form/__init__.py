@@ -365,3 +365,18 @@ class AprsBeaconSymbols(Enum):
 
     def toOption(self):
         return Option(self.name, "{description} ({symbol})".format(description=str(self), symbol=self.value))
+
+
+class AprsAntennaDirections(Enum):
+    DIRECTION_OMNI = None
+    DIRECTION_N = "N"
+    DIRECTION_NE = "NE"
+    DIRECTION_E = "E"
+    DIRECTION_SE = "SE"
+    DIRECTION_S = "S"
+    DIRECTION_SW = "SW"
+    DIRECTION_W = "W"
+    DIRECTION_NW = "NW"
+
+    def toOption(self):
+        return Option(self.name, "omnidirectional" if self.value is None else self.value)
