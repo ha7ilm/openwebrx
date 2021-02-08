@@ -283,8 +283,17 @@ class Js8ProfileCheckboxInput(MultiCheckboxInput):
 
 class DropdownInput(Input):
     def __init__(self, id, label, options, infotext=None, converter: Converter = None):
+        try:
+            isEnum = issubclass(options, DropdownEnum)
+        except TypeError:
+            isEnum = False
+        if isEnum:
+            self.options = [o.toOption() for o in options]
+            if converter is None:
+                converter = EnumConverter(options)
+        else:
+            self.options = options
         super().__init__(id, label, infotext=infotext, converter=converter)
-        self.options = options
 
     def render_input(self, value):
         return """
@@ -307,20 +316,7 @@ class DropdownInput(Input):
         return "".join(options)
 
 
-class WfmTauValues(Enum):
-    TAU_50_MICRO = (50, "most regions")
-    TAU_75_MICRO = (75, "Americas and South Korea")
-
-    def __new__(cls, *args, **kwargs):
-        value, description = args
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.description = description
-        return obj
-
-    def __str__(self):
-        return "{}µs ({})".format(self.value, self.description)
-
+class DropdownEnum(Enum):
     def toOption(self):
         return Option(self.name, str(self))
 
@@ -336,15 +332,22 @@ class EnumConverter(Converter):
         return self.enumCls[value].value
 
 
-class WfmTauConverter(Converter):
-    def convert_to_form(self, value):
-        return WfmTauValues(value * 1e6).name
+class WfmTauValues(DropdownEnum):
+    TAU_50_MICRO = (50e-6, "most regions")
+    TAU_75_MICRO = (75e-6, "Americas and South Korea")
 
-    def convert_from_form(self, value):
-        return WfmTauValues[value].value / 1e6
+    def __new__(cls, *args, **kwargs):
+        value, description = args
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.description = description
+        return obj
+
+    def __str__(self):
+        return "{}µs ({})".format(int(self.value * 1E6), self.description)
 
 
-class AprsBeaconSymbols(Enum):
+class AprsBeaconSymbols(DropdownEnum):
     BEACON_RECEIVE_ONLY = ("R&", "Receive only IGate")
     BEACON_HF_GATEWAY = ("/&", "HF Gateway")
     BEACON_IGATE_GENERIC = ("I&", "Igate Generic (please use more specific overlay)")
@@ -361,13 +364,10 @@ class AprsBeaconSymbols(Enum):
         return obj
 
     def __str__(self):
-        return self.description
-
-    def toOption(self):
-        return Option(self.name, "{description} ({symbol})".format(description=str(self), symbol=self.value))
+        return "{description} ({symbol})".format(description=self.description, symbol=self.value)
 
 
-class AprsAntennaDirections(Enum):
+class AprsAntennaDirections(DropdownEnum):
     DIRECTION_OMNI = None
     DIRECTION_N = "N"
     DIRECTION_NE = "NE"
@@ -378,5 +378,5 @@ class AprsAntennaDirections(Enum):
     DIRECTION_W = "W"
     DIRECTION_NW = "NW"
 
-    def toOption(self):
-        return Option(self.name, "omnidirectional" if self.value is None else self.value)
+    def __str__(self):
+        return "omnidirectional" if self.value is None else self.value

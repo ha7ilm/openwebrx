@@ -14,11 +14,9 @@ from owrx.form import (
     Js8ProfileCheckboxInput,
     ReceiverKeysConverter,
     WfmTauValues,
-    WfmTauConverter,
     MultiCheckboxInput,
     OptionalConverter,
     AprsBeaconSymbols,
-    EnumConverter,
     AprsAntennaDirections,
 )
 from urllib.parse import quote
@@ -173,8 +171,7 @@ class GeneralSettingsController(AdminController):
             DropdownInput(
                 "wfm_deemphasis_tau",
                 "Tau setting for WFM (broadcast FM) deemphasis",
-                options=[o.toOption() for o in WfmTauValues],
-                converter=WfmTauConverter(),
+                WfmTauValues,
                 infotext='See <a href="https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis">'
                 + "this Wikipedia article</a> for more information",
             ),
@@ -276,8 +273,7 @@ class GeneralSettingsController(AdminController):
             DropdownInput(
                 "aprs_igate_symbol",
                 "APRS beacon symbol",
-                [o.toOption() for o in AprsBeaconSymbols],
-                converter=EnumConverter(AprsBeaconSymbols),
+                AprsBeaconSymbols,
             ),
             TextInput(
                 "aprs_igate_comment",
@@ -301,8 +297,7 @@ class GeneralSettingsController(AdminController):
             DropdownInput(
                 "aprs_igate_dir",
                 "Antenna direction",
-                [o.toOption() for o in AprsAntennaDirections],
-                converter=EnumConverter(AprsAntennaDirections),
+                AprsAntennaDirections
             ),
         ),
         Section(
