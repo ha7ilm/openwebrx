@@ -105,6 +105,15 @@ class User(object):
     def setPassword(self, password: Password):
         self.password = password
 
+    def is_enabled(self):
+        return self.enabled
+
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
+
 
 class UserList(object):
     sharedInstance = None
@@ -185,3 +194,6 @@ class UserList(object):
             raise KeyError("User {user} already exists".format(user=key))
         self.users[key] = value
         self.store()
+
+    def values(self):
+        return self.users.values()

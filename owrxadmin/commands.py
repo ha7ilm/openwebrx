@@ -76,3 +76,28 @@ class ResetPassword(UserCommand):
         # this is a change to an object in the list, not the list itself
         # in this case, store() is explicit
         userList.store()
+
+
+class DisableUser(UserCommand):
+    def run(self, args):
+        username = self.getUser(args)
+        userList = UserList()
+        userList[username].disable()
+        userList.store()
+
+
+class EnableUser(UserCommand):
+    def run(self, args):
+        username = self.getUser(args)
+        userList = UserList()
+        userList[username].enable()
+        userList.store()
+
+
+class ListUsers(Command):
+    def run(self, args):
+        userList = UserList()
+        print("List of enabled users:")
+        for u in userList.values():
+            if args.all or u.enabled:
+                print("  {name}".format(name=u.name))

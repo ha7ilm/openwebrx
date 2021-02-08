@@ -45,7 +45,7 @@ class SessionController(WebpageController):
         if "user" in data and "password" in data:
             if data["user"] in userlist:
                 user = userlist[data["user"]]
-                if user.password.is_valid(data["password"]):
+                if user.is_enabled() and user.password.is_valid(data["password"]):
                     # TODO evaluate password force_change and redirect to password change
                     key = SessionStorage.getSharedInstance().startSession({"user": user.name})
                     cookie = SimpleCookie()
