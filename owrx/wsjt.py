@@ -144,18 +144,41 @@ class Fst4wProfile(WsjtProfile):
 
 
 class Q65Mode(Enum):
+    # value is the bandwidth multiplier according to https://physics.princeton.edu/pulsar/k1jt/Q65_Quick_Start.pdf
     A = 1
     B = 2
-    C = 3
-    D = 4
-    E = 5
+    C = 4
+    D = 8
+    E = 16
+
+    def is_available(self, interval: "Q65Interval"):
+        return interval.is_available(self)
+
+
+class Q65Interval(Enum):
+    # (interval, occupied bandwidth in mode "A")
+    # according to https://physics.princeton.edu/pulsar/k1jt/Q65_Quick_Start.pdf
+    INTERVAL_15 = (15, 433)
+    INTERVAL_30 = (30, 217)
+    INTERVAL_60 = (60, 108)
+    INTERVAL_120 = (120, 49)
+    INTERVAL_300 = (300, 19)
+
+    def __new__(cls, *args, **kwargs):
+        interval, occupied_bandwidth = args
+        obj = object.__new__(cls)
+        obj._value_ = interval
+        obj.occupied_bandwidth = occupied_bandwidth
+        return obj
+
+    def is_available(self, mode: Q65Mode):
+        # total bandwidth must not exceed the typical SSB bandwidth
+        return self.occupied_bandwidth * mode.value < 2700
 
 
 class Q65Profile(WsjtProfile):
-    availableIntervals = [15, 30, 60, 120, 300]
-
-    def __init__(self, interval, mode: Q65Mode):
-        self.interval = interval
+    def __init__(self, interval: Q65Interval, mode: Q65Mode):
+        self.interval = interval.value
         self.mode = mode
 
     def getMode(self):
@@ -173,15 +196,17 @@ class Q65Profile(WsjtProfile):
         profiles = config["q65_enabled_combinations"] if "q65_enabled_combinations" in config else []
 
         def buildProfile(modestring):
-            mode = Q65Mode[modestring[0]]
-            interval = int(modestring[1:])
-            if interval not in Q65Profile.availableIntervals:
-                logger.warning("%i is not a valid Q65 interval; ignoring mode \"%s\"", interval, modestring)
-                return None
-            return Q65Profile(interval, mode)
+            try:
+                mode = Q65Mode[modestring[0]]
+                interval = Q65Interval(int(modestring[1:]))
+                if interval.is_available(mode):
+                    return Q65Profile(interval, mode)
+            except (ValueError, KeyError):
+                pass
+            logger.warning('"%s" is not a valid Q65 mode, or an invalid mode string, ignoring', modestring)
+            return None
 
         mapped = [buildProfile(m) for m in profiles]
-        logger.debug(mapped)
         return [p for p in mapped if p is not None]
 
 
