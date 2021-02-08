@@ -4,6 +4,7 @@ import uuid
 import json
 
 
+# TODO: implement authorization
 class ImageUploadController(AssetsController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
@@ -26,6 +27,7 @@ class ImageUploadController(AssetsController):
 
     def processImage(self):
         self.uuid = uuid.uuid4().hex
+        # TODO: limit file size
         contents = self.get_body()
         with open(self.getFilePath(), 'wb') as f:
             f.write(contents)

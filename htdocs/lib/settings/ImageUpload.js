@@ -12,6 +12,7 @@ $.fn.imageUpload = function() {
 
         input.onchange = function(e) {
             var reader = new FileReader()
+            // TODO: implement file size check
             reader.readAsArrayBuffer(e.target.files[0]);
             reader.onload = function(e) {
                 $.ajax({
