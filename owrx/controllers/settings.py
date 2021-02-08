@@ -12,14 +12,13 @@ from owrx.form import (
     Option,
     ServicesCheckboxInput,
     Js8ProfileCheckboxInput,
-    ReceiverKeysConverter,
-    WfmTauValues,
     MultiCheckboxInput,
-    OptionalConverter,
-    AprsBeaconSymbols,
-    AprsAntennaDirections,
-    Q65ModeMatrix,
 )
+from owrx.form.converter import OptionalConverter
+from owrx.form.receiverid import ReceiverKeysConverter
+from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
+from owrx.form.wfm import WfmTauValues
+from owrx.form.wsjt import Q65ModeMatrix
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 import json

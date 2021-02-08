@@ -1,39 +1,8 @@
 from abc import ABC, abstractmethod
 from owrx.modes import Modes
 from owrx.config import Config
-from owrx.wsjt import Q65Mode, Q65Interval
+from owrx.form.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter
 from enum import Enum
-
-
-class Converter(ABC):
-    @abstractmethod
-    def convert_to_form(self, value):
-        pass
-
-    @abstractmethod
-    def convert_from_form(self, value):
-        pass
-
-
-class NullConverter(Converter):
-    def convert_to_form(self, value):
-        return value
-
-    def convert_from_form(self, value):
-        return value
-
-
-class OptionalConverter(Converter):
-    """
-    Maps None to an empty string, and reverse
-    useful for optional fields
-    """
-
-    def convert_to_form(self, value):
-        return "" if value is None else value
-
-    def convert_from_form(self, value):
-        return value if value else None
 
 
 class Input(ABC):
@@ -84,14 +53,6 @@ class TextInput(Input):
         )
 
 
-class IntConverter(Converter):
-    def convert_to_form(self, value):
-        return str(value)
-
-    def convert_from_form(self, value):
-        return int(value)
-
-
 class NumberInput(Input):
     def __init__(self, id, label, infotext=None, append="", converter: Converter = None):
         super().__init__(id, label, infotext, converter=converter)
@@ -126,14 +87,6 @@ class NumberInput(Input):
             step='step="{0}"'.format(self.step) if self.step else "",
             append=append,
         )
-
-
-class FloatConverter(Converter):
-    def convert_to_form(self, value):
-        return str(value)
-
-    def convert_from_form(self, value):
-        return float(value)
 
 
 class FloatInput(NumberInput):
@@ -183,15 +136,6 @@ class TextAreaInput(Input):
         """.format(
             id=self.id, classes=self.input_classes(), value=value
         )
-
-
-class ReceiverKeysConverter(Converter):
-    def convert_to_form(self, value):
-        return "\n".join(value)
-
-    def convert_from_form(self, value):
-        # \r\n or \n? this should work with both.
-        return [v.strip("\r ") for v in value.split("\n")]
 
 
 class CheckboxInput(Input):
@@ -317,125 +261,6 @@ class DropdownInput(Input):
         return "".join(options)
 
 
-class Q65ModeConverter(Converter):
-    def convert_to_form(self, value):
-        pass
-
-    def convert_from_form(self, value):
-        pass
-
-
-class Q65ModeMatrix(Input):
-    def checkbox_id(self, mode, interval):
-        return "{0}-{1}-{2}".format(self.id, mode.value, interval.value)
-
-    def render_checkbox(self, mode: Q65Mode, interval: Q65Interval, value):
-        return """
-            <div class="{classes}">
-                <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked} {disabled}>
-                <label class="form-check-label" for="{id}">
-                    {checkboxText}
-                </label>
-            </div>
-        """.format(
-            classes=self.input_classes(),
-            id=self.checkbox_id(mode, interval),
-            checked="checked" if "{}{}".format(mode.name, interval.value) in value else "",
-            checkboxText="Mode {} interval {}s".format(mode.name, interval.value),
-            disabled="" if interval.is_available(mode) else "disabled",
-        )
-
-    def render_input(self, value):
-        checkboxes = "".join(
-            self.render_checkbox(mode, interval, value) for interval in Q65Interval for mode in Q65Mode
-        )
-        return """
-            <div class="matrix q65-matrix">
-                {checkboxes}
-            </div>
-        """.format(
-            checkboxes=checkboxes
-        )
-
-    def input_classes(self):
-        return " ".join(["form-check", "form-control-sm"])
-
-    def parse(self, data):
-        def in_response(mode, interval):
-            boxid = self.checkbox_id(mode, interval)
-            return boxid in data and data[boxid][0] == "on"
-
-        return {
-            self.id: [
-                "{}{}".format(mode.name, interval.value)
-                for interval in Q65Interval
-                for mode in Q65Mode
-                if in_response(mode, interval)
-            ],
-        }
-
-
 class DropdownEnum(Enum):
     def toOption(self):
         return Option(self.name, str(self))
-
-
-class EnumConverter(Converter):
-    def __init__(self, enumCls):
-        self.enumCls = enumCls
-
-    def convert_to_form(self, value):
-        return None if value is None else self.enumCls(value).name
-
-    def convert_from_form(self, value):
-        return self.enumCls[value].value
-
-
-class WfmTauValues(DropdownEnum):
-    TAU_50_MICRO = (50e-6, "most regions")
-    TAU_75_MICRO = (75e-6, "Americas and South Korea")
-
-    def __new__(cls, *args, **kwargs):
-        value, description = args
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.description = description
-        return obj
-
-    def __str__(self):
-        return "{}µs ({})".format(int(self.value * 1e6), self.description)
-
-
-class AprsBeaconSymbols(DropdownEnum):
-    BEACON_RECEIVE_ONLY = ("R&", "Receive only IGate")
-    BEACON_HF_GATEWAY = ("/&", "HF Gateway")
-    BEACON_IGATE_GENERIC = ("I&", "Igate Generic (please use more specific overlay)")
-    BEACON_PSKMAIL = ("P&", "PSKmail node")
-    BEACON_TX_1 = ("T&", "TX IGate with path set to 1 hop")
-    BEACON_WIRES_X = ("W&", "Wires-X")
-    BEACON_TX_2 = ("2&", "TX IGate with path set to 2 hops")
-
-    def __new__(cls, *args, **kwargs):
-        value, description = args
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.description = description
-        return obj
-
-    def __str__(self):
-        return "{description} ({symbol})".format(description=self.description, symbol=self.value)
-
-
-class AprsAntennaDirections(DropdownEnum):
-    DIRECTION_OMNI = None
-    DIRECTION_N = "N"
-    DIRECTION_NE = "NE"
-    DIRECTION_E = "E"
-    DIRECTION_SE = "SE"
-    DIRECTION_S = "S"
-    DIRECTION_SW = "SW"
-    DIRECTION_W = "W"
-    DIRECTION_NW = "NW"
-
-    def __str__(self):
-        return "omnidirectional" if self.value is None else self.value
