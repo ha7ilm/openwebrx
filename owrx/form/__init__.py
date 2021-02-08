@@ -360,6 +360,20 @@ class Q65ModeMatrix(Input):
     def input_classes(self):
         return " ".join(["form-check", "form-control-sm"])
 
+    def parse(self, data):
+        def in_response(mode, interval):
+            boxid = self.checkbox_id(mode, interval)
+            return boxid in data and data[boxid][0] == "on"
+
+        return {
+            self.id: [
+                "{}{}".format(mode.name, interval.value)
+                for interval in Q65Interval
+                for mode in Q65Mode
+                if in_response(mode, interval)
+            ],
+        }
+
 
 class DropdownEnum(Enum):
     def toOption(self):
