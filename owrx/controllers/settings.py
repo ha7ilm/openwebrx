@@ -1,5 +1,5 @@
 from .admin import AdminController
-from owrx.config import Config
+from owrx.config import Config, CoreConfig
 from urllib.parse import parse_qs
 from owrx.form import (
     TextInput,
@@ -24,6 +24,7 @@ from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 import json
 import logging
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -363,9 +364,22 @@ class GeneralSettingsController(AdminController):
         variables["sections"] = self.render_sections()
         return variables
 
+    def handle_image(self, data, image_id):
+        if image_id not in data:
+            return
+        config = CoreConfig()
+        filename = "{}-{}".format(image_id, data[image_id])
+        shutil.copy(
+            config.get_temporary_directory() + "/" + filename,
+            config.get_data_directory() + "/" + image_id
+        )
+        del data[image_id]
+
     def processFormData(self):
         data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)
         data = {k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()}
+        # Image handling
+        self.handle_image(data, "receiver_avatar")
         config = Config.get()
         for k, v in data.items():
             if v is None:
