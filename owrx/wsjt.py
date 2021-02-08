@@ -171,7 +171,18 @@ class Q65Profile(WsjtProfile):
     def getEnabledProfiles():
         config = Config.get()
         profiles = config["q65_enabled_combinations"] if "q65_enabled_combinations" in config else []
-        return [Q65Profile(i, Q65Mode[m]) for i, m in profiles if i in Fst4wProfile.availableIntervals]
+
+        def buildProfile(modestring):
+            mode = Q65Mode[modestring[0]]
+            interval = int(modestring[1:])
+            if interval not in Q65Profile.availableIntervals:
+                logger.warning("%i is not a valid Q65 interval; ignoring mode \"%s\"", interval, modestring)
+                return None
+            return Q65Profile(interval, mode)
+
+        mapped = [buildProfile(m) for m in profiles]
+        logger.debug(mapped)
+        return [p for p in mapped if p is not None]
 
 
 class WsjtParser(Parser):
@@ -241,9 +252,9 @@ class Decoder(ABC):
 
     def parse_timestamp(self, instring):
         dateformat = self.profile.getTimestampFormat()
-        remain = instring[len(dateformat) + 1:]
+        remain = instring[len(dateformat) + 1 :]
         try:
-            ts = datetime.strptime(instring[0: len(dateformat)], dateformat)
+            ts = datetime.strptime(instring[0 : len(dateformat)], dateformat)
             return remain, int(
                 datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
             )
