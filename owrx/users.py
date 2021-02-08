@@ -56,7 +56,7 @@ class CleartextPassword(Password):
 class HashedPassword(Password):
     def __init__(self, pwinfo, algorithm="sha256"):
         self.iterations = 100000
-        if (isinstance(pwinfo, str)):
+        if isinstance(pwinfo, str):
             self._createFromString(pwinfo, algorithm)
         else:
             self._loadFromDict(pwinfo)
@@ -91,20 +91,30 @@ DefaultPasswordClass = HashedPassword
 
 
 class User(object):
-    def __init__(self, name: str, enabled: bool, password: Password):
+    def __init__(self, name: str, enabled: bool, password: Password, must_change_password: bool = False):
         self.name = name
         self.enabled = enabled
         self.password = password
+        self.must_change_password = must_change_password
 
     def toJson(self):
         return {
             "user": self.name,
             "enabled": self.enabled,
+            "must_change_password": self.must_change_password,
             "password": self.password.toJson()
         }
 
-    def setPassword(self, password: Password):
+    @staticmethod
+    def fromJson(d):
+        if "user" in d and "password" in d and "enabled" in d:
+            mcp = d["must_change_password"] if "must_change_password" in d else False
+            return User(d["user"], d["enabled"], Password.from_dict(d["password"]), mcp)
+
+    def setPassword(self, password: Password, must_change_password: bool = None):
         self.password = password
+        if must_change_password is not None:
+            self.must_change_password = must_change_password
 
     def is_enabled(self):
         return self.enabled
@@ -150,7 +160,7 @@ class UserList(object):
             with open(usersFile, "r") as f:
                 users_json = json.load(f)
 
-            users = {u.name: u for u in [self._jsonToUser(d) for d in users_json]}
+            users = {u.name: u for u in [User.fromJson(d) for d in users_json]}
             self.file_modified = modified
             return users
         except FileNotFoundError:
@@ -161,10 +171,6 @@ class UserList(object):
         except Exception:
             logger.exception("error while processing users from %s", usersFile)
             return {}
-
-    def _jsonToUser(self, d):
-        if "user" in d and "password" in d and "enabled" in d:
-            return User(d["user"], d["enabled"], Password.from_dict(d["password"]))
 
     def _userToJson(self, u):
         return u.toJson()

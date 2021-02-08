@@ -27,8 +27,8 @@ class UserCommand(Command, metaclass=ABCMeta):
         if args.noninteractive:
             print("Generating password for user {username}...".format(username=username))
             password = self.getRandomPassword()
+            generated = True
             print('Password for {username} is "{password}".'.format(username=username, password=password))
-            # TODO implement this threat
             print('This password is suitable for initial setup only, you will be asked to reset it on initial use.')
             print('This password cannot be recovered from the system, please copy it now.')
         else:
@@ -37,7 +37,8 @@ class UserCommand(Command, metaclass=ABCMeta):
             if password != confirm:
                 print("ERROR: Password mismatch.")
                 sys.exit(1)
-        return password
+            generated = False
+        return password, generated
 
     def getRandomPassword(self, length=10):
         printable = list(string.ascii_letters) + list(string.digits)
@@ -52,10 +53,10 @@ class NewUser(UserCommand):
         if username in userList:
             raise KeyError("User {username} already exists".format(username=username))
 
-        password = self.getPassword(args, username)
+        password, generated = self.getPassword(args, username)
 
         print("Creating user {username}...".format(username=username))
-        user = User(name=username, enabled=True, password=DefaultPasswordClass(password))
+        user = User(name=username, enabled=True, password=DefaultPasswordClass(password), must_change_password=generated)
         userList.addUser(user)
 
 
@@ -70,9 +71,9 @@ class DeleteUser(UserCommand):
 class ResetPassword(UserCommand):
     def run(self, args):
         username = self.getUser(args)
-        password = self.getPassword(args, username)
+        password, generated = self.getPassword(args, username)
         userList = UserList()
-        userList[username].setPassword(DefaultPasswordClass(password))
+        userList[username].setPassword(DefaultPasswordClass(password), must_change_password=generated)
         # this is a change to an object in the list, not the list itself
         # in this case, store() is explicit
         userList.store()

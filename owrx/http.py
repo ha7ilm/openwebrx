@@ -6,6 +6,7 @@ from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
 from owrx.controllers.settings import SettingsController, GeneralSettingsController, SdrSettingsController
 from owrx.controllers.session import SessionController
+from owrx.controllers.profile import ProfileController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import re
@@ -109,6 +110,8 @@ class Router(object):
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),
+            StaticRoute("/pwchange", ProfileController),
+            StaticRoute("/pwchange", ProfileController, method="POST", options={"action": "processPwChange"}),
         ]
 
     def find_route(self, request):

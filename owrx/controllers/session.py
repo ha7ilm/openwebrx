@@ -1,5 +1,5 @@
 from .template import WebpageController
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlencode
 from uuid import uuid4
 from http.cookies import SimpleCookie
 from owrx.users import UserList
@@ -51,6 +51,8 @@ class SessionController(WebpageController):
                     cookie = SimpleCookie()
                     cookie["owrx-session"] = key
                     target = self.request.query["ref"][0] if "ref" in self.request.query else "/settings"
+                    if user.must_change_password:
+                        target = "/pwchange?{0}".format(urlencode({"ref": target}))
                     self.send_redirect(target, cookies=cookie)
                     return
         self.send_redirect("/login")
