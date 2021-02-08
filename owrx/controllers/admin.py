@@ -1,6 +1,7 @@
 from .template import WebpageController
 from .session import SessionStorage
 from owrx.config import Config
+from owrx.users import UserList
 from urllib import parse
 
 import logging
@@ -10,10 +11,19 @@ logger = logging.getLogger(__name__)
 
 class Authentication(object):
     def isAuthenticated(self, request):
-        if "owrx-session" in request.cookies:
-            session = SessionStorage.getSharedInstance().getSession(request.cookies["owrx-session"].value)
-            return session is not None
-        return False
+        if "owrx-session" not in request.cookies:
+            return False
+        session = SessionStorage.getSharedInstance().getSession(request.cookies["owrx-session"].value)
+        if session is None:
+            return False
+        if "user" not in session:
+            return False
+        userList = UserList.getSharedInstance()
+        try:
+            user = userList[session["user"]]
+            return user.is_enabled()
+        except KeyError:
+            return False
 
 
 class AdminController(WebpageController):
