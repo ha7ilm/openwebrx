@@ -1,6 +1,8 @@
 from owrx.form import Input
 
 
+# TODO: generalize
+# TODO: cachebuster
 class AvatarInput(Input):
     def render_input(self, value):
         return """
