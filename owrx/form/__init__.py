@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from owrx.modes import Modes
 from owrx.config import Config
+from owrx.wsjt import Q65Mode, Q65Profile
 from enum import Enum
 
 
@@ -316,6 +317,51 @@ class DropdownInput(Input):
         return "".join(options)
 
 
+class Q65ModeConverter(Converter):
+    def convert_to_form(self, value):
+        pass
+
+    def convert_from_form(self, value):
+        pass
+
+
+class Q65ModeMatrix(Input):
+    def checkbox_id(self, mode, interval):
+        return "{0}-{1}-{2}".format(self.id, mode.value, interval)
+
+    def render_checkbox(self, mode, interval, value):
+        return """
+          <div class="{classes}">
+            <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked}>
+            <label class="form-check-label" for="{id}">
+              {checkboxText}
+            </label>
+          </div>
+        """.format(
+            id=self.checkbox_id(mode, interval),
+            classes=self.input_classes(),
+            checked="checked" if [interval, mode.name] in value else "",
+            checkboxText="Mode {} interval {}s".format(mode.name, interval),
+        )
+
+    def render_input(self, value):
+        checkboxes = "".join(
+            self.render_checkbox(mode, interval, value)
+            for interval in Q65Profile.availableIntervals
+            for mode in Q65Mode
+        )
+        return """
+            <div class="matrix q65-matrix">
+                {checkboxes}
+            </div>
+        """.format(
+            checkboxes=checkboxes
+        )
+
+    def input_classes(self):
+        return " ".join(["form-check", "form-control-sm"])
+
+
 class DropdownEnum(Enum):
     def toOption(self):
         return Option(self.name, str(self))
@@ -344,7 +390,7 @@ class WfmTauValues(DropdownEnum):
         return obj
 
     def __str__(self):
-        return "{}µs ({})".format(int(self.value * 1E6), self.description)
+        return "{}µs ({})".format(int(self.value * 1e6), self.description)
 
 
 class AprsBeaconSymbols(DropdownEnum):

@@ -18,6 +18,7 @@ from owrx.form import (
     OptionalConverter,
     AprsBeaconSymbols,
     AprsAntennaDirections,
+    Q65ModeMatrix,
 )
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
@@ -239,7 +240,7 @@ class GeneralSettingsController(AdminController):
                 "Enabled FST4W intervals",
                 [Option(v, "{}s".format(v)) for v in Fst4wProfile.availableIntervals],
             ),
-            # TODO: q65_enabled_combinations
+            Q65ModeMatrix("q65_enabled_combinations", "Enabled Q65 Mode combinations"),
         ),
         Section(
             "Background decoding",

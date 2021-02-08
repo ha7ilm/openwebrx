@@ -25,3 +25,11 @@ h1 {
     margin: 1em 0;
     text-align: center;
 }
+
+.matrix {
+    display: grid;
+}
+
+.q65-matrix {
+    grid-template-columns: repeat(5, auto);
+}
