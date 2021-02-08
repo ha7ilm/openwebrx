@@ -90,11 +90,15 @@ class AssetsController(GzipMixin, ModificationAwareController, metaclass=ABCMeta
 
 class OwrxAssetsController(AssetsController):
     def getFilePath(self, file):
+        mappedFiles = {
+            "gfx/openwebrx-avatar.png": "receiver_avatar",
+            "gfx/openwebrx-top-photo.jpg": "receiver_top_photo",
+        }
         config = CoreConfig()
-        if file == "gfx/openwebrx-avatar.png":
-            file = config.get_data_directory() + "/receiver_avatar"
-            if os.path.exists(file) and os.path.isfile(file):
-                return file
+        if file in mappedFiles:
+            user_file = config.get_data_directory() + "/" + mappedFiles[file]
+            if os.path.exists(user_file) and os.path.isfile(user_file):
+                return user_file
         return pkg_resources.resource_filename("htdocs", file)
 
 

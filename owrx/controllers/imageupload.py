@@ -28,7 +28,9 @@ class ImageUploadController(AssetsController):
     def processImage(self):
         self.uuid = uuid.uuid4().hex
         # TODO: limit file size
+        # TODO: check image mime type, if possible
         contents = self.get_body()
+        # TODO: clean up files after timeout or on shutdown
         with open(self.getFilePath(), 'wb') as f:
             f.write(contents)
         self.send_response(json.dumps({"uuid": self.uuid}), content_type="application/json")

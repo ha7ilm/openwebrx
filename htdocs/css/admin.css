@@ -33,3 +33,13 @@ h1 {
 .q65-matrix {
     grid-template-columns: repeat(5, auto);
 }
+
+.imageupload .image-container {
+    max-width: 100%;
+    padding: 7px;
+}
+
+.imageupload img.webrx-top-photo {
+    max-height: 350px;
+    max-width: 100%;
+}

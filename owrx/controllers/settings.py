@@ -19,7 +19,7 @@ from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.wfm import WfmTauValues
 from owrx.form.wsjt import Q65ModeMatrix
-from owrx.form.gfx import AvatarInput
+from owrx.form.gfx import AvatarInput, TopPhotoInput
 from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 import json
@@ -114,6 +114,10 @@ class GeneralSettingsController(AdminController):
             AvatarInput(
                 "receiver_avatar",
                 "Receiver Avatar",
+            ),
+            TopPhotoInput(
+                "receiver_top_photo",
+                "Receiver Panorama",
             ),
         ),
         Section(
@@ -303,11 +307,7 @@ class GeneralSettingsController(AdminController):
                 append="dBi",
                 converter=OptionalConverter(),
             ),
-            DropdownInput(
-                "aprs_igate_dir",
-                "Antenna direction",
-                AprsAntennaDirections
-            ),
+            DropdownInput("aprs_igate_dir", "Antenna direction", AprsAntennaDirections),
         ),
         Section(
             "pskreporter settings",
@@ -365,14 +365,11 @@ class GeneralSettingsController(AdminController):
         return variables
 
     def handle_image(self, data, image_id):
-        if image_id not in data:
+        if image_id not in data or not data[image_id]:
             return
         config = CoreConfig()
         filename = "{}-{}".format(image_id, data[image_id])
-        shutil.copy(
-            config.get_temporary_directory() + "/" + filename,
-            config.get_data_directory() + "/" + image_id
-        )
+        shutil.copy(config.get_temporary_directory() + "/" + filename, config.get_data_directory() + "/" + image_id)
         del data[image_id]
 
     def processFormData(self):
@@ -380,6 +377,7 @@ class GeneralSettingsController(AdminController):
         data = {k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()}
         # Image handling
         self.handle_image(data, "receiver_avatar")
+        self.handle_image(data, "receiver_top_photo")
         config = Config.get()
         for k, v in data.items():
             if v is None:
