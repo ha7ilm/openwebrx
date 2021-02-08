@@ -365,11 +365,10 @@ class GeneralSettingsController(AdminController):
         return variables
 
     def handle_image(self, data, image_id):
-        if image_id not in data or not data[image_id]:
-            return
-        config = CoreConfig()
-        filename = "{}-{}".format(image_id, data[image_id])
-        shutil.copy(config.get_temporary_directory() + "/" + filename, config.get_data_directory() + "/" + image_id)
+        if image_id in data and data[image_id]:
+            config = CoreConfig()
+            filename = "{}-{}".format(image_id, data[image_id])
+            shutil.copy(config.get_temporary_directory() + "/" + filename, config.get_data_directory() + "/" + image_id)
         del data[image_id]
 
     def processFormData(self):
