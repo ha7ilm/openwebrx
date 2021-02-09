@@ -1,33 +1,45 @@
+from abc import ABCMeta, abstractmethod
 from owrx.form import Input
 
 
-# TODO: generalize
 # TODO: cachebuster
-class AvatarInput(Input):
+class ImageInput(Input, metaclass=ABCMeta):
     def render_input(self, value):
         return """
             <div class="imageupload">
                 <input type="hidden" id="{id}" name="{id}">
                 <div class="image-container">
-                    <img class="webrx-rx-avatar" src="static/gfx/openwebrx-avatar.png" alt="Receiver avatar"/>
+                    <img class="{classes}" src="{url}" alt="{label}"/>
                 </div>
                 <button class="btn btn-primary">Upload new image...</button>
             </div>
         """.format(
-            id=self.id
+            id=self.id,
+            label=self.label,
+            url=self.getUrl(),
+            classes=" ".join(self.getImgClasses())
         )
 
+    @abstractmethod
+    def getUrl(self) -> str:
+        pass
 
-class TopPhotoInput(Input):
-    def render_input(self, value):
-        return """
-            <div class="imageupload">
-                <input type="hidden" id="{id}" name="{id}">
-                <div class="image-container">
-                    <img class="webrx-top-photo" src="static/gfx/openwebrx-top-photo.jpg" alt="Receiver Panorama"/>
-                </div>
-                <button class="btn btn-primary">Upload new image...</button>
-            </div>
-        """.format(
-            id=self.id
-        )
+    @abstractmethod
+    def getImgClasses(self) -> list:
+        pass
+
+
+class AvatarInput(ImageInput):
+    def getUrl(self) -> str:
+        return "static/gfx/openwebrx-avatar.png"
+
+    def getImgClasses(self) -> list:
+        return ["webrx-rx-avatar"]
+
+
+class TopPhotoInput(ImageInput):
+    def getUrl(self) -> str:
+        return "static/gfx/openwebrx-top-photo.jpg"
+
+    def getImgClasses(self) -> list:
+        return ["webrx-top-photo"]
