@@ -1,8 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from owrx.form import Input
+from datetime import datetime
 
 
-# TODO: cachebuster
+# TODO: ability to restore the original image
 class ImageInput(Input, metaclass=ABCMeta):
     def render_input(self, value):
         return """
@@ -14,10 +15,14 @@ class ImageInput(Input, metaclass=ABCMeta):
                 <button class="btn btn-primary">Upload new image...</button>
             </div>
         """.format(
-            id=self.id,
-            label=self.label,
-            url=self.getUrl(),
-            classes=" ".join(self.getImgClasses())
+            id=self.id, label=self.label, url=self.cachebuster(self.getUrl()), classes=" ".join(self.getImgClasses())
+        )
+
+    def cachebuster(self, url: str):
+        return "{url}{separator}cb={cachebuster}".format(
+            url=url,
+            cachebuster=datetime.now().timestamp(),
+            separator="&" if "?" in url else "?",
         )
 
     @abstractmethod
