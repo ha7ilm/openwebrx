@@ -114,10 +114,14 @@ class GeneralSettingsController(AdminController):
             AvatarInput(
                 "receiver_avatar",
                 "Receiver Avatar",
+                infotext="For performance reasons, images are cached. "
+                + "It can take a few hours until they appear on the site.",
             ),
             TopPhotoInput(
                 "receiver_top_photo",
                 "Receiver Panorama",
+                infotext="For performance reasons, images are cached. "
+                + "It can take a few hours until they appear on the site.",
             ),
         ),
         Section(
