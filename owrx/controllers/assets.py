@@ -78,7 +78,7 @@ class AssetsController(GzipMixin, ModificationAwareController, metaclass=ABCMeta
             f.close()
 
             if content_type is None:
-                (content_type, encoding) = mimetypes.MimeTypes().guess_type(self.getFilePath(file))
+                (content_type, encoding) = mimetypes.guess_type(self.getFilePath(file))
             self.send_response(data, content_type=content_type, last_modified=modified, max_age=3600)
         except FileNotFoundError:
             self.send_response("file not found", code=404)
@@ -96,9 +96,10 @@ class OwrxAssetsController(AssetsController):
         }
         if file in mappedFiles and ("mapped" not in self.request.query or self.request.query["mapped"][0] != "false"):
             config = CoreConfig()
-            user_file = config.get_data_directory() + "/" + mappedFiles[file]
-            if os.path.exists(user_file) and os.path.isfile(user_file):
-                return user_file
+            for ext in ["png", "jpg"]:
+                user_file = "{}/{}.{}".format(config.get_data_directory(), mappedFiles[file], ext)
+                if os.path.exists(user_file) and os.path.isfile(user_file):
+                    return user_file
         return pkg_resources.resource_filename("htdocs", file)
 
 
@@ -168,7 +169,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
 
         contents = [self.getContents(f) for f in files]
 
-        (content_type, encoding) = mimetypes.MimeTypes().guess_type(profileName)
+        (content_type, encoding) = mimetypes.guess_type(profileName)
         self.send_response("\n".join(contents), content_type=content_type, last_modified=modified, max_age=3600)
 
     def getContents(self, file):

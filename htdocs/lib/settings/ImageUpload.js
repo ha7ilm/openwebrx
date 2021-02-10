@@ -24,8 +24,8 @@ $.fn.imageUpload = function() {
                         processData: false,
                         contentType: 'application/octet-stream',
                     }).done(function(data){
-                        $input.val(data.uuid);
-                        $img.prop('src', "/imageupload?id=" + id + "&uuid=" + data.uuid);
+                        $input.val(data.file);
+                        $img.prop('src', '/imageupload?file=' + data.file);
                     }).always(function(){
                         $uploadButton.prop('disabled', false);
                     });

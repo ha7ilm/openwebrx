@@ -374,12 +374,22 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
     def handle_image(self, data, image_id):
         if image_id in data:
             config = CoreConfig()
-            data_file = config.get_data_directory() + "/" + image_id
             if data[image_id] == "restore":
-                os.unlink(data_file)
+                # remove all possible file extensions
+                for ext in ["png", "jpg"]:
+                    try:
+                        os.unlink("{}/{}.{}".format(config.get_data_directory(), image_id, ext))
+                    except FileNotFoundError:
+                        pass
             elif data[image_id]:
-                temporary_file = "{}/{}-{}".format(config.get_temporary_directory(), image_id, data[image_id])
-                shutil.copy(temporary_file, data_file)
+                if not data[image_id].startswith(image_id):
+                    logger.warning("invalid file name: %s", data[image_id])
+                else:
+                    # get file extension (luckily, all options are three characters long)
+                    ext = data[image_id][-3:]
+                    data_file = "{}/{}.{}".format(config.get_data_directory(), image_id, ext)
+                    temporary_file = "{}/{}".format(config.get_temporary_directory(), data[image_id])
+                    shutil.copy(temporary_file, data_file)
             del data[image_id]
             # remove any accumulated temporary files on save
             for file in glob("{}/{}*".format(config.get_temporary_directory(), image_id)):
