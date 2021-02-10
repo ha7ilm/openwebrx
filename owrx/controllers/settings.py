@@ -389,8 +389,8 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
         data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)
         data = {k: v for i in GeneralSettingsController.sections for k, v in i.parse(data).items()}
         # Image handling
-        self.handle_image(data, "receiver_avatar")
-        self.handle_image(data, "receiver_top_photo")
+        for img in ["receiver_avatar", "receiver_top_photo"]:
+            self.handle_image(data, img)
         config = Config.get()
         for k, v in data.items():
             if v is None:
