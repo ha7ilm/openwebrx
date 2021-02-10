@@ -1,11 +1,11 @@
 from owrx.controllers.assets import AssetsController
+from owrx.controllers.admin import AuthorizationMixin
 from owrx.config import CoreConfig
 import uuid
 import json
 
 
-# TODO: implement authorization
-class ImageUploadController(AssetsController):
+class ImageUploadController(AuthorizationMixin, AssetsController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.uuid = request.query["uuid"][0] if "uuid" in request.query else None
