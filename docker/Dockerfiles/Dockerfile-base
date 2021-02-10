@@ -18,6 +18,7 @@ ENTRYPOINT ["/init"]
 WORKDIR /opt/openwebrx
 
 VOLUME /etc/openwebrx
+VOLUME /var/lib/openwebrx
 
 CMD [ "/opt/openwebrx/docker/scripts/run.sh" ]
 
