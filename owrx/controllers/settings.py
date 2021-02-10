@@ -27,6 +27,7 @@ import json
 import logging
 import shutil
 import os
+from glob import glob
 
 logger = logging.getLogger(__name__)
 
@@ -377,9 +378,12 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
             if data[image_id] == "restore":
                 os.unlink(data_file)
             elif data[image_id]:
-                filename = "{}-{}".format(image_id, data[image_id])
-                shutil.copy(config.get_temporary_directory() + "/" + filename, data_file)
+                temporary_file = "{}/{}-{}".format(config.get_temporary_directory(), image_id, data[image_id])
+                shutil.copy(temporary_file, data_file)
             del data[image_id]
+            # remove any accumulated temporary files on save
+            for file in glob("{}/{}*".format(config.get_temporary_directory(), image_id)):
+                os.unlink(file)
 
     def processFormData(self):
         data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)
