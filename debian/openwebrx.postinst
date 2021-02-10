@@ -11,7 +11,7 @@ case "$1" in
 
     # create OpenWebRX data directory and set the correct permissions
     if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
-    chown -R "${OWRX_USER}". ${OWRX_DATADIR}
+    chown "${OWRX_USER}". ${OWRX_DATADIR}
 
     # create initial openwebrx user
     openwebrx-admin adduser --noninteractive --silent --user admin
