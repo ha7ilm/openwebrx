@@ -1,4 +1,5 @@
-from .admin import AdminController
+from owrx.controllers.template import WebpageController
+from owrx.controllers.admin import AuthorizationMixin
 from owrx.config import Config, CoreConfig
 from urllib.parse import parse_qs
 from owrx.form import (
@@ -54,12 +55,12 @@ class Section(object):
         return {k: v for i in self.inputs for k, v in i.parse(data).items()}
 
 
-class SettingsController(AdminController):
+class SettingsController(AuthorizationMixin, WebpageController):
     def indexAction(self):
         self.serve_template("settings.html", **self.template_variables())
 
 
-class SdrSettingsController(AdminController):
+class SdrSettingsController(AuthorizationMixin, WebpageController):
     def template_variables(self):
         variables = super().template_variables()
         variables["devices"] = self.render_devices()
@@ -93,7 +94,7 @@ class SdrSettingsController(AdminController):
         self.serve_template("sdrsettings.html", **self.template_variables())
 
 
-class GeneralSettingsController(AdminController):
+class GeneralSettingsController(AuthorizationMixin, WebpageController):
     sections = [
         Section(
             "Receiver information",

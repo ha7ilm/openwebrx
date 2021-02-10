@@ -1,9 +1,10 @@
-from owrx.controllers.admin import AdminController
+from owrx.controllers.template import WebpageController
+from owrx.controllers.admin import AuthorizationMixin
 from owrx.users import UserList, DefaultPasswordClass
 from urllib.parse import parse_qs
 
 
-class ProfileController(AdminController):
+class ProfileController(AuthorizationMixin, WebpageController):
     def isAuthorized(self):
         return self.user is not None and self.user.is_enabled() and self.user.must_change_password
 

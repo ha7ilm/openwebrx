@@ -1,4 +1,3 @@
-from .template import WebpageController
 from .session import SessionStorage
 from owrx.config import Config
 from owrx.users import UserList
@@ -25,7 +24,7 @@ class Authentication(object):
             return None
 
 
-class AdminController(WebpageController):
+class AuthorizationMixin(object):
     def __init__(self, handler, request, options):
         self.authentication = Authentication()
         self.user = self.authentication.getUser(request)
