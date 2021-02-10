@@ -26,6 +26,7 @@ from owrx.wsjt import Fst4Profile, Fst4wProfile
 import json
 import logging
 import shutil
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -370,11 +371,15 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
         return variables
 
     def handle_image(self, data, image_id):
-        if image_id in data and data[image_id]:
+        if image_id in data:
             config = CoreConfig()
-            filename = "{}-{}".format(image_id, data[image_id])
-            shutil.copy(config.get_temporary_directory() + "/" + filename, config.get_data_directory() + "/" + image_id)
-        del data[image_id]
+            data_file = config.get_data_directory() + "/" + image_id
+            if data[image_id] == "restore":
+                os.unlink(data_file)
+            elif data[image_id]:
+                filename = "{}-{}".format(image_id, data[image_id])
+                shutil.copy(config.get_temporary_directory() + "/" + filename, data_file)
+            del data[image_id]
 
     def processFormData(self):
         data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)

@@ -94,8 +94,8 @@ class OwrxAssetsController(AssetsController):
             "gfx/openwebrx-avatar.png": "receiver_avatar",
             "gfx/openwebrx-top-photo.jpg": "receiver_top_photo",
         }
-        config = CoreConfig()
-        if file in mappedFiles:
+        if file in mappedFiles and ("mapped" not in self.request.query or self.request.query["mapped"][0] != "false"):
+            config = CoreConfig()
             user_file = config.get_data_directory() + "/" + mappedFiles[file]
             if os.path.exists(user_file) and os.path.isfile(user_file):
                 return user_file

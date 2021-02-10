@@ -1,11 +1,13 @@
 $.fn.imageUpload = function() {
     $.each(this, function(){
-        var $button = $(this).find('button');
+        var $uploadButton = $(this).find('button.upload');
+        var $restoreButton = $(this).find('button.restore');
         var $img = $(this).find('img');
+        var originalUrl = $img.prop('src');
         var $input = $(this).find('input');
         var id = $input.prop('id');
-        $button.click(function(){
-            $button.prop('disabled', true);
+        $uploadButton.click(function(){
+            $uploadButton.prop('disabled', true);
             var input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/jpeg, image/png';
@@ -25,12 +27,18 @@ $.fn.imageUpload = function() {
                         $input.val(data.uuid);
                         $img.prop('src', "/imageupload?id=" + id + "&uuid=" + data.uuid);
                     }).always(function(){
-                        $button.prop('disabled', false);
+                        $uploadButton.prop('disabled', false);
                     });
                 }
             };
 
             input.click();
+            return false;
+        });
+
+        $restoreButton.click(function(){
+            $input.val('restore');
+            $img.prop('src', originalUrl + "&mapped=false");
             return false;
         });
     });

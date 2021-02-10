@@ -3,7 +3,6 @@ from owrx.form import Input
 from datetime import datetime
 
 
-# TODO: ability to restore the original image
 class ImageInput(Input, metaclass=ABCMeta):
     def render_input(self, value):
         return """
@@ -12,7 +11,8 @@ class ImageInput(Input, metaclass=ABCMeta):
                 <div class="image-container">
                     <img class="{classes}" src="{url}" alt="{label}"/>
                 </div>
-                <button class="btn btn-primary">Upload new image...</button>
+                <button class="btn btn-primary upload">Upload new image...</button>
+                <button class="btn btn-secondary restore">Restore original image</button>
             </div>
         """.format(
             id=self.id, label=self.label, url=self.cachebuster(self.getUrl()), classes=" ".join(self.getImgClasses())
