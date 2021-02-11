@@ -1,5 +1,5 @@
 from . import Controller
-from owrx.config import CoreConfig
+from owrx.config.core import CoreConfig
 from datetime import datetime, timezone
 import mimetypes
 import os

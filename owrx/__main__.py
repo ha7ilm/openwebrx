@@ -1,6 +1,7 @@
 from http.server import HTTPServer
 from owrx.http import RequestHandler
-from owrx.config import Config, CoreConfig
+from owrx.config.core import CoreConfig
+from owrx.config import Config
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn

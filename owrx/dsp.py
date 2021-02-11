@@ -7,7 +7,7 @@ from owrx.source import SdrSource, SdrSourceEventClient
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
-from owrx.config import CoreConfig
+from owrx.config.core import CoreConfig
 from csdr import csdr
 import threading
 import re

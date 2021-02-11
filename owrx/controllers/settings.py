@@ -1,6 +1,7 @@
 from owrx.controllers.template import WebpageController
 from owrx.controllers.admin import AuthorizationMixin
-from owrx.config import Config, CoreConfig
+from owrx.config.core import CoreConfig
+from owrx.config import Config
 from urllib.parse import parse_qs
 from owrx.form import (
     TextInput,
@@ -408,5 +409,5 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
                     del config[k]
             else:
                 config[k] = v
-        Config.store()
+        config.store()
         self.send_redirect("/generalsettings")

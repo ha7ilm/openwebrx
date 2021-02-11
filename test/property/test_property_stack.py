@@ -185,3 +185,13 @@ class PropertyStackTest(TestCase):
 
         stack.replaceLayer(0, second_layer)
         mock.method.assert_not_called()
+
+    def testWritesToExpectedLayer(self):
+        om = PropertyStack()
+        low_pm = PropertyLayer()
+        high_pm = PropertyLayer()
+        low_pm["testkey"] = "low value"
+        om.addLayer(1, low_pm)
+        om.addLayer(0, high_pm)
+        om["testkey"] = "new value"
+        self.assertEqual(low_pm["testkey"], "new value")

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from owrx.config import CoreConfig
+from owrx.config.core import CoreConfig
 from datetime import datetime, timezone
 import json
 import hashlib

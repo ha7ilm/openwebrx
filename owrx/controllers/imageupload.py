@@ -1,6 +1,6 @@
 from owrx.controllers.assets import AssetsController
 from owrx.controllers.admin import AuthorizationMixin
-from owrx.config import CoreConfig
+from owrx.config.core import CoreConfig
 import uuid
 import json
 

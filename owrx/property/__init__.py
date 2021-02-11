@@ -98,9 +98,10 @@ class PropertyManager(ABC):
 
 
 class PropertyLayer(PropertyManager):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
-        self.properties = {}
+        # copy, don't re-use
+        self.properties = {k: v for k, v in kwargs.items()}
 
     def __contains__(self, name):
         return name in self.properties
@@ -311,7 +312,8 @@ class PropertyStack(PropertyManager):
 
     def __delitem__(self, key):
         for layer in self.layers:
-            layer["props"].__delitem__(key)
+            if layer["props"].__contains__(key):
+                layer["props"].__delitem__(key)
 
     def keys(self):
         return set([key for l in self.layers for key in l["props"].keys()])

@@ -1,4 +1,5 @@
-from owrx.config import Config, CoreConfig
+from owrx.config.core import CoreConfig
+from owrx.config import Config
 from csdr import csdr
 import threading
 from owrx.source import SdrSource, SdrSourceEventClient

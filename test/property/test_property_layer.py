@@ -4,6 +4,15 @@ from unittest.mock import Mock
 
 
 class PropertyLayerTest(TestCase):
+    def testCreationWithKwArgs(self):
+        pm = PropertyLayer(testkey="value")
+        self.assertEqual(pm["testkey"], "value")
+
+        # this should be synonymous, so this is rather for illustration purposes
+        contents = {"testkey": "value"}
+        pm = PropertyLayer(**contents)
+        self.assertEqual(pm["testkey"], "value")
+
     def testKeyIsset(self):
         pm = PropertyLayer()
         self.assertFalse("some_key" in pm)

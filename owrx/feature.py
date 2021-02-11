@@ -4,7 +4,7 @@ from operator import and_
 import re
 from distutils.version import LooseVersion
 import inspect
-from owrx.config import CoreConfig
+from owrx.config.core import CoreConfig
 import shlex
 import os
 from datetime import datetime, timedelta

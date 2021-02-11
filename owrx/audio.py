@@ -1,5 +1,6 @@
 from abc import ABC, ABCMeta, abstractmethod
-from owrx.config import Config, CoreConfig
+from owrx.config.core import CoreConfig
+from owrx.config import Config
 from owrx.metrics import Metrics, CounterMetric, DirectMetric
 import threading
 import wave
