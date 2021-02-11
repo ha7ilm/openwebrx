@@ -375,8 +375,3 @@ pskreporter_callsign = "N0CALL"
 # in addition to these settings also make sure that receiver_gps contains your correct location
 wsprnet_enabled = False
 wsprnet_callsign = "N0CALL"
-
-# === Web admin settings ===
-# this feature is experimental at the moment. it should not be enabled on shared receivers since it allows remote
-# changes to the receiver settings. enable for testing in controlled environment only.
-# webadmin_enabled = False

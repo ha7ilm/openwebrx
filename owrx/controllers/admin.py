@@ -1,5 +1,4 @@
 from .session import SessionStorage
-from owrx.config import Config
 from owrx.users import UserList
 from urllib import parse
 
@@ -34,10 +33,6 @@ class AuthorizationMixin(object):
         return self.user is not None and self.user.is_enabled() and not self.user.must_change_password
 
     def handle_request(self):
-        config = Config.get()
-        if "webadmin_enabled" not in config or not config["webadmin_enabled"]:
-            self.send_response("Web Admin is disabled", code=403)
-            return
         if self.isAuthorized():
             super().handle_request()
         else:
