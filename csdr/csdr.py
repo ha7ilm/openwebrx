@@ -29,7 +29,16 @@ import math
 from functools import partial
 
 from owrx.kiss import KissClient, DirewolfConfig
-from owrx.wsjt import Ft8Profile, WsprProfile, Jt9Profile, Jt65Profile, Ft4Profile, Fst4Profile, Fst4wProfile, Q65Profile
+from owrx.wsjt import (
+    Ft8Profile,
+    WsprProfile,
+    Jt9Profile,
+    Jt65Profile,
+    Ft4Profile,
+    Fst4Profile,
+    Fst4wProfile,
+    Q65Profile,
+)
 from owrx.js8 import Js8Profiles
 from owrx.audio import AudioChopper
 
