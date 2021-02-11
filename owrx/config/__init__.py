@@ -1,57 +1,15 @@
+from configparser import ConfigParser
 from owrx.property import PropertyLayer
 import importlib.util
 import os
-import logging
 import json
 from glob import glob
-from abc import ABC, abstractmethod
-from configparser import ConfigParser
+from owrx.config.error import ConfigError, ConfigNotFoundException
+from owrx.config.migration import ConfigMigratorVersion1, ConfigMigratorVersion2
+
+import logging
 
 logger = logging.getLogger(__name__)
-
-
-class ConfigNotFoundException(Exception):
-    pass
-
-
-class ConfigError(Exception):
-    def __init__(self, key, message):
-        super().__init__("Configuration Error (key: {0}): {1}".format(key, message))
-
-
-class ConfigMigrator(ABC):
-    @abstractmethod
-    def migrate(self, config):
-        pass
-
-    def renameKey(self, config, old, new):
-        if old in config and new not in config:
-            config[new] = config[old]
-            del config[old]
-
-
-class ConfigMigratorVersion1(ConfigMigrator):
-    def migrate(self, config):
-        if "receiver_gps" in config:
-            gps = config["receiver_gps"]
-            config["receiver_gps"] = {"lat": gps[0], "lon": gps[1]}
-
-        if "waterfall_auto_level_margin" in config:
-            levels = config["waterfall_auto_level_margin"]
-            config["waterfall_auto_level_margin"] = {"min": levels[0], "max": levels[1]}
-
-        self.renameKey(config, "wsjt_queue_workers", "decoding_queue_workers")
-        self.renameKey(config, "wsjt_queue_length", "decoding_queue_length")
-
-        config["version"] = 2
-        return config
-
-
-class ConfigMigratorVersion2(ConfigMigrator):
-    def migrate(self, config):
-        if "waterfall_colors" in config and any(v > 0xFFFFFF for v in config["waterfall_colors"]):
-            config["waterfall_colors"] = [v >> 8 for v in config["waterfall_colors"]]
-        return config
 
 
 class CoreConfig(object):

@@ -20,6 +20,7 @@ setup(
             "owrx.controllers",
             "owrx.property",
             "owrx.form",
+            "owrx.config",
             "csdr",
             "htdocs",
             "owrxadmin",
