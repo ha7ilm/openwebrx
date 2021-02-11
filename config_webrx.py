@@ -42,21 +42,21 @@ version = 3
 max_clients = 20
 
 # ==== Web GUI configuration ====
-receiver_name = "[Callsign]"
-receiver_location = "Budapest, Hungary"
-receiver_asl = 200
-receiver_admin = "example@example.com"
-receiver_gps = {"lat": 47.000000, "lon": 19.000000}
-photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
+#receiver_name = "[Callsign]"
+#receiver_location = "Budapest, Hungary"
+#receiver_asl = 200
+#receiver_admin = "example@example.com"
+#receiver_gps = {"lat": 47.000000, "lon": 19.000000}
+#photo_title = "Panorama of Budapest from Schönherz Zoltán Dormitory"
 # photo_desc allows you to put pretty much any HTML you like into the receiver description.
 # The lines below should give you some examples of what's possible.
-photo_desc = """
-You can add your own background photo and receiver information.<br />
-Receiver is operated by: <a href="mailto:openwebrx@localhost" target="_blank">Receiver Operator</a><br/>
-Device: Receiver Device<br />
-Antenna: Receiver Antenna<br />
-Website: <a href="http://localhost" target="_blank">http://localhost</a>
-"""
+#photo_desc = """
+#You can add your own background photo and receiver information.<br />
+#Receiver is operated by: <a href="mailto:openwebrx@localhost" target="_blank">Receiver Operator</a><br/>
+#Device: Receiver Device<br />
+#Antenna: Receiver Antenna<br />
+#Website: <a href="http://localhost" target="_blank">http://localhost</a>
+#"""
 
 # ==== Public receiver listings ====
 # You can publish your receiver on online receiver directories, like https://www.receiverbook.de
@@ -64,7 +64,7 @@ Website: <a href="http://localhost" target="_blank">http://localhost</a>
 # Please note that you not share your receiver keys publicly since anyone that obtains your receiver key can take over
 # your public listing.
 # Your receiver keys should be placed into this array:
-receiver_keys = []
+#receiver_keys = []
 # If you list your receiver on multiple sites, you can place all your keys into the array above, or you can append
 # keys to the arraylike this:
 # receiver_keys += ["my-receiver-key"]
@@ -72,30 +72,30 @@ receiver_keys = []
 # If you're not sure, simply copy & paste the code you received from your listing site below this line:
 
 # ==== DSP/RX settings ====
-fft_fps = 9
-fft_size = 4096  # Should be power of 2
-fft_voverlap_factor = (
-    0.3  # If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
-)
+#fft_fps = 9
+#fft_size = 4096  # Should be power of 2
+#fft_voverlap_factor = (
+#    0.3  # If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the diagram.
+#)
 
-audio_compression = "adpcm"  # valid values: "adpcm", "none"
-fft_compression = "adpcm"  # valid values: "adpcm", "none"
+#audio_compression = "adpcm"  # valid values: "adpcm", "none"
+#fft_compression = "adpcm"  # valid values: "adpcm", "none"
 
 # Tau setting for WFM (broadcast FM) deemphasis\
 # Quote from wikipedia https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis
 # "In most of the world a 50 µs time constant is used. In the Americas and South Korea, 75 µs is used"
 # Enable one of the following lines, depending on your location:
 # wfm_deemphasis_tau = 75e-6  # for US and South Korea
-wfm_deemphasis_tau = 50e-6  # for the rest of the world
+#wfm_deemphasis_tau = 50e-6  # for the rest of the world
 
-digimodes_enable = True  # Decoding digimodes come with higher CPU usage.
-digimodes_fft_size = 2048
+#digimodes_enable = True  # Decoding digimodes come with higher CPU usage.
+#digimodes_fft_size = 2048
 
 # determines the quality, and thus the cpu usage, for the ambe codec used by digital voice modes
 # if you're running on a Raspi (up to 3B+) you'll want to leave this on 1
-digital_voice_unvoiced_quality = 1
+#digital_voice_unvoiced_quality = 1
 # enables lookup of DMR ids using the radioid api
-digital_voice_dmr_id_lookup = True
+#digital_voice_dmr_id_lookup = True
 
 """
 Note: if you experience audio underruns while CPU usage is 100%, you can:
@@ -256,8 +256,8 @@ waterfall_colors = [0x30123b, 0x311542, 0x33184a, 0x341b51, 0x351e58, 0x36215f, 
 # waterfall_auto_level_margin = {"min": 20, "max": 30}
 ##For the old colors, you might also want to set [fft_voverlap_factor] to 0.
 
-waterfall_min_level = -88  # in dB
-waterfall_max_level = -20
+#waterfall_min_level = -88  # in dB
+#waterfall_max_level = -20
 waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 
 # Note: When the auto waterfall level button is clicked, the following happens:
@@ -270,12 +270,12 @@ waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 
 # This setting allows you to modify the precision of the frequency displays in OpenWebRX.
 # Set this to the number of digits you would like to see:
-frequency_display_precision = 4
+#frequency_display_precision = 4
 
 # This setting tells the auto-squelch the offset to add to the current signal level to use as the new squelch level.
 # Lowering this setting will give you a more sensitive squelch, but it may also cause unwanted squelch openings when
 # using the auto squelch.
-squelch_auto_margin = 10  # in dB
+#squelch_auto_margin = 10  # in dB
 
 # === Experimental settings ===
 # Warning! The settings below are very experimental.
@@ -285,61 +285,61 @@ csdr_through = False  # Setting this True will print out how much data is going 
 
 nmux_memory = 50  # in megabytes. This sets the approximate size of the circular buffer used by nmux.
 
-google_maps_api_key = ""
+#google_maps_api_key = ""
 
 # how long should positions be visible on the map?
 # they will start fading out after half of that
 # in seconds; default: 2 hours
-map_position_retention_time = 2 * 60 * 60
+#map_position_retention_time = 2 * 60 * 60
 
 # decoder queue configuration
 # due to the nature of some operating modes (ft8, ft8, jt9, jt65, wspr and js8), the data is recorded for a given amount
 # of time (6 seconds up to 2 minutes) and decoded at the end. this can lead to very high peak loads.
 # to mitigate this, the recordings will be queued and processed in sequence.
 # the number of workers will limit the total amount of work (one worker will losely occupy one cpu / thread)
-decoding_queue_workers = 2
+#decoding_queue_workers = 2
 # the maximum queue length will cause decodes to be dumped if the workers cannot keep up
 # if you are running background services, make sure this number is high enough to accept the task influx during peaks
 # i.e. this should be higher than the number of decoding services running at the same time
-decoding_queue_length = 10
+#decoding_queue_length = 10
 
 # wsjt decoding depth will allow more results, but will also consume more cpu
-wsjt_decoding_depth = 3
+#wsjt_decoding_depth = 3
 # can also be set for each mode separately
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
 wsjt_decoding_depths = {"jt65": 1}
 
 # FST4 can be transmitted in different intervals. This setting determines which intervals will be decoded.
 # available values (in seconds): 15, 30, 60, 120, 300, 900, 1800
-fst4_enabled_intervals = [15, 30]
+#fst4_enabled_intervals = [15, 30]
 
 # FST4W can be transmitted in different intervals. This setting determines which intervals will be decoded.
 # available values (in seconds): 120, 300, 900, 1800
-fst4w_enabled_intervals = [120, 300]
+#fst4w_enabled_intervals = [120, 300]
 
 # Q65 allows many combinations of intervals and submodes. This setting determines which combinations will be decoded.
 # Please use the mode letter followed by the decode interval in seconds to specify the combinations. For example:
-q65_enabled_combinations = ["A30", "E120", "C60"]
+#q65_enabled_combinations = ["A30", "E120", "C60"]
 
 # JS8 comes in different speeds: normal, slow, fast, turbo. This setting controls which ones are enabled.
-js8_enabled_profiles = ["normal", "slow"]
+#js8_enabled_profiles = ["normal", "slow"]
 # JS8 decoding depth; higher value will get more results, but will also consume more cpu
-js8_decoding_depth = 3
+#js8_decoding_depth = 3
 
 # Enable background service for decoding digital data. You can find more information at:
 # https://github.com/jketterl/openwebrx/wiki/Background-decoding
-services_enabled = False
-services_decoders = ["ft8", "ft4", "wspr", "packet"]
+#services_enabled = False
+#services_decoders = ["ft8", "ft4", "wspr", "packet"]
 
 # === aprs igate settings ===
 # If you want to share your APRS decodes with the aprs network, configure these settings accordingly.
 # Make sure that you have set services_enabled to true and customize services_decoders to your needs.
-aprs_callsign = "N0CALL"
-aprs_igate_enabled = False
-aprs_igate_server = "euro.aprs2.net"
-aprs_igate_password = ""
+#aprs_callsign = "N0CALL"
+#aprs_igate_enabled = False
+#aprs_igate_server = "euro.aprs2.net"
+#aprs_igate_password = ""
 # beacon uses the receiver_gps setting, so if you enable this, make sure the location is correct there
-aprs_igate_beacon = False
+#aprs_igate_beacon = False
 
 # Uncomment the following to customize gateway beacon details reported to the aprs network
 #   Plese see Dire Wolf's documentation on PBEACON configuration for complete details:
@@ -365,13 +365,13 @@ aprs_igate_beacon = False
 # === PSK Reporter settings ===
 # enable this if you want to upload all ft8, ft4 etc spots to pskreporter.info
 # this also uses the receiver_gps setting from above, so make sure it contains a correct locator
-pskreporter_enabled = False
-pskreporter_callsign = "N0CALL"
+#pskreporter_enabled = False
+#pskreporter_callsign = "N0CALL"
 # optional antenna information, uncomment to enable
 #pskreporter_antenna_information = "Dipole"
 
 # === WSPRNet reporting settings
 # enable this if you want to upload WSPR spots to wsprnet.ort
 # in addition to these settings also make sure that receiver_gps contains your correct location
-wsprnet_enabled = False
-wsprnet_callsign = "N0CALL"
+#wsprnet_enabled = False
+#wsprnet_callsign = "N0CALL"
