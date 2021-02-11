@@ -6,6 +6,14 @@
 - Added support for demodulating M17 digital voice signals using m17-cxx-demod
 - New reporting infrastructure, allowing WSPR and FST4W spots to be sent to wsprnet.org
 - Add some basic filtering capabilities to the map
+- New commmand-line tool `openwebrx-admin` that facilitates the administration of users
+- Default bandwidth changes:
+  - "WFM" changed to 150kHz
+  - "Packet" (APRS) changed to 12.5kHz
+- Configuration rework:
+  - System configuration separated
+  - Started replacing `config_webrx.py` with web configuration options
+  - Added upload of avatar and panorama image via web configuration
 - New devices supported:
   - HPSDR devices (Hermes Lite 2)
   - BBRF103 / RX666 / RX888 devices supported by libsddc
