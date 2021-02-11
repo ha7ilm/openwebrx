@@ -401,7 +401,7 @@ class dsp(object):
         # it would block if not read. by piping it to devnull, we avoid a potential pitfall here.
         secondary_output = subprocess.DEVNULL if self.isPacket() else subprocess.PIPE
         self.secondary_process_demod = subprocess.Popen(
-            secondary_command_demod, stdout=secondary_output, shell=True, start_new_session=True, env=my_env
+            secondary_command_demod, stdout=secondary_output, shell=True, start_new_session=True
         )
         self.secondary_processes_running = True
 
