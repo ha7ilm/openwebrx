@@ -285,12 +285,6 @@ defaultConfig = PropertyLayer(
     waterfall_auto_level_margin={"min": 3, "max": 10, "min_range": 50},
     frequency_display_precision=4,
     squelch_auto_margin=10,
-    # TODO: deprecated. remove from code.
-    csdr_dynamic_bufsize=False,
-    # TODO: deprecated. remove from code.
-    csdr_print_bufsizes=False,
-    # TODO: deprecated. remove from code.
-    csdr_through=False,
     nmux_memory=50,
     google_maps_api_key="",
     map_position_retention_time=2 * 60 * 60,

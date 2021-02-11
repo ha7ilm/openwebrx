@@ -277,12 +277,6 @@ waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 # using the auto squelch.
 #squelch_auto_margin = 10  # in dB
 
-# === Experimental settings ===
-# Warning! The settings below are very experimental.
-csdr_dynamic_bufsize = False  # This allows you to change the buffering mode of csdr.
-csdr_print_bufsizes = False  # This prints the buffer sizes used for csdr processes.
-csdr_through = False  # Setting this True will print out how much data is going into the DSP chains.
-
 nmux_memory = 50  # in megabytes. This sets the approximate size of the circular buffer used by nmux.
 
 #google_maps_api_key = ""

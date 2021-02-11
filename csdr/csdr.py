@@ -95,9 +95,6 @@ class dsp(object):
         self.decimation = None
         self.last_decimation = None
         self.nc_port = None
-        self.csdr_dynamic_bufsize = False
-        self.csdr_print_bufsizes = False
-        self.csdr_through = False
         self.squelch_level = -150
         self.fft_averages = 50
         self.wfm_deemphasis_tau = 50e-6
@@ -142,10 +139,6 @@ class dsp(object):
 
     def chain(self, which):
         chain = ["nc -v 127.0.0.1 {nc_port}"]
-        if self.csdr_dynamic_bufsize:
-            chain += ["csdr setbuf {start_bufsize}"]
-        if self.csdr_through:
-            chain += ["csdr through"]
         if which == "fft":
             chain += [
                 "csdr fft_cc {fft_size} {fft_block_size}",
@@ -384,10 +377,6 @@ class dsp(object):
         )
 
         logger.debug("secondary command (demod) = %s", secondary_command_demod)
-        my_env = os.environ.copy()
-        # if self.csdr_dynamic_bufsize: my_env["CSDR_DYNAMIC_BUFSIZE_ON"]="1";
-        if self.csdr_print_bufsizes:
-            my_env["CSDR_PRINT_BUFSIZES"] = "1"
         if self.output.supports_type("secondary_fft"):
             secondary_command_fft = " | ".join(self.secondary_chain("fft"))
             secondary_command_fft = secondary_command_fft.format(
@@ -400,7 +389,7 @@ class dsp(object):
             logger.debug("secondary command (fft) = %s", secondary_command_fft)
 
             self.secondary_process_fft = subprocess.Popen(
-                secondary_command_fft, stdout=subprocess.PIPE, shell=True, start_new_session=True, env=my_env
+                secondary_command_fft, stdout=subprocess.PIPE, shell=True, start_new_session=True
             )
             self.output.send_output(
                 "secondary_fft",
@@ -811,14 +800,9 @@ class dsp(object):
             )
 
             logger.debug("Command = %s", command)
-            my_env = os.environ.copy()
-            if self.csdr_dynamic_bufsize:
-                my_env["CSDR_DYNAMIC_BUFSIZE_ON"] = "1"
-            if self.csdr_print_bufsizes:
-                my_env["CSDR_PRINT_BUFSIZES"] = "1"
 
             out = subprocess.PIPE if self.output.supports_type("audio") else subprocess.DEVNULL
-            self.process = subprocess.Popen(command, stdout=out, shell=True, start_new_session=True, env=my_env)
+            self.process = subprocess.Popen(command, stdout=out, shell=True, start_new_session=True)
 
             def watch_thread():
                 rc = self.process.wait()
@@ -861,10 +845,6 @@ class dsp(object):
                     return raw.rstrip("\n")
 
             self.output.send_output("meta", read_meta)
-
-        if self.csdr_dynamic_bufsize:
-            self.process.stdout.read(8)  # dummy read to skip bufsize & preamble
-            logger.debug("Note: CSDR_DYNAMIC_BUFSIZE_ON = 1")
 
     def stop(self):
         with self.modification_lock:

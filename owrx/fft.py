@@ -24,9 +24,6 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
             "fft_fps",
             "fft_voverlap_factor",
             "fft_compression",
-            "csdr_dynamic_bufsize",
-            "csdr_print_bufsizes",
-            "csdr_through",
         )
 
         self.dsp = dsp = csdr.dsp(self)
@@ -55,9 +52,6 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
 
         set_fft_averages()
 
-        dsp.csdr_dynamic_bufsize = props["csdr_dynamic_bufsize"]
-        dsp.csdr_print_bufsizes = props["csdr_print_bufsizes"]
-        dsp.csdr_through = props["csdr_through"]
         dsp.set_temporary_directory(CoreConfig().get_temporary_directory())
         logger.debug("Spectrum thread initialized successfully.")
 
