@@ -129,6 +129,13 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
             ),
         ),
         Section(
+            "Receiver limits",
+            NumberInput(
+                "max_clients",
+                "Maximum number of clients",
+            ),
+        ),
+        Section(
             "Receiver listings",
             TextAreaInput(
                 "receiver_keys",

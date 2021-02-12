@@ -39,7 +39,7 @@ version = 3
 # https://github.com/jketterl/openwebrx/wiki/Configuration-guide
 
 # ==== Server settings ====
-max_clients = 20
+#max_clients = 20
 
 # ==== Web GUI configuration ====
 #receiver_name = "[Callsign]"
