@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 
 OWRX_USER="openwebrx"
 OWRX_DATADIR="/var/lib/openwebrx"
