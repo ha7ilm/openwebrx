@@ -14,7 +14,7 @@ case "$1" in
     chown "${OWRX_USER}". ${OWRX_DATADIR}
 
     # create initial openwebrx user
-    openwebrx-admin adduser --noninteractive --silent --user admin
+    openwebrx-admin --noninteractive --silent adduser admin
   ;;
   *)
     echo "postinst called with unknown argument '$1'" 1>&2

@@ -13,16 +13,6 @@ class Command(ABC):
 
 
 class UserCommand(Command, metaclass=ABCMeta):
-    def getUser(self, args):
-        if args.user:
-            return args.user
-        else:
-            if args.noninteractive:
-                print("ERROR: User name not specified")
-                sys.exit(1)
-            else:
-                return input("Please enter the user name: ")
-
     def getPassword(self, args, username):
         if args.noninteractive:
             print("Generating password for user {username}...".format(username=username))
@@ -47,7 +37,7 @@ class UserCommand(Command, metaclass=ABCMeta):
 
 class NewUser(UserCommand):
     def run(self, args):
-        username = self.getUser(args)
+        username = args.user
         userList = UserList()
         # early test to bypass the password stuff if the user already exists
         if username in userList:
@@ -62,7 +52,7 @@ class NewUser(UserCommand):
 
 class DeleteUser(UserCommand):
     def run(self, args):
-        username = self.getUser(args)
+        username = args.user
         print("Deleting user {username}...".format(username=username))
         userList = UserList()
         userList.deleteUser(username)
@@ -70,7 +60,7 @@ class DeleteUser(UserCommand):
 
 class ResetPassword(UserCommand):
     def run(self, args):
-        username = self.getUser(args)
+        username = args.user
         password, generated = self.getPassword(args, username)
         userList = UserList()
         userList[username].setPassword(DefaultPasswordClass(password), must_change_password=generated)
@@ -81,7 +71,7 @@ class ResetPassword(UserCommand):
 
 class DisableUser(UserCommand):
     def run(self, args):
-        username = self.getUser(args)
+        username = args.user
         userList = UserList()
         userList[username].disable()
         userList.store()
@@ -89,7 +79,7 @@ class DisableUser(UserCommand):
 
 class EnableUser(UserCommand):
     def run(self, args):
-        username = self.getUser(args)
+        username = args.user
         userList = UserList()
         userList[username].enable()
         userList.store()
