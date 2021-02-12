@@ -149,7 +149,12 @@ class UserList(object):
         return "{data_directory}/users.json".format(data_directory=config.get_data_directory())
 
     def _getUsersFileModifiedTimestamp(self):
-        return datetime.fromtimestamp(os.path.getmtime(self._getUsersFile()), timezone.utc)
+        timestamp = 0
+        try:
+            timestamp = os.path.getmtime(self._getUsersFile())
+        except FileNotFoundError:
+            pass
+        return datetime.fromtimestamp(timestamp, timezone.utc)
 
     def _loadUsers(self):
         usersFile = self._getUsersFile()
@@ -164,6 +169,7 @@ class UserList(object):
             self.file_modified = modified
             return users
         except FileNotFoundError:
+            self.file_modified = modified
             return {}
         except json.JSONDecodeError:
             logger.exception("error while parsing users file %s", usersFile)
