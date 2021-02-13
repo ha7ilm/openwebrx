@@ -64,6 +64,11 @@ class SettingsController(AuthorizationMixin, WebpageController):
 
 
 class SdrSettingsController(AuthorizationMixin, WebpageController):
+    def header_variables(self):
+        variables = super().header_variables()
+        variables["assets_prefix"] = "../"
+        return variables
+
     def template_variables(self):
         variables = super().template_variables()
         variables["devices"] = self.render_devices()
@@ -94,7 +99,7 @@ class SdrSettingsController(AuthorizationMixin, WebpageController):
         )
 
     def indexAction(self):
-        self.serve_template("sdrsettings.html", **self.template_variables())
+        self.serve_template("settings/sdr.html", **self.template_variables())
 
 
 class GeneralSettingsController(AuthorizationMixin, WebpageController):
@@ -372,7 +377,12 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
         )
 
     def indexAction(self):
-        self.serve_template("generalsettings.html", **self.template_variables())
+        self.serve_template("settings/general.html", **self.template_variables())
+
+    def header_variables(self):
+        variables = super().header_variables()
+        variables["assets_prefix"] = "../"
+        return variables
 
     def template_variables(self):
         variables = super().template_variables()
@@ -417,4 +427,4 @@ class GeneralSettingsController(AuthorizationMixin, WebpageController):
             else:
                 config[k] = v
         config.store()
-        self.send_redirect("/generalsettings")
+        self.send_redirect("/settings/general")

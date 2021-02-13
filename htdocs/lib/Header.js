@@ -58,7 +58,8 @@ Header.prototype.toggle_rx_photo = function(ev) {
 
 Header.prototype.download_details = function() {
     var self = this;
-    $.ajax('api/receiverdetails').done(function(data){
+    // TODO: make this use a relative URL again
+    $.ajax('/api/receiverdetails').done(function(data){
         self.setDetails(data);
     });
 };

@@ -18,8 +18,11 @@ class TemplateController(Controller):
 
 
 class WebpageController(TemplateController):
+    def header_variables(self):
+        return {"assets_prefix": ""}
+
     def template_variables(self):
-        header = self.render_template("include/header.include.html")
+        header = self.render_template("include/header.include.html", **self.header_variables())
         return {"header": header}
 
 

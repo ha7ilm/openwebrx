@@ -103,11 +103,11 @@ class Router(object):
             StaticRoute("/metrics", MetricsController, options={"action": "prometheusAction"}),
             StaticRoute("/metrics.json", MetricsController),
             StaticRoute("/settings", SettingsController),
-            StaticRoute("/generalsettings", GeneralSettingsController),
+            StaticRoute("/settings/general", GeneralSettingsController),
             StaticRoute(
-                "/generalsettings", GeneralSettingsController, method="POST", options={"action": "processFormData"}
+                "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
             ),
-            StaticRoute("/sdrsettings", SdrSettingsController),
+            StaticRoute("/settings/sdr", SdrSettingsController),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),

@@ -36,7 +36,7 @@ class ImageInput(Input, metaclass=ABCMeta):
 
 class AvatarInput(ImageInput):
     def getUrl(self) -> str:
-        return "static/gfx/openwebrx-avatar.png"
+        return "../static/gfx/openwebrx-avatar.png"
 
     def getImgClasses(self) -> list:
         return ["webrx-rx-avatar"]
@@ -44,7 +44,7 @@ class AvatarInput(ImageInput):
 
 class TopPhotoInput(ImageInput):
     def getUrl(self) -> str:
-        return "static/gfx/openwebrx-top-photo.jpg"
+        return "../static/gfx/openwebrx-top-photo.jpg"
 
     def getImgClasses(self) -> list:
         return ["webrx-top-photo"]
