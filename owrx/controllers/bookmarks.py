@@ -22,6 +22,7 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                     <th>Name</th>
                     <th class="frequency">Frequency</th>
                     <th>Modulation</th>
+                    <th>Actions</th>
                 </tr>
                 {bookmarks}
             </table>
@@ -31,13 +32,17 @@ class BookmarksController(AuthorizationMixin, WebpageController):
 
     def render_bookmark(self, idx: int, bookmark: Bookmark):
         return """
-            <tr data-index="{index}">
+            <tr data-index="{index}" data-id="{id}">
                 <td>{name}</td>
                 <td class="frequency">{frequency}</td>
                 <td>{modulation}</td>
+                <td>
+                    <div class="btn btn-sm btn-danger bookmark-delete">delete</div>
+                </td>
             </tr>
         """.format(
             index=idx,
+            id=id(bookmark),
             name=bookmark.getName(),
             frequency=bookmark.getFrequency(),
             modulation=bookmark.getModulation(),
