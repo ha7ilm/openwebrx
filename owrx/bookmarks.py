@@ -1,4 +1,6 @@
+from datetime import datetime, timezone
 import json
+import os
 
 import logging
 
@@ -38,10 +40,29 @@ class Bookmarks(object):
         return Bookmarks.sharedInstance
 
     def __init__(self):
-        self.bookmarks = self.loadBookmarks()
+        self.file_modified = None
+        self.bookmarks = []
+        self.fileList = ["/etc/openwebrx/bookmarks.json", "bookmarks.json"]
 
-    def loadBookmarks(self):
-        for file in ["/etc/openwebrx/bookmarks.json", "bookmarks.json"]:
+    def refresh(self):
+        modified = self._getFileModifiedTimestamp()
+        if self.file_modified is None or modified > self.file_modified:
+            logger.debug("reloading bookmarks from disk due to file modification")
+            self.bookmarks = self._loadBookmarks()
+            self.file_modified = modified
+
+    def _getFileModifiedTimestamp(self):
+        timestamp = 0
+        for file in self.fileList:
+            try:
+                timestamp = os.path.getmtime(file)
+                break
+            except FileNotFoundError:
+                pass
+        return datetime.fromtimestamp(timestamp, timezone.utc)
+
+    def _loadBookmarks(self):
+        for file in self.fileList:
             try:
                 f = open(file, "r")
                 bookmarks_json = json.load(f)
@@ -58,5 +79,6 @@ class Bookmarks(object):
         return []
 
     def getBookmarks(self, range):
+        self.refresh()
         (lo, hi) = range
         return [b for b in self.bookmarks if lo <= b.getFrequency() <= hi]
