@@ -44,7 +44,7 @@ class Bookmarks(object):
         self.bookmarks = []
         self.fileList = ["/etc/openwebrx/bookmarks.json", "bookmarks.json"]
 
-    def refresh(self):
+    def _refresh(self):
         modified = self._getFileModifiedTimestamp()
         if self.file_modified is None or modified > self.file_modified:
             logger.debug("reloading bookmarks from disk due to file modification")
@@ -79,6 +79,6 @@ class Bookmarks(object):
         return []
 
     def getBookmarks(self, range):
-        self.refresh()
+        self._refresh()
         (lo, hi) = range
         return [b for b in self.bookmarks if lo <= b.getFrequency() <= hi]

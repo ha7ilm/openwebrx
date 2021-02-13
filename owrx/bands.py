@@ -1,5 +1,7 @@
 from owrx.modes import Modes
+from datetime import datetime, timezone
 import json
+import os
 
 import logging
 
@@ -55,10 +57,29 @@ class Bandplan(object):
         return Bandplan.sharedInstance
 
     def __init__(self):
-        self.bands = self.loadBands()
+        self.bands = []
+        self.file_modified = None
+        self.fileList = ["/etc/openwebrx/bands.json", "bands.json"]
 
-    def loadBands(self):
-        for file in ["/etc/openwebrx/bands.json", "bands.json"]:
+    def _refresh(self):
+        modified = self._getFileModifiedTimestamp()
+        if self.file_modified is None or modified > self.file_modified:
+            logger.debug("reloading bands from disk due to file modification")
+            self.bands = self._loadBands()
+            self.file_modified = modified
+
+    def _getFileModifiedTimestamp(self):
+        timestamp = 0
+        for file in self.fileList:
+            try:
+                timestamp = os.path.getmtime(file)
+                break
+            except FileNotFoundError:
+                pass
+        return datetime.fromtimestamp(timestamp, timezone.utc)
+
+    def _loadBands(self):
+        for file in self.fileList:
             try:
                 f = open(file, "r")
                 bands_json = json.load(f)
@@ -75,6 +96,7 @@ class Bandplan(object):
         return []
 
     def findBands(self, freq):
+        self._refresh()
         return [band for band in self.bands if band.inBand(freq)]
 
     def findBand(self, freq):
@@ -85,4 +107,5 @@ class Bandplan(object):
             return None
 
     def collectDialFrequencies(self, range):
+        self._refresh()
         return [e for b in self.bands for e in b.getDialFrequencies(range)]
