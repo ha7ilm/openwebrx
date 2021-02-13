@@ -2,6 +2,11 @@ from owrx.controllers.template import WebpageController
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.bookmarks import Bookmark, Bookmarks
 from owrx.modes import Modes
+import json
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BookmarksController(AuthorizationMixin, WebpageController):
@@ -66,6 +71,32 @@ class BookmarksController(AuthorizationMixin, WebpageController):
             modulation=bookmark.getModulation() if mode is None else mode.modulation,
             modulation_name=bookmark.getModulation() if mode is None else mode.name,
         )
+
+    def _findBookmark(self, bookmark_id):
+        bookmarks = Bookmarks.getSharedInstance()
+        try:
+            return next(b for b in bookmarks.getBookmarks() if id(b) == bookmark_id)
+        except StopIteration:
+            return None
+
+    def update(self):
+        bookmark_id = int(self.request.matches.group(1))
+        bookmark = self._findBookmark(bookmark_id)
+        if bookmark is None:
+            self.send_response("{}", content_type="application/json", code=404)
+            return
+        try:
+            data = json.loads(self.get_body())
+            for key in ["name", "frequency", "modulation"]:
+                if key in data:
+                    value = data[key]
+                    if key == "frequency":
+                        value = int(value)
+                    setattr(bookmark, key, value)
+            Bookmarks.getSharedInstance().store()
+            self.send_response("{}", content_type="application/json", code=200)
+        except json.JSONDecodeError:
+            self.send_response("{}", content_type="application/json", code=400)
 
     def indexAction(self):
         self.serve_template("settings/bookmarks.html", **self.template_variables())

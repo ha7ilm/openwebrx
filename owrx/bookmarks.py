@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from owrx.config.core import CoreConfig
 import json
 import os
 
@@ -42,7 +43,7 @@ class Bookmarks(object):
     def __init__(self):
         self.file_modified = None
         self.bookmarks = []
-        self.fileList = ["/etc/openwebrx/bookmarks.json", "bookmarks.json"]
+        self.fileList = [Bookmarks._getBookmarksFile(), "/etc/openwebrx/bookmarks.json", "bookmarks.json"]
 
     def _refresh(self):
         modified = self._getFileModifiedTimestamp()
@@ -85,3 +86,13 @@ class Bookmarks(object):
         else:
             (lo, hi) = range
             return [b for b in self.bookmarks if lo <= b.getFrequency() <= hi]
+
+    @staticmethod
+    def _getBookmarksFile():
+        coreConfig = CoreConfig()
+        return "{data_directory}/bookmarks.json".format(data_directory=coreConfig.get_data_directory())
+
+    def store(self):
+        with open(Bookmarks._getBookmarksFile(), "w") as file:
+            json.dump([b.__dict__() for b in self.bookmarks], file, indent=4)
+        self.file_modified = self._getFileModifiedTimestamp()

@@ -12,7 +12,8 @@ $.fn.bookmarktable = function() {
             var $cell = $(e.target);
             var html = $cell.html();
 
-            var index = $cell.parent('tr').find('td').index($cell);
+            var $row = $cell.parent('tr');
+            var index = $row.find('td').index($cell);
 
             var $input = inputs[index];
             if (!$input) return;
@@ -22,6 +23,12 @@ $.fn.bookmarktable = function() {
             $input.focus();
 
             var submit = function() {
+                $.ajax(document.location.href + "/" + $row.data('id'), {
+                    data: JSON.stringify(Object.fromEntries([[$input.prop('name'), $input.val()]])),
+                    contentType: 'application/json',
+                    method: 'POST'
+                });
+
                 var $option = $input.find('option:selected')
                 if ($option.length) {
                     $cell.html($option.html());
