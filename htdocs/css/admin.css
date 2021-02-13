@@ -54,3 +54,7 @@ h1 {
     padding: 20px;
     font-size: 1.2rem;
 }
+
+table.bookmarks .frequency {
+    text-align: right;
+}
