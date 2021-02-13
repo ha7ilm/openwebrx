@@ -5,6 +5,7 @@ from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
 from owrx.controllers.settings import SettingsController, GeneralSettingsController, SdrSettingsController
+from owrx.controllers.bookmarks import BookmarksController
 from owrx.controllers.session import SessionController
 from owrx.controllers.profile import ProfileController
 from owrx.controllers.imageupload import ImageUploadController
@@ -108,6 +109,7 @@ class Router(object):
                 "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
             ),
             StaticRoute("/settings/sdr", SdrSettingsController),
+            StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),
