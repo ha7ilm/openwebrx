@@ -58,3 +58,9 @@ h1 {
 table.bookmarks .frequency {
     text-align: right;
 }
+
+table.bookmarks input, table.bookmarks select {
+    width: initial;
+    text-align: inherit;
+    display: initial;
+}

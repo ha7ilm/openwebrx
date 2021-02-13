@@ -23,4 +23,5 @@ $(function(){
 
     $(".sdrdevice").sdrdevice();
     $(".imageupload").imageUpload();
+    $("table.bookmarks").bookmarktable();
 });

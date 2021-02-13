@@ -148,6 +148,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/settings/Input.js",
             "lib/settings/SdrDevice.js",
             "lib/settings/ImageUpload.js",
+            "lib/settings/BookmarkTable.js",
             "settings.js",
         ],
     }
