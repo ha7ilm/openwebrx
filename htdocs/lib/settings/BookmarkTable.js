@@ -19,22 +19,24 @@ $.fn.bookmarktable = function() {
             if (!$input) return;
 
             $input.val($cell.data('value') || html);
+            $input.prop('disabled', false);
             $cell.html($input);
             $input.focus();
 
             var submit = function() {
+                $input.prop('disabled', true);
                 $.ajax(document.location.href + "/" + $row.data('id'), {
                     data: JSON.stringify(Object.fromEntries([[$input.prop('name'), $input.val()]])),
                     contentType: 'application/json',
                     method: 'POST'
+                }).then(function(){
+                    var $option = $input.find('option:selected')
+                    if ($option.length) {
+                        $cell.html($option.html());
+                    } else {
+                        $cell.html($input.val());
+                    }
                 });
-
-                var $option = $input.find('option:selected')
-                if ($option.length) {
-                    $cell.html($option.html());
-                } else {
-                    $cell.html($input.val());
-                }
             };
 
             $input.on('blur', submit).on('change', submit).on('keyup', function(e){
