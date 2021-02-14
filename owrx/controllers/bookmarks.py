@@ -48,14 +48,14 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                 </tr>
             </table>
         """.format(
-            bookmarks="".join(self.render_bookmark(idx, b) for idx, b in enumerate(bookmarks.getBookmarks())),
+            bookmarks="".join(self.render_bookmark(b) for b in bookmarks.getBookmarks()),
             options="".join(render_mode(m) for m in Modes.getAvailableModes()),
         )
 
-    def render_bookmark(self, idx: int, bookmark: Bookmark):
+    def render_bookmark(self, bookmark: Bookmark):
         mode = Modes.findByModulation(bookmark.getModulation())
         return """
-            <tr data-index="{index}" data-id="{id}">
+            <tr data-id="{id}">
                 <td>{name}</td>
                 <td class="frequency">{frequency}</td>
                 <td data-value="{modulation}">{modulation_name}</td>
@@ -64,7 +64,6 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                 </td>
             </tr>
         """.format(
-            index=idx,
             id=id(bookmark),
             name=bookmark.getName(),
             frequency=bookmark.getFrequency(),
