@@ -912,6 +912,8 @@ img.openwebrx-mirror-img
     display: flex;
     flex-direction: row;
     gap: 10px;
+    /* compatibility with iOS 14.2 */
+    flex: 0 0 auto;
 }
 
 .openwebrx-meta-slot {
