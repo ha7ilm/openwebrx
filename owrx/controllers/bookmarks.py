@@ -60,7 +60,7 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                 <td class="frequency">{frequency}</td>
                 <td data-value="{modulation}">{modulation_name}</td>
                 <td>
-                    <div class="btn btn-sm btn-danger bookmark-delete">delete</div>
+                    <button class="btn btn-sm btn-danger bookmark-delete">delete</button>
                 </td>
             </tr>
         """.format(
@@ -110,6 +110,17 @@ class BookmarksController(AuthorizationMixin, WebpageController):
             self.send_response(json.dumps({"bookmark_id": id(bookmark)}), content_type="application/json", code=200)
         except json.JSONDecodeError:
             self.send_response("{}", content_type="application/json", code=400)
+
+    def delete(self):
+        bookmark_id = int(self.request.matches.group(1))
+        bookmark = self._findBookmark(bookmark_id)
+        if bookmark is None:
+            self.send_response("{}", content_type="application/json", code=404)
+            return
+        bookmarks = Bookmarks.getSharedInstance()
+        bookmarks.removeBookmark(bookmark)
+        bookmarks.store()
+        self.send_response("{}", content_type="application/json", code=200)
 
     def indexAction(self):
         self.serve_template("settings/bookmarks.html", **self.template_variables())

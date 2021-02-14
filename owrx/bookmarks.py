@@ -99,3 +99,8 @@ class Bookmarks(object):
 
     def addBookmark(self, bookmark: Bookmark):
         self.bookmarks.append(bookmark)
+
+    def removeBookmark(self, bookmark: Bookmark):
+        if bookmark not in self.bookmarks:
+            return
+        self.bookmarks.remove(bookmark)

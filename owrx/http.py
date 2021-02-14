@@ -35,6 +35,9 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         self.router.route(self, self.get_request("POST"))
 
+    def do_DELETE(self):
+        self.router.route(self, self.get_request("DELETE"))
+
     def get_request(self, method):
         url = urlparse(self.path)
         return Request(url, method, self.headers)
@@ -112,6 +115,7 @@ class Router(object):
             StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
             RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="POST", options={"action": "update"}),
+            RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="DELETE", options={"action": "delete"}),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
             StaticRoute("/logout", SessionController, options={"action": "logoutAction"}),

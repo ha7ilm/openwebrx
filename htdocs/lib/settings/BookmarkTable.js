@@ -22,7 +22,7 @@ $.fn.bookmarktable = function() {
             var $cell = $(e.target);
             var html = $cell.html();
 
-            var $row = $cell.parent('tr');
+            var $row = $cell.parents('tr');
             var index = $row.find('td').index($cell);
 
             var $input = inputs[index];
@@ -53,7 +53,20 @@ $.fn.bookmarktable = function() {
             });
         });
 
-        $(this).find('.bookmark-add').on('click', function() {
+        $table.on('click', '.bookmark-delete', function(e) {
+            var $button = $(e.target);
+            $button.prop('disabled', true);
+            var $row = $button.parents('tr');
+            $.ajax(document.location.href + "/" + $row.data('id'), {
+                data: "{}",
+                contentType: 'application/json',
+                method: 'DELETE'
+            }).then(function(){
+                $row.remove();
+            });
+        });
+
+        $(this).on('click', '.bookmark-add', function() {
             if ($table.find('tr[data-id="new"]').length) return;
 
             var row = $('<tr data-id="new">');
