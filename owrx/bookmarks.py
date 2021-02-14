@@ -96,3 +96,6 @@ class Bookmarks(object):
         with open(Bookmarks._getBookmarksFile(), "w") as file:
             json.dump([b.__dict__() for b in self.bookmarks], file, indent=4)
         self.file_modified = self._getFileModifiedTimestamp()
+
+    def addBookmark(self, bookmark: Bookmark):
+        self.bookmarks.append(bookmark)

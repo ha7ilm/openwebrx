@@ -110,6 +110,7 @@ class Router(object):
             ),
             StaticRoute("/settings/sdr", SdrSettingsController),
             StaticRoute("/settings/bookmarks", BookmarksController),
+            StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
             RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="POST", options={"action": "update"}),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),

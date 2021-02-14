@@ -32,7 +32,7 @@ class BookmarksController(AuthorizationMixin, WebpageController):
             )
 
         return """
-            <table class="table bookmarks">
+            <table class="table">
                 <tr>
                     <th>Name</th>
                     <th class="frequency">Frequency</th>
@@ -94,6 +94,20 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                     setattr(bookmark, key, value)
             Bookmarks.getSharedInstance().store()
             self.send_response("{}", content_type="application/json", code=200)
+        except json.JSONDecodeError:
+            self.send_response("{}", content_type="application/json", code=400)
+
+    def new(self):
+        bookmarks = Bookmarks.getSharedInstance()
+        try:
+            data = json.loads(self.get_body())
+            # sanitize
+            data = {k: data[k] for k in ["name", "frequency", "modulation"]}
+            bookmark = Bookmark(data)
+
+            bookmarks.addBookmark(bookmark)
+            bookmarks.store()
+            self.send_response(json.dumps({"bookmark_id": id(bookmark)}), content_type="application/json", code=200)
         except json.JSONDecodeError:
             self.send_response("{}", content_type="application/json", code=400)
 

@@ -1,6 +1,10 @@
 @import url("openwebrx-header.css");
 @import url("openwebrx-globals.css");
 
+html, body {
+    height: unset;
+}
+
 .buttons {
     text-align: right;
 }
@@ -59,8 +63,16 @@ table.bookmarks .frequency {
     text-align: right;
 }
 
-table.bookmarks input, table.bookmarks select {
+.bookmarks table input, .bookmarks table select {
     width: initial;
     text-align: inherit;
     display: initial;
+}
+
+.actions {
+    margin: 1rem 0;
+}
+
+.actions .btn {
+    width: 100%;
 }
