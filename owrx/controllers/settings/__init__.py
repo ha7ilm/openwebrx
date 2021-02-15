@@ -1,6 +1,8 @@
 from owrx.config import Config
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
+from abc import ABCMeta, abstractmethod
+from urllib.parse import parse_qs
 
 
 class Section(object):
@@ -31,3 +33,58 @@ class Section(object):
 class SettingsController(AuthorizationMixin, WebpageController):
     def indexAction(self):
         self.serve_template("settings.html", **self.template_variables())
+
+
+class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=ABCMeta):
+    @abstractmethod
+    def getSections(self):
+        pass
+
+    @abstractmethod
+    def getTitle(self):
+        pass
+
+    def render_sections(self):
+        sections = "".join(section.render() for section in self.getSections())
+        return """
+            <form class="settings-body" method="POST">
+                {sections}
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        """.format(
+            sections=sections
+        )
+
+    def indexAction(self):
+        self.serve_template("settings/general.html", **self.template_variables())
+
+    def header_variables(self):
+        variables = super().header_variables()
+        variables["assets_prefix"] = "../"
+        return variables
+
+    def template_variables(self):
+        variables = super().template_variables()
+        variables["sections"] = self.render_sections()
+        variables["title"] = self.getTitle()
+        return variables
+
+    def parseFormData(self):
+        data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)
+        return {k: v for i in self.getSections() for k, v in i.parse(data).items()}
+
+    def processFormData(self):
+        self.processData(self.parseFormData())
+
+    def processData(self, data):
+        config = Config.get()
+        for k, v in data.items():
+            if v is None:
+                if k in config:
+                    del config[k]
+            else:
+                config[k] = v
+        config.store()
+        self.send_redirect(self.request.path)
