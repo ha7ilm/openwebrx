@@ -3,8 +3,8 @@
         <a href="https://www.openwebrx.de/" target="_blank"><img src="${assets_prefix}static/gfx/openwebrx-top-logo.png" class="webrx-top-logo" alt="OpenWebRX Logo"/></a>
         <img class="webrx-rx-avatar openwebrx-photo-trigger" src="${assets_prefix}static/gfx/openwebrx-avatar.png" alt="Receiver avatar"/>
         <div class="webrx-rx-texts openwebrx-photo-trigger">
-            <div class="webrx-rx-title"></div>
-            <div class="webrx-rx-desc"></div>
+            <div class="webrx-rx-title">${receiver_name}</div>
+            <div class="webrx-rx-desc">${receiver_location} | Loc: ${locator}, ASL: ${receiver_asl} m</div>
         </div>
         <section class="openwebrx-main-buttons">
             <div class="button" data-toggle-panel="openwebrx-panel-status"><span class="sprite sprite-panel-status"></span><br/>Status</div>
@@ -15,8 +15,8 @@
         </section>
     </div>
     <div class="openwebrx-description-container">
-        <div class="webrx-rx-photo-title"></div>
-        <div class="webrx-rx-photo-desc"></div>
+        <div class="webrx-rx-photo-title">${photo_title}</div>
+        <div class="webrx-rx-photo-desc">${photo_desc}</div>
     </div>
     <a class="openwebrx-rx-details-arrow openwebrx-rx-details-arrow--down openwebrx-photo-trigger"><span class="sprite sprite-rx-details-arrow"></span></a>
 </div>

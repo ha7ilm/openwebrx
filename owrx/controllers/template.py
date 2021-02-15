@@ -1,6 +1,7 @@
-from . import Controller
-import pkg_resources
+from owrx.controllers import Controller
+from owrx.details import ReceiverDetails
 from string import Template
+import pkg_resources
 
 
 class TemplateController(Controller):
@@ -19,7 +20,9 @@ class TemplateController(Controller):
 
 class WebpageController(TemplateController):
     def header_variables(self):
-        return {"assets_prefix": ""}
+        variables = {"assets_prefix": ""}
+        variables.update(ReceiverDetails().__dict__())
+        return variables
 
     def template_variables(self):
         header = self.render_template("include/header.include.html", **self.header_variables())
