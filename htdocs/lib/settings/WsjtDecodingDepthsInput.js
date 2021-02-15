@@ -5,13 +5,23 @@ $.fn.wsjtDecodingDepthsInput = function() {
         this.modeInput.val(mode);
         this.valueInput = $(inputs.get(1)).clone();
         this.valueInput.val(value);
-        this.el.append([this.modeInput, this.valueInput].map(function(i) {
+        this.removeButton = $('<button class="btn btn-sm btn-danger remove">Remove</button>');
+        this.removeButton.data('row', this);
+        this.el.append([this.modeInput, this.valueInput, this.removeButton].map(function(i) {
             return $('<td>').append(i);
         }));
     }
 
     WsjtDecodingDepthRow.prototype.getEl = function() {
         return this.el;
+    }
+
+    WsjtDecodingDepthRow.prototype.getValue = function() {
+        var value = parseInt(this.valueInput.val())
+        if (Number.isNaN(value)) {
+            return {};
+        }
+        return Object.fromEntries([[this.modeInput.val(), value]]);
     }
 
     this.each(function(){
@@ -27,6 +37,32 @@ $.fn.wsjtDecodingDepthsInput = function() {
         $table.append(rows.map(function(r) {
             return r.getEl();
         }));
+
+        var updateValue = function(){
+            $input.val(JSON.stringify($.extend.apply({}, rows.map(function(r) {
+                return r.getValue();
+            }))));
+        };
+
+        $table.on('change', updateValue);
         $el.append($table);
+        var $addButton = $('<button class="btn btn-sm btn-primary">Add...</button>');
+
+        $addButton.on('click', function() {
+            var row = new WsjtDecodingDepthRow(inputs)
+            rows.push(row);
+            $table.append(row.getEl());
+            return false;
+        });
+        $el.on('click', '.btn.remove', function(e){
+            var row = $(e.target).data('row');
+            var index = rows.indexOf(row);
+            if (index < 0) return false;
+            rows.splice(index, 1);
+            row.getEl().remove();
+            updateValue();
+            return false;
+        });
+        $el.append($addButton);
     });
 };
