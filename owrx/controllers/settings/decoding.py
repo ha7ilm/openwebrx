@@ -33,7 +33,7 @@ class DecodingSettingsController(SettingsFormController):
                     "digital_voice_unvoiced_quality",
                     "Quality of unvoiced sounds in synthesized voice",
                     infotext="Determines the quality, and thus the cpu usage, for the ambe codec used by digital voice"
-                             + "modes.<br />If you're running on a Raspi (up to 3B+) you should leave this set at 1",
+                    + " modes.<br />If you're running on a Raspberry Pi (up to 3B+) you should leave this set at 1",
                 ),
                 CheckboxInput(
                     "digital_voice_dmr_id_lookup",
