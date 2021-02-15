@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import json
 
 
 class Converter(ABC):
@@ -59,3 +60,9 @@ class EnumConverter(Converter):
         return self.enumCls[value].value
 
 
+class JsonConverter(Converter):
+    def convert_to_form(self, value):
+        return json.dumps(value)
+
+    def convert_from_form(self, value):
+        return json.loads(value)

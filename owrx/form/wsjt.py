@@ -1,4 +1,5 @@
 from owrx.form import Input
+from owrx.form.converter import JsonConverter
 from owrx.wsjt import Q65Mode, Q65Interval
 from owrx.modes import Modes, WsjtMode
 import json
@@ -56,6 +57,9 @@ class Q65ModeMatrix(Input):
 
 
 class WsjtDecodingDepthsInput(Input):
+    def defaultConverter(self):
+        return JsonConverter()
+
     def render_input(self, value):
         def render_mode(m):
             return """
@@ -74,7 +78,7 @@ class WsjtDecodingDepthsInput(Input):
         """.format(
             id=self.id,
             classes=self.input_classes(),
-            value=html.escape(json.dumps(value)),
+            value=html.escape(value),
             options="".join(render_mode(m) for m in Modes.getAvailableModes() if isinstance(m, WsjtMode)),
         )
 
