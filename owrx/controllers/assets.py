@@ -147,8 +147,10 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/Header.js",
             "lib/settings/Input.js",
             "lib/settings/SdrDevice.js",
+            "lib/settings/MapInput.js",
             "lib/settings/ImageUpload.js",
             "lib/settings/BookmarkTable.js",
+            "lib/settings/WsjtDecodingDepthsInput.js",
             "settings.js",
         ],
     }

@@ -1,7 +1,7 @@
 from owrx.controllers.settings import SettingsFormController, Section
 from owrx.form import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option
 from owrx.form.wfm import WfmTauValues
-from owrx.form.wsjt import Q65ModeMatrix
+from owrx.form.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 
 
@@ -54,6 +54,10 @@ class DecodingSettingsController(SettingsFormController):
                     "wsjt_decoding_depth",
                     "Default WSJT decoding depth",
                     infotext="A higher decoding depth will allow more results, but will also consume more cpu",
+                ),
+                WsjtDecodingDepthsInput(
+                    "wsjt_decoding_depths",
+                    "Individual decoding depths",
                 ),
                 NumberInput(
                     "js8_decoding_depth",

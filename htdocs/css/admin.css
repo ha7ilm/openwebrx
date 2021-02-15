@@ -76,3 +76,7 @@ table.bookmarks .frequency {
 .actions .btn {
     width: 100%;
 }
+
+.wsjt-decoding-depths-table {
+    width: auto;
+}

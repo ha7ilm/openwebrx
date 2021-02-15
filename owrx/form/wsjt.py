@@ -1,5 +1,8 @@
 from owrx.form import Input
 from owrx.wsjt import Q65Mode, Q65Interval
+from owrx.modes import Modes
+import json
+import html
 
 
 class Q65ModeMatrix(Input):
@@ -50,3 +53,17 @@ class Q65ModeMatrix(Input):
                 if in_response(mode, interval)
             ],
         }
+
+
+class WsjtDecodingDepthsInput(Input):
+    def render_input(self, value):
+        return """
+            <input type="hidden" class="{classes}" id="{id}" name="{id}" value="{value}">
+        """.format(
+            id=self.id,
+            classes=self.input_classes(),
+            value=html.escape(json.dumps(value)),
+        )
+
+    def input_classes(self):
+        return super().input_classes() + " wsjt-decoding-depths"
