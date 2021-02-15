@@ -18,6 +18,7 @@ setup(
             "owrx.source",
             "owrx.service",
             "owrx.controllers",
+            "owrx.controllers.settings",
             "owrx.property",
             "owrx.form",
             "owrx.config",

@@ -1,3 +1,4 @@
+from owrx.controllers.settings import Section
 from owrx.controllers.template import WebpageController
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.config.core import CoreConfig
@@ -22,84 +23,14 @@ from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.wfm import WfmTauValues
 from owrx.form.wsjt import Q65ModeMatrix
 from owrx.form.gfx import AvatarInput, TopPhotoInput
-from urllib.parse import quote
 from owrx.wsjt import Fst4Profile, Fst4wProfile
-import json
-import logging
 import shutil
 import os
 from glob import glob
 
+import logging
+
 logger = logging.getLogger(__name__)
-
-
-class Section(object):
-    def __init__(self, title, *inputs):
-        self.title = title
-        self.inputs = inputs
-
-    def render_inputs(self):
-        config = Config.get()
-        return "".join([i.render(config) for i in self.inputs])
-
-    def render(self):
-        return """
-            <div class="col-12 settings-section">
-                <h3 class="settings-header">
-                    {title}
-                </h3>
-                {inputs}
-            </div>
-        """.format(
-            title=self.title, inputs=self.render_inputs()
-        )
-
-    def parse(self, data):
-        return {k: v for i in self.inputs for k, v in i.parse(data).items()}
-
-
-class SettingsController(AuthorizationMixin, WebpageController):
-    def indexAction(self):
-        self.serve_template("settings.html", **self.template_variables())
-
-
-class SdrSettingsController(AuthorizationMixin, WebpageController):
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../"
-        return variables
-
-    def template_variables(self):
-        variables = super().template_variables()
-        variables["devices"] = self.render_devices()
-        return variables
-
-    def render_devices(self):
-        return "".join(self.render_device(key, value) for key, value in Config.get()["sdrs"].items())
-
-    def render_device(self, device_id, config):
-        return """
-            <div class="card device bg-dark text-white">
-                <div class="card-header">
-                    {device_name}
-                </div>
-                <div class="card-body">
-                    {form}
-                </div>
-            </div>
-        """.format(
-            device_name=config["name"], form=self.render_form(device_id, config)
-        )
-
-    def render_form(self, device_id, config):
-        return """
-            <form class="sdrdevice" data-config="{formdata}"></form>
-        """.format(
-            device_id=device_id, formdata=quote(json.dumps(config))
-        )
-
-    def indexAction(self):
-        self.serve_template("settings/sdr.html", **self.template_variables())
 
 
 class GeneralSettingsController(AuthorizationMixin, WebpageController):

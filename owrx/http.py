@@ -4,7 +4,9 @@ from owrx.controllers.assets import OwrxAssetsController, AprsSymbolsController,
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
-from owrx.controllers.settings import SettingsController, GeneralSettingsController, SdrSettingsController
+from owrx.controllers.settings import SettingsController
+from owrx.controllers.settings.general import GeneralSettingsController
+from owrx.controllers.settings.sdr import SdrSettingsController
 from owrx.controllers.bookmarks import BookmarksController
 from owrx.controllers.session import SessionController
 from owrx.controllers.profile import ProfileController
