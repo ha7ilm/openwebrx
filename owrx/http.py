@@ -9,6 +9,7 @@ from owrx.controllers.settings.general import GeneralSettingsController
 from owrx.controllers.settings.sdr import SdrSettingsController
 from owrx.controllers.settings.reporting import ReportingController
 from owrx.controllers.settings.backgrounddecoding import BackgroundDecodingController
+from owrx.controllers.settings.decoding import DecodingSettingsController
 from owrx.controllers.bookmarks import BookmarksController
 from owrx.controllers.session import SessionController
 from owrx.controllers.profile import ProfileController
@@ -130,6 +131,10 @@ class Router(object):
                 BackgroundDecodingController,
                 method="POST",
                 options={"action": "processFormData"},
+            ),
+            StaticRoute("/settings/decoding", DecodingSettingsController),
+            StaticRoute(
+                "/settings/decoding", DecodingSettingsController, method="POST", options={"action": "processFormData"}
             ),
             StaticRoute("/login", SessionController, options={"action": "loginAction"}),
             StaticRoute("/login", SessionController, method="POST", options={"action": "processLoginAction"}),
