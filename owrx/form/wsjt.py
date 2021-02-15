@@ -1,6 +1,6 @@
 from owrx.form import Input
 from owrx.wsjt import Q65Mode, Q65Interval
-from owrx.modes import Modes
+from owrx.modes import Modes, WsjtMode
 import json
 import html
 
@@ -57,12 +57,25 @@ class Q65ModeMatrix(Input):
 
 class WsjtDecodingDepthsInput(Input):
     def render_input(self, value):
+        def render_mode(m):
+            return """
+                <option value={mode}>{name}</option>
+            """.format(
+                mode=m.modulation,
+                name=m.name,
+            )
+
         return """
             <input type="hidden" class="{classes}" id="{id}" name="{id}" value="{value}">
+            <div class="inputs" style="display:none;">
+                <select class="form-control form-control-sm">{options}</select>
+                <input class="form-control form-control-sm" type="number" step="1">
+            </div>
         """.format(
             id=self.id,
             classes=self.input_classes(),
             value=html.escape(json.dumps(value)),
+            options="".join(render_mode(m) for m in Modes.getAvailableModes() if isinstance(m, WsjtMode)),
         )
 
     def input_classes(self):

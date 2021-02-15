@@ -79,4 +79,9 @@ table.bookmarks .frequency {
 
 .wsjt-decoding-depths-table {
     width: auto;
+    margin: 0;
+}
+
+.wsjt-decoding-depths-table td:first-child {
+    padding-left: 0;
 }

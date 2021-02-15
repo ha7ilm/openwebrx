@@ -51,6 +51,15 @@ class DigitalMode(Mode):
         return Modes.findByModulation(self.underlying[0]).get_modulation()
 
 
+class WsjtMode(DigitalMode):
+    def __init__(self, modulation, name, bandpass=None, requirements=None):
+        if bandpass is None:
+            bandpass = Bandpass(0, 3000)
+        if requirements is None:
+            requirements = ["wsjt-x"]
+        super().__init__(modulation, name, ["usb"], bandpass=bandpass, requirements=requirements, service=True)
+
+
 class Modes(object):
     mappings = [
         AnalogMode("nfm", "FM", bandpass=Bandpass(-4000, 4000)),
@@ -72,35 +81,14 @@ class Modes(object):
         AnalogMode("drm", "DRM", bandpass=Bandpass(-5000, 5000), requirements=["drm"], squelch=False),
         DigitalMode("bpsk31", "BPSK31", underlying=["usb"]),
         DigitalMode("bpsk63", "BPSK63", underlying=["usb"]),
-        DigitalMode(
-            "ft8", "FT8", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True
-        ),
-        DigitalMode(
-            "ft4", "FT4", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True
-        ),
-        DigitalMode(
-            "jt65", "JT65", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True
-        ),
-        DigitalMode(
-            "jt9", "JT9", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x"], service=True
-        ),
-        DigitalMode(
-            "wspr", "WSPR", underlying=["usb"], bandpass=Bandpass(1350, 1650), requirements=["wsjt-x"], service=True
-        ),
-        DigitalMode(
-            "fst4", "FST4", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x-2-3"], service=True
-        ),
-        DigitalMode(
-            "fst4w",
-            "FST4W",
-            underlying=["usb"],
-            bandpass=Bandpass(1350, 1650),
-            requirements=["wsjt-x-2-3"],
-            service=True,
-        ),
-        DigitalMode(
-            "q65", "Q65", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["wsjt-x-2-4"], service=True
-        ),
+        WsjtMode("ft8", "FT8"),
+        WsjtMode("ft4", "FT4"),
+        WsjtMode("jt65", "JT65"),
+        WsjtMode("jt9", "JT9"),
+        WsjtMode("wspr", "WSPR", bandpass=Bandpass(1350, 1650)),
+        WsjtMode("fst4", "FST4", requirements=["wsjt-x-2-3"]),
+        WsjtMode("fst4w", "FST4W", bandpass=Bandpass(1350, 1650), requirements=["wsjt-x-2-3"]),
+        WsjtMode("q65", "Q65", requirements=["wsjt-x-2-4"]),
         DigitalMode(
             "js8", "JS8Call", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["js8call"], service=True
         ),
