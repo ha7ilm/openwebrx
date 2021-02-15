@@ -552,6 +552,7 @@ img.openwebrx-mirror-img
     -moz-user-select: none;
     -ms-user-select: none;
     overflow: hidden;
+    z-index: 1
 }
 
 .openwebrx-progressbar-bar {
@@ -564,6 +565,7 @@ img.openwebrx-mirror-img
 	transition-timing-function: ease-in-out;
 	transform: translate(-100%) translateZ(0);
 	will-change: transform, background-color;
+	z-index: 0;
 }
 
 .openwebrx-progressbar--over .openwebrx-progressbar-bar {
@@ -577,7 +579,7 @@ img.openwebrx-mirror-img
 	top:50%;
 	transform: translate(-50%, -50%);
 	white-space: nowrap;
-	z-index: 1;
+	z-index: 2;
 }
 
 #openwebrx-panel-status
