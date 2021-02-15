@@ -203,15 +203,6 @@ class GeneralSettingsController(SettingsFormController):
                 ),
                 Q65ModeMatrix("q65_enabled_combinations", "Enabled Q65 Mode combinations"),
             ),
-            Section(
-                "Background decoding",
-                CheckboxInput(
-                    "services_enabled",
-                    "Service",
-                    checkboxText="Enable background decoding services",
-                ),
-                ServicesCheckboxInput("services_decoders", "Enabled services"),
-            ),
         ]
 
     def handle_image(self, data, image_id):
