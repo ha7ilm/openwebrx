@@ -23,8 +23,8 @@ class DecodingSettingsController(SettingsFormController):
                     "wfm_deemphasis_tau",
                     "Tau setting for WFM (broadcast FM) deemphasis",
                     WfmTauValues,
-                    infotext='See <a href="https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis">'
-                             + "this Wikipedia article</a> for more information",
+                    infotext='See <a href="https://en.wikipedia.org/wiki/FM_broadcasting#Pre-emphasis_and_de-emphasis"'
+                    + ' target="_blank">this Wikipedia article</a> for more information',
                 ),
             ),
             Section(
@@ -38,7 +38,8 @@ class DecodingSettingsController(SettingsFormController):
                 CheckboxInput(
                     "digital_voice_dmr_id_lookup",
                     "DMR id lookup",
-                    checkboxText="Enable lookup of DMR ids in the radioid database to show callsigns and names",
+                    checkboxText='Enable lookup of DMR ids in the <a href="https://www.radioid.net/" target="_blank">'
+                    + "radioid</a> database to show callsigns and names",
                 ),
             ),
             Section(

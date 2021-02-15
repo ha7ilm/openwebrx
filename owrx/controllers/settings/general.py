@@ -69,7 +69,7 @@ class GeneralSettingsController(SettingsFormController):
                     "Receiver keys",
                     converter=ReceiverKeysConverter(),
                     infotext="Put the keys you receive on listing sites (e.g. "
-                    + '<a href="https://www.receiverbook.de">Receiverbook</a>) here, one per line',
+                    + '<a href="https://www.receiverbook.de" target="_blank">Receiverbook</a>) here, one per line',
                 ),
             ),
             Section(
