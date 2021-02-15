@@ -99,12 +99,15 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
             receiver_info = receiver_details.__dict__()
             self.write_receiver_details(receiver_info)
 
-        # TODO unsubscribe
-        receiver_details.wire(send_receiver_info)
+        self._detailsSubscription = receiver_details.wire(send_receiver_info)
         send_receiver_info()
 
     def write_receiver_details(self, details):
         self.send({"type": "receiver_details", "value": details})
+
+    def close(self):
+        self._detailsSubscription.cancel()
+        super().close()
 
 
 class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
