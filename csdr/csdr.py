@@ -530,6 +530,8 @@ class dsp(object):
         (self.decimation, self.last_decimation) = self.get_decimation(self.samp_rate, self.get_audio_rate())
 
     def get_decimation(self, input_rate, output_rate):
+        if output_rate <= 0:
+            raise ValueError("invalid output rate: {rate}".format(rate=output_rate))
         decimation = 1
         target_rate = output_rate
         # wideband fm has a much higher frequency deviation (75kHz).
