@@ -13,9 +13,7 @@ from owrx.form import (
     Js8ProfileCheckboxInput,
     MultiCheckboxInput,
 )
-from owrx.form.converter import OptionalConverter
 from owrx.form.receiverid import ReceiverKeysConverter
-from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.wfm import WfmTauValues
 from owrx.form.wsjt import Q65ModeMatrix
 from owrx.form.gfx import AvatarInput, TopPhotoInput
@@ -213,84 +211,6 @@ class GeneralSettingsController(SettingsFormController):
                     checkboxText="Enable background decoding services",
                 ),
                 ServicesCheckboxInput("services_decoders", "Enabled services"),
-            ),
-            Section(
-                "APRS settings",
-                TextInput(
-                    "aprs_callsign",
-                    "APRS callsign",
-                    infotext="This callsign will be used to send data to the APRS-IS network",
-                ),
-                CheckboxInput(
-                    "aprs_igate_enabled",
-                    "APRS I-Gate",
-                    checkboxText="Send received APRS data to APRS-IS",
-                ),
-                TextInput("aprs_igate_server", "APRS-IS server"),
-                TextInput("aprs_igate_password", "APRS-IS network password"),
-                CheckboxInput(
-                    "aprs_igate_beacon",
-                    "APRS beacon",
-                    checkboxText="Send the receiver position to the APRS-IS network",
-                    infotext="Please check that your receiver location is setup correctly before enabling the beacon",
-                ),
-                DropdownInput(
-                    "aprs_igate_symbol",
-                    "APRS beacon symbol",
-                    AprsBeaconSymbols,
-                ),
-                TextInput(
-                    "aprs_igate_comment",
-                    "APRS beacon text",
-                    infotext="This text will be sent as APRS comment along with your beacon",
-                    converter=OptionalConverter(),
-                ),
-                NumberInput(
-                    "aprs_igate_height",
-                    "Antenna height",
-                    infotext="Antenna height above average terrain (HAAT)",
-                    append="m",
-                    converter=OptionalConverter(),
-                ),
-                NumberInput(
-                    "aprs_igate_gain",
-                    "Antenna gain",
-                    append="dBi",
-                    converter=OptionalConverter(),
-                ),
-                DropdownInput("aprs_igate_dir", "Antenna direction", AprsAntennaDirections),
-            ),
-            Section(
-                "pskreporter settings",
-                CheckboxInput(
-                    "pskreporter_enabled",
-                    "Reporting",
-                    checkboxText="Enable sending spots to pskreporter.info",
-                ),
-                TextInput(
-                    "pskreporter_callsign",
-                    "pskreporter callsign",
-                    infotext="This callsign will be used to send spots to pskreporter.info",
-                ),
-                TextInput(
-                    "pskreporter_antenna_information",
-                    "Antenna information",
-                    infotext="Antenna description to be sent along with spots to pskreporter",
-                    converter=OptionalConverter(),
-                ),
-            ),
-            Section(
-                "WSPRnet settings",
-                CheckboxInput(
-                    "wsprnet_enabled",
-                    "Reporting",
-                    checkboxText="Enable sending spots to wsprnet.org",
-                ),
-                TextInput(
-                    "wsprnet_callsign",
-                    "wsprnet callsign",
-                    infotext="This callsign will be used to send spots to wsprnet.org",
-                ),
             ),
         ]
 
