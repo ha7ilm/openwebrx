@@ -301,7 +301,7 @@ nmux_memory = 50  # in megabytes. This sets the approximate size of the circular
 #wsjt_decoding_depth = 3
 # can also be set for each mode separately
 # jt65 seems to be somewhat prone to erroneous decodes, this setting handles that to some extent
-wsjt_decoding_depths = {"jt65": 1}
+#wsjt_decoding_depths = {"jt65": 1}
 
 # FST4 can be transmitted in different intervals. This setting determines which intervals will be decoded.
 # available values (in seconds): 15, 30, 60, 120, 300, 900, 1800
