@@ -11,6 +11,7 @@ from owrx.form import (
 )
 from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.gfx import AvatarInput, TopPhotoInput
+from owrx.waterfall import WaterfallOptions
 import shutil
 import os
 from glob import glob
@@ -74,6 +75,11 @@ class GeneralSettingsController(SettingsFormController):
             ),
             Section(
                 "Waterfall settings",
+                DropdownInput(
+                    "waterfall_scheme",
+                    "Waterfall color scheme",
+                    options=WaterfallOptions,
+                ),
                 NumberInput(
                     "fft_fps",
                     "FFT speed",

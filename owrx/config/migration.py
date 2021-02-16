@@ -40,11 +40,33 @@ class ConfigMigratorVersion2(ConfigMigrator):
         config["version"] = 3
 
 
+class ConfigMigratorVersion3(ConfigMigrator):
+
+    def migrate(self, config):
+        # inline import due to circular dependencies
+        from owrx.waterfall import WaterfallOptions
+
+        if "waterfall_scheme" in config:
+            scheme = WaterfallOptions(config["waterfall_scheme"])
+            if scheme is not WaterfallOptions.CUSTOM and "waterfall_colors" in config:
+                del config["waterfall_colors"]
+        elif "waterfall_colors" in config:
+            scheme = WaterfallOptions.findByColors(config["waterfall_colors"])
+            if scheme is not WaterfallOptions.CUSTOM:
+                logger.debug("detected waterfall option: %s", scheme.value)
+                if "waterfall_colors" in config:
+                    del config["waterfall_colors"]
+            config["waterfall_scheme"] = scheme.value
+
+        config["version"] = 4
+
+
 class Migrator(object):
-    currentVersion = 3
+    currentVersion = 4
     migrators = {
         1: ConfigMigratorVersion1(),
         2: ConfigMigratorVersion2(),
+        3: ConfigMigratorVersion3(),
     }
 
     @staticmethod
