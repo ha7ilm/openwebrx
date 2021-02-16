@@ -177,4 +177,9 @@ class GeneralSettingsController(SettingsFormController):
         # Image handling
         for img in ["receiver_avatar", "receiver_top_photo"]:
             self.handle_image(data, img)
+        # special handling for waterfall colors: custom colors only stay in config if custom color scheme is selected
+        if "waterfall_scheme" in data:
+            scheme = WaterfallOptions(data["waterfall_scheme"])
+            if scheme is not WaterfallOptions.CUSTOM and "waterfall_colors" in data:
+                data["waterfall_colors"] = None
         super().processData(data)
