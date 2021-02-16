@@ -12,6 +12,7 @@ from owrx.map import Map
 from owrx.property import PropertyStack
 from owrx.modes import Modes, DigitalMode
 from owrx.config import Config
+from owrx.waterfall import WaterfallOptions
 from queue import Queue, Full, Empty
 from js8py import Js8Frame
 from abc import ABC, ABCMeta, abstractmethod
@@ -125,6 +126,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     ]
 
     global_config_keys = [
+        "waterfall_scheme",
         "waterfall_colors",
         "waterfall_auto_level_margin",
         "fft_size",
@@ -202,9 +204,17 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         return stack
 
     def setupGlobalConfig(self):
+        def writeConfig(changes):
+            # TODO it would be nicer to have all options available and switchable in the client
+            # this restores the existing functionality for now, but there is lots of potential
+            if "waterfall_scheme" in changes:
+                scheme = WaterfallOptions(changes["waterfall_scheme"]).instantiate()
+                changes["waterfall_colors"] = scheme.getColors()
+            self.write_config(changes)
+
         globalConfig = Config.get().filter(*OpenWebRxReceiverClient.global_config_keys)
-        self.configSubs.append(globalConfig.wire(self.write_config))
-        self.write_config(globalConfig.__dict__())
+        self.configSubs.append(globalConfig.wire(writeConfig))
+        writeConfig(globalConfig.__dict__())
 
     def onStateChange(self, state):
         if state == SdrSource.STATE_RUNNING:
