@@ -1,4 +1,5 @@
 from owrx.form import DropdownEnum
+from owrx.config import Config
 
 
 class Waterfall(object):
@@ -285,8 +286,8 @@ class Ha7ilmWaterfall(Waterfall):
 
 class CustomWaterfall(Waterfall):
     def __init__(self):
-        # TODO: read waterfall_colors from config
-        super().__init__([0x00000])
+        config = Config.get()
+        super().__init__(config["waterfall_colors"])
 
 
 class WaterfallOptions(DropdownEnum):
