@@ -2,7 +2,6 @@ from owrx.form import Input
 from owrx.form.converter import JsonConverter
 from owrx.wsjt import Q65Mode, Q65Interval
 from owrx.modes import Modes, WsjtMode
-import json
 import html
 
 
