@@ -185,8 +185,10 @@ class UserList(object):
         usersFile = self._getUsersFile()
         users = [u.toJson() for u in self.values()]
         try:
+            # don't write directly to file to avoid corruption on exceptions
+            jsonContent = json.dumps(users, indent=4)
             with open(usersFile, "w") as f:
-                json.dump(users, f, indent=4)
+                f.write(jsonContent)
         except Exception:
             logger.exception("error while writing users file %s", usersFile)
         self.refresh()

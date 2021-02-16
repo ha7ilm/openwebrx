@@ -21,5 +21,7 @@ class DynamicConfig(PropertyLayer):
         return "{data_directory}/settings.json".format(data_directory=coreConfig.get_data_directory())
 
     def store(self):
+        # don't write directly to file to avoid corruption on exceptions
+        jsonContent = json.dumps(self.__dict__(), indent=4)
         with open(DynamicConfig._getSettingsFile(), "w") as file:
-            json.dump(self.__dict__(), file, indent=4)
+            file.write(jsonContent)

@@ -93,8 +93,10 @@ class Bookmarks(object):
         return "{data_directory}/bookmarks.json".format(data_directory=coreConfig.get_data_directory())
 
     def store(self):
+        # don't write directly to file to avoid corruption on exceptions
+        jsonContent = json.dumps([b.__dict__() for b in self.bookmarks], indent=4)
         with open(Bookmarks._getBookmarksFile(), "w") as file:
-            json.dump([b.__dict__() for b in self.bookmarks], file, indent=4)
+            file.write(jsonContent)
         self.file_modified = self._getFileModifiedTimestamp()
 
     def addBookmark(self, bookmark: Bookmark):
