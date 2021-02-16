@@ -287,7 +287,12 @@ class Ha7ilmWaterfall(Waterfall):
 class CustomWaterfall(Waterfall):
     def __init__(self):
         config = Config.get()
-        super().__init__(config["waterfall_colors"])
+        if "waterfall_colors" in config and config["waterfall_colors"]:
+            colors = config["waterfall_colors"]
+        else:
+            # fallback: black and white
+            colors = [0x000000, 0xffffff]
+        super().__init__(colors)
 
 
 class WaterfallOptions(DropdownEnum):

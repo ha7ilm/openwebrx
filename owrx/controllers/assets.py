@@ -151,6 +151,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/settings/ImageUpload.js",
             "lib/settings/BookmarkTable.js",
             "lib/settings/WsjtDecodingDepthsInput.js",
+            "lib/settings/WaterfallDropdown.js",
             "settings.js",
         ],
     }

@@ -207,8 +207,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         def writeConfig(changes):
             # TODO it would be nicer to have all options available and switchable in the client
             # this restores the existing functionality for now, but there is lots of potential
-            if "waterfall_scheme" in changes:
-                scheme = WaterfallOptions(changes["waterfall_scheme"]).instantiate()
+            if "waterfall_scheme" in changes or "waterfall_colors" in changes:
+                scheme = WaterfallOptions(globalConfig["waterfall_scheme"]).instantiate()
                 changes["waterfall_colors"] = scheme.getColors()
             self.write_config(changes)
 

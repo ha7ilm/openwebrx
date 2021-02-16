@@ -76,10 +76,14 @@ class WaterfallColorsConverter(Converter):
 
     def convert_from_form(self, value):
         def parseString(s):
-            if s.startswith("#"):
-                return int(s[1:], 16)
-            # int() with base 0 can accept "0x" prefixed hex strings, or int numbers
-            return int(s, 0)
+            try:
+                if s.startswith("#"):
+                    return int(s[1:], 16)
+                # int() with base 0 can accept "0x" prefixed hex strings, or int numbers
+                return int(s, 0)
+            except ValueError:
+                return None
 
         # \r\n or \n? this should work with both.
-        return [parseString(v.strip("\r ")) for v in value.split("\n")]
+        values = [parseString(v.strip("\r ")) for v in value.split("\n")]
+        return [v for v in values if v is not None]

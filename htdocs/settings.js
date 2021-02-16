@@ -4,4 +4,5 @@ $(function(){
     $('.imageupload').imageUpload();
     $('.bookmarks').bookmarktable();
     $('.wsjt-decoding-depths').wsjtDecodingDepthsInput();
+    $('#waterfall_scheme').waterfallDropdown();
 });
