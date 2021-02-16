@@ -84,8 +84,9 @@ class GeneralSettingsController(SettingsFormController):
                 TextAreaInput(
                     "waterfall_colors",
                     "Custom waterfall colors",
-                    infotext="TODO: describe",
-                    converter=WaterfallColorsConverter()
+                    infotext="Please provide 6-digit hexadecimal RGB colors in HTML notation (#RRGGBB)"
+                    + " or HEX notation (0xRRGGBB), one per line",
+                    converter=WaterfallColorsConverter(),
                 ),
                 NumberInput(
                     "fft_fps",
