@@ -66,3 +66,20 @@ class JsonConverter(Converter):
 
     def convert_from_form(self, value):
         return json.loads(value)
+
+
+class WaterfallColorsConverter(Converter):
+    def convert_to_form(self, value):
+        if value is None:
+            return ""
+        return "\n".join("#{:06x}".format(v) for v in value)
+
+    def convert_from_form(self, value):
+        def parseString(s):
+            if s.startswith("#"):
+                return int(s[1:], 16)
+            # int() with base 0 can accept "0x" prefixed hex strings, or int numbers
+            return int(s, 0)
+
+        # \r\n or \n? this should work with both.
+        return [parseString(v.strip("\r ")) for v in value.split("\n")]

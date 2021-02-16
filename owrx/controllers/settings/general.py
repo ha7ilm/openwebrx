@@ -9,6 +9,7 @@ from owrx.form import (
     DropdownInput,
     Option,
 )
+from owrx.form.converter import WaterfallColorsConverter
 from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.gfx import AvatarInput, TopPhotoInput
 from owrx.waterfall import WaterfallOptions
@@ -79,6 +80,12 @@ class GeneralSettingsController(SettingsFormController):
                     "waterfall_scheme",
                     "Waterfall color scheme",
                     options=WaterfallOptions,
+                ),
+                TextAreaInput(
+                    "waterfall_colors",
+                    "Custom waterfall colors",
+                    infotext="TODO: describe",
+                    converter=WaterfallColorsConverter()
                 ),
                 NumberInput(
                     "fft_fps",
