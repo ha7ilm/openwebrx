@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+. /usr/share/debconf/confmodule
+
 OWRX_USER="openwebrx"
 OWRX_DATADIR="/var/lib/openwebrx"
 
@@ -14,7 +16,12 @@ case "$1" in
     chown "${OWRX_USER}". ${OWRX_DATADIR}
 
     # create initial openwebrx user
-    openwebrx-admin --noninteractive --silent adduser admin
+    db_get openwebrx/admin_user_password
+    if [ "${RET}" != "__DONE__" ]; then
+      OWRX_PASSWORD="${RET}" openwebrx-admin --noninteractive --silent adduser admin
+    fi
+    # remove actual password from debconf database, but leave a marker
+    db_set openwebrx/admin_user_password "__DONE__"
   ;;
   *)
     echo "postinst called with unknown argument '$1'" 1>&2
