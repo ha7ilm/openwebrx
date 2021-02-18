@@ -33,18 +33,11 @@ class SdrSettingsController(AuthorizationMixin, WebpageController):
                     {device_name}
                 </div>
                 <div class="card-body">
-                    {form}
+                    sdr detail goes here
                 </div>
             </div>
         """.format(
-            device_name=config["name"], form=self.render_form(device_id, config)
-        )
-
-    def render_form(self, device_id, config):
-        return """
-            <form class="sdrdevice" data-config="{formdata}"></form>
-        """.format(
-            device_id=device_id, formdata=quote(json.dumps(config))
+            device_name=config["name"]
         )
 
     def indexAction(self):
