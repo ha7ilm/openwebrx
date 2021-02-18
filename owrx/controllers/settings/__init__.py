@@ -67,7 +67,7 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
 
     def template_variables(self):
         variables = super().template_variables()
-        variables["sections"] = self.render_sections()
+        variables["content"] = self.render_sections()
         variables["title"] = self.getTitle()
         return variables
 
