@@ -19,9 +19,9 @@ case "$1" in
     db_get openwebrx/admin_user_password
     if [ ! -z "${RET}" ]; then
       OWRX_PASSWORD="${RET}" openwebrx-admin --noninteractive adduser admin
-      # remove actual password from debconf database
-      db_unregister openwebrx/admin_user_password
     fi
+    # remove password from debconf database
+    db_unregister openwebrx/admin_user_password
   ;;
   *)
     echo "postinst called with unknown argument '$1'" 1>&2
