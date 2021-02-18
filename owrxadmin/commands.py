@@ -4,6 +4,7 @@ from owrx.users import UserList, User, DefaultPasswordClass
 import sys
 import random
 import string
+import os
 
 
 class Command(ABC):
@@ -15,12 +16,16 @@ class Command(ABC):
 class UserCommand(Command, metaclass=ABCMeta):
     def getPassword(self, args, username):
         if args.noninteractive:
-            print("Generating password for user {username}...".format(username=username))
-            password = self.getRandomPassword()
-            generated = True
-            print('Password for {username} is "{password}".'.format(username=username, password=password))
-            print('This password is suitable for initial setup only, you will be asked to reset it on initial use.')
-            print('This password cannot be recovered from the system, please copy it now.')
+            if "OWRX_PASSWORD" in os.environ:
+                password = os.environ["OWRX_PASSWORD"]
+                generated = False
+            else:
+                print("Generating password for user {username}...".format(username=username))
+                password = self.getRandomPassword()
+                generated = True
+                print('Password for {username} is "{password}".'.format(username=username, password=password))
+                print('This password is suitable for initial setup only, you will be asked to reset it on initial use.')
+                print('This password cannot be recovered from the system, please copy it now.')
         else:
             password = getpass("Please enter the new password for {username}: ".format(username=username))
             confirm = getpass("Please confirm the new password: ")
