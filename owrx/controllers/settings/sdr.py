@@ -13,11 +13,18 @@ class SdrSettingsController(AuthorizationMixin, WebpageController):
 
     def template_variables(self):
         variables = super().template_variables()
-        variables["devices"] = self.render_devices()
+        variables["sections"] = self.render_devices()
+        variables["title"] = "SDR device settings"
         return variables
 
     def render_devices(self):
-        return "".join(self.render_device(key, value) for key, value in Config.get()["sdrs"].items())
+        return """
+            <div class="col-12">
+                {devices}
+            </div>
+        """.format(
+            devices="".join(self.render_device(key, value) for key, value in Config.get()["sdrs"].items())
+        )
 
     def render_device(self, device_id, config):
         return """
@@ -41,4 +48,4 @@ class SdrSettingsController(AuthorizationMixin, WebpageController):
         )
 
     def indexAction(self):
-        self.serve_template("settings/sdr.html", **self.template_variables())
+        self.serve_template("settings/general.html", **self.template_variables())
