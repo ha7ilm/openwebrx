@@ -19,7 +19,8 @@ case "$1" in
     if [ ! -e "${OWRX_USERS_FILE}" ]; then
       # create an empty users file now to avoid permission problems later
       echo "[]" > "${OWRX_USERS_FILE}"
-      chown "${OWRX_USER}". ${OWRX_USERS_FILE}
+      chown "${OWRX_USER}". "${OWRX_USERS_FILE}"
+      chmod 0600 "${OWRX_USERS_FILE}"
     fi
 
     db_get openwebrx/admin_user_password
