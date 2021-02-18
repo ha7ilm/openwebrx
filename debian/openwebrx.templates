@@ -1,6 +1,6 @@
 Template: openwebrx/admin_user_password
 Type: password
-Description: OpenWebRX "admin" user password
+Description: OpenWebRX "admin" user password:
  The system will create a user named "admin" for the OpenWebRX web
  configuration interface. You will be able to log into the "settings" area
  of OpenWebRX with this user to configure your receiver.
