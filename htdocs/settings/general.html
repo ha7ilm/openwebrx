@@ -2,18 +2,18 @@
 <html>
 <head>
     <title>OpenWebRX Settings</title>
-    <link rel="shortcut icon" type="image/x-icon" href="../static/favicon.ico" />
-    <link rel="stylesheet" href="../static/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="../static/css/admin.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="${assets_prefix}static/favicon.ico" />
+    <link rel="stylesheet" href="${assets_prefix}static/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="${assets_prefix}static/css/admin.css" />
     <script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
-    <script src="../compiled/settings.js"></script>
+    <script src="${assets_prefix}compiled/settings.js"></script>
     <meta charset="utf-8">
 </head>
 <body>
 ${header}
 <div class="container">
     <div class="row">
-        <h1 class="col-12">${title}s</h1>
+        <h1 class="col-12">${title}</h1>
     </div>
     ${content}
 </div>

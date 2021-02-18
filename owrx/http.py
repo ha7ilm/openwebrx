@@ -6,7 +6,7 @@ from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
 from owrx.controllers.settings import SettingsController
 from owrx.controllers.settings.general import GeneralSettingsController
-from owrx.controllers.settings.sdr import SdrSettingsController
+from owrx.controllers.settings.sdr import SdrDeviceListController, SdrDeviceController
 from owrx.controllers.settings.reporting import ReportingController
 from owrx.controllers.settings.backgrounddecoding import BackgroundDecodingController
 from owrx.controllers.settings.decoding import DecodingSettingsController
@@ -115,7 +115,8 @@ class Router(object):
             StaticRoute(
                 "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
             ),
-            StaticRoute("/settings/sdr", SdrSettingsController),
+            StaticRoute("/settings/sdr", SdrDeviceListController),
+            RegexRoute("/settings/sdr/(.+)", SdrDeviceController),
             StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
             RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="POST", options={"action": "update"}),

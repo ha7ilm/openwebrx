@@ -13,10 +13,6 @@ html, body {
     margin: 15px 15px 0;
 }
 
-.device {
-    margin-top: 20px;
-}
-
 .settings-section {
     margin-top: 3em;
 }
@@ -84,4 +80,8 @@ table.bookmarks .frequency {
 
 .wsjt-decoding-depths-table td:first-child {
     padding-left: 0;
+}
+
+.sdr-device-list .list-group-item {
+    background: initial;
 }

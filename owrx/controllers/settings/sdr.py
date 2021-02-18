@@ -1,9 +1,10 @@
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
 from owrx.config import Config
+from urllib.parse import quote, unquote
 
 
-class SdrSettingsController(AuthorizationMixin, WebpageController):
+class SdrDeviceListController(AuthorizationMixin, WebpageController):
     def header_variables(self):
         variables = super().header_variables()
         variables["assets_prefix"] = "../"
@@ -13,30 +14,59 @@ class SdrSettingsController(AuthorizationMixin, WebpageController):
         variables = super().template_variables()
         variables["content"] = self.render_devices()
         variables["title"] = "SDR device settings"
+        variables["assets_prefix"] = "../"
         return variables
 
     def render_devices(self):
         def render_device(device_id, config):
             return """
-            <div class="card device bg-dark text-white">
-                <div class="card-header">
-                    {device_name}
+            <li class="list-group-item">
+                <a href="{device_link}">
+                    <h3>{device_name}</h3>
+                </a>
+                <div>
+                    some more device info here
                 </div>
-                <div class="card-body">
-                    sdr detail goes here
-                </div>
-            </div>
+            </li>
         """.format(
-                device_name=config["name"]
+                device_name=config["name"],
+                device_link="{}/{}".format(self.request.path, quote(device_id)),
             )
 
         return """
-            <div class="col-12">
+            <ul class="row list-group list-group-flush sdr-device-list">
                 {devices}
-            </div>
+            </ul>
         """.format(
             devices="".join(render_device(key, value) for key, value in Config.get()["sdrs"].items())
         )
 
     def indexAction(self):
         self.serve_template("settings/general.html", **self.template_variables())
+
+
+class SdrDeviceController(AuthorizationMixin, WebpageController):
+    def get_device(self):
+        device_id = unquote(self.request.matches.group(1))
+        if device_id not in Config.get()["sdrs"]:
+            return None
+        return Config.get()["sdrs"][device_id]
+
+    def header_variables(self):
+        variables = super().header_variables()
+        variables["assets_prefix"] = "../../"
+        return variables
+
+    def template_variables(self, device):
+        variables = super().template_variables()
+        variables["title"] = device["name"]
+        variables["content"] = "TODO"
+        variables["assets_prefix"] = "../../"
+        return variables
+
+    def indexAction(self):
+        device = self.get_device()
+        if device is None:
+            self.send_response("device not found", code=404)
+            return
+        self.serve_template("settings/general.html", **self.template_variables(device))
