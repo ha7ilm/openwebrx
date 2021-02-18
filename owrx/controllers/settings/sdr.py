@@ -1,5 +1,7 @@
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
+from owrx.controllers.settings import SettingsFormController
+from owrx.controllers.settings.devices import SdrDeviceType
 from owrx.config import Config
 from urllib.parse import quote, unquote
 
@@ -45,8 +47,22 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
         self.serve_template("settings/general.html", **self.template_variables())
 
 
-class SdrDeviceController(AuthorizationMixin, WebpageController):
-    def get_device(self):
+class SdrDeviceController(SettingsFormController):
+    def __init__(self, handler, request, options):
+        super().__init__(handler, request, options)
+        self.device = self._get_device()
+
+    def getSections(self):
+        device_type = SdrDeviceType.getByType(self.device["type"])
+        if device_type is None:
+            # TODO provide a generic interface that allows to switch the type
+            return []
+        return [device_type.getSection()]
+
+    def getTitle(self):
+        return self.device["name"]
+
+    def _get_device(self):
         device_id = unquote(self.request.matches.group(1))
         if device_id not in Config.get()["sdrs"]:
             return None
@@ -57,16 +73,13 @@ class SdrDeviceController(AuthorizationMixin, WebpageController):
         variables["assets_prefix"] = "../../"
         return variables
 
-    def template_variables(self, device):
+    def template_variables(self):
         variables = super().template_variables()
-        variables["title"] = device["name"]
-        variables["content"] = "TODO"
         variables["assets_prefix"] = "../../"
         return variables
 
     def indexAction(self):
-        device = self.get_device()
-        if device is None:
+        if self.device is None:
             self.send_response("device not found", code=404)
             return
-        self.serve_template("settings/general.html", **self.template_variables(device))
+        self.serve_template("settings/general.html", **self.template_variables())

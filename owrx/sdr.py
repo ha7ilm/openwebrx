@@ -71,7 +71,7 @@ class SdrService(object):
     def getSources():
         SdrService._loadProps()
         for id in SdrService.sdrProps.keys():
-            if not id in SdrService.sources:
+            if id not in SdrService.sources:
                 props = SdrService.sdrProps[id]
                 sdrType = props["type"]
                 className = "".join(x for x in sdrType.title() if x.isalnum()) + "Source"
