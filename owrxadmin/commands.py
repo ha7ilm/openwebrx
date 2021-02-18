@@ -97,3 +97,19 @@ class ListUsers(Command):
         for u in userList.values():
             if args.all or u.enabled:
                 print("  {name}".format(name=u.name))
+
+
+class HasUser(Command):
+    """
+    internal command used by the debian config scripts to test if the admin user has already been created
+    """
+    def run(self, args):
+        userList = UserList()
+        if args.user in userList:
+            if not args.silent:
+                print('User "{name}" exists.'.format(name=args.user))
+        else:
+            if not args.silent:
+                print('User "{name}" does not exist.'.format(name=args.user))
+            # in bash, a return code > 0 is interpreted as "false"
+            sys.exit(1)

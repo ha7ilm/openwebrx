@@ -1,5 +1,5 @@
 from owrx.version import openwebrx_version
-from owrxadmin.commands import NewUser, DeleteUser, ResetPassword, ListUsers, DisableUser, EnableUser
+from owrxadmin.commands import NewUser, DeleteUser, ResetPassword, ListUsers, DisableUser, EnableUser, HasUser
 import argparse
 import sys
 import traceback
@@ -35,6 +35,10 @@ def main():
     enableuser_parser = subparsers.add_parser("enableuser", help="Enable a user")
     enableuser_parser.add_argument("user", help="Username to be enabled")
     enableuser_parser.set_defaults(cls=EnableUser)
+
+    hasuser_parser = subparsers.add_parser("hasuser", help="Test if a user exists")
+    hasuser_parser.add_argument("user", help="Username to be checked")
+    hasuser_parser.set_defaults(cls=HasUser)
 
     parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
     parser.add_argument(
