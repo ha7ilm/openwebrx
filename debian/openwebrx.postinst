@@ -5,6 +5,7 @@ set -euo pipefail
 
 OWRX_USER="openwebrx"
 OWRX_DATADIR="/var/lib/openwebrx"
+OWRX_USERS_FILE="${OWRX_DATADIR}/users.json"
 
 case "$1" in
   configure|reconfigure)
@@ -15,9 +16,15 @@ case "$1" in
     if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
     chown "${OWRX_USER}". ${OWRX_DATADIR}
 
-    # create initial openwebrx user
+    if [ ! -e "${OWRX_USERS_FILE}" ]; then
+      # create an empty users file now to avoid permission problems later
+      echo "[]" > "${OWRX_USERS_FILE}"
+      chown "${OWRX_USER}". ${$OWRX_USERS_FILE}
+    fi
+
     db_get openwebrx/admin_user_password
     if [ ! -z "${RET}" ]; then
+      # create initial openwebrx user
       OWRX_PASSWORD="${RET}" openwebrx-admin --noninteractive adduser admin
     fi
     # remove password from debconf database
