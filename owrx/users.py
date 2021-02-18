@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import json
 import hashlib
 import os
+import stat
 
 import logging
 
@@ -189,6 +190,8 @@ class UserList(object):
             jsonContent = json.dumps(users, indent=4)
             with open(usersFile, "w") as f:
                 f.write(jsonContent)
+            # file should be readable by us only
+            os.chmod(usersFile, stat.S_IWUSR + stat.S_IRUSR)
         except Exception:
             logger.exception("error while writing users file %s", usersFile)
         self.refresh()
