@@ -1,6 +1,16 @@
 Template: openwebrx/admin_user_password
 Type: password
 Description: OpenWebRX "admin" user password:
- The system will create a user named "admin" for the OpenWebRX web
- configuration interface. You will be able to log into the "settings" area
- of OpenWebRX with this user to configure your receiver.
+ The system can create a user for the OpenWebRX web configuration interface for
+ you. Using this user, you will be able to log into the "settings" area of
+ OpenWebRX to configure your receiver conveniently through your browser.
+ .
+ The name of the created user will be "admin".
+ .
+ If you do not wish to create a web admin user right now, you can leave this
+ empty for now. You can return to this prompt at a later time by running the
+ command "sudo dpkg-reconfigure openwebrx".
+ .
+ You can also use the "openwebrx-admin" command to create, delete or manage
+ existing users. More information is available in by running the command
+ "openwebrx-admin --help".
