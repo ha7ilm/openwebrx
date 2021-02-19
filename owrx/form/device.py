@@ -8,23 +8,29 @@ class GainInput(Input):
         self.gain_stages = gain_stages
 
     def render_input(self, value):
+        try:
+            display_value = float(value)
+        except (ValueError, TypeError):
+            display_value = "0.0"
+
         return """
             <div id="{id}">
                 <select class="{classes}" id="{id}-select" name="{id}-select">
                     {options}
                 </select>
                 <div class="option manual" style="display: none;">
-                    <input type="number" id="{id}-manual" name="{id}-manual" value="{value}" class="{classes}" placeholder="Manual device gain" step="any">
+                    <input type="number" id="{id}-manual" name="{id}-manual" value="{value}" class="{classes}"
+                    placeholder="Manual device gain" step="any">
                 </div>
                 {stageoption}
             </div>
         """.format(
             id=self.id,
             classes=self.input_classes(),
-            value="0.0" if value is None else value,
+            value=display_value,
             label=self.label,
             options=self.render_options(value),
-            stageoption=self.render_stage_option(value),
+            stageoption="" if self.gain_stages is None else self.render_stage_option(value),
         )
 
     def render_options(self, value):
@@ -41,9 +47,7 @@ class GainInput(Input):
             """
                 <option value="{value}" {selected}>{text}</option>
             """.format(
-                value=v[0],
-                text=v[1],
-                selected="selected" if mode == v[0] else ""
+                value=v[0], text=v[1], selected="selected" if mode == v[0] else ""
             )
             for v in options
         )
@@ -55,7 +59,7 @@ class GainInput(Input):
         try:
             float(value)
             return "manual"
-        except ValueError:
+        except (ValueError, TypeError):
             pass
 
         return "stages"
@@ -75,7 +79,8 @@ class GainInput(Input):
                 """
                     <div class="row">
                         <div class="col-3">{stage}</div>
-                        <input type="number" id="{id}-{stage}" name="{id}-{stage}" value="{value}" class="col-9 {classes}" placeholder="{stage}" step="any">
+                        <input type="number" id="{id}-{stage}" name="{id}-{stage}" value="{value}"
+                        class="col-9 {classes}" placeholder="{stage}" step="any">
                     </div>
                 """.format(
                     id=self.id,
@@ -93,7 +98,7 @@ class GainInput(Input):
             if input_id in data:
                 return data[input_id][0]
             else:
-                return 0.0
+                return None
 
         select_id = "{id}-select".format(id=self.id)
         if select_id in data:
@@ -102,12 +107,14 @@ class GainInput(Input):
                 value = 0.0
                 if input_id in data:
                     try:
-                        value = float(float(data[input_id][0]))
+                        value = float(data[input_id][0])
                     except ValueError:
                         pass
                 return {self.id: value}
-            if data[select_id][0] == "stages":
+            if self.gain_stages is not None and data[select_id][0] == "stages":
                 settings_dict = [{s: getStageValue(s)} for s in self.gain_stages]
+                # filter out empty ones
+                settings_dict = [s for s in settings_dict if next(iter(s.values()))]
                 return {self.id: SoapySettings.encode(settings_dict)}
 
         return {self.id: None}
