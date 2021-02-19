@@ -4,7 +4,8 @@ from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from typing import List
 from owrx.form import Input, TextInput
 from owrx.form.converter import OptionalConverter
-from owrx.form.soapy import SoapyGainInput
+from owrx.form.device import GainInput
+from owrx.soapy import SoapySettings
 
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
@@ -33,25 +34,6 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def getEventNames(self):
         return super().getEventNames() + list(self.getSoapySettingsMappings().keys())
 
-    def parseDeviceString(self, dstr):
-        def decodeComponent(c):
-            kv = c.split("=", 1)
-            if len(kv) < 2:
-                return c
-            else:
-                return {kv[0]: kv[1]}
-
-        return [decodeComponent(c) for c in dstr.split(",")]
-
-    def encodeDeviceString(self, dobj):
-        def encodeComponent(c):
-            if isinstance(c, str):
-                return c
-            else:
-                return ",".join(["{0}={1}".format(key, value) for key, value in c.items()])
-
-        return ",".join([encodeComponent(c) for c in dobj])
-
     def buildSoapyDeviceParameters(self, parsed, values):
         """
         this method always attempts to inject a driver= part into the soapysdr query, depending on what connector was used.
@@ -79,11 +61,11 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
     def getCommandValues(self):
         values = super().getCommandValues()
         if "device" in values and values["device"] is not None:
-            parsed = self.parseDeviceString(values["device"])
+            parsed = SoapySettings.parse(values["device"])
         else:
             parsed = []
         modified = self.buildSoapyDeviceParameters(parsed, values)
-        values["device"] = self.encodeDeviceString(modified)
+        values["device"] = SoapySettings.encode(modified)
         settings = ",".join(["{0}={1}".format(k, v) for k, v in self.buildSoapySettings(values).items()])
         if len(settings):
             values["soapy_settings"] = settings
@@ -111,7 +93,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                     infotext='SoapySDR device identifier string (example: "serial=123456789")',
                     converter=OptionalConverter()
                 ),
-                SoapyGainInput(
+                GainInput(
                     "rf_gain",
                     "Device Gain",
                     gain_stages=self.getGainStages(),
@@ -120,4 +102,4 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
         )
 
     def getGainStages(self):
-        return []
+        return None
