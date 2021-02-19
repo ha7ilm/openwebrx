@@ -1,7 +1,7 @@
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
 from owrx.controllers.settings import SettingsFormController
-from owrx.controllers.settings.devices import SdrDeviceType
+from owrx.controllers.settings.device import SdrDeviceDescription, SdrDeviceDescriptionMissing
 from owrx.config import Config
 from urllib.parse import quote, unquote
 
@@ -53,11 +53,12 @@ class SdrDeviceController(SettingsFormController):
         self.device = self._get_device()
 
     def getSections(self):
-        device_type = SdrDeviceType.getByType(self.device["type"])
-        if device_type is None:
+        try:
+            description = SdrDeviceDescription.getByType(self.device["type"])
+            return [description.getSection()]
+        except SdrDeviceDescriptionMissing:
             # TODO provide a generic interface that allows to switch the type
             return []
-        return [device_type.getSection()]
 
     def getTitle(self):
         return self.device["name"]
