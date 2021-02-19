@@ -150,6 +150,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/settings/BookmarkTable.js",
             "lib/settings/WsjtDecodingDepthsInput.js",
             "lib/settings/WaterfallDropdown.js",
+            "lib/settings/GainInput.js",
             "settings.js",
         ],
     }
