@@ -10,7 +10,8 @@ from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
-from owrx.form import Input, TextInput, NumberInput, CheckboxInput
+from owrx.form import Input, TextInput, NumberInput, CheckboxInput, FloatInput
+from owrx.form.converter import IntConverter, OptionalConverter
 from owrx.controllers.settings import Section
 from typing import List
 
@@ -375,14 +376,25 @@ class SdrDeviceDescription(object):
     def getInputs(self) -> List[Input]:
         return [
             TextInput("name", "Device name"),
-            NumberInput("ppm", "Frequency correction", append="ppm"),
+            NumberInput(
+                "ppm",
+                "Frequency correction",
+                append="ppm",
+                converter=OptionalConverter(IntConverter(), defaultFormValue="0"),
+            ),
             CheckboxInput(
                 "always-on",
                 "",
                 checkboxText="Keep device running at all times",
-                infotext="Prevents shutdown of the device when idle. Useful for devices with unreliable startup."
+                infotext="Prevents shutdown of the device when idle. Useful for devices with unreliable startup.",
             ),
-            CheckboxInput("services", "", "Run services on this device"),
+            CheckboxInput(
+                "services",
+                "",
+                "Run background services on this device",
+                converter=OptionalConverter(defaultFormValue=True),
+            ),
+            FloatInput("rf_gain", "Device gain"),
         ]
 
     def mergeInputs(self, *args):

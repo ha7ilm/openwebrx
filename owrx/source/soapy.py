@@ -3,6 +3,7 @@ from owrx.command import Option
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from typing import List
 from owrx.form import Input, TextInput
+from owrx.form.soapy import SoapyGainInput
 
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
@@ -108,5 +109,13 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                     "Device Identifier",
                     infotext='SoapySDR device identifier string (example: "serial=123456789")',
                 ),
+                SoapyGainInput(
+                    "rf_gain",
+                    "Device Gain",
+                    gain_stages=self.getGainStages(),
+                ),
             ],
         )
+
+    def getGainStages(self):
+        return []

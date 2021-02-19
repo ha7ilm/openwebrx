@@ -139,8 +139,8 @@ class TextAreaInput(Input):
 
 
 class CheckboxInput(Input):
-    def __init__(self, id, label, checkboxText, infotext=None):
-        super().__init__(id, label, infotext=infotext)
+    def __init__(self, id, label, checkboxText, infotext=None, converter: Converter = None):
+        super().__init__(id, label, infotext=infotext, converter=converter)
         self.checkboxText = checkboxText
 
     def render_input(self, value):
@@ -162,7 +162,7 @@ class CheckboxInput(Input):
         return " ".join(["form-check", "form-control-sm"])
 
     def parse(self, data):
-        return {self.id: self.id in data and data[self.id][0] == "on"}
+        return {self.id: self.converter.convert_from_form(self.id in data and data[self.id][0] == "on")}
 
 
 class Option(object):

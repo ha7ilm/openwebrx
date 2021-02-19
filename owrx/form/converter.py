@@ -22,15 +22,21 @@ class NullConverter(Converter):
 
 class OptionalConverter(Converter):
     """
-    Maps None to an empty string, and reverse
-    useful for optional fields
+    Transforms a special form value to None
+    The default is look for an empty string, but this can be used to adopt to other types.
+    If the default is not found, the actual value is passed to the sub_converter for further transformation.
+    useful for optional fields since None is not stored in the configuration
     """
 
+    def __init__(self, sub_converter: Converter = None, defaultFormValue=""):
+        self.sub_converter = NullConverter() if sub_converter is None else sub_converter
+        self.defaultFormValue = defaultFormValue
+
     def convert_to_form(self, value):
-        return "" if value is None else value
+        return self.defaultFormValue if value is None else self.sub_converter.convert_to_form(value)
 
     def convert_from_form(self, value):
-        return value if value else None
+        return None if value == self.defaultFormValue else self.sub_converter.convert_to_form(value)
 
 
 class IntConverter(Converter):

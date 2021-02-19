@@ -4,6 +4,7 @@ import socket
 from owrx.command import Flag, Option
 from typing import List
 from owrx.form import Input, NumberInput
+from owrx.form.converter import OptionalConverter, IntConverter
 
 import logging
 
@@ -84,6 +85,7 @@ class ConnectorDeviceDescription(SdrDeviceDescription):
                     infotext="Activate an rtl_tcp compatible interface on the port number specified.<br />"
                     + "Note: Port is only available on the local machine, not on the network.<br />"
                     + "Note: IQ data may be degraded by the downsampling process to 8 bits.",
+                    converter=OptionalConverter(IntConverter()),
                 )
             ],
         )

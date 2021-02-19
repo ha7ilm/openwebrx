@@ -20,4 +20,5 @@ class SdrplaySource(SoapyConnectorSource):
 
 
 class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getGainStages(self):
+        return ["RFGR", "IFGR"]

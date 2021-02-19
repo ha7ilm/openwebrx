@@ -117,6 +117,7 @@ class Router(object):
             ),
             StaticRoute("/settings/sdr", SdrDeviceListController),
             RegexRoute("/settings/sdr/(.+)", SdrDeviceController),
+            RegexRoute("/settings/sdr/(.+)", SdrDeviceController, method="POST", options={"action": "processFormData"}),
             StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
             RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="POST", options={"action": "update"}),

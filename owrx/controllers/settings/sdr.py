@@ -5,6 +5,10 @@ from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing
 from owrx.config import Config
 from urllib.parse import quote, unquote
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class SdrDeviceListController(AuthorizationMixin, WebpageController):
     def header_variables(self):
@@ -51,6 +55,13 @@ class SdrDeviceController(SettingsFormController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.device = self._get_device()
+
+    def getData(self):
+        return self.device
+
+    def processData(self, data):
+        # TODO implement storing of data here
+        logger.debug(data)
 
     def getSections(self):
         try:

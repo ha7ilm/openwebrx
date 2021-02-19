@@ -10,11 +10,10 @@ class Section(object):
         self.title = title
         self.inputs = inputs
 
-    def render_inputs(self):
-        config = Config.get()
-        return "".join([i.render(config) for i in self.inputs])
+    def render_inputs(self, data):
+        return "".join([i.render(data) for i in self.inputs])
 
-    def render(self):
+    def render(self, data):
         return """
             <div class="col-12 settings-section">
                 <h3 class="settings-header">
@@ -23,7 +22,7 @@ class Section(object):
                 {inputs}
             </div>
         """.format(
-            title=self.title, inputs=self.render_inputs()
+            title=self.title, inputs=self.render_inputs(data)
         )
 
     def parse(self, data):
@@ -44,8 +43,11 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
     def getTitle(self):
         pass
 
+    def getData(self):
+        return Config.get()
+
     def render_sections(self):
-        sections = "".join(section.render() for section in self.getSections())
+        sections = "".join(section.render(self.getData()) for section in self.getSections())
         return """
             <form class="settings-body" method="POST">
                 {sections}
@@ -78,6 +80,7 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
 
     def processFormData(self):
         self.processData(self.parseFormData())
+        self.send_redirect(self.request.path)
 
     def processData(self, data):
         config = Config.get()
@@ -88,4 +91,3 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
             else:
                 config[k] = v
         config.store()
-        self.send_redirect(self.request.path)
