@@ -36,7 +36,7 @@ class OptionalConverter(Converter):
         return self.defaultFormValue if value is None else self.sub_converter.convert_to_form(value)
 
     def convert_from_form(self, value):
-        return None if value == self.defaultFormValue else self.sub_converter.convert_to_form(value)
+        return None if value == self.defaultFormValue else self.sub_converter.convert_from_form(value)
 
 
 class IntConverter(Converter):

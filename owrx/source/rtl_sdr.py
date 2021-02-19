@@ -2,6 +2,7 @@ from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option
 from typing import List
 from owrx.form import Input, TextInput
+from owrx.form.converter import OptionalConverter
 
 
 class RtlSdrSource(ConnectorSource):
@@ -19,6 +20,11 @@ class RtlSdrDeviceDescription(ConnectorDeviceDescription):
         return self.mergeInputs(
             super().getInputs(),
             [
-                TextInput("device", "Device identifier", infotext="Device serial number or index"),
+                TextInput(
+                    "device",
+                    "Device identifier",
+                    infotext="Device serial number or index",
+                    converter=OptionalConverter(),
+                ),
             ],
         )

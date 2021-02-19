@@ -80,14 +80,17 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
 
     def processFormData(self):
         self.processData(self.parseFormData())
+        self.store()
         self.send_redirect(self.request.path)
 
     def processData(self, data):
-        config = Config.get()
+        config = self.getData()
         for k, v in data.items():
             if v is None:
                 if k in config:
                     del config[k]
             else:
                 config[k] = v
-        config.store()
+
+    def store(self):
+        Config.get().store()

@@ -11,7 +11,7 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput, FloatInput
-from owrx.form.converter import IntConverter, OptionalConverter
+from owrx.form.converter import IntConverter, OptionalConverter, FloatConverter
 from owrx.controllers.settings import Section
 from typing import List
 
@@ -394,7 +394,7 @@ class SdrDeviceDescription(object):
                 "Run background services on this device",
                 converter=OptionalConverter(defaultFormValue=True),
             ),
-            FloatInput("rf_gain", "Device gain"),
+            FloatInput("rf_gain", "Device gain", converter=OptionalConverter(FloatConverter())),
         ]
 
     def mergeInputs(self, *args):

@@ -54,14 +54,18 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
 class SdrDeviceController(SettingsFormController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
-        self.device = self._get_device()
+        self.device_id, self.device = self._get_device()
 
     def getData(self):
         return self.device
 
-    def processData(self, data):
-        # TODO implement storing of data here
-        logger.debug(data)
+    def store(self):
+        # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
+        config = Config.get()
+        sdrs = config["sdrs"]
+        sdrs[self.device_id] = self.getData()
+        config["sdrs"] = sdrs
+        super().store()
 
     def getSections(self):
         try:
@@ -78,7 +82,7 @@ class SdrDeviceController(SettingsFormController):
         device_id = unquote(self.request.matches.group(1))
         if device_id not in Config.get()["sdrs"]:
             return None
-        return Config.get()["sdrs"][device_id]
+        return device_id, Config.get()["sdrs"][device_id]
 
     def header_variables(self):
         variables = super().header_variables()
