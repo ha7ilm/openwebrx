@@ -1,6 +1,5 @@
 from owrx.form import Input
 from owrx.controllers.settings import Section
-from abc import ABC, abstractmethod
 from typing import List
 
 
@@ -8,7 +7,7 @@ class SdrDeviceDescriptionMissing(Exception):
     pass
 
 
-class SdrDeviceDescription(ABC):
+class SdrDeviceDescription(object):
     @staticmethod
     def getByType(sdr_type: str) -> "SdrDeviceDescription":
         try:
@@ -19,9 +18,13 @@ class SdrDeviceDescription(ABC):
         except (ModuleNotFoundError, AttributeError):
             raise SdrDeviceDescriptionMissing("Device description for type {} not available".format(sdr_type))
 
-    @abstractmethod
     def getInputs(self) -> List[Input]:
-        pass
+        return []
+
+    def mergeInputs(self, *args):
+        # build a dictionary indexed by the input id to make sure every id only exists once
+        inputs = {input.id: input for input_list in args for input in input_list}
+        return inputs.values()
 
     def getSection(self):
         return Section("Device settings", *self.getInputs())

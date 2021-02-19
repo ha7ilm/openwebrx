@@ -17,9 +17,9 @@ class RtlSdrSource(ConnectorSource):
 
 class RtlSdrDeviceDescription(SdrDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return [
-            TextInput(
-                "test",
-                "This is a drill"
-            ),
-        ]
+        return self.mergeInputs(
+            super().getInputs(),
+            [
+                TextInput("test", "This is a drill"),
+            ],
+        )
