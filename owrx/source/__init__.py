@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
-from owrx.form import Input, TextInput, NumberInput
+from owrx.form import Input, TextInput, NumberInput, CheckboxInput
 from owrx.controllers.settings import Section
 from typing import List
 
@@ -376,6 +376,13 @@ class SdrDeviceDescription(object):
         return [
             TextInput("name", "Device name"),
             NumberInput("ppm", "Frequency correction", append="ppm"),
+            CheckboxInput(
+                "always-on",
+                "",
+                checkboxText="Keep device running at all times",
+                infotext="Prevents shutdown of the device when idle. Useful for devices with unreliable startup."
+            ),
+            CheckboxInput("services", "", "Run services on this device"),
         ]
 
     def mergeInputs(self, *args):
