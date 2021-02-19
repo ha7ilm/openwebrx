@@ -1,6 +1,5 @@
-from .connector import ConnectorSource
+from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option
-from owrx.controllers.settings.device import SdrDeviceDescription
 from typing import List
 from owrx.form import Input, TextInput
 
@@ -15,11 +14,11 @@ class RtlSdrSource(ConnectorSource):
         )
 
 
-class RtlSdrDeviceDescription(SdrDeviceDescription):
+class RtlSdrDeviceDescription(ConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
         return self.mergeInputs(
             super().getInputs(),
             [
-                TextInput("test", "This is a drill"),
+                TextInput("device", "Device identifier", infotext="Device serial number or index"),
             ],
         )

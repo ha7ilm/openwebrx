@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from owrx.command import Option
-from .connector import ConnectorSource
+from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
+from typing import List
+from owrx.form import Input, TextInput
 
 
 class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
@@ -94,3 +96,17 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
         if settings:
             changes["settings"] = ",".join("{0}={1}".format(k, v) for k, v in settings.items())
         super().onPropertyChange(changes)
+
+
+class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
+    def getInputs(self) -> List[Input]:
+        return self.mergeInputs(
+            super().getInputs(),
+            [
+                TextInput(
+                    "device",
+                    "Device Identifier",
+                    infotext='SoapySDR device identifier string (example: "serial=123456789")',
+                ),
+            ],
+        )

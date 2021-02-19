@@ -1,4 +1,4 @@
-from .soapy import SoapyConnectorSource
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 
 
 class SdrplaySource(SoapyConnectorSource):
@@ -17,3 +17,7 @@ class SdrplaySource(SoapyConnectorSource):
 
     def getDriver(self):
         return "sdrplay"
+
+
+class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
+    pass

@@ -1,7 +1,7 @@
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
 from owrx.controllers.settings import SettingsFormController
-from owrx.controllers.settings.device import SdrDeviceDescription, SdrDeviceDescriptionMissing
+from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing
 from owrx.config import Config
 from urllib.parse import quote, unquote
 

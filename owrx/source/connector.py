@@ -1,7 +1,7 @@
-from . import SdrSource
+from owrx.source import SdrSource, SdrDeviceDescription
 from owrx.socket import getAvailablePort
 import socket
-from owrx.command import CommandMapper, Flag, Option
+from owrx.command import Flag, Option
 
 import logging
 
@@ -69,3 +69,7 @@ class ConnectorSource(SdrSource):
         values["port"] = self.getPort()
         values["controlPort"] = self.getControlPort()
         return values
+
+
+class ConnectorDeviceDescription(SdrDeviceDescription):
+    pass
