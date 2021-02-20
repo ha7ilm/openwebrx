@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass, SdrBusyState
 from owrx.config import Config
 import threading
 import math
@@ -220,7 +220,7 @@ class ServiceScheduler(SdrSourceEventClient):
         self.source.removeClient(self)
 
     def scheduleSelection(self, time=None):
-        if self.source.getState() == SdrSource.STATE_FAILED:
+        if self.source.getState() is SdrSourceState.FAILED:
             return
         seconds = 10
         if time is not None:
@@ -234,24 +234,24 @@ class ServiceScheduler(SdrSourceEventClient):
         if self.selectionTimer:
             self.selectionTimer.cancel()
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_BACKGROUND
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.BACKGROUND
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_STOPPING:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.STOPPING:
             self.scheduleSelection()
-        elif state == SdrSource.STATE_FAILED:
+        elif state is SdrSourceState.FAILED:
             self.cancelTimer()
 
-    def onBusyStateChange(self, state):
-        if state == SdrSource.BUSYSTATE_IDLE:
+    def onBusyStateChange(self, state: SdrBusyState):
+        if state is SdrBusyState.IDLE:
             self.scheduleSelection()
 
     def onFrequencyChange(self, changes):
         self.scheduleSelection()
 
     def selectProfile(self):
-        if self.source.hasClients(SdrSource.CLIENT_USER):
+        if self.source.hasClients(SdrClientClass.USER):
             logger.debug("source has active users; not touching")
             return
         logger.debug("source seems to be idle, selecting profile for background services")

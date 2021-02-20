@@ -3,7 +3,7 @@ from owrx.wsjt import WsjtParser
 from owrx.js8 import Js8Parser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrBusyState, SdrClientClass
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
@@ -198,21 +198,21 @@ class DspManager(csdr.output, SdrSourceEventClient):
     def setProperty(self, prop, value):
         self.localProps[prop] = value
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_USER
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.USER
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_RUNNING:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.RUNNING:
             logger.debug("received STATE_RUNNING, attempting DspSource restart")
             if self.startOnAvailable:
                 self.dsp.start()
                 self.startOnAvailable = False
-        elif state == SdrSource.STATE_STOPPING:
+        elif state is SdrSourceState.STOPPING:
             logger.debug("received STATE_STOPPING, shutting down DspSource")
             self.dsp.stop()
-        elif state == SdrSource.STATE_FAILED:
+        elif state is SdrSourceState.FAILED:
             logger.debug("received STATE_FAILED, shutting down DspSource")
             self.dsp.stop()
 
-    def onBusyStateChange(self, state):
+    def onBusyStateChange(self, state: SdrBusyState):
         pass

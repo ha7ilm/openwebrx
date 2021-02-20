@@ -15,40 +15,50 @@ from owrx.form.converter import IntConverter, OptionalConverter
 from owrx.form.device import GainInput
 from owrx.controllers.settings import Section
 from typing import List
+from enum import Enum, auto
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
+class SdrSourceState(Enum):
+    STOPPED = "Stopped"
+    STARTING = "Starting"
+    RUNNING = "Running"
+    STOPPING = "Stopping"
+    TUNING = "Tuning"
+    FAILED = "Failed"
+
+    def __str__(self):
+        return self.value
+
+
+class SdrBusyState(Enum):
+    IDLE = auto()
+    BUSY = auto()
+
+
+class SdrClientClass(Enum):
+    INACTIVE = auto()
+    BACKGROUND = auto()
+    USER = auto()
+
+
 class SdrSourceEventClient(ABC):
     @abstractmethod
-    def onStateChange(self, state):
+    def onStateChange(self, state: SdrSourceState):
         pass
 
     @abstractmethod
-    def onBusyStateChange(self, state):
+    def onBusyStateChange(self, state: SdrBusyState):
         pass
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_INACTIVE
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.INACTIVE
 
 
 class SdrSource(ABC):
-    STATE_STOPPED = 0
-    STATE_STARTING = 1
-    STATE_RUNNING = 2
-    STATE_STOPPING = 3
-    STATE_TUNING = 4
-    STATE_FAILED = 5
-
-    BUSYSTATE_IDLE = 0
-    BUSYSTATE_BUSY = 1
-
-    CLIENT_INACTIVE = 0
-    CLIENT_BACKGROUND = 1
-    CLIENT_USER = 2
-
     def __init__(self, id, props):
         self.id = id
 
@@ -78,8 +88,8 @@ class SdrSource(ABC):
         self.process = None
         self.modificationLock = threading.Lock()
         self.failed = False
-        self.state = SdrSource.STATE_STOPPED
-        self.busyState = SdrSource.BUSYSTATE_IDLE
+        self.state = SdrSourceState.STOPPED
+        self.busyState = SdrBusyState.IDLE
 
         self.validateProfiles()
 
@@ -218,11 +228,11 @@ class SdrSource(ABC):
                 rc = self.process.wait()
                 logger.debug("shut down with RC={0}".format(rc))
                 self.monitor = None
-                if self.getState() == SdrSource.STATE_RUNNING:
+                if self.getState() is SdrSourceState.RUNNING:
                     self.failed = True
-                    self.setState(SdrSource.STATE_FAILED)
+                    self.setState(SdrSourceState.FAILED)
                 else:
-                    self.setState(SdrSource.STATE_STOPPED)
+                    self.setState(SdrSourceState.STOPPED)
 
             self.monitor = threading.Thread(target=wait_for_process_to_end, name="source_monitor")
             self.monitor.start()
@@ -250,7 +260,7 @@ class SdrSource(ABC):
                 logger.exception("Exception during postStart()")
                 self.failed = True
 
-        self.setState(SdrSource.STATE_FAILED if self.failed else SdrSource.STATE_RUNNING)
+        self.setState(SdrSourceState.FAILED if self.failed else SdrSourceState.RUNNING)
 
     def preStart(self):
         """
@@ -271,7 +281,7 @@ class SdrSource(ABC):
         return self.failed
 
     def stop(self):
-        self.setState(SdrSource.STATE_STOPPING)
+        self.setState(SdrSourceState.STOPPING)
 
         with self.modificationLock:
 
@@ -291,11 +301,11 @@ class SdrSource(ABC):
     def addClient(self, c: SdrSourceEventClient):
         self.clients.append(c)
         c.onStateChange(self.getState())
-        hasUsers = self.hasClients(SdrSource.CLIENT_USER)
-        hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
+        hasUsers = self.hasClients(SdrClientClass.USER)
+        hasBackgroundTasks = self.hasClients(SdrClientClass.BACKGROUND)
         if hasUsers or hasBackgroundTasks:
             self.start()
-            self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
+            self.setBusyState(SdrBusyState.BUSY if hasUsers else SdrBusyState.IDLE)
 
     def removeClient(self, c: SdrSourceEventClient):
         try:
@@ -303,14 +313,14 @@ class SdrSource(ABC):
         except ValueError:
             pass
 
-        hasUsers = self.hasClients(SdrSource.CLIENT_USER)
-        self.setBusyState(SdrSource.BUSYSTATE_BUSY if hasUsers else SdrSource.BUSYSTATE_IDLE)
+        hasUsers = self.hasClients(SdrClientClass.USER)
+        self.setBusyState(SdrBusyState.BUSY if hasUsers else SdrBusyState.IDLE)
 
         # no need to check for users if we are always-on
         if self.isAlwaysOn():
             return
 
-        hasBackgroundTasks = self.hasClients(SdrSource.CLIENT_BACKGROUND)
+        hasBackgroundTasks = self.hasClients(SdrClientClass.BACKGROUND)
         if not hasUsers and not hasBackgroundTasks:
             self.stop()
 
@@ -341,17 +351,17 @@ class SdrSource(ABC):
         for c in self.spectrumClients:
             c.write_spectrum_data(data)
 
-    def getState(self):
+    def getState(self) -> SdrSourceState:
         return self.state
 
-    def setState(self, state):
+    def setState(self, state: SdrSourceState):
         if state == self.state:
             return
         self.state = state
         for c in self.clients:
             c.onStateChange(state)
 
-    def setBusyState(self, state):
+    def setBusyState(self, state: SdrBusyState):
         if state == self.busyState:
             return
         self.busyState = state

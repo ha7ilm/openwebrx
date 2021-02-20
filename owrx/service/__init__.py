@@ -1,5 +1,5 @@
 import threading
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrBusyState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
@@ -75,22 +75,22 @@ class ServiceHandler(SdrSourceEventClient):
         if "schedule" in props or "scheduler" in props:
             self.scheduler = ServiceScheduler(self.source)
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_INACTIVE
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.INACTIVE
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_RUNNING:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.RUNNING:
             self.scheduleServiceStartup()
-        elif state == SdrSource.STATE_STOPPING:
+        elif state is SdrSourceState.STOPPING:
             logger.debug("sdr source becoming unavailable; stopping services.")
             self.stopServices()
-        elif state == SdrSource.STATE_FAILED:
+        elif state is SdrSourceState.FAILED:
             logger.debug("sdr source failed; stopping services.")
             self.stopServices()
             if self.scheduler:
                 self.scheduler.shutdown()
 
-    def onBusyStateChange(self, state):
+    def onBusyStateChange(self, state: SdrBusyState):
         pass
 
     def isSupported(self, mode):
@@ -164,7 +164,8 @@ class ServiceHandler(SdrSourceEventClient):
                     for dial in group:
                         self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
 
-                    # resampler goes in after the services since it must not be shutdown as long as the services are still running
+                    # resampler goes in after the services since it must not be shutdown as long as the services are
+                    # still running
                     self.services.append(resampler)
 
     def get_min_max(self, group):

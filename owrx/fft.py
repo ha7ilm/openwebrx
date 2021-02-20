@@ -2,7 +2,7 @@ from owrx.config.core import CoreConfig
 from owrx.config import Config
 from csdr import csdr
 import threading
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrBusyState, SdrClientClass
 from owrx.property import PropertyStack
 
 import logging
@@ -73,14 +73,14 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
             c.cancel()
         self.subscriptions = []
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_USER
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.USER
 
-    def onStateChange(self, state):
-        if state in [SdrSource.STATE_STOPPING, SdrSource.STATE_FAILED]:
+    def onStateChange(self, state: SdrSourceState):
+        if state in [SdrSourceState.STOPPING, SdrSourceState.FAILED]:
             self.dsp.stop()
-        elif state == SdrSource.STATE_RUNNING:
+        elif state is SdrSourceState.RUNNING:
             self.dsp.start()
 
-    def onBusyStateChange(self, state):
+    def onBusyStateChange(self, state: SdrBusyState):
         pass

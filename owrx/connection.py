@@ -2,7 +2,7 @@ from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceState, SdrBusyState, SdrClientClass, SdrSourceEventClient
 from owrx.client import ClientRegistry, TooManyClientsException
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
@@ -216,10 +216,10 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.configSubs.append(globalConfig.wire(writeConfig))
         writeConfig(globalConfig.__dict__())
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_RUNNING:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.RUNNING:
             self.handleSdrAvailable()
-        elif state == SdrSource.STATE_FAILED:
+        elif state is SdrSourceState.FAILED:
             self.handleSdrFailed()
 
     def handleSdrFailed(self):
@@ -227,11 +227,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
         self.setSdr()
 
-    def onBusyStateChange(self, state):
+    def onBusyStateChange(self, state: SdrBusyState):
         pass
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_USER
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.USER
 
     def __sendProfiles(self):
         profiles = [
