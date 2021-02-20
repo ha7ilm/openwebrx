@@ -3,7 +3,7 @@ from owrx.socket import getAvailablePort
 import socket
 from owrx.command import Flag, Option
 from typing import List
-from owrx.form import Input, NumberInput
+from owrx.form import Input, NumberInput, CheckboxInput
 from owrx.form.converter import OptionalConverter, IntConverter
 
 import logging
@@ -86,6 +86,13 @@ class ConnectorDeviceDescription(SdrDeviceDescription):
                     + "Note: Port is only available on the local machine, not on the network.<br />"
                     + "Note: IQ data may be degraded by the downsampling process to 8 bits.",
                     converter=OptionalConverter(IntConverter()),
-                )
+                ),
+                CheckboxInput(
+                    "iqswap",
+                    "",
+                    checkboxText="Swap I and Q channels",
+                    infotext="Swapping inverts the spectrum, so this is useful in combination with an inverting mixer",
+                    converter=OptionalConverter(defaultFormValue=False),
+                ),
             ],
         )

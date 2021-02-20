@@ -396,6 +396,17 @@ class SdrDeviceDescription(object):
                 converter=OptionalConverter(defaultFormValue=True),
             ),
             GainInput("rf_gain", "Device gain"),
+            NumberInput(
+                "lfo_offset",
+                "Oscilator offset",
+                append="Hz",
+                infotext="Use this when the actual receiving frequency differs from the frequency to be tuned on the"
+                + " device. <br/> Formula: Center frequency + oscillator offset = sdr tune frequency",
+                converter=OptionalConverter(),
+            ),
+            NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS", converter=OptionalConverter()),
+            NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS", converter=OptionalConverter()),
+            # TODO `schedule`
         ]
 
     def mergeInputs(self, *args):

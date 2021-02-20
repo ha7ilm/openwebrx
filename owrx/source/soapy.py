@@ -98,6 +98,11 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                     "Device Gain",
                     gain_stages=self.getGainStages(),
                 ),
+                TextInput(
+                    "antenna",
+                    "Antenna",
+                    converter=OptionalConverter(),
+                ),
             ],
         )
 
