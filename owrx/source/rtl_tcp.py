@@ -1,5 +1,8 @@
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option, Argument
+from owrx.form import Input
+from owrx.form.device import RemoteInput
+from typing import List
 
 
 class RtlTcpSource(ConnectorSource):
@@ -19,4 +22,5 @@ class RtlTcpSource(ConnectorSource):
 
 
 class RtlTcpDeviceDescription(ConnectorDeviceDescription):
-    pass
+    def getInputs(self) -> List[Input]:
+        return self.mergeInputs(super().getInputs(), [RemoteInput()])

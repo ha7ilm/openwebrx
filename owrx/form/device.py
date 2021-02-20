@@ -1,4 +1,4 @@
-from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum
+from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
 from owrx.form.converter import OptionalConverter, EnumConverter
 from owrx.soapy import SoapySettings
 
@@ -154,4 +154,11 @@ class DirectSamplingInput(DropdownInput):
                 EnumConverter(DirectSamplingOptions),
                 defaultFormValue=DirectSamplingOptions.DIRECT_SAMPLING_OFF.name,
             ),
+        )
+
+
+class RemoteInput(TextInput):
+    def __init__(self):
+        super().__init__(
+            "remote", "Remote IP and Port", infotext="Remote hostname or IP and port to connect to. Format = IP:Port"
         )

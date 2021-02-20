@@ -1,4 +1,7 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
+from owrx.form import Input, TextInput
+from owrx.form.device import RemoteInput
+from typing import List
 
 
 class SoapyRemoteSource(SoapyConnectorSource):
@@ -18,4 +21,13 @@ class SoapyRemoteSource(SoapyConnectorSource):
 
 
 class SoapyRemoteDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getInputs(self) -> List[Input]:
+        return self.mergeInputs(
+            super().getInputs(),
+            [
+                RemoteInput(),
+                TextInput(
+                    "remote_driver", "Remote driver", infotext="SoapySDR driver to be used on the remote SoapySDRServer"
+                ),
+            ],
+        )
