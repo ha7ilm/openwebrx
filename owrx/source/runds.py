@@ -1,4 +1,4 @@
-from owrx.source.connector import ConnectorSource
+from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Argument, Flag, Option
 
 
@@ -16,3 +16,7 @@ class RundsSource(ConnectorSource):
                 }
             )
         )
+
+
+class RundsDeviceDescription(ConnectorDeviceDescription):
+    pass

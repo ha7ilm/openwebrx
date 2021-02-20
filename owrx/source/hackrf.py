@@ -1,4 +1,4 @@
-from .soapy import SoapyConnectorSource
+from .soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 
 
 class HackrfSource(SoapyConnectorSource):
@@ -9,3 +9,7 @@ class HackrfSource(SoapyConnectorSource):
 
     def getDriver(self):
         return "hackrf"
+
+
+class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
+    pass

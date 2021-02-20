@@ -1,4 +1,4 @@
-from .soapy import SoapyConnectorSource
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 
 
 class RtlSdrSoapySource(SoapyConnectorSource):
@@ -9,3 +9,7 @@ class RtlSdrSoapySource(SoapyConnectorSource):
 
     def getDriver(self):
         return "rtlsdr"
+
+
+class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
+    pass

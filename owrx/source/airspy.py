@@ -1,5 +1,4 @@
-from owrx.command import Flag
-from .soapy import SoapyConnectorSource
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 
 
 class AirspySource(SoapyConnectorSource):
@@ -15,3 +14,7 @@ class AirspySource(SoapyConnectorSource):
 
     def getDriver(self):
         return "airspy"
+
+
+class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
+    pass

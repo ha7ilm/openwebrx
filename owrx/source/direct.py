@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from . import SdrSource
+from owrx.source import SdrSource, SdrDeviceDescription
 
 import logging
 
@@ -51,3 +51,7 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
     # override this in subclasses, if necessary
     def sleepOnRestart(self):
         pass
+
+
+class DirectSourceDeviceDescription(SdrDeviceDescription):
+    pass

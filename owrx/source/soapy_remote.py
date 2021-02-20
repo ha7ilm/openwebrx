@@ -1,4 +1,4 @@
-from .soapy import SoapyConnectorSource
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 
 
 class SoapyRemoteSource(SoapyConnectorSource):
@@ -15,3 +15,7 @@ class SoapyRemoteSource(SoapyConnectorSource):
         if "remote_driver" in values and values["remote_driver"] is not None:
             params += [{"remote:driver": values["remote_driver"]}]
         return params
+
+
+class SoapyRemoteDeviceDescription(SoapyConnectorDeviceDescription):
+    pass

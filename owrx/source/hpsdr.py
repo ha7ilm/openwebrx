@@ -1,5 +1,5 @@
-from .connector import ConnectorSource
-from owrx.command import Flag, Option
+from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
+from owrx.command import Option
 
 # In order to use an HPSDR radio, you must install hpsdrconnector from https://github.com/jancona/hpsdrconnector
 # These are the command line options available:
@@ -33,3 +33,7 @@ class HpsdrSource(ConnectorSource):
                 }
             )
         )
+
+
+class HpsdrDeviceDescription(ConnectorDeviceDescription):
+    pass
