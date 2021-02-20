@@ -4,10 +4,7 @@ from owrx.controllers.settings import SettingsFormController
 from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing
 from owrx.config import Config
 from urllib.parse import quote, unquote
-
-import logging
-
-logger = logging.getLogger(__name__)
+from owrx.sdr import SdrService
 
 
 class SdrDeviceListController(AuthorizationMixin, WebpageController):
@@ -25,18 +22,22 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
 
     def render_devices(self):
         def render_device(device_id, config):
+            # TODO: this only returns non-failed sources...
+            source = SdrService.getSource(device_id)
+
             return """
-            <li class="list-group-item">
-                <a href="{device_link}">
-                    <h3>{device_name}</h3>
-                </a>
-                <div>
-                    some more device info here
-                </div>
-            </li>
-        """.format(
+                <li class="list-group-item">
+                    <a href="{device_link}">
+                        <h3>{device_name}</h3>
+                    </a>
+                    <div>State: {state}</div>
+                    <div>{num_profiles} profile(s)</div>
+                </li>
+            """.format(
                 device_name=config["name"],
                 device_link="{}/{}".format(self.request.path, quote(device_id)),
+                state="Unknown" if source is None else source.getState(),
+                num_profiles=len(config["profiles"]),
             )
 
         return """
