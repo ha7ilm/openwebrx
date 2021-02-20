@@ -388,6 +388,7 @@ class SdrDeviceDescription(object):
                 "",
                 checkboxText="Keep device running at all times",
                 infotext="Prevents shutdown of the device when idle. Useful for devices with unreliable startup.",
+                converter=OptionalConverter(defaultFormValue=False),
             ),
             CheckboxInput(
                 "services",
