@@ -1,4 +1,5 @@
-from owrx.form import Input
+from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum
+from owrx.form.converter import OptionalConverter, EnumConverter
 from owrx.soapy import SoapySettings
 
 
@@ -118,3 +119,39 @@ class GainInput(Input):
                 return {self.id: SoapySettings.encode(settings_dict)}
 
         return {self.id: None}
+
+
+class BiasTeeInput(CheckboxInput):
+    def __init__(self):
+        super().__init__(
+            "bias_tee", "", "Enable Bias-Tee power supply", converter=OptionalConverter(defaultFormValue=False)
+        )
+
+
+class DirectSamplingOptions(DropdownEnum):
+    DIRECT_SAMPLING_OFF = (0, "Off")
+    DIRECT_SAMPLING_I = (1, "Direct Sampling (I branch)")
+    DIRECT_SAMPLING_Q = (2, "Direct Sampling (Q branch)")
+
+    def __new__(cls, *args, **kwargs):
+        value, description = args
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.description = description
+        return obj
+
+    def __str__(self):
+        return self.description
+
+
+class DirectSamplingInput(DropdownInput):
+    def __init__(self):
+        super().__init__(
+            "direct_sampling",
+            "Direct Sampling",
+            DirectSamplingOptions,
+            converter=OptionalConverter(
+                EnumConverter(DirectSamplingOptions),
+                defaultFormValue=DirectSamplingOptions.DIRECT_SAMPLING_OFF.name,
+            ),
+        )

@@ -1,4 +1,7 @@
-from .soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
+from owrx.form import Input
+from owrx.form.device import BiasTeeInput
+from typing import List
 
 
 class HackrfSource(SoapyConnectorSource):
@@ -12,4 +15,5 @@ class HackrfSource(SoapyConnectorSource):
 
 
 class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getInputs(self) -> List[Input]:
+        return self.mergeInputs(super().getInputs(), [BiasTeeInput])

@@ -1,4 +1,7 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
+from owrx.form import Input
+from owrx.form.device import BiasTeeInput, DirectSamplingInput
+from typing import List
 
 
 class RtlSdrSoapySource(SoapyConnectorSource):
@@ -12,4 +15,5 @@ class RtlSdrSoapySource(SoapyConnectorSource):
 
 
 class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getInputs(self) -> List[Input]:
+        return self.mergeInputs(super().getInputs(), [BiasTeeInput(), DirectSamplingInput()])

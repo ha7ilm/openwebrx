@@ -3,6 +3,7 @@ from owrx.command import Flag, Option
 from typing import List
 from owrx.form import Input, TextInput
 from owrx.form.converter import OptionalConverter
+from owrx.form.device import BiasTeeInput, DirectSamplingInput
 
 
 class RtlSdrSource(ConnectorSource):
@@ -26,5 +27,7 @@ class RtlSdrDeviceDescription(ConnectorDeviceDescription):
                     infotext="Device serial number or index",
                     converter=OptionalConverter(),
                 ),
+                BiasTeeInput(),
+                DirectSamplingInput()
             ],
         )
