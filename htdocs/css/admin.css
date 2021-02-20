@@ -82,6 +82,7 @@ table.bookmarks .frequency {
     padding-left: 0;
 }
 
-.sdr-device-list .list-group-item {
+.sdr-device-list .list-group-item,
+.sdr-profile-list .list-group-item {
     background: initial;
 }

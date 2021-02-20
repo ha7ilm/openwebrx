@@ -95,6 +95,29 @@ class SdrDeviceController(SettingsFormController):
         variables["assets_prefix"] = "../../"
         return variables
 
+    def render_sections(self):
+        return super().render_sections() + self.render_profile_list(self.device["profiles"])
+
+    def render_profile_list(self, profiles):
+        def render_profile(profile_id, profile):
+            return """
+                <li class="list-group-item">
+                    <a href="{profile_link}">{profile_name}</a>
+                </li>
+            """.format(
+                profile_name=profile["name"],
+                profile_link="{}/{}".format(self.request.path, quote(profile_id)),
+            )
+
+        return """
+            <h3 class="settings-header">Profiles</h3>
+            <ul class="row list-group list-group-flush sdr-profile-list">
+                {profiles}
+            </ul>
+        """.format(
+            profiles="".join(render_profile(p_id, p) for p_id, p in profiles.items())
+        )
+
     def indexAction(self):
         if self.device is None:
             self.send_response("device not found", code=404)

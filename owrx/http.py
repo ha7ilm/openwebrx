@@ -100,11 +100,11 @@ class Router(object):
         self.routes = [
             StaticRoute("/", IndexController),
             StaticRoute("/status.json", StatusController),
-            RegexRoute("/static/(.+)", OwrxAssetsController),
-            RegexRoute("/compiled/(.+)", CompiledAssetsController),
-            RegexRoute("/aprs-symbols/(.+)", AprsSymbolsController),
+            RegexRoute("^/static/(.+)$", OwrxAssetsController),
+            RegexRoute("^/compiled/(.+)$", CompiledAssetsController),
+            RegexRoute("^/aprs-symbols/(.+)$", AprsSymbolsController),
             StaticRoute("/ws/", WebSocketController),
-            RegexRoute("(/favicon.ico)", OwrxAssetsController),
+            RegexRoute("^(/favicon.ico)$", OwrxAssetsController),
             StaticRoute("/map", MapController),
             StaticRoute("/features", FeatureController),
             StaticRoute("/api/features", ApiController),
@@ -116,12 +116,12 @@ class Router(object):
                 "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
             ),
             StaticRoute("/settings/sdr", SdrDeviceListController),
-            RegexRoute("/settings/sdr/(.+)", SdrDeviceController),
-            RegexRoute("/settings/sdr/(.+)", SdrDeviceController, method="POST", options={"action": "processFormData"}),
+            RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController),
+            RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}),
             StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
-            RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="POST", options={"action": "update"}),
-            RegexRoute("/settings/bookmarks/(.+)", BookmarksController, method="DELETE", options={"action": "delete"}),
+            RegexRoute("^/settings/bookmarks/(.+)$", BookmarksController, method="POST", options={"action": "update"}),
+            RegexRoute("^/settings/bookmarks/(.+)$", BookmarksController, method="DELETE", options={"action": "delete"}),
             StaticRoute("/settings/reporting", ReportingController),
             StaticRoute(
                 "/settings/reporting", ReportingController, method="POST", options={"action": "processFormData"}
