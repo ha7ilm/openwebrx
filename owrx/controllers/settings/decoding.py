@@ -37,14 +37,13 @@ class DecodingSettingsController(SettingsFormController):
                 ),
                 CheckboxInput(
                     "digital_voice_dmr_id_lookup",
-                    "DMR id lookup",
-                    checkboxText='Enable lookup of DMR ids in the <a href="https://www.radioid.net/" target="_blank">'
+                    'Enable lookup of DMR ids in the <a href="https://www.radioid.net/" target="_blank">'
                     + "radioid</a> database to show callsigns and names",
                 ),
             ),
             Section(
                 "Digimodes",
-                CheckboxInput("digimodes_enable", "", checkboxText="Enable Digimodes"),
+                CheckboxInput("digimodes_enable", "Enable Digimodes"),
                 NumberInput("digimodes_fft_size", "Digimodes FFT size", append="bins"),
             ),
             Section(

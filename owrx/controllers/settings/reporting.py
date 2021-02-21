@@ -14,8 +14,7 @@ class ReportingController(SettingsFormController):
                 "APRS-IS reporting",
                 CheckboxInput(
                     "aprs_igate_enabled",
-                    "APRS I-Gate",
-                    checkboxText="Send received APRS data to APRS-IS",
+                    "Send received APRS data to APRS-IS",
                 ),
                 TextInput(
                     "aprs_callsign",
@@ -26,8 +25,7 @@ class ReportingController(SettingsFormController):
                 TextInput("aprs_igate_password", "APRS-IS network password"),
                 CheckboxInput(
                     "aprs_igate_beacon",
-                    "APRS beacon",
-                    checkboxText="Send the receiver position to the APRS-IS network",
+                    "Send the receiver position to the APRS-IS network",
                     infotext="Please check that your receiver location is setup correctly before enabling the beacon",
                 ),
                 DropdownInput(
@@ -60,8 +58,7 @@ class ReportingController(SettingsFormController):
                 "pskreporter settings",
                 CheckboxInput(
                     "pskreporter_enabled",
-                    "Reporting",
-                    checkboxText="Enable sending spots to pskreporter.info",
+                    "Enable sending spots to pskreporter.info",
                 ),
                 TextInput(
                     "pskreporter_callsign",
@@ -79,8 +76,7 @@ class ReportingController(SettingsFormController):
                 "WSPRnet settings",
                 CheckboxInput(
                     "wsprnet_enabled",
-                    "Reporting",
-                    checkboxText="Enable sending spots to wsprnet.org",
+                    "Enable sending spots to wsprnet.org",
                 ),
                 TextInput(
                     "wsprnet_callsign",

@@ -124,7 +124,7 @@ class GainInput(Input):
 class BiasTeeInput(CheckboxInput):
     def __init__(self):
         super().__init__(
-            "bias_tee", "", "Enable Bias-Tee power supply", converter=OptionalConverter(defaultFormValue=False)
+            "bias_tee", "Enable Bias-Tee power supply", converter=OptionalConverter(defaultFormValue=False)
         )
 
 

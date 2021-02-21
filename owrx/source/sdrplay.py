@@ -42,14 +42,12 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
             BiasTeeInput(),
             CheckboxInput(
                 "rf_notch",
-                "",
-                checkboxText="Enable RF notch filter",
+                "Enable RF notch filter",
                 converter=OptionalConverter(defaultFormValue=True),
             ),
             CheckboxInput(
                 "dab_notch",
-                "",
-                checkboxText="Enable DAB notch filter",
+                "Enable DAB notch filter",
                 converter=OptionalConverter(defaultFormValue=True),
             ),
             DropdownInput(

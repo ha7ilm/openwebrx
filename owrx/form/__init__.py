@@ -139,8 +139,8 @@ class TextAreaInput(Input):
 
 
 class CheckboxInput(Input):
-    def __init__(self, id, label, checkboxText, infotext=None, converter: Converter = None):
-        super().__init__(id, label, infotext=infotext, converter=converter)
+    def __init__(self, id, checkboxText, infotext=None, converter: Converter = None):
+        super().__init__(id, "", infotext=infotext, converter=converter)
         self.checkboxText = checkboxText
 
     def render_input(self, value):

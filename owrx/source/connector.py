@@ -87,8 +87,7 @@ class ConnectorDeviceDescription(SdrDeviceDescription):
             ),
             CheckboxInput(
                 "iqswap",
-                "",
-                checkboxText="Swap I and Q channels",
+                "Swap I and Q channels",
                 infotext="Swapping inverts the spectrum, so this is useful in combination with an inverting mixer",
                 converter=OptionalConverter(defaultFormValue=False),
             ),

@@ -12,8 +12,7 @@ class BackgroundDecodingController(SettingsFormController):
                 "Background decoding",
                 CheckboxInput(
                     "services_enabled",
-                    "Service",
-                    checkboxText="Enable background decoding services",
+                    "Enable background decoding services",
                 ),
                 ServicesCheckboxInput("services_decoders", "Enabled services"),
             ),

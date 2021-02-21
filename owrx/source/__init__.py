@@ -392,7 +392,7 @@ class SdrDeviceDescription(object):
     def getInputs(self) -> List[Input]:
         return [
             TextInput("name", "Device name"),
-            CheckboxInput("enabled", "", "Enable this device", converter=OptionalConverter(defaultFormValue=True)),
+            CheckboxInput("enabled", "Enable this device", converter=OptionalConverter(defaultFormValue=True)),
             NumberInput(
                 "ppm",
                 "Frequency correction",
@@ -401,8 +401,7 @@ class SdrDeviceDescription(object):
             ),
             CheckboxInput(
                 "always-on",
-                "",
-                checkboxText="Keep device running at all times",
+                "Keep device running at all times",
                 infotext="Prevents shutdown of the device when idle. Useful for devices with unreliable startup.",
                 converter=OptionalConverter(defaultFormValue=False),
             ),

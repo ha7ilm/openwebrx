@@ -26,8 +26,7 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
             BiasTeeInput(),
             CheckboxInput(
                 "bitpack",
-                "",
-                checkboxText="Enable bit-packing",
+                "Enable bit-packing",
                 infotext="Packs two 12-bit samples into 3 bytes."
                 + " Lowers USB bandwidth consumption, increases CPU load",
                 converter=OptionalConverter(defaultFormValue=False),
