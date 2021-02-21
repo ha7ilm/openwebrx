@@ -376,6 +376,9 @@ class SdrDeviceDescriptionMissing(Exception):
 
 
 class SdrDeviceDescription(object):
+    def __init__(self):
+        self.indexedInputs = {input.id: input for input in self.getInputs()}
+
     @staticmethod
     def getByType(sdr_type: str) -> "SdrDeviceDescription":
         try:
@@ -423,10 +426,14 @@ class SdrDeviceDescription(object):
             # TODO `schedule`
         ]
 
-    def mergeInputs(self, *args):
-        # build a dictionary indexed by the input id to make sure every id only exists once
-        inputs = {input.id: input for input_list in args for input in input_list}
-        return inputs.values()
+    def getMandatoryKeys(self):
+        return ["name", "enabled"]
 
-    def getSection(self):
-        return Section("Device settings", *self.getInputs())
+    def getOptionalKeys(self):
+        return ["ppm", "always-on", "services", "rf_gain", "lfo_offset", "waterfall_min_level", "waterfall_max_level"]
+
+    def getSection(self, data):
+        visible_keys = set(self.getMandatoryKeys() + [k for k in self.getOptionalKeys() if k in data])
+        inputs = [input for k, input in self.indexedInputs.items() if k in visible_keys]
+        # TODO: render remaining keys in optional area
+        return Section("Device settings", *inputs)

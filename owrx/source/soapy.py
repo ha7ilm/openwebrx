@@ -84,27 +84,27 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
 
 class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                TextInput(
-                    "device",
-                    "Device Identifier",
-                    infotext='SoapySDR device identifier string (example: "serial=123456789")',
-                    converter=OptionalConverter()
-                ),
-                GainInput(
-                    "rf_gain",
-                    "Device Gain",
-                    gain_stages=self.getGainStages(),
-                ),
-                TextInput(
-                    "antenna",
-                    "Antenna",
-                    converter=OptionalConverter(),
-                ),
-            ],
-        )
+        return super().getInputs() + [
+            TextInput(
+                "device",
+                "Device Identifier",
+                infotext='SoapySDR device identifier string (example: "serial=123456789")',
+                converter=OptionalConverter()
+            ),
+            GainInput(
+                "rf_gain",
+                "Device Gain",
+                gain_stages=self.getGainStages(),
+            ),
+            TextInput(
+                "antenna",
+                "Antenna",
+                converter=OptionalConverter(),
+            ),
+        ]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["device", "rf_gain", "antenna"]
 
     def getGainStages(self):
         return None

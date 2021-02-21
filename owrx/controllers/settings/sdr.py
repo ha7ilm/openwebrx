@@ -71,7 +71,7 @@ class SdrDeviceController(SettingsFormController):
     def getSections(self):
         try:
             description = SdrDeviceDescription.getByType(self.device["type"])
-            return [description.getSection()]
+            return [description.getSection(self.device)]
         except SdrDeviceDescriptionMissing:
             # TODO provide a generic interface that allows to switch the type
             return []

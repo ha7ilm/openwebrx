@@ -39,13 +39,13 @@ class ProtocolOptions(DropdownEnum):
 
 class RundsDeviceDescription(ConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                RemoteInput(),
-                DropdownInput("protocol", "Protocol", ProtocolOptions),
-                CheckboxInput(
-                    "long", "", "Use 32-bit sample size (LONG)", converter=OptionalConverter(defaultFormValue=False)
-                ),
-            ],
-        )
+        return super().getInputs() + [
+            RemoteInput(),
+            DropdownInput("protocol", "Protocol", ProtocolOptions),
+            CheckboxInput(
+                "long", "", "Use 32-bit sample size (LONG)", converter=OptionalConverter(defaultFormValue=False)
+            ),
+        ]
+
+    def getMandatoryKeys(self):
+        return super().getMandatoryKeys() + ["device"]

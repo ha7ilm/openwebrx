@@ -16,4 +16,7 @@ class RtlSdrSoapySource(SoapyConnectorSource):
 
 class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(super().getInputs(), [BiasTeeInput(), DirectSamplingInput()])
+        return super().getInputs() + [BiasTeeInput(), DirectSamplingInput()]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["bias_tee", "direct_sampling"]

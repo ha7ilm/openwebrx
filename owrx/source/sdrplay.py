@@ -38,29 +38,29 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
         return ["RFGR", "IFGR"]
 
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                BiasTeeInput(),
-                CheckboxInput(
-                    "rf_notch",
-                    "",
-                    checkboxText="Enable RF notch filter",
-                    converter=OptionalConverter(defaultFormValue=True),
+        return super().getInputs() + [
+            BiasTeeInput(),
+            CheckboxInput(
+                "rf_notch",
+                "",
+                checkboxText="Enable RF notch filter",
+                converter=OptionalConverter(defaultFormValue=True),
+            ),
+            CheckboxInput(
+                "dab_notch",
+                "",
+                checkboxText="Enable DAB notch filter",
+                converter=OptionalConverter(defaultFormValue=True),
+            ),
+            DropdownInput(
+                "if_mode",
+                "IF Mode",
+                IfModeOptions,
+                converter=OptionalConverter(
+                    EnumConverter(IfModeOptions), defaultFormValue=IfModeOptions.IFMODE_ZERO_IF.name
                 ),
-                CheckboxInput(
-                    "dab_notch",
-                    "",
-                    checkboxText="Enable DAB notch filter",
-                    converter=OptionalConverter(defaultFormValue=True),
-                ),
-                DropdownInput(
-                    "if_mode",
-                    "IF Mode",
-                    IfModeOptions,
-                    converter=OptionalConverter(
-                        EnumConverter(IfModeOptions), defaultFormValue=IfModeOptions.IFMODE_ZERO_IF.name
-                    ),
-                ),
-            ],
-        )
+            ),
+        ]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["bias_tee", "rf_notch", "dab_notch", "if_mode"]

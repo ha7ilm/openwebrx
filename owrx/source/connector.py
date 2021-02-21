@@ -76,23 +76,23 @@ class ConnectorSource(SdrSource):
 
 class ConnectorDeviceDescription(SdrDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                NumberInput(
-                    "rtltcp_compat",
-                    "Port for rtl_tcp compatible data",
-                    infotext="Activate an rtl_tcp compatible interface on the port number specified.<br />"
-                    + "Note: Port is only available on the local machine, not on the network.<br />"
-                    + "Note: IQ data may be degraded by the downsampling process to 8 bits.",
-                    converter=OptionalConverter(IntConverter()),
-                ),
-                CheckboxInput(
-                    "iqswap",
-                    "",
-                    checkboxText="Swap I and Q channels",
-                    infotext="Swapping inverts the spectrum, so this is useful in combination with an inverting mixer",
-                    converter=OptionalConverter(defaultFormValue=False),
-                ),
-            ],
-        )
+        return super().getInputs() + [
+            NumberInput(
+                "rtltcp_compat",
+                "Port for rtl_tcp compatible data",
+                infotext="Activate an rtl_tcp compatible interface on the port number specified.<br />"
+                + "Note: Port is only available on the local machine, not on the network.<br />"
+                + "Note: IQ data may be degraded by the downsampling process to 8 bits.",
+                converter=OptionalConverter(IntConverter()),
+            ),
+            CheckboxInput(
+                "iqswap",
+                "",
+                checkboxText="Swap I and Q channels",
+                infotext="Swapping inverts the spectrum, so this is useful in combination with an inverting mixer",
+                converter=OptionalConverter(defaultFormValue=False),
+            ),
+        ]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["rtltcp_compat", "iqswap"]

@@ -22,17 +22,21 @@ class AirspySource(SoapyConnectorSource):
 
 class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                BiasTeeInput(),
-                CheckboxInput(
-                    "bitpack",
-                    "",
-                    checkboxText="Enable bit-packing",
-                    infotext="Packs two 12-bit samples into 3 bytes."
-                    + " Lowers USB bandwidth consumption, increases CPU load",
-                    converter=OptionalConverter(defaultFormValue=False),
-                ),
-            ],
-        )
+        return super().getInputs() + [
+            BiasTeeInput(),
+            CheckboxInput(
+                "bitpack",
+                "",
+                checkboxText="Enable bit-packing",
+                infotext="Packs two 12-bit samples into 3 bytes."
+                + " Lowers USB bandwidth consumption, increases CPU load",
+                converter=OptionalConverter(defaultFormValue=False),
+            ),
+        ]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["bias_tee", "bitpack"]
+
+    # TODO: find actual gain stages for airspay
+    # def getGainStages(self):
+    #    return None

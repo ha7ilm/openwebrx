@@ -22,12 +22,12 @@ class SoapyRemoteSource(SoapyConnectorSource):
 
 class SoapyRemoteDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                RemoteInput(),
-                TextInput(
-                    "remote_driver", "Remote driver", infotext="SoapySDR driver to be used on the remote SoapySDRServer"
-                ),
-            ],
-        )
+        return super().getInputs() + [
+            RemoteInput(),
+            TextInput(
+                "remote_driver", "Remote driver", infotext="SoapySDR driver to be used on the remote SoapySDRServer"
+            ),
+        ]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["remote_driver"]

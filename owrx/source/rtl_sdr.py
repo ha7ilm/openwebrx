@@ -18,16 +18,16 @@ class RtlSdrSource(ConnectorSource):
 
 class RtlSdrDeviceDescription(ConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(
-            super().getInputs(),
-            [
-                TextInput(
-                    "device",
-                    "Device identifier",
-                    infotext="Device serial number or index",
-                    converter=OptionalConverter(),
-                ),
-                BiasTeeInput(),
-                DirectSamplingInput()
-            ],
-        )
+        return super().getInputs() + [
+            TextInput(
+                "device",
+                "Device identifier",
+                infotext="Device serial number or index",
+                converter=OptionalConverter(),
+            ),
+            BiasTeeInput(),
+            DirectSamplingInput()
+        ]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["device", "bias_tee", "direct_sampling"]

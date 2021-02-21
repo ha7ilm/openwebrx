@@ -16,4 +16,11 @@ class HackrfSource(SoapyConnectorSource):
 
 class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(super().getInputs(), [BiasTeeInput()])
+        return super().getInputs() + [BiasTeeInput()]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["bias_tee"]
+
+    # TODO: find actual gain stages for hackrf
+    # def getGainStages(self):
+    #    return None
