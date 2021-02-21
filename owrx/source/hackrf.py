@@ -16,4 +16,4 @@ class HackrfSource(SoapyConnectorSource):
 
 class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return self.mergeInputs(super().getInputs(), [BiasTeeInput])
+        return self.mergeInputs(super().getInputs(), [BiasTeeInput()])
