@@ -1,6 +1,7 @@
 from owrx.config import Config
 from owrx.property import PropertyLayer
 from owrx.feature import FeatureDetector, UnknownFeatureException
+from owrx.source import SdrSourceState
 
 import logging
 
@@ -78,4 +79,8 @@ class SdrService(object):
                 module = __import__("owrx.source.{0}".format(sdrType), fromlist=[className])
                 cls = getattr(module, className)
                 SdrService.sources[id] = cls(id, props)
-        return {key: s for key, s in SdrService.sources.items() if not s.isFailed()}
+        return {
+            key: s
+            for key, s in SdrService.sources.items()
+            if s.getState() not in [SdrSourceState.FAILED, SdrSourceState.DISABLED]
+        }

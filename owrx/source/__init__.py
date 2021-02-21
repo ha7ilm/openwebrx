@@ -29,6 +29,7 @@ class SdrSourceState(Enum):
     STOPPING = "Stopping"
     TUNING = "Tuning"
     FAILED = "Failed"
+    DISABLED = "Disabled"
 
     def __str__(self):
         return self.value
@@ -87,13 +88,12 @@ class SdrSource(ABC):
         self.spectrumLock = threading.Lock()
         self.process = None
         self.modificationLock = threading.Lock()
-        self.failed = False
-        self.state = SdrSourceState.STOPPED
+        self.state = SdrSourceState.STOPPED if "enabled" not in props or props["enabled"] else SdrSourceState.DISABLED
         self.busyState = SdrBusyState.IDLE
 
         self.validateProfiles()
 
-        if self.isAlwaysOn():
+        if self.isAlwaysOn() and self.state is not SdrSourceState.DISABLED:
             self.start()
 
     def validateProfiles(self):
@@ -198,7 +198,7 @@ class SdrSource(ABC):
             if self.monitor:
                 return
 
-            if self.isFailed():
+            if self.getState() is SdrSourceState.FAILED:
                 return
 
             try:
@@ -223,13 +223,15 @@ class SdrSource(ABC):
             logger.info("Started sdr source: " + cmd)
 
             available = False
+            failed = False
 
             def wait_for_process_to_end():
+                nonlocal failed
                 rc = self.process.wait()
                 logger.debug("shut down with RC={0}".format(rc))
                 self.monitor = None
                 if self.getState() is SdrSourceState.RUNNING:
-                    self.failed = True
+                    failed = True
                     self.setState(SdrSourceState.FAILED)
                 else:
                     self.setState(SdrSourceState.STOPPED)
@@ -238,7 +240,7 @@ class SdrSource(ABC):
             self.monitor.start()
 
             retries = 1000
-            while retries > 0 and not self.isFailed():
+            while retries > 0 and not failed:
                 retries -= 1
                 if self.monitor is None:
                     break
@@ -252,15 +254,15 @@ class SdrSource(ABC):
                     time.sleep(0.1)
 
             if not available:
-                self.failed = True
+                failed = True
 
             try:
                 self.postStart()
             except Exception:
                 logger.exception("Exception during postStart()")
-                self.failed = True
+                failed = True
 
-        self.setState(SdrSourceState.FAILED if self.failed else SdrSourceState.RUNNING)
+        self.setState(SdrSourceState.FAILED if failed else SdrSourceState.RUNNING)
 
     def preStart(self):
         """
@@ -277,11 +279,11 @@ class SdrSource(ABC):
     def isAvailable(self):
         return self.monitor is not None
 
-    def isFailed(self):
-        return self.failed
-
     def stop(self):
-        self.setState(SdrSourceState.STOPPING)
+        # don't overwrite failed flag
+        # TODO introduce a better solution?
+        if self.getState() is not SdrSourceState.FAILED:
+            self.setState(SdrSourceState.STOPPING)
 
         with self.modificationLock:
 
@@ -387,6 +389,7 @@ class SdrDeviceDescription(object):
     def getInputs(self) -> List[Input]:
         return [
             TextInput("name", "Device name"),
+            CheckboxInput("enabled", "", "Enable this device", converter=OptionalConverter(defaultFormValue=True)),
             NumberInput(
                 "ppm",
                 "Frequency correction",
