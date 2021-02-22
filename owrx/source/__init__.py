@@ -443,6 +443,14 @@ class OptionalSection(Section):
             input.setDisabled()
         return super().render(data)
 
+    def parse(self, data):
+        data = super().parse(data)
+        # remove optional keys if they have been removed from the form
+        for k in self.optional:
+            if k not in data:
+                data[k] = None
+        return data
+
 
 class SdrDeviceDescription(object):
     @staticmethod
