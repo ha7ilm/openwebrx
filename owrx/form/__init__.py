@@ -29,7 +29,7 @@ class Input(ABC):
             <div class="form-group row" data-field="{id}">
                 <label class="col-form-label col-form-label-sm col-3" for="{id}">{label}</label>
                 <div class="col-9 p-0 removable-group {removable}">
-                    <div class="removeable-item">
+                    <div class="removable-item">
                         {input}
                         {infotext}
                     </div>
