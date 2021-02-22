@@ -16,12 +16,12 @@ class GainInput(Input):
 
         return """
             <div id="{id}">
-                <select class="{classes}" id="{id}-select" name="{id}-select">
+                <select class="{classes}" id="{id}-select" name="{id}-select" {disabled}>
                     {options}
                 </select>
                 <div class="option manual" style="display: none;">
                     <input type="number" id="{id}-manual" name="{id}-manual" value="{value}" class="{classes}"
-                    placeholder="Manual device gain" step="any">
+                    placeholder="Manual device gain" step="any" {disabled}>
                 </div>
                 {stageoption}
             </div>
@@ -32,6 +32,7 @@ class GainInput(Input):
             label=self.label,
             options=self.render_options(value),
             stageoption="" if self.gain_stages is None else self.render_stage_option(value),
+            disabled="disabled" if self.disabled else ""
         )
 
     def render_options(self, value):
@@ -79,15 +80,16 @@ class GainInput(Input):
             inputs="".join(
                 """
                     <div class="row">
-                        <div class="col-3">{stage}</div>
+                        <label class="col-form-label col-form-label-sm col-3">{stage}</label>
                         <input type="number" id="{id}-{stage}" name="{id}-{stage}" value="{value}"
-                        class="col-9 {classes}" placeholder="{stage}" step="any">
+                        class="col-9 {classes}" placeholder="{stage}" step="any" {disabled}>
                     </div>
                 """.format(
                     id=self.id,
                     stage=stage,
                     value=value_dict[stage] if stage in value_dict else "",
                     classes=self.input_classes(),
+                    disabled="disabled" if self.disabled else "",
                 )
                 for stage in self.gain_stages
             )

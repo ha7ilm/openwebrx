@@ -10,19 +10,25 @@ class Section(object):
         self.title = title
         self.inputs = inputs
 
+    def render_input(self, input, data):
+        return input.render(data)
+
     def render_inputs(self, data):
-        return "".join([i.render(data) for i in self.inputs])
+        return "".join([self.render_input(i, data) for i in self.inputs])
+
+    def classes(self):
+        return ["col-12", "settings-section"]
 
     def render(self, data):
         return """
-            <div class="col-12 settings-section">
+            <div class="{classes}">
                 <h3 class="settings-header">
                     {title}
                 </h3>
                 {inputs}
             </div>
         """.format(
-            title=self.title, inputs=self.render_inputs(data)
+            classes=" ".join(self.classes()), title=self.title, inputs=self.render_inputs(data)
         )
 
     def parse(self, data):

@@ -86,3 +86,20 @@ table.bookmarks .frequency {
 .sdr-profile-list .list-group-item {
     background: initial;
 }
+
+.removable-group.removable {
+    display: flex;
+    flex-direction: row;
+}
+
+.removable-group.removable .removable-item {
+    flex: 1 0 auto;
+}
+
+.removable-group.removable .option-remove-button {
+    flex: 0 0 70px;
+}
+
+.option-add-button, .option-remove-button {
+    width: 70px;
+}

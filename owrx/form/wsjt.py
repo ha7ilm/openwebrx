@@ -22,7 +22,7 @@ class Q65ModeMatrix(Input):
             id=self.checkbox_id(mode, interval),
             checked="checked" if "{}{}".format(mode.name, interval.value) in value else "",
             checkboxText="Mode {} interval {}s".format(mode.name, interval.value),
-            disabled="" if interval.is_available(mode) else "disabled",
+            disabled="" if interval.is_available(mode) and not self.disabled else "disabled",
         )
 
     def render_input(self, value):
@@ -69,7 +69,7 @@ class WsjtDecodingDepthsInput(Input):
             )
 
         return """
-            <input type="hidden" class="{classes}" id="{id}" name="{id}" value="{value}">
+            <input type="hidden" class="{classes}" id="{id}" name="{id}" value="{value}" {disabled}>
             <div class="inputs" style="display:none;">
                 <select class="form-control form-control-sm">{options}</select>
                 <input class="form-control form-control-sm" type="number" step="1">
@@ -79,6 +79,7 @@ class WsjtDecodingDepthsInput(Input):
             classes=self.input_classes(),
             value=html.escape(value),
             options="".join(render_mode(m) for m in Modes.getAvailableModes() if isinstance(m, WsjtMode)),
+            disabled="disabled" if self.disabled else ""
         )
 
     def input_classes(self):

@@ -375,10 +375,76 @@ class SdrDeviceDescriptionMissing(Exception):
     pass
 
 
-class SdrDeviceDescription(object):
-    def __init__(self):
-        self.indexedInputs = {input.id: input for input in self.getInputs()}
+class OptionalSection(Section):
+    def __init__(self, title, inputs: List[Input], mandatory, optional):
+        super().__init__(title, *inputs)
+        self.mandatory = mandatory
+        self.optional = optional
+        self.optional_inputs = []
 
+    def classes(self):
+        classes = super().classes()
+        classes.append("optional-section")
+        return classes
+
+    def _is_optional(self, input):
+        return input.id in self.optional
+
+    def render_optional_select(self):
+        return """
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-3">
+                    Additional optional settings
+                </label>
+                <div class="input-group input-group-sm col-9 p-0">
+                    <select class="form-control from-control-sm optional-select">
+                        {options}
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-success option-add-button">Add</button>
+                    </div>
+                </div>
+            </div>
+        """.format(
+            options="".join(
+                """
+                    <option value="{value}">{name}</option>
+                """.format(
+                    value=input.id,
+                    name=input.getLabel(),
+                )
+                for input in self.optional_inputs
+            )
+        )
+
+    def render_optional_inputs(self, data):
+        return """
+            <div class="optional-inputs" style="display: none;">
+                {inputs}
+            </div>
+        """.format(
+            inputs="".join(self.render_input(input, data) for input in self.optional_inputs)
+        )
+
+    def render_inputs(self, data):
+        return super().render_inputs(data) + self.render_optional_select() + self.render_optional_inputs(data)
+
+    def render(self, data):
+        indexed_inputs = {input.id: input for input in self.inputs}
+        visible_keys = set(self.mandatory + [k for k in self.optional if k in data])
+        optional_keys = set(k for k in self.optional if k not in data)
+        self.inputs = [input for k, input in indexed_inputs.items() if k in visible_keys]
+        for input in self.inputs:
+            if self._is_optional(input):
+                input.setRemovable()
+        self.optional_inputs = [input for k, input in indexed_inputs.items() if k in optional_keys]
+        for input in self.optional_inputs:
+            input.setRemovable()
+            input.setDisabled()
+        return super().render(data)
+
+
+class SdrDeviceDescription(object):
     @staticmethod
     def getByType(sdr_type: str) -> "SdrDeviceDescription":
         try:
@@ -407,7 +473,6 @@ class SdrDeviceDescription(object):
             ),
             CheckboxInput(
                 "services",
-                "",
                 "Run background services on this device",
                 converter=OptionalConverter(defaultFormValue=True),
             ),
@@ -431,8 +496,5 @@ class SdrDeviceDescription(object):
     def getOptionalKeys(self):
         return ["ppm", "always-on", "services", "rf_gain", "lfo_offset", "waterfall_min_level", "waterfall_max_level"]
 
-    def getSection(self, data):
-        visible_keys = set(self.getMandatoryKeys() + [k for k in self.getOptionalKeys() if k in data])
-        inputs = [input for k, input in self.indexedInputs.items() if k in visible_keys]
-        # TODO: render remaining keys in optional area
-        return Section("Device settings", *inputs)
+    def getSection(self):
+        return OptionalSection("Device settings", self.getInputs(), self.getMandatoryKeys(), self.getOptionalKeys())
