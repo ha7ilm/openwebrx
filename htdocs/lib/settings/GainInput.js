@@ -9,13 +9,8 @@ $.fn.gainInput = function() {
 
         var $select = $container.find('select');
         $select.on('change', function(e) {
-            var value = $(e.target).val()
+            var value = $(e.target).val();
             update(value);
-            if (value == 'auto') {
-                $input.val('auto');
-            } else {
-                $input
-            }
         });
         update($select.val());
     });
