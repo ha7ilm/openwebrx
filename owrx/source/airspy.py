@@ -1,7 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form import Input, CheckboxInput
 from owrx.form.device import BiasTeeInput
-from owrx.form.converter import OptionalConverter
 from typing import List
 
 
@@ -29,7 +28,6 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
                 "Enable bit-packing",
                 infotext="Packs two 12-bit samples into 3 bytes."
                 + " Lowers USB bandwidth consumption, increases CPU load",
-                converter=OptionalConverter(defaultFormValue=False),
             ),
         ]
 

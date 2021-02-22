@@ -11,7 +11,7 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput
-from owrx.form.converter import IntConverter, OptionalConverter
+from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput
 from owrx.controllers.settings import Section
 from typing import List
@@ -471,18 +471,15 @@ class SdrDeviceDescription(object):
                 "ppm",
                 "Frequency correction",
                 append="ppm",
-                converter=OptionalConverter(IntConverter(), defaultFormValue="0"),
             ),
             CheckboxInput(
                 "always-on",
                 "Keep device running at all times",
                 infotext="Prevents shutdown of the device when idle. Useful for devices with unreliable startup.",
-                converter=OptionalConverter(defaultFormValue=False),
             ),
             CheckboxInput(
                 "services",
                 "Run background services on this device",
-                converter=OptionalConverter(defaultFormValue=True),
             ),
             GainInput("rf_gain", "Device gain"),
             NumberInput(
@@ -491,10 +488,9 @@ class SdrDeviceDescription(object):
                 append="Hz",
                 infotext="Use this when the actual receiving frequency differs from the frequency to be tuned on the"
                 + " device. <br/> Formula: Center frequency + oscillator offset = sdr tune frequency",
-                converter=OptionalConverter(),
             ),
-            NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS", converter=OptionalConverter()),
-            NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS", converter=OptionalConverter()),
+            NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS"),
+            NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS"),
             # TODO `schedule`
         ]
 

@@ -1,7 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum
 from owrx.form.device import BiasTeeInput
-from owrx.form.converter import OptionalConverter, EnumConverter
 from typing import List
 
 
@@ -43,20 +42,15 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
             CheckboxInput(
                 "rf_notch",
                 "Enable RF notch filter",
-                converter=OptionalConverter(defaultFormValue=True),
             ),
             CheckboxInput(
                 "dab_notch",
                 "Enable DAB notch filter",
-                converter=OptionalConverter(defaultFormValue=True),
             ),
             DropdownInput(
                 "if_mode",
                 "IF Mode",
                 IfModeOptions,
-                converter=OptionalConverter(
-                    EnumConverter(IfModeOptions), defaultFormValue=IfModeOptions.IFMODE_ZERO_IF.name
-                ),
             ),
         ]
 

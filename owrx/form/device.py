@@ -32,7 +32,7 @@ class GainInput(Input):
             label=self.label,
             options=self.render_options(value),
             stageoption="" if self.gain_stages is None else self.render_stage_option(value),
-            disabled="disabled" if self.disabled else ""
+            disabled="disabled" if self.disabled else "",
         )
 
     def render_options(self, value):
@@ -105,6 +105,8 @@ class GainInput(Input):
 
         select_id = "{id}-select".format(id=self.id)
         if select_id in data:
+            if data[select_id][0] == "auto":
+                return {self.id: "auto"}
             if data[select_id][0] == "manual":
                 input_id = "{id}-manual".format(id=self.id)
                 value = 0.0
@@ -120,14 +122,12 @@ class GainInput(Input):
                 settings_dict = [s for s in settings_dict if next(iter(s.values()))]
                 return {self.id: SoapySettings.encode(settings_dict)}
 
-        return {self.id: None}
+        return {}
 
 
 class BiasTeeInput(CheckboxInput):
     def __init__(self):
-        super().__init__(
-            "bias_tee", "Enable Bias-Tee power supply", converter=OptionalConverter(defaultFormValue=False)
-        )
+        super().__init__("bias_tee", "Enable Bias-Tee power supply")
 
 
 class DirectSamplingOptions(DropdownEnum):
@@ -152,10 +152,6 @@ class DirectSamplingInput(DropdownInput):
             "direct_sampling",
             "Direct Sampling",
             DirectSamplingOptions,
-            converter=OptionalConverter(
-                EnumConverter(DirectSamplingOptions),
-                defaultFormValue=DirectSamplingOptions.DIRECT_SAMPLING_OFF.name,
-            ),
         )
 
 

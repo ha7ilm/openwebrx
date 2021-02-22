@@ -2,7 +2,6 @@ from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Argument, Flag, Option
 from owrx.form import Input, DropdownInput, DropdownEnum, CheckboxInput
 from owrx.form.device import RemoteInput
-from owrx.form.converter import OptionalConverter
 from typing import List
 
 
@@ -42,10 +41,11 @@ class RundsDeviceDescription(ConnectorDeviceDescription):
         return super().getInputs() + [
             RemoteInput(),
             DropdownInput("protocol", "Protocol", ProtocolOptions),
-            CheckboxInput(
-                "long", "", "Use 32-bit sample size (LONG)", converter=OptionalConverter(defaultFormValue=False)
-            ),
+            CheckboxInput("long", "Use 32-bit sample size (LONG)"),
         ]
 
     def getMandatoryKeys(self):
         return super().getMandatoryKeys() + ["device"]
+
+    def getOptionalKeys(self):
+        return super().getOptionalKeys() + ["protocol", "long"]
