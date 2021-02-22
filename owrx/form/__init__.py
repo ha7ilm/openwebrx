@@ -184,7 +184,8 @@ class CheckboxInput(Input):
     def render_input(self, value):
         return """
             <div class="{classes}">
-                <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked} {disabled}>
+                <input type="hidden" name="{id}" value="0" {disabled}>
+                <input class="form-check-input" type="checkbox" id="{id}" name="{id}" value="1" {checked} {disabled}>
                 <label class="form-check-label" for="{id}">
                     {checkboxText}
                 </label>
@@ -201,7 +202,9 @@ class CheckboxInput(Input):
         return " ".join(["form-check", "form-control-sm"])
 
     def parse(self, data):
-        return {self.id: self.converter.convert_from_form(self.id in data and data[self.id][0] == "on")}
+        if self.id in data:
+            return {self.id: self.converter.convert_from_form("1" in data[self.id])}
+        return {}
 
     def getLabel(self):
         return self.checkboxText
