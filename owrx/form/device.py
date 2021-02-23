@@ -4,8 +4,9 @@ from owrx.soapy import SoapySettings
 
 
 class GainInput(Input):
-    def __init__(self, id, label, gain_stages=None):
+    def __init__(self, id, label, has_agc, gain_stages=None):
         super().__init__(id, label)
+        self.has_agc = has_agc
         self.gain_stages = gain_stages
 
     def render_input(self, value):
@@ -36,10 +37,10 @@ class GainInput(Input):
         )
 
     def render_options(self, value):
-        options = [
-            ("auto", "Enable hardware AGC"),
-            ("manual", "Specify manual gain"),
-        ]
+        options = []
+        if self.has_agc:
+            options.append(("auto", "Enable hardware AGC"))
+        options.append(("manual", "Specify manual gain")),
         if self.gain_stages:
             options.append(("stages", "Specify gain stages individually"))
 
@@ -55,7 +56,10 @@ class GainInput(Input):
         )
 
     def getMode(self, value):
-        if value is None or value == "auto":
+        if value is None:
+            return "auto" if self.has_agc else "manual"
+
+        if value == "auto":
             return "auto"
 
         try:
@@ -105,7 +109,7 @@ class GainInput(Input):
 
         select_id = "{id}-select".format(id=self.id)
         if select_id in data:
-            if data[select_id][0] == "auto":
+            if self.has_agc and data[select_id][0] == "auto":
                 return {self.id: "auto"}
             if data[select_id][0] == "manual":
                 input_id = "{id}-manual".format(id=self.id)

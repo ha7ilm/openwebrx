@@ -468,6 +468,7 @@ class SdrDeviceDescription(object):
         return [
             TextInput("name", "Device name"),
             CheckboxInput("enabled", "Enable this device", converter=OptionalConverter(defaultFormValue=True)),
+            GainInput("rf_gain", "Device gain", self.hasAgc()),
             NumberInput(
                 "ppm",
                 "Frequency correction",
@@ -482,7 +483,6 @@ class SdrDeviceDescription(object):
                 "services",
                 "Run background services on this device",
             ),
-            GainInput("rf_gain", "Device gain"),
             NumberInput(
                 "lfo_offset",
                 "Oscilator offset",
@@ -499,6 +499,10 @@ class SdrDeviceDescription(object):
             ModesInput("start_mod", "Initial modulation"),
             NumberInput("initial_squelch_level", "Initial squelch level", append="dBFS"),
         ]
+
+    def hasAgc(self):
+        # default is True since most devices have agc. override in subclasses if agc is not available
+        return True
 
     def getMandatoryKeys(self):
         return ["name", "enabled"]

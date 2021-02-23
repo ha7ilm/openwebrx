@@ -7,4 +7,5 @@ class SddcSource(ConnectorSource):
 
 
 class SddcDeviceDescription(ConnectorDeviceDescription):
-    pass
+    def hasAgc(self):
+        return False
