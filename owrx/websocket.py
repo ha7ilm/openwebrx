@@ -1,3 +1,4 @@
+from owrx.jsons import Encoder
 import base64
 import hashlib
 import json
@@ -106,7 +107,7 @@ class WebSocketConnection(object):
         # convenience
         if type(data) == dict:
             # allow_nan = False disallows NaN and Infinty to be encoded. Browser JSON will not parse them anyway.
-            data = json.dumps(data, allow_nan=False)
+            data = json.dumps(data, allow_nan=False, cls=Encoder)
 
         # string-type messages are sent as text frames
         if type(data) == str:

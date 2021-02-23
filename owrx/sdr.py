@@ -19,12 +19,6 @@ class SdrService(object):
             pm = Config.get()
             featureDetector = FeatureDetector()
 
-            def loadIntoPropertyManager(dict: dict):
-                propertyManager = PropertyLayer()
-                for (name, value) in dict.items():
-                    propertyManager[name] = value
-                return propertyManager
-
             def sdrTypeAvailable(value):
                 try:
                     if not featureDetector.is_available(value["type"]):
@@ -43,11 +37,11 @@ class SdrService(object):
 
             # transform all dictionary items into PropertyManager object, filtering out unavailable ones
             SdrService.sdrProps = {
-                name: loadIntoPropertyManager(value) for (name, value) in pm["sdrs"].items() if sdrTypeAvailable(value)
+                name: value for (name, value) in pm["sdrs"].items() if sdrTypeAvailable(value)
             }
             logger.info(
                 "SDR sources loaded. Available SDRs: {0}".format(
-                    ", ".join(map(lambda x: x["name"], SdrService.sdrProps.values()))
+                    ", ".join(x["name"] for x in SdrService.sdrProps.values())
                 )
             )
 

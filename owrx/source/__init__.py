@@ -100,7 +100,7 @@ class SdrSource(ABC):
         props = PropertyStack()
         props.addLayer(1, self.props)
         for id, p in self.props["profiles"].items():
-            props.replaceLayer(0, self._getProfilePropertyLayer(p))
+            props.replaceLayer(0, p)
             if "center_freq" not in props:
                 logger.warning('Profile "%s" does not specify a center_freq', id)
                 continue
@@ -113,15 +113,6 @@ class SdrSource(ABC):
                 center_freq = props["center_freq"]
                 if start_freq < center_freq - srh or start_freq > center_freq + srh:
                     logger.warning('start_freq for profile "%s" is out of range', id)
-
-    def _getProfilePropertyLayer(self, profile):
-        layer = PropertyLayer()
-        for (key, value) in profile.items():
-            # skip the name, that would overwrite the source name.
-            if key == "name":
-                continue
-            layer[key] = value
-        return layer
 
     def isAlwaysOn(self):
         return "always-on" in self.props and self.props["always-on"]
@@ -164,8 +155,7 @@ class SdrSource(ABC):
         profile = profiles[profile_id]
         self.profile_id = profile_id
 
-        layer = self._getProfilePropertyLayer(profile)
-        self.props.replaceLayer(0, layer)
+        self.props.replaceLayer(0, profile)
 
     def getId(self):
         return self.id

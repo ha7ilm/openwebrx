@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from owrx.jsons import Encoder
 import json
 
 
@@ -68,7 +69,7 @@ class EnumConverter(Converter):
 
 class JsonConverter(Converter):
     def convert_to_form(self, value):
-        return json.dumps(value)
+        return json.dumps(value, cls=Encoder)
 
     def convert_from_form(self, value):
         return json.loads(value)

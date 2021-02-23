@@ -18,13 +18,18 @@ class ClassicConfig(PropertyReadOnly):
                 pass
 
     @staticmethod
+    def _toLayer(dictionary: dict):
+        layer = PropertyLayer()
+        for k, v in dictionary.items():
+            if isinstance(v, dict):
+                layer[k] = ClassicConfig._toLayer(v)
+            else:
+                layer[k] = v
+        return layer
+
+    @staticmethod
     def _loadPythonFile(file):
         spec = importlib.util.spec_from_file_location("config_webrx", file)
         cfg = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cfg)
-        pm = PropertyLayer()
-        for name, value in cfg.__dict__.items():
-            if name.startswith("__"):
-                continue
-            pm[name] = value
-        return pm
+        return ClassicConfig._toLayer({k: v for k, v in cfg.__dict__.items() if not k.startswith("__")})

@@ -53,6 +53,12 @@ class PropertyManager(ABC):
     def keys(self):
         pass
 
+    def items(self):
+        return self.__dict__().items()
+
+    def __len__(self):
+        return self.__dict__().__len__()
+
     def filter(self, *props):
         return PropertyFilter(self, *props)
 
