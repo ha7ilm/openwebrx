@@ -9,7 +9,8 @@ import signal
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
-from owrx.property import PropertyStack, PropertyLayer
+from owrx.property import PropertyStack, PropertyLayer, PropertyFilter
+from owrx.property.filter import ByLambda
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput
 from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput
@@ -96,6 +97,9 @@ class SdrSource(ABC):
         if self.isAlwaysOn() and self.state is not SdrSourceState.DISABLED:
             self.start()
 
+    def _loadProfile(self, profile):
+        self.props.replaceLayer(0, PropertyFilter(profile, ByLambda(lambda x: x != "name")))
+
     def validateProfiles(self):
         props = PropertyStack()
         props.addLayer(1, self.props)
@@ -155,7 +159,7 @@ class SdrSource(ABC):
         profile = profiles[profile_id]
         self.profile_id = profile_id
 
-        self.props.replaceLayer(0, profile)
+        self._loadProfile(profile)
 
     def getId(self):
         return self.id

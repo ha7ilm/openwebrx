@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from owrx.property.validators import Validator
+from owrx.property.filter import Filter, ByPropertyName
 import logging
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ class PropertyManager(ABC):
         return self.__dict__().__len__()
 
     def filter(self, *props):
-        return PropertyFilter(self, *props)
+        return PropertyFilter(self, ByPropertyName(*props))
 
     def readonly(self):
         return PropertyReadOnly(self)
@@ -132,41 +133,41 @@ class PropertyLayer(PropertyManager):
 
 
 class PropertyFilter(PropertyManager):
-    def __init__(self, pm: PropertyManager, *props: str):
+    def __init__(self, pm: PropertyManager, filter: Filter):
         super().__init__()
         self.pm = pm
-        self.props = props
+        self._filter = filter
         self.pm.wire(self.receiveEvent)
 
     def receiveEvent(self, changes):
-        changesToForward = {name: value for name, value in changes.items() if name in self.props}
+        changesToForward = {name: value for name, value in changes.items() if self._filter.apply(name)}
         self._fireCallbacks(changesToForward)
 
     def __getitem__(self, item):
-        if item not in self.props:
+        if not self._filter.apply(item):
             raise KeyError(item)
         return self.pm.__getitem__(item)
 
     def __setitem__(self, key, value):
-        if key not in self.props:
+        if not self._filter.apply(key):
             raise KeyError(key)
         return self.pm.__setitem__(key, value)
 
     def __contains__(self, item):
-        if item not in self.props:
+        if not self._filter.apply(item):
             return False
         return self.pm.__contains__(item)
 
     def __dict__(self):
-        return {k: v for k, v in self.pm.__dict__().items() if k in self.props}
+        return {k: v for k, v in self.pm.__dict__().items() if self._filter.apply(k)}
 
     def __delitem__(self, key):
-        if key not in self.props:
+        if not self._filter.apply(key):
             raise KeyError(key)
         return self.pm.__delitem__(key)
 
     def keys(self):
-        return [k for k in self.pm.keys() if k in self.props]
+        return [k for k in self.pm.keys() if self._filter.apply(k)]
 
 
 class PropertyDelegator(PropertyManager):

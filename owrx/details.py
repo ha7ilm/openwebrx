@@ -1,18 +1,21 @@
 from owrx.config import Config
 from owrx.locator import Locator
 from owrx.property import PropertyFilter
+from owrx.property.filter import ByPropertyName
 
 
 class ReceiverDetails(PropertyFilter):
     def __init__(self):
         super().__init__(
             Config.get(),
-            "receiver_name",
-            "receiver_location",
-            "receiver_asl",
-            "receiver_gps",
-            "photo_title",
-            "photo_desc",
+            ByPropertyName(
+                "receiver_name",
+                "receiver_location",
+                "receiver_asl",
+                "receiver_gps",
+                "photo_title",
+                "photo_desc",
+            )
         )
 
     def __dict__(self):

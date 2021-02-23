@@ -7,20 +7,26 @@ class PropertyFilterTest(TestCase):
     def testPassesProperty(self):
         pm = PropertyLayer()
         pm["testkey"] = "testvalue"
-        pf = PropertyFilter(pm, "testkey")
+        mock = Mock()
+        mock.apply.return_value = True
+        pf = PropertyFilter(pm, mock)
         self.assertEqual(pf["testkey"], "testvalue")
 
     def testMissesProperty(self):
         pm = PropertyLayer()
         pm["testkey"] = "testvalue"
-        pf = PropertyFilter(pm, "other_key")
+        mock = Mock()
+        mock.apply.return_value = False
+        pf = PropertyFilter(pm, mock)
         self.assertFalse("testkey" in pf)
         with self.assertRaises(KeyError):
             x = pf["testkey"]
 
     def testForwardsEvent(self):
         pm = PropertyLayer()
-        pf = PropertyFilter(pm, "testkey")
+        mock = Mock()
+        mock.apply.return_value = True
+        pf = PropertyFilter(pm, mock)
         mock = Mock()
         pf.wire(mock.method)
         pm["testkey"] = "testvalue"
@@ -28,7 +34,9 @@ class PropertyFilterTest(TestCase):
 
     def testForwardsPropertyEvent(self):
         pm = PropertyLayer()
-        pf = PropertyFilter(pm, "testkey")
+        mock = Mock()
+        mock.apply.return_value = True
+        pf = PropertyFilter(pm, mock)
         mock = Mock()
         pf.wireProperty("testkey", mock.method)
         pm["testkey"] = "testvalue"
@@ -36,7 +44,9 @@ class PropertyFilterTest(TestCase):
 
     def testForwardsWrite(self):
         pm = PropertyLayer()
-        pf = PropertyFilter(pm, "testkey")
+        mock = Mock()
+        mock.apply.return_value = True
+        pf = PropertyFilter(pm, mock)
         pf["testkey"] = "testvalue"
         self.assertTrue("testkey" in pm)
         self.assertEqual(pm["testkey"], "testvalue")
@@ -44,7 +54,9 @@ class PropertyFilterTest(TestCase):
     def testOverwrite(self):
         pm = PropertyLayer()
         pm["testkey"] = "old value"
-        pf = PropertyFilter(pm, "testkey")
+        mock = Mock()
+        mock.apply.return_value = True
+        pf = PropertyFilter(pm, mock)
         pf["testkey"] = "new value"
         self.assertEqual(pm["testkey"], "new value")
         self.assertEqual(pf["testkey"], "new value")
@@ -52,7 +64,9 @@ class PropertyFilterTest(TestCase):
     def testRejectsWrite(self):
         pm = PropertyLayer()
         pm["testkey"] = "old value"
-        pf = PropertyFilter(pm, "otherkey")
+        mock = Mock()
+        mock.apply.return_value = False
+        pf = PropertyFilter(pm, mock)
         with self.assertRaises(KeyError):
             pf["testkey"] = "new value"
         self.assertEqual(pm["testkey"], "old value")
