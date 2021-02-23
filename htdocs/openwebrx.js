@@ -1064,14 +1064,14 @@ var canvas_context;
 var canvases = [];
 var canvas_default_height = 200;
 var canvas_container;
-var canvas_actual_line;
+var canvas_actual_line = -1;
 
 function add_canvas() {
     var new_canvas = document.createElement("canvas");
     new_canvas.width = fft_size;
     new_canvas.height = canvas_default_height;
-    canvas_actual_line = canvas_default_height - 1;
-    new_canvas.openwebrx_top = (-canvas_default_height + 1);
+    canvas_actual_line = canvas_default_height;
+    new_canvas.openwebrx_top = -canvas_default_height;
     new_canvas.style.top = new_canvas.openwebrx_top.toString() + "px";
     canvas_context = new_canvas.getContext("2d");
     canvas_container.appendChild(new_canvas);
@@ -1093,7 +1093,6 @@ function init_canvas_container() {
     canvas_container.addEventListener("wheel", canvas_mousewheel, false);
     var frequency_container = $("#openwebrx-frequency-container");
     frequency_container.on("wheel", canvas_mousewheel, false);
-    add_canvas();
 }
 
 canvas_maxshift = 0;
@@ -1139,6 +1138,9 @@ function waterfall_add(data) {
         waterfallColorsContinuous(level);
     }
 
+    // create new canvas if the current one is full (or there isn't one)
+    if (canvas_actual_line <= 0) add_canvas();
+
     //Add line to waterfall image
     var oneline_image = canvas_context.createImageData(w, 1);
     for (var x = 0; x < w; x++) {
@@ -1148,18 +1150,17 @@ function waterfall_add(data) {
     }
 
     //Draw image
-    canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
+    canvas_context.putImageData(oneline_image, 0, --canvas_actual_line);
     shift_canvases();
-    if (canvas_actual_line < 0) add_canvas();
 }
 
 function waterfall_clear() {
-    while (canvases.length) //delete all canvases
-    {
+    //delete all canvases
+    while (canvases.length) {
         var x = canvases.shift();
         x.parentNode.removeChild(x);
     }
-    add_canvas();
+    canvas_actual_line = -1;
 }
 
 function openwebrx_resize() {
