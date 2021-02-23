@@ -5,6 +5,7 @@ from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing
 from owrx.config import Config
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
+from abc import ABCMeta
 
 
 class SdrDeviceListController(AuthorizationMixin, WebpageController):
@@ -52,13 +53,10 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
         self.serve_template("settings/general.html", **self.template_variables())
 
 
-class SdrDeviceController(SettingsFormController):
+class SdrFormController(SettingsFormController, metaclass=ABCMeta):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.device_id, self.device = self._get_device()
-
-    def getData(self):
-        return self.device
 
     def store(self):
         # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
@@ -68,22 +66,27 @@ class SdrDeviceController(SettingsFormController):
         config["sdrs"] = sdrs
         super().store()
 
+    def _get_device(self):
+        device_id = unquote(self.request.matches.group(1))
+        if device_id not in Config.get()["sdrs"]:
+            return None
+        return device_id, Config.get()["sdrs"][device_id]
+
+
+class SdrDeviceController(SdrFormController):
+    def getData(self):
+        return self.device
+
     def getSections(self):
         try:
             description = SdrDeviceDescription.getByType(self.device["type"])
-            return [description.getSection()]
+            return [description.getDeviceSection()]
         except SdrDeviceDescriptionMissing:
             # TODO provide a generic interface that allows to switch the type
             return []
 
     def getTitle(self):
         return self.device["name"]
-
-    def _get_device(self):
-        device_id = unquote(self.request.matches.group(1))
-        if device_id not in Config.get()["sdrs"]:
-            return None
-        return device_id, Config.get()["sdrs"][device_id]
 
     def header_variables(self):
         variables = super().header_variables()
@@ -121,5 +124,49 @@ class SdrDeviceController(SettingsFormController):
     def indexAction(self):
         if self.device is None:
             self.send_response("device not found", code=404)
+            return
+        self.serve_template("settings/general.html", **self.template_variables())
+
+
+class SdrProfileController(SdrFormController):
+    def __init__(self, handler, request, options):
+        super().__init__(handler, request, options)
+        self.profile_id, self.profile = self._get_profile()
+
+    def getData(self):
+        return self.profile
+
+    def _get_profile(self):
+        profile_id = unquote(self.request.matches.group(2))
+        if self.device_id not in Config.get()["sdrs"]:
+            return None
+        if profile_id not in Config.get()["sdrs"][self.device_id]["profiles"]:
+            return None
+        return profile_id, Config.get()["sdrs"][self.device_id]["profiles"][profile_id]
+
+    def getSections(self):
+        try:
+            description = SdrDeviceDescription.getByType(self.device["type"])
+            return [description.getProfileSection()]
+        except SdrDeviceDescriptionMissing:
+            # TODO provide a generic interface that allows to switch the type
+            return []
+
+    def getTitle(self):
+        return self.profile["name"]
+
+    def header_variables(self):
+        variables = super().header_variables()
+        variables["assets_prefix"] = "../../../"
+        return variables
+
+    def template_variables(self):
+        variables = super().template_variables()
+        variables["assets_prefix"] = "../../../"
+        return variables
+
+    def indexAction(self):
+        if self.profile is None:
+            self.send_response("profile not found", code=404)
             return
         self.serve_template("settings/general.html", **self.template_variables())

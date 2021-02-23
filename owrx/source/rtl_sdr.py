@@ -29,3 +29,6 @@ class RtlSdrDeviceDescription(ConnectorDeviceDescription):
 
     def getOptionalKeys(self):
         return super().getOptionalKeys() + ["device", "bias_tee", "direct_sampling"]
+
+    def getProfileOptionalKeys(self):
+        return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]

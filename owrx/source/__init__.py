@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer
-from owrx.form import Input, TextInput, NumberInput, CheckboxInput
+from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput
 from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput
 from owrx.controllers.settings import Section
@@ -492,6 +492,11 @@ class SdrDeviceDescription(object):
             NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS"),
             NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS"),
             # TODO `schedule`
+            NumberInput("center_freq", "Center frequency", append="Hz"),
+            NumberInput("samp_rate", "Sample rate", append="S/s"),
+            NumberInput("start_freq", "Initial frequency", append="Hz"),
+            ModesInput("start_mod", "Initial modulation"),
+            NumberInput("initial_squelch_level", "Initial squelch level", append="dBFS"),
         ]
 
     def getMandatoryKeys(self):
@@ -500,5 +505,19 @@ class SdrDeviceDescription(object):
     def getOptionalKeys(self):
         return ["ppm", "always-on", "services", "rf_gain", "lfo_offset", "waterfall_min_level", "waterfall_max_level"]
 
-    def getSection(self):
+    def getProfileMandatoryKeys(self):
+        return ["center_freq", "samp_rate", "start_freq", "start_mod"]
+
+    def getProfileOptionalKeys(self):
+        return ["initial_squelch_level", "rf_gain", "lfo_offset", "waterfall_min_level", "waterfall_max_level"]
+
+    def getDeviceSection(self):
         return OptionalSection("Device settings", self.getInputs(), self.getMandatoryKeys(), self.getOptionalKeys())
+
+    def getProfileSection(self):
+        return OptionalSection(
+            "Profile settings",
+            self.getInputs(),
+            self.getProfileMandatoryKeys(),
+            self.getProfileOptionalKeys(),
+        )

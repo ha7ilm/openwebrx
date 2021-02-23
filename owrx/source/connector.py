@@ -92,3 +92,6 @@ class ConnectorDeviceDescription(SdrDeviceDescription):
 
     def getOptionalKeys(self):
         return super().getOptionalKeys() + ["rtltcp_compat", "iqswap"]
+
+    def getProfileOptionalKeys(self):
+        return super().getProfileOptionalKeys() + ["iqswap"]

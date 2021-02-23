@@ -6,7 +6,7 @@ from owrx.controllers.api import ApiController
 from owrx.controllers.metrics import MetricsController
 from owrx.controllers.settings import SettingsController
 from owrx.controllers.settings.general import GeneralSettingsController
-from owrx.controllers.settings.sdr import SdrDeviceListController, SdrDeviceController
+from owrx.controllers.settings.sdr import SdrDeviceListController, SdrDeviceController, SdrProfileController
 from owrx.controllers.settings.reporting import ReportingController
 from owrx.controllers.settings.backgrounddecoding import BackgroundDecodingController
 from owrx.controllers.settings.decoding import DecodingSettingsController
@@ -117,11 +117,22 @@ class Router(object):
             ),
             StaticRoute("/settings/sdr", SdrDeviceListController),
             RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController),
-            RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}),
+            RegexRoute(
+                "^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}
+            ),
+            RegexRoute("^/settings/sdr/([^/]+)/([^/]+)$", SdrProfileController),
+            RegexRoute(
+                "^/settings/sdr/([^/]+)/([^/]+)$",
+                SdrProfileController,
+                method="POST",
+                options={"action": "processFormData"},
+            ),
             StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),
             RegexRoute("^/settings/bookmarks/(.+)$", BookmarksController, method="POST", options={"action": "update"}),
-            RegexRoute("^/settings/bookmarks/(.+)$", BookmarksController, method="DELETE", options={"action": "delete"}),
+            RegexRoute(
+                "^/settings/bookmarks/(.+)$", BookmarksController, method="DELETE", options={"action": "delete"}
+            ),
             StaticRoute("/settings/reporting", ReportingController),
             StaticRoute(
                 "/settings/reporting", ReportingController, method="POST", options={"action": "processFormData"}

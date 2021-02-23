@@ -34,5 +34,8 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
     def getOptionalKeys(self):
         return super().getOptionalKeys() + ["bias_tee", "bitpack"]
 
+    def getProfileOptionalKeys(self):
+        return super().getProfileOptionalKeys() + ["bias_tee"]
+
     def getGainStages(self):
         return ["LNA", "MIX", "VGA"]
