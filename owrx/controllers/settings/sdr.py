@@ -62,15 +62,16 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
         # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
         config = Config.get()
         sdrs = config["sdrs"]
-        sdrs[self.device_id] = self.getData()
+        sdrs[self.device_id] = self.device
         config["sdrs"] = sdrs
         super().store()
 
     def _get_device(self):
+        config = Config.get()
         device_id = unquote(self.request.matches.group(1))
-        if device_id not in Config.get()["sdrs"]:
+        if device_id not in config["sdrs"]:
             return None
-        return device_id, Config.get()["sdrs"][device_id]
+        return device_id, config["sdrs"][device_id]
 
 
 class SdrDeviceController(SdrFormController):
@@ -137,12 +138,12 @@ class SdrProfileController(SdrFormController):
         return self.profile
 
     def _get_profile(self):
+        if self.device is None:
+            return None
         profile_id = unquote(self.request.matches.group(2))
-        if self.device_id not in Config.get()["sdrs"]:
+        if profile_id not in self.device["profiles"]:
             return None
-        if profile_id not in Config.get()["sdrs"][self.device_id]["profiles"]:
-            return None
-        return profile_id, Config.get()["sdrs"][self.device_id]["profiles"][profile_id]
+        return profile_id, self.device["profiles"][profile_id]
 
     def getSections(self):
         try:
