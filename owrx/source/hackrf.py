@@ -21,6 +21,5 @@ class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
     def getOptionalKeys(self):
         return super().getOptionalKeys() + ["bias_tee"]
 
-    # TODO: find actual gain stages for hackrf
-    # def getGainStages(self):
-    #    return None
+    def getGainStages(self):
+        return ["LNA", "AMP", "VGA"]
