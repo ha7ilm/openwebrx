@@ -511,7 +511,7 @@ function resize_scale() {
 }
 
 function canvas_get_freq_offset(relativeX) {
-    var rel = (relativeX / canvases[0].clientWidth);
+    var rel = (relativeX / canvas_container.clientWidth);
     return Math.round((bandwidth * rel) - (bandwidth / 2));
 }
 
