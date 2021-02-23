@@ -93,6 +93,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                 "rf_gain",
                 "Device Gain",
                 gain_stages=self.getGainStages(),
+                has_agc=self.hasAgc(),
             ),
             TextInput("antenna", "Antenna"),
         ]
