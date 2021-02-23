@@ -7,7 +7,7 @@ $.fn.optionalSection = function(){
             var field = $select.val();
             var group = $optionalInputs.find(".form-group[data-field='" + field + "']");
             group.find('input, select').prop('disabled', false);
-            $select.parents('.form-group').before(group);
+            $section.find('hr').before(group);
             $select.find('option[value=\'' + field + '\']').remove();
 
             return false;

@@ -5,6 +5,10 @@ html, body {
     height: unset;
 }
 
+hr {
+    background: gray;
+}
+
 .buttons {
     text-align: right;
 }

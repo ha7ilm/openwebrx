@@ -392,6 +392,7 @@ class OptionalSection(Section):
 
     def render_optional_select(self):
         return """
+            <hr class="row" />
             <div class="form-group row">
                 <label class="col-form-label col-form-label-sm col-3">
                     Additional optional settings
