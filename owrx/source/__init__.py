@@ -68,13 +68,21 @@ class SdrSource(ABC):
 
         self.props = PropertyStack()
         # layer 0 reserved for profile properties
-        self.props.addLayer(1, props)
+
+        # layer for runtime writeable properties
+        # these may be set during runtime, but should not be persisted to disk with the configuration
+        self.props.addLayer(1, PropertyLayer().filter("profile_id"))
+
+        # props from our device config
+        self.props.addLayer(2, props)
+
         # the sdr_id is constant, so we put it in a separate layer
         # this is used to detect device changes, that are then sent to the client
-        sdrIdLayer = PropertyLayer()
-        sdrIdLayer["sdr_id"] = id
-        self.props.addLayer(2, sdrIdLayer.readonly())
-        self.props.addLayer(3, Config.get())
+        self.props.addLayer(3, PropertyLayer(sdr_id=id).readonly())
+
+        # finally, accept global config properties from the top-level config
+        self.props.addLayer(4, Config.get())
+
         self.sdrProps = self.props.filter(*self.getEventNames())
 
         self.profile_id = None
