@@ -321,7 +321,6 @@ class SchedulerInput(Input):
         select_id = "{id}-select".format(id=self.id)
         if select_id in data:
             if data[select_id][0] == "static":
-                # TODO parse static fields
                 keys = ["{}-{}".format(self.id, x) for x in ["time-start", "time-end", "profile"]]
                 keys_present = reduce(and_, [key in data for key in keys], True)
                 if not keys_present:
