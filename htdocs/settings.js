@@ -6,4 +6,5 @@ $(function(){
     $('#waterfall_scheme').waterfallDropdown();
     $('#rf_gain').gainInput();
     $('.optional-section').optionalSection();
+    $('#scheduler').schedulerInput();
 });

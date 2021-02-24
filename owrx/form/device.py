@@ -163,3 +163,126 @@ class RemoteInput(TextInput):
         super().__init__(
             "remote", "Remote IP and Port", infotext="Remote hostname or IP and port to connect to. Format = IP:Port"
         )
+
+
+class SchedulerInput(Input):
+    def __init__(self, id, label):
+        super().__init__(id, label)
+        self.profiles = {}
+
+    def render(self, config):
+        if "profiles" in config:
+            self.profiles = config["profiles"]
+        return super().render(config)
+
+    def render_input(self, value):
+        def render_profiles_select(stage):
+            stage_value = ""
+            if value and "schedule" in value and stage in value["schedule"]:
+                stage_value = value["schedule"][stage]
+
+            return """
+                <select class="col-9 {classes}" id="{id}" name="{id}" {disabled}>
+                    {options}
+                </select> 
+            """.format(
+                id="{}-{}".format(self.id, stage),
+                classes=self.input_classes(),
+                disabled="disabled" if self.disabled else "",
+                options="".join(
+                    """
+                        <option value={id} {selected}>{name}</option>
+                    """.format(
+                        id=p_id,
+                        name=p["name"],
+                        selected="selected" if stage_value == p_id else "",
+                    )
+                    for p_id, p in self.profiles.items()
+                ),
+            )
+
+        return """
+            <div id="{id}">
+                <select class="{classes} mode" id="{id}-select" name="{id}-select" {disabled}>
+                    {options}
+                </select>
+                <div class="option static container container-fluid" style="display: none;">
+                    {entries}
+                </div>
+                <div class="option daylight container container-fluid" style="display: None;">
+                    {stages}
+                </div>
+            </div>
+        """.format(
+            id=self.id,
+            classes=self.input_classes(),
+            disabled="disabled" if self.disabled else "",
+            options=self.render_options(value),
+            entries="".join(
+                """
+                    <div class="row">
+                        <label class="col-form-label col-form-label-sm col-3">{slot}</label>
+                        {select}
+                    </div>
+                """.format(
+                    slot=slot,
+                    select=render_profiles_select(slot),
+                )
+                for slot, entry in value["schedule"].items()
+            ),
+            stages="".join(
+                """
+                    <div class="row">
+                        <label class="col-form-label col-form-label-sm col-3">{name}</label>
+                        {select}
+                    </div>
+                """.format(
+                    name=name,
+                    select=render_profiles_select(stage),
+                )
+                for stage, name in [("day", "Day"), ("night", "Night"), ("greyline", "Greyline")]
+            ),
+        )
+
+    def _get_mode(self, value):
+        if value is not None and "type" in value:
+            return value["type"]
+        return ""
+
+    def render_options(self, value):
+        options = [
+            ("static", "Static scheduler"),
+            ("daylight", "Daylight scheduler"),
+        ]
+
+        mode = self._get_mode(value)
+
+        return "".join(
+            """
+                <option value="{value}" {selected}>{name}</option>
+            """.format(
+                value=value, name=name, selected="selected" if mode == value else ""
+            )
+            for value, name in options
+        )
+
+    def parse(self, data):
+        def getStageValue(stage):
+            input_id = "{id}-{stage}".format(id=self.id, stage=stage)
+            if input_id in data:
+                return data[input_id][0]
+            else:
+                return None
+
+        select_id = "{id}-select".format(id=self.id)
+        if select_id in data:
+            if data[select_id][0] == "static":
+                # TODO parse static fields
+                pass
+            elif data[select_id][0] == "daylight":
+                settings_dict = {s: getStageValue(s) for s in ["day", "night", "greyline"]}
+                # filter out empty ones
+                settings_dict = {s: v for s, v in settings_dict.items() if v}
+                return {self.id: {"type": "daylight", "schedule": settings_dict}}
+
+        return {}

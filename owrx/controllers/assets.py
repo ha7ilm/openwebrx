@@ -152,6 +152,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/settings/WaterfallDropdown.js",
             "lib/settings/GainInput.js",
             "lib/settings/OptionalSection.js",
+            "lib/settings/SchedulerInput.js",
             "settings.js",
         ],
     }

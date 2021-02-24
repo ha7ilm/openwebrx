@@ -13,7 +13,7 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyFilter
 from owrx.property.filter import ByLambda
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput
 from owrx.form.converter import OptionalConverter
-from owrx.form.device import GainInput
+from owrx.form.device import GainInput, SchedulerInput
 from owrx.controllers.settings import Section
 from typing import List
 from enum import Enum, auto
@@ -486,7 +486,7 @@ class SdrDeviceDescription(object):
             ),
             NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS"),
             NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS"),
-            # TODO `schedule`
+            SchedulerInput("scheduler", "Scheduler"),
             NumberInput("center_freq", "Center frequency", append="Hz"),
             NumberInput("samp_rate", "Sample rate", append="S/s"),
             NumberInput("start_freq", "Initial frequency", append="Hz"),
@@ -502,7 +502,16 @@ class SdrDeviceDescription(object):
         return ["name", "enabled"]
 
     def getOptionalKeys(self):
-        return ["ppm", "always-on", "services", "rf_gain", "lfo_offset", "waterfall_min_level", "waterfall_max_level"]
+        return [
+            "ppm",
+            "always-on",
+            "services",
+            "rf_gain",
+            "lfo_offset",
+            "waterfall_min_level",
+            "waterfall_max_level",
+            "scheduler",
+        ]
 
     def getProfileMandatoryKeys(self):
         return ["center_freq", "samp_rate", "start_freq", "start_mod"]
