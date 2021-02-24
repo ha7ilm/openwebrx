@@ -107,3 +107,17 @@ table.bookmarks .frequency {
 .option-add-button, .option-remove-button {
     width: 70px;
 }
+
+.scheduler-static-time-inputs  {
+    display: flex;
+    flex-direction: row;
+}
+
+.scheduler-static-time-inputs > * {
+    flex: 0 0 auto;
+    width: unset;
+}
+
+.scheduler-static-time-inputs > select {
+    flex: 1 0 auto;
+}
