@@ -1,5 +1,4 @@
 from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
-from owrx.form.converter import OptionalConverter, EnumConverter
 from owrx.soapy import SoapySettings
 
 
