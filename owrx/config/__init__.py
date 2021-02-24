@@ -37,3 +37,7 @@ class Config(PropertyStack):
     def __setitem__(self, key, value):
         # in the config, all writes go to the json layer
         return self.storableConfig.__setitem__(key, value)
+
+    def __delitem__(self, key):
+        # all deletes go to the json layer, too
+        return self.storableConfig.__delitem__(key)
