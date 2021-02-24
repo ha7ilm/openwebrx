@@ -1,5 +1,7 @@
 from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
 from owrx.soapy import SoapySettings
+from functools import reduce
+from operator import and_
 
 
 class GainInput(Input):
@@ -203,7 +205,7 @@ class SchedulerInput(Input):
             )
 
         def render_time_inputs(v):
-            values = ["{}:{}".format(v[0:2], v[2:4]) for x in [v[0:4], v[5:9]]]
+            values = ["{}:{}".format(x[0:2], x[2:4]) for x in [v[0:4], v[5:9]]]
             return '<div class="p-1">-</div>'.join(
                 """
                     <input type="time" class="{classes}" id="{id}" name="{id}" {disabled} value="{value}">
@@ -243,7 +245,7 @@ class SchedulerInput(Input):
                     time_inputs=render_time_inputs(slot),
                     select=render_profiles_select(slot, "profile"),
                 )
-                for slot, entry in value["schedule"].items()
+                for slot, entry in (value["schedule"] if value and "schedule" in value else {"0000-0000": ""}).items()
             ),
             stages="".join(
                 """
@@ -293,7 +295,16 @@ class SchedulerInput(Input):
         if select_id in data:
             if data[select_id][0] == "static":
                 # TODO parse static fields
-                pass
+                keys = ["{}-{}".format(self.id, x) for x in ["time-start", "time-end", "profile"]]
+                keys_present = reduce(and_, [key in data for key in keys], True)
+                if not keys_present:
+                    return {}
+                lists = [data[key] for key in keys]
+                settings_dict = {
+                    "{}{}-{}{}".format(start[0:2], start[3:5], end[0:2], end[3:5]): profile
+                    for start, end, profile in zip(*lists)
+                }
+                return {self.id: {"type": "static", "schedule": settings_dict}}
             elif data[select_id][0] == "daylight":
                 settings_dict = {s: getStageValue(s) for s in ["day", "night", "greyline"]}
                 # filter out empty ones
