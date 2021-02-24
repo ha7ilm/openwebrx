@@ -57,8 +57,8 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
         return """
             <form class="settings-body" method="POST">
                 {sections}
-                <div class="buttons">
-                    <button type="submit" class="btn btn-primary">Apply</button>
+                <div class="buttons container">
+                    <button type="submit" class="btn btn-primary">Apply and save</button>
                 </div>
             </form>
         """.format(
