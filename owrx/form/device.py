@@ -177,33 +177,33 @@ class SchedulerInput(Input):
             self.profiles = config["profiles"]
         return super().render(config)
 
-    def render_input(self, value):
-        def render_profiles_select(config_key, stage, extra_classes=""):
-            stage_value = ""
-            if value and "schedule" in value and config_key in value["schedule"]:
-                stage_value = value["schedule"][config_key]
+    def render_profiles_select(self, value, config_key, stage, extra_classes=""):
+        stage_value = ""
+        if value and "schedule" in value and config_key in value["schedule"]:
+            stage_value = value["schedule"][config_key]
 
-            return """
-                <select class="{extra_classes} {classes}" id="{id}" name="{id}" {disabled}>
-                    {options}
-                </select> 
-            """.format(
-                id="{}-{}".format(self.id, stage),
-                classes=self.input_classes(),
-                extra_classes=extra_classes,
-                disabled="disabled" if self.disabled else "",
-                options="".join(
-                    """
-                        <option value={id} {selected}>{name}</option>
-                    """.format(
-                        id=p_id,
-                        name=p["name"],
-                        selected="selected" if stage_value == p_id else "",
-                    )
-                    for p_id, p in self.profiles.items()
-                ),
-            )
+        return """
+            <select class="{extra_classes} {classes}" id="{id}" name="{id}" {disabled}>
+                {options}
+            </select> 
+        """.format(
+            id="{}-{}".format(self.id, stage),
+            classes=self.input_classes(),
+            extra_classes=extra_classes,
+            disabled="disabled" if self.disabled else "",
+            options="".join(
+                """
+                    <option value={id} {selected}>{name}</option>
+                """.format(
+                    id=p_id,
+                    name=p["name"],
+                    selected="selected" if stage_value == p_id else "",
+                )
+                for p_id, p in self.profiles.items()
+            ),
+        )
 
+    def render_static_entires(self, value):
         def render_time_inputs(v):
             values = ["{}:{}".format(x[0:2], x[2:4]) for x in [v[0:4], v[5:9]]]
             return '<div class="p-1">-</div>'.join(
@@ -218,6 +218,55 @@ class SchedulerInput(Input):
                 for i, v in enumerate(values)
             )
 
+        schedule = {"0000-0000": ""}
+        if value is not None and value and "schedule" in value and "type" in value and value["type"] == "static":
+            schedule = value["schedule"]
+
+        rows = "".join(
+            """
+                <div class="row scheduler-static-time-inputs">
+                    {time_inputs}
+                    {select}
+                    <button class="btn btn-sm btn-danger remove-button">X</button>
+                </div>
+            """.format(
+                time_inputs=render_time_inputs(slot),
+                select=self.render_profiles_select(value, slot, "profile"),
+            )
+            for slot, entry in schedule.items()
+        )
+
+        return """
+            {rows}
+            <div class="row scheduler-static-time-inputs template" style="display: none;">
+                {time_inputs}
+                {select}
+                <button class="btn btn-sm btn-danger remove-button">X</button>
+            </div>
+            <div class="row">
+                <button class="btn btn-sm btn-primary col-12 add-button">Add...</button>
+            </div>
+        """.format(
+            rows=rows,
+            time_inputs=render_time_inputs("0000-0000"),
+            select=self.render_profiles_select("", "0000-0000", "profile"),
+        )
+
+    def render_daylight_entries(self, value):
+        return "".join(
+            """
+                <div class="row">
+                    <label class="col-form-label col-form-label-sm col-3">{name}</label>
+                    {select}
+                </div>
+            """.format(
+                name=name,
+                select=self.render_profiles_select(value, stage, stage, extra_classes="col-9"),
+            )
+            for stage, name in [("day", "Day"), ("night", "Night"), ("greyline", "Greyline")]
+        )
+
+    def render_input(self, value):
         return """
             <div id="{id}">
                 <select class="{classes} mode" id="{id}-select" name="{id}-select" {disabled}>
@@ -235,30 +284,8 @@ class SchedulerInput(Input):
             classes=self.input_classes(),
             disabled="disabled" if self.disabled else "",
             options=self.render_options(value),
-            entries="".join(
-                """
-                    <div class="row scheduler-static-time-inputs">
-                        {time_inputs}
-                        {select}
-                    </div>
-                """.format(
-                    time_inputs=render_time_inputs(slot),
-                    select=render_profiles_select(slot, "profile"),
-                )
-                for slot, entry in (value["schedule"] if value and "schedule" in value else {"0000-0000": ""}).items()
-            ),
-            stages="".join(
-                """
-                    <div class="row">
-                        <label class="col-form-label col-form-label-sm col-3">{name}</label>
-                        {select}
-                    </div>
-                """.format(
-                    name=name,
-                    select=render_profiles_select(stage, stage, extra_classes="col-9"),
-                )
-                for stage, name in [("day", "Day"), ("night", "Night"), ("greyline", "Greyline")]
-            ),
+            entries=self.render_static_entires(value),
+            stages=self.render_daylight_entries(value),
         )
 
     def _get_mode(self, value):
