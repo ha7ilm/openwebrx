@@ -12,6 +12,7 @@ from owrx.form import (
 from owrx.form.converter import WaterfallColorsConverter
 from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.gfx import AvatarInput, TopPhotoInput
+from owrx.form.device import WaterfallLevelsInput
 from owrx.waterfall import WaterfallOptions
 import shutil
 import os
@@ -102,8 +103,7 @@ class GeneralSettingsController(SettingsFormController):
                     infotext="If fft_voverlap_factor is above 0, multiple FFTs will be used for creating a line on the "
                     + "diagram.",
                 ),
-                NumberInput("waterfall_min_level", "Lowest waterfall level", append="dBFS"),
-                NumberInput("waterfall_max_level", "Highest waterfall level", append="dBFS"),
+                WaterfallLevelsInput("waterfall_levels", "Waterfall levels"),
             ),
             Section(
                 "Compression",

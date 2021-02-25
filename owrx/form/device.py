@@ -338,3 +338,47 @@ class SchedulerInput(Input):
                 return {self.id: {"type": "daylight", "schedule": settings_dict}}
 
         return {}
+
+
+class WaterfallLevelsInput(Input):
+    def render_input(self, value):
+        return """
+            <div class="row" id="{id}">
+                {inputs}
+            </div>
+        """.format(
+            id=self.id,
+            inputs="".join(
+                """
+                    <div class="col row">
+                        <label class="col-3 col-form-label col-form-label-sm" for="{id}-{name}">{label}</label>
+                        <div class="col-9 input-group input-group-sm">
+                            <input type="number" class="{classes}" name="{id}-{name}" value="{value}" {disabled}>
+                            <div class="input-group-append">
+                                <span class="input-group-text">dBFS</span>
+                            </div>
+                        </div>
+                    </div>
+                """.format(
+                    id=self.id,
+                    name=name,
+                    label=label,
+                    value=value[name] if value and name in value else "0",
+                    classes=self.input_classes(),
+                    disabled="disabled" if self.disabled else "",
+                )
+                for name, label in [("min", "Minimum"), ("max", "Maximum")]
+            )
+        )
+
+    def parse(self, data):
+        def getValue(name):
+            key = "{}-{}".format(self.id, name)
+            if key in data:
+                return {name: data[key][0]}
+            raise KeyError("waterfall key not found")
+
+        try:
+            return {self.id: {k: v for name in ["min", "max"] for k, v in getValue(name).items()}}
+        except KeyError:
+            return {}

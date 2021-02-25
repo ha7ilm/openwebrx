@@ -41,7 +41,6 @@ class ConfigMigratorVersion2(ConfigMigrator):
 
 
 class ConfigMigratorVersion3(ConfigMigrator):
-
     def migrate(self, config):
         # inline import due to circular dependencies
         from owrx.waterfall import WaterfallOptions
@@ -61,12 +60,42 @@ class ConfigMigratorVersion3(ConfigMigrator):
         config["version"] = 4
 
 
+class ConfigMigratorVersion4(ConfigMigrator):
+    def _replaceWaterfallLevels(self, instance):
+        if (
+            "waterfall_min_level" in instance
+            and "waterfall_max_level" in instance
+            and not "waterfall_levels" in instance
+        ):
+            instance["waterfall_levels"] = {
+                "min": instance["waterfall_min_level"],
+                "max": instance["waterfall_max_level"],
+            }
+            del instance["waterfall_min_level"]
+            del instance["waterfall_max_level"]
+
+    def migrate(self, config):
+        # migrate root level
+        self._replaceWaterfallLevels(config)
+        if "sdrs" in config:
+            for device in config["sdrs"].__dict__().values():
+                # migrate device level
+                self._replaceWaterfallLevels(device)
+                if "profiles" in device:
+                    for profile in device["profiles"].__dict__().values():
+                        # migrate profile level
+                        self._replaceWaterfallLevels(profile)
+
+        config["version"] = 5
+
+
 class Migrator(object):
-    currentVersion = 4
+    currentVersion = 5
     migrators = {
         1: ConfigMigratorVersion1(),
         2: ConfigMigratorVersion2(),
         3: ConfigMigratorVersion3(),
+        4: ConfigMigratorVersion4(),
     }
 
     @staticmethod

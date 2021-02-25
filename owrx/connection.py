@@ -113,8 +113,7 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
 
 class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     sdr_config_keys = [
-        "waterfall_min_level",
-        "waterfall_max_level",
+        "waterfall_levels",
         "samp_rate",
         "start_mod",
         "start_freq",

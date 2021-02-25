@@ -2,7 +2,7 @@ from owrx.property import PropertyLayer
 
 
 defaultConfig = PropertyLayer(
-    version=4,
+    version=5,
     max_clients=20,
     receiver_name="[Callsign]",
     receiver_location="Budapest, Hungary",
@@ -23,8 +23,7 @@ defaultConfig = PropertyLayer(
     digital_voice_dmr_id_lookup=True,
     # sdrs=...
     waterfall_scheme="GoogleTurboWaterfall",
-    waterfall_min_level=-88,
-    waterfall_max_level=-20,
+    waterfall_levels=PropertyLayer(min=-88, max=-20),
     waterfall_auto_level_margin=PropertyLayer(min=3, max=10, min_range=50),
     frequency_display_precision=4,
     squelch_auto_margin=10,

@@ -717,10 +717,10 @@ function on_ws_recv(evt) {
                         var config = json['value'];
                         if ('waterfall_colors' in config)
                             waterfall_colors = buildWaterfallColors(config['waterfall_colors']);
-                        if ('waterfall_min_level' in config)
-                            waterfall_min_level_default = config['waterfall_min_level'];
-                        if ('waterfall_max_level' in config)
-                            waterfall_max_level_default = config['waterfall_max_level'];
+                        if ('waterfall_levels' in config) {
+                            waterfall_min_level_default = config['waterfall_levels']['min'];
+                            waterfall_max_level_default = config['waterfall_levels']['max'];
+                        }
                         if ('waterfall_auto_level_margin' in config)
                             waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
                         waterfallColorsDefault();

@@ -59,3 +59,6 @@ class DynamicConfig(PropertyLayer):
 
     def __dict__(self):
         return {k: v for k, v in super().__dict__().items() if v is not DynamicConfig._deleted}
+
+    def keys(self):
+        return [k for k in super().keys() if self.__contains__(k)]

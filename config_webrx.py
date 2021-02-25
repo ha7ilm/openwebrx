@@ -33,7 +33,7 @@ config_webrx: configuration options for OpenWebRX
 """
 
 # configuration version. please only modify if you're able to perform the associated migration steps.
-version = 4
+version = 5
 
 # NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
 # https://github.com/jketterl/openwebrx/wiki/Configuration-guide
@@ -258,13 +258,12 @@ sdrs = {
 #waterfall_colors = [0x0000FF, 0x00FF00, 0xFF0000]
 
 ### Waterfall calibration
-#waterfall_min_level = -88  # in dB
-#waterfall_max_level = -20
+#waterfall_levels = {"min": -88, "max": -20}  # in dB
 waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 
 # Note: When the auto waterfall level button is clicked, the following happens:
-#   [waterfall_min_level] = [current_min_power_level] - [waterfall_auto_level_margin["min"]]
-#   [waterfall_max_level] = [current_max_power_level] + [waterfall_auto_level_margin["max"]]
+#   [waterfall_levels.min] = [current_min_power_level] - [waterfall_auto_level_margin["min"]]
+#   [waterfall_levels.max] = [current_max_power_level] + [waterfall_auto_level_margin["max"]]
 #
 #   ___|________________________________________|____________________________________|________________________________________|___> signal power
 #        \_waterfall_auto_level_margin["min"]_/ |__ current_min_power_level          | \_waterfall_auto_level_margin["max"]_/
