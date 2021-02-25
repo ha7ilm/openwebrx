@@ -353,7 +353,7 @@ class WaterfallLevelsInput(Input):
                     <div class="col row">
                         <label class="col-3 col-form-label col-form-label-sm" for="{id}-{name}">{label}</label>
                         <div class="col-9 input-group input-group-sm">
-                            <input type="number" class="{classes}" name="{id}-{name}" value="{value}" {disabled}>
+                            <input type="number" step="any" class="{classes}" name="{id}-{name}" value="{value}" {disabled}>
                             <div class="input-group-append">
                                 <span class="input-group-text">dBFS</span>
                             </div>
@@ -375,7 +375,7 @@ class WaterfallLevelsInput(Input):
         def getValue(name):
             key = "{}-{}".format(self.id, name)
             if key in data:
-                return {name: data[key][0]}
+                return {name: float(data[key][0])}
             raise KeyError("waterfall key not found")
 
         try:
