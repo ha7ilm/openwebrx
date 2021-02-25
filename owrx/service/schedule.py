@@ -72,10 +72,7 @@ class DatetimeScheduleEntry(ScheduleEntry):
 class Schedule(ABC):
     @staticmethod
     def parse(props):
-        # downwards compatibility
-        if "schedule" in props:
-            return StaticSchedule(props["schedule"])
-        elif "scheduler" in props:
+        if "scheduler" in props:
             sc = props["scheduler"]
             t = sc["type"] if "type" in sc else "static"
             if t == "static":
@@ -84,6 +81,9 @@ class Schedule(ABC):
                 return DaylightSchedule(sc["schedule"])
             else:
                 logger.warning("Invalid scheduler type: %s", t)
+        # downwards compatibility
+        elif "schedule" in props:
+            return StaticSchedule(props["schedule"])
 
     @abstractmethod
     def getCurrentEntry(self):
@@ -209,10 +209,15 @@ class ServiceScheduler(SdrSourceEventClient):
     def __init__(self, source):
         self.source = source
         self.selectionTimer = None
-        self.source.addClient(self)
+        self.schedule = None
+        props = self.source.getProps()
+        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        props.wireProperty("scheduler", self.parseSchedule)
+        self.parseSchedule()
+
+    def parseSchedule(self, *args):
         props = self.source.getProps()
         self.schedule = Schedule.parse(props)
-        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         self.scheduleSelection()
 
     def shutdown(self):
@@ -258,12 +263,16 @@ class ServiceScheduler(SdrSourceEventClient):
         entry = self.schedule.getCurrentEntry()
 
         if entry is None:
-            logger.debug("schedule did not return a profile. checking next entry...")
+            logger.debug("schedule did not return a current profile. releasing source...")
+            self.source.removeClient(self)
+            logger.debug("checking next (future) entry...")
             nextEntry = self.schedule.getNextEntry()
             if nextEntry is not None:
                 self.scheduleSelection(nextEntry.getNextActivation())
+            logger.debug("no next entry available, scheduler standing by for external events.")
             return
 
+        self.source.addClient(self)
         logger.debug("selected profile %s until %s", entry.getProfile(), entry.getScheduledEnd())
         self.scheduleSelection(entry.getScheduledEnd())
 

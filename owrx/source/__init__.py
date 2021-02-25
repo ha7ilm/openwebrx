@@ -303,6 +303,8 @@ class SdrSource(ABC):
         return len(clients) > 0
 
     def addClient(self, c: SdrSourceEventClient):
+        if c in self.clients:
+            return
         self.clients.append(c)
         c.onStateChange(self.getState())
         hasUsers = self.hasClients(SdrClientClass.USER)
