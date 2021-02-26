@@ -23,6 +23,7 @@ class ClientRegistry(object):
 
     def __init__(self):
         self.clients = []
+        Config.get().wireProperty("max_clients", self._checkClientCount)
         super().__init__()
 
     def broadcast(self):
@@ -46,3 +47,9 @@ class ClientRegistry(object):
         except ValueError:
             pass
         self.broadcast()
+
+    def _checkClientCount(self, new_count):
+        logger.debug("new client count: %i", new_count)
+        for client in self.clients[new_count:]:
+            logger.debug("closing one connection...")
+            client.close()
