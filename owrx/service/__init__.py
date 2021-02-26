@@ -70,6 +70,7 @@ class ServiceHandler(SdrSourceEventClient):
         self.running = False
         props = self.source.getProps()
         self.enabledSub = props.wireProperty("services", self._receiveEvent)
+        self.decodersSub = None
         # need to call _start() manually if property is not set since the default is True, but the initial call is only
         # made if the property is present
         if "services" not in props:
@@ -91,13 +92,17 @@ class ServiceHandler(SdrSourceEventClient):
         self.source.addClient(self)
         props = self.source.getProps()
         self.activitySub = props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        self.decodersSub = Config.get().wireProperty("services_decoders", self.onFrequencyChange)
         if self.source.isAvailable():
-            self.scheduleServiceStartup()
+            self._scheduleServiceStartup()
 
     def _stop(self):
         if self.activitySub is not None:
             self.activitySub.cancel()
             self.activitySub = None
+        if self.decodersSub is not None:
+            self.decodersSub.cancel()
+            self.decodersSub = None
         self._cancelStartupTimer()
         self.source.removeClient(self)
         self.stopServices()
@@ -108,7 +113,7 @@ class ServiceHandler(SdrSourceEventClient):
 
     def onStateChange(self, state: SdrSourceState):
         if state is SdrSourceState.RUNNING:
-            self.scheduleServiceStartup()
+            self._scheduleServiceStartup()
         elif state is SdrSourceState.STOPPING:
             logger.debug("sdr source becoming unavailable; stopping services.")
             self.stopServices()
@@ -142,14 +147,14 @@ class ServiceHandler(SdrSourceEventClient):
         self.stopServices()
         if not self.source.isAvailable():
             return
-        self.scheduleServiceStartup()
+        self._scheduleServiceStartup()
 
     def _cancelStartupTimer(self):
         if self.startupTimer:
             self.startupTimer.cancel()
             self.startupTimer = None
 
-    def scheduleServiceStartup(self):
+    def _scheduleServiceStartup(self):
         self._cancelStartupTimer()
         self.startupTimer = threading.Timer(10, self.updateServices)
         self.startupTimer.start()
