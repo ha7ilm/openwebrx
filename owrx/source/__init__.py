@@ -319,6 +319,9 @@ class SdrSource(ABC):
 
         self.clients.remove(c)
 
+        self.checkStatus()
+
+    def checkStatus(self):
         hasUsers = self.hasClients(SdrClientClass.USER)
         self.setBusyState(SdrBusyState.BUSY if hasUsers else SdrBusyState.IDLE)
 

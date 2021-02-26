@@ -209,7 +209,7 @@ class ServiceScheduler(SdrSourceEventClient):
     def __init__(self, source):
         self.source = source
         self.selectionTimer = None
-        self.currentProfile = None
+        self.currentEntry = None
         self.source.addClient(self)
         self.schedule = None
         props = self.source.getProps()
@@ -246,7 +246,7 @@ class ServiceScheduler(SdrSourceEventClient):
             self.selectionTimer.cancel()
 
     def getClientClass(self) -> SdrClientClass:
-        if self.currentProfile is None:
+        if self.currentEntry is None:
             return SdrClientClass.INACTIVE
         else:
             return SdrClientClass.BACKGROUND
@@ -264,20 +264,38 @@ class ServiceScheduler(SdrSourceEventClient):
     def onFrequencyChange(self, changes):
         self.scheduleSelection()
 
+    def _setCurrentEntry(self, entry):
+        self.currentEntry = entry
+
+        if entry is not None:
+            logger.debug("selected profile %s until %s", entry.getProfile(), entry.getScheduledEnd())
+            self.scheduleSelection(entry.getScheduledEnd())
+
+            try:
+                self.source.activateProfile(entry.getProfile())
+                self.source.start()
+            except KeyError:
+                pass
+
+        # tell the source to re-evaluate its current status
+        # this should make it shut down if there's no other activity
+        # TODO this is an improvised solution, should probably be integrated / improved in SdrSourceEventClient
+        self.source.checkStatus()
+
     def selectProfile(self):
         if self.source.hasClients(SdrClientClass.USER):
             logger.debug("source has active users; not touching")
             return
 
         if self.schedule is None:
-            self.currentProfile = None
+            self._setCurrentEntry(None)
             logger.debug("no active schedule, scheduler standing by for external events.")
             return
 
         logger.debug("source seems to be idle, selecting profile for background services")
-        self.currentProfile = entry = self.schedule.getCurrentEntry()
+        self._setCurrentEntry(self.schedule.getCurrentEntry())
 
-        if entry is None:
+        if self.currentEntry is None:
             logger.debug("schedule did not return a current profile. checking next (future) entry...")
             nextEntry = self.schedule.getNextEntry()
             if nextEntry is not None:
@@ -285,12 +303,3 @@ class ServiceScheduler(SdrSourceEventClient):
             else:
                 logger.debug("no next entry available, scheduler standing by for external events.")
             return
-
-        logger.debug("selected profile %s until %s", entry.getProfile(), entry.getScheduledEnd())
-        self.scheduleSelection(entry.getScheduledEnd())
-
-        try:
-            self.source.activateProfile(entry.getProfile())
-            self.source.start()
-        except KeyError:
-            pass
