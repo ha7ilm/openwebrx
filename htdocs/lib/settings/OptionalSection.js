@@ -6,7 +6,10 @@ $.fn.optionalSection = function(){
         $section.on('click', '.option-add-button', function(e){
             var field = $select.val();
             var group = $optionalInputs.find(".form-group[data-field='" + field + "']");
-            group.find('input, select').prop('disabled', false);
+            group.find('input, select').filter(function(){
+                // exclude template inputs
+                return !$(this).parents('.template').length;
+            }).prop('disabled', false);
             $section.find('hr').before(group);
             $select.find('option[value=\'' + field + '\']').remove();
 
