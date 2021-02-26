@@ -69,7 +69,7 @@ class ServiceHandler(SdrSourceEventClient):
         self.scheduler = None
         self.source.addClient(self)
         props = self.source.getProps()
-        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        self.subscriptions = [props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)]
         if self.source.isAvailable():
             self.scheduleServiceStartup()
         self.scheduler = ServiceScheduler(self.source)
@@ -98,6 +98,8 @@ class ServiceHandler(SdrSourceEventClient):
         return mode in configured and mode in available
 
     def shutdown(self):
+        while self.subscriptions:
+            self.subscriptions.pop().cancel()
         self.stopServices()
         self.source.removeClient(self)
         if self.scheduler:
@@ -282,15 +284,20 @@ class Services(object):
 
     @staticmethod
     def start():
-        if not Config.get()["services_enabled"]:
-            return
-        for source in SdrService.getSources().values():
-            props = source.getProps()
-            if "services" not in props or props["services"] is not False:
-                Services.handlers.append(ServiceHandler(source))
+        config = Config.get()
+        config.wireProperty("services_enabled", Services._receiveEvent)
+
+    @staticmethod
+    def _receiveEvent(state):
+        if state:
+            for source in SdrService.getSources().values():
+                props = source.getProps()
+                if "services" not in props or props["services"] is not False:
+                    Services.handlers.append(ServiceHandler(source))
+        else:
+            Services.stop()
 
     @staticmethod
     def stop():
-        for handler in Services.handlers:
-            handler.shutdown()
-        Services.handlers = []
+        while Services.handlers:
+            Services.handlers.pop().shutdown()
