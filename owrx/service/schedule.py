@@ -213,7 +213,8 @@ class ServiceScheduler(SdrSourceEventClient):
         props = self.source.getProps()
         props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         props.wireProperty("scheduler", self.parseSchedule)
-        self.parseSchedule()
+        # wireProperty calls parseSchedule with the initial value
+        # self.parseSchedule()
 
     def parseSchedule(self, *args):
         props = self.source.getProps()
@@ -259,6 +260,12 @@ class ServiceScheduler(SdrSourceEventClient):
         if self.source.hasClients(SdrClientClass.USER):
             logger.debug("source has active users; not touching")
             return
+
+        if self.schedule is None:
+            logger.debug("no active schedule. releasing source...")
+            self.source.removeClient(self)
+            return
+
         logger.debug("source seems to be idle, selecting profile for background services")
         entry = self.schedule.getCurrentEntry()
 
@@ -269,7 +276,8 @@ class ServiceScheduler(SdrSourceEventClient):
             nextEntry = self.schedule.getNextEntry()
             if nextEntry is not None:
                 self.scheduleSelection(nextEntry.getNextActivation())
-            logger.debug("no next entry available, scheduler standing by for external events.")
+            else:
+                logger.debug("no next entry available, scheduler standing by for external events.")
             return
 
         self.source.addClient(self)

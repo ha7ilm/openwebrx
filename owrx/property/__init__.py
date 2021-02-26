@@ -10,6 +10,15 @@ class PropertyError(Exception):
     pass
 
 
+class PropertyDeletion(object):
+    pass
+
+
+# a special object that will be sent in events when a deletion occured
+# it can also represent deletion of a key in internal storage, but should not be return from standard dict apis
+PropertyDeleted = PropertyDeletion()
+
+
 class Subscription(object):
     def __init__(self, subscriptee, name, subscriber):
         self.subscriptee = subscriptee
@@ -126,7 +135,8 @@ class PropertyLayer(PropertyManager):
         return {k: v for k, v in self.properties.items()}
 
     def __delitem__(self, key):
-        return self.properties.__delitem__(key)
+        self.properties.__delitem__(key)
+        self._fireCallbacks({key: PropertyDeleted})
 
     def keys(self):
         return self.properties.keys()
@@ -273,7 +283,7 @@ class PropertyStack(PropertyManager):
                 if self[key] != pm[key]:
                     changes[key] = self[key]
             else:
-                changes[key] = None
+                changes[key] = PropertyDeleted
         return changes
 
     def replaceLayer(self, priority: int, pm: PropertyManager):
@@ -289,15 +299,21 @@ class PropertyStack(PropertyManager):
 
     def receiveEvent(self, layer, changes):
         changesToForward = {name: value for name, value in changes.items() if layer == self._getTopLayer(name)}
-        self._fireCallbacks(changesToForward)
+        # deletions need to be handled separately: only send them if deleted in all layers
+        deletionsToForward = {
+            name: value
+            for name, value in changes.items()
+            if value is PropertyDeleted and self._getTopLayer(name, False) is None
+        }
+        self._fireCallbacks({**changesToForward, **deletionsToForward})
 
-    def _getTopLayer(self, item):
+    def _getTopLayer(self, item, fallback=True):
         layers = [la["props"] for la in sorted(self.layers, key=lambda l: l["priority"])]
         for m in layers:
             if item in m:
                 return m
-        # return top layer by default
-        if layers:
+        # return top layer as fallback
+        if fallback and layers:
             return layers[0]
 
     def __getitem__(self, item):

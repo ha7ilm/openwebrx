@@ -314,10 +314,10 @@ class SdrSource(ABC):
             self.setBusyState(SdrBusyState.BUSY if hasUsers else SdrBusyState.IDLE)
 
     def removeClient(self, c: SdrSourceEventClient):
-        try:
-            self.clients.remove(c)
-        except ValueError:
-            pass
+        if c not in self.clients:
+            return
+
+        self.clients.remove(c)
 
         hasUsers = self.hasClients(SdrClientClass.USER)
         self.setBusyState(SdrBusyState.BUSY if hasUsers else SdrBusyState.IDLE)

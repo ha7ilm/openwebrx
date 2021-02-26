@@ -9,7 +9,7 @@ from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
 from owrx.bookmarks import Bookmarks
 from owrx.map import Map
-from owrx.property import PropertyStack
+from owrx.property import PropertyStack, PropertyDeleted
 from owrx.modes import Modes, DigitalMode
 from owrx.config import Config
 from owrx.waterfall import WaterfallOptions
@@ -176,7 +176,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             if changes is None:
                 config = configProps.__dict__()
             else:
-                config = changes
+                # transform deletions into Nones
+                config = {k: v if v is not PropertyDeleted else None for k, v in changes.items()}
             if (
                 (changes is None or "start_freq" in changes or "center_freq" in changes)
                 and "start_freq" in configProps

@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import Mock
-from owrx.property import PropertyLayer, PropertyFilter
+from owrx.property import PropertyLayer, PropertyFilter, PropertyDeleted
 
 
 class PropertyFilterTest(TestCase):
@@ -70,3 +70,13 @@ class PropertyFilterTest(TestCase):
         with self.assertRaises(KeyError):
             pf["testkey"] = "new value"
         self.assertEqual(pm["testkey"], "old value")
+
+    def testPropagatesDeletion(self):
+        pm = PropertyLayer(testkey="somevalue")
+        filter_mock = Mock()
+        filter_mock.apply.return_value = True
+        pf = PropertyFilter(pm, filter_mock)
+        mock = Mock()
+        pf.wire(mock.method)
+        del pf["testkey"]
+        mock.method.assert_called_once_with({"testkey": PropertyDeleted})

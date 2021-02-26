@@ -1,13 +1,11 @@
 from owrx.config.core import CoreConfig
 from owrx.config.migration import Migrator
-from owrx.property import PropertyLayer
+from owrx.property import PropertyLayer, PropertyDeleted
 from owrx.jsons import Encoder
 import json
 
 
 class DynamicConfig(PropertyLayer):
-    _deleted = object()
-
     def __init__(self):
         super().__init__()
         try:
@@ -43,12 +41,12 @@ class DynamicConfig(PropertyLayer):
             file.write(jsonContent)
 
     def __delitem__(self, key):
-        self.__setitem__(key, DynamicConfig._deleted)
+        self.__setitem__(key, PropertyDeleted)
 
     def __contains__(self, item):
         if not super().__contains__(item):
             return False
-        if super().__getitem__(item) is DynamicConfig._deleted:
+        if super().__getitem__(item) is PropertyDeleted:
             return False
         return True
 
@@ -58,7 +56,7 @@ class DynamicConfig(PropertyLayer):
         raise KeyError('Key "{key}" does not exist'.format(key=item))
 
     def __dict__(self):
-        return {k: v for k, v in super().__dict__().items() if v is not DynamicConfig._deleted}
+        return {k: v for k, v in super().__dict__().items() if v is not PropertyDeleted}
 
     def keys(self):
         return [k for k in super().keys() if self.__contains__(k)]
