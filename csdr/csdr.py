@@ -494,7 +494,10 @@ class dsp(object):
         self.secondary_fft_size = secondary_fft_size
 
     def set_audio_compression(self, what):
+        if self.audio_compression == what:
+            return
         self.audio_compression = what
+        self.restart()
 
     def get_audio_bytes_to_read(self):
         # desired latency: 5ms
