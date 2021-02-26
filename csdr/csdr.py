@@ -509,7 +509,10 @@ class dsp(object):
         return int(base)
 
     def set_fft_compression(self, what):
+        if self.fft_compression == what:
+            return
         self.fft_compression = what
+        self.restart()
 
     def get_fft_bytes_to_read(self):
         if self.fft_compression == "none":
