@@ -209,10 +209,13 @@ class ServiceScheduler(SdrSourceEventClient):
     def __init__(self, source):
         self.source = source
         self.selectionTimer = None
+        self.currentProfile = None
+        self.source.addClient(self)
         self.schedule = None
         props = self.source.getProps()
-        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
-        props.wireProperty("scheduler", self.parseSchedule)
+        self.subscriptions = []
+        self.subscriptions.append(props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange))
+        self.subscriptions.append(props.wireProperty("scheduler", self.parseSchedule))
         # wireProperty calls parseSchedule with the initial value
         # self.parseSchedule()
 
@@ -222,6 +225,8 @@ class ServiceScheduler(SdrSourceEventClient):
         self.scheduleSelection()
 
     def shutdown(self):
+        while self.subscriptions:
+            self.subscriptions.pop().cancel()
         self.cancelTimer()
         self.source.removeClient(self)
 
@@ -241,13 +246,16 @@ class ServiceScheduler(SdrSourceEventClient):
             self.selectionTimer.cancel()
 
     def getClientClass(self) -> SdrClientClass:
-        return SdrClientClass.BACKGROUND
+        if self.currentProfile is None:
+            return SdrClientClass.INACTIVE
+        else:
+            return SdrClientClass.BACKGROUND
 
     def onStateChange(self, state: SdrSourceState):
         if state is SdrSourceState.STOPPING:
             self.scheduleSelection()
         elif state is SdrSourceState.FAILED:
-            self.cancelTimer()
+            self.shutdown()
 
     def onBusyStateChange(self, state: SdrBusyState):
         if state is SdrBusyState.IDLE:
@@ -262,17 +270,15 @@ class ServiceScheduler(SdrSourceEventClient):
             return
 
         if self.schedule is None:
-            logger.debug("no active schedule. releasing source...")
-            self.source.removeClient(self)
+            self.currentProfile = None
+            logger.debug("no active schedule, scheduler standing by for external events.")
             return
 
         logger.debug("source seems to be idle, selecting profile for background services")
-        entry = self.schedule.getCurrentEntry()
+        self.currentProfile = entry = self.schedule.getCurrentEntry()
 
         if entry is None:
-            logger.debug("schedule did not return a current profile. releasing source...")
-            self.source.removeClient(self)
-            logger.debug("checking next (future) entry...")
+            logger.debug("schedule did not return a current profile. checking next (future) entry...")
             nextEntry = self.schedule.getNextEntry()
             if nextEntry is not None:
                 self.scheduleSelection(nextEntry.getNextActivation())
@@ -280,7 +286,6 @@ class ServiceScheduler(SdrSourceEventClient):
                 logger.debug("no next entry available, scheduler standing by for external events.")
             return
 
-        self.source.addClient(self)
         logger.debug("selected profile %s until %s", entry.getProfile(), entry.getScheduledEnd())
         self.scheduleSelection(entry.getScheduledEnd())
 

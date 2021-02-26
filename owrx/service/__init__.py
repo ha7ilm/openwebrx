@@ -9,7 +9,7 @@ from owrx.js8 import Js8Parser
 from owrx.config.core import CoreConfig
 from owrx.config import Config
 from owrx.source.resampler import Resampler
-from owrx.property import PropertyLayer
+from owrx.property import PropertyLayer, PropertyDeleted
 from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
 from .schedule import ServiceScheduler
@@ -66,13 +66,42 @@ class ServiceHandler(SdrSourceEventClient):
         self.services = []
         self.source = source
         self.startupTimer = None
-        self.scheduler = None
+        self.activitySub = None
+        self.running = False
+        props = self.source.getProps()
+        self.enabledSub = props.wireProperty("services", self._receiveEvent)
+        # need to call _start() manually if property is not set since the default is True, but the initial call is only
+        # made if the property is present
+        if "services" not in props:
+            self._start()
+
+    def _receiveEvent(self, state):
+        # deletion means fall back to default, which is True
+        if state is PropertyDeleted:
+            state = True
+        if self.running == state:
+            return
+        if state:
+            self._start()
+        else:
+            self._stop()
+
+    def _start(self):
+        self.running = True
         self.source.addClient(self)
         props = self.source.getProps()
-        self.subscriptions = [props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)]
+        self.activitySub = props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
         if self.source.isAvailable():
             self.scheduleServiceStartup()
-        self.scheduler = ServiceScheduler(self.source)
+
+    def _stop(self):
+        if self.activitySub is not None:
+            self.activitySub.cancel()
+            self.activitySub = None
+        self._cancelStartupTimer()
+        self.source.removeClient(self)
+        self.stopServices()
+        self.running = False
 
     def getClientClass(self) -> SdrClientClass:
         return SdrClientClass.INACTIVE
@@ -86,8 +115,6 @@ class ServiceHandler(SdrSourceEventClient):
         elif state is SdrSourceState.FAILED:
             logger.debug("sdr source failed; stopping services.")
             self.stopServices()
-            if self.scheduler:
-                self.scheduler.shutdown()
 
     def onBusyStateChange(self, state: SdrBusyState):
         pass
@@ -98,12 +125,10 @@ class ServiceHandler(SdrSourceEventClient):
         return mode in configured and mode in available
 
     def shutdown(self):
-        while self.subscriptions:
-            self.subscriptions.pop().cancel()
-        self.stopServices()
-        self.source.removeClient(self)
-        if self.scheduler:
-            self.scheduler.shutdown()
+        self._stop()
+        if self.enabledSub is not None:
+            self.enabledSub.cancel()
+            self.enabledSub = None
 
     def stopServices(self):
         with self.lock:
@@ -119,9 +144,13 @@ class ServiceHandler(SdrSourceEventClient):
             return
         self.scheduleServiceStartup()
 
-    def scheduleServiceStartup(self):
+    def _cancelStartupTimer(self):
         if self.startupTimer:
             self.startupTimer.cancel()
+            self.startupTimer = None
+
+    def scheduleServiceStartup(self):
+        self._cancelStartupTimer()
         self.startupTimer = threading.Timer(10, self.updateServices)
         self.startupTimer.start()
 
@@ -281,23 +310,27 @@ class Js8Handler(object):
 
 class Services(object):
     handlers = []
+    schedulers = []
 
     @staticmethod
     def start():
         config = Config.get()
         config.wireProperty("services_enabled", Services._receiveEvent)
+        for source in SdrService.getSources().values():
+            Services.schedulers.append(ServiceScheduler(source))
 
     @staticmethod
     def _receiveEvent(state):
         if state:
             for source in SdrService.getSources().values():
-                props = source.getProps()
-                if "services" not in props or props["services"] is not False:
-                    Services.handlers.append(ServiceHandler(source))
+                Services.handlers.append(ServiceHandler(source))
         else:
-            Services.stop()
+            while Services.handlers:
+                Services.handlers.pop().shutdown()
 
     @staticmethod
     def stop():
         while Services.handlers:
             Services.handlers.pop().shutdown()
+        while Services.schedulers:
+            Services.schedulers.pop().shutdown()
