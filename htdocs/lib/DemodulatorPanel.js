@@ -341,7 +341,7 @@ DemodulatorPanel.prototype.updateSquelch = function() {
 };
 
 DemodulatorPanel.prototype.setSquelchMargin = function(margin) {
-    if (!margin || this.squelchMargin == margin) return;
+    if (typeof(margin) === 'undefined' || this.squelchMargin == margin) return;
     this.squelchMargin = margin;
 };
 
