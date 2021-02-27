@@ -30,7 +30,10 @@ $.fn.frequencyInput = function() {
         $exponent.on('change', setExponent);
 
         // calculate initial exponent
-        $exponent.val(Math.floor(Math.log10($input.val()) / 3) * 3);
-        setExponent();
+        var value = parseFloat($input.val());
+        if (!Number.isNaN(value)) {
+            $exponent.val(Math.floor(Math.log10(value) / 3) * 3);
+            setExponent();
+        }
     })
 };
