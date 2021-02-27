@@ -302,6 +302,7 @@ input[type=range]:disabled {
 	image-rendering: -webkit-optimize-contrast;
     width: 100%;
     height: 200px;
+    will-change: transform;
 }
 
 #openwebrx-log-scroll
@@ -772,6 +773,7 @@ img.openwebrx-mirror-img
     position: absolute;
     pointer-events: none;
     transition: width 500ms, left 500ms;
+    will-change: transform;
 }
 
 .openwebrx-panel select,

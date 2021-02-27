@@ -1074,7 +1074,7 @@ function add_canvas() {
     new_canvas.height = canvas_default_height;
     canvas_actual_line = canvas_default_height;
     new_canvas.openwebrx_top = -canvas_default_height;
-    new_canvas.style.top = new_canvas.openwebrx_top.toString() + "px";
+    new_canvas.style.transform = 'translate(0, ' + new_canvas.openwebrx_top.toString() + 'px)';
     canvas_context = new_canvas.getContext("2d");
     canvas_container.appendChild(new_canvas);
     canvases.push(new_canvas);
@@ -1101,7 +1101,7 @@ canvas_maxshift = 0;
 
 function shift_canvases() {
     canvases.forEach(function (p) {
-        p.style.top = (p.openwebrx_top++).toString() + "px";
+        p.style.transform = 'translate(0, ' + (p.openwebrx_top++).toString() + 'px)';
     });
     canvas_maxshift++;
 }
@@ -1407,7 +1407,9 @@ function secondary_demod_init_canvases() {
 }
 
 function secondary_demod_canvases_update_top() {
-    for (var i = 0; i < 2; i++) secondary_demod_canvases[i].style.top = secondary_demod_canvases[i].openwebrx_top + "px";
+    for (var i = 0; i < 2; i++) {
+        secondary_demod_canvases[i].style.transform = 'translate(0, ' + secondary_demod_canvases[i].openwebrx_top + 'px)';
+    }
 }
 
 function secondary_demod_swap_canvases() {
