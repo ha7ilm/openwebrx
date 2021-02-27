@@ -319,3 +319,49 @@ class ModesInput(DropdownInput):
     def __init__(self, id, label):
         options = [Option(m.modulation, m.name) for m in Modes.getAvailableModes()]
         super().__init__(id, label, options)
+
+
+class FrequencyInput(Input):
+    def __init__(self, id, label):
+        super().__init__(id, label)
+
+    def defaultConverter(self):
+        return IntConverter()
+
+    def input_properties(self, value):
+        props = super().input_properties(value)
+        props["type"] = "number"
+        props["step"] = "any"
+        return props
+
+    def render_input(self, value):
+        append = """
+            <div class="input-group-append">
+                <select class="input-group-text frequency-exponent" name="{id}-exponent">
+                    <option value="0" selected>Hz</option>
+                    <option value="3">kHz</option>
+                    <option value="6">MHz</option>
+                    <option value="9">GHz</option>
+                    <option value="12">THz</option>
+                </select>
+            </div>
+        """.format(
+            id=self.id,
+        )
+
+        return """
+            <div class="input-group input-group-sm frequency-input">
+                {input}
+                {append}
+            </div>
+        """.format(
+            input=super().render_input(value),
+            append=append,
+        )
+
+    def parse(self, data):
+        exponent_id = "{}-exponent".format(self.id)
+        if self.id in data and exponent_id in data:
+            value = int(float(data[self.id][0]) * 10 ** int(data[exponent_id][0]))
+            return {self.id: value}
+        return {}

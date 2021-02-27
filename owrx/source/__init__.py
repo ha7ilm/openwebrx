@@ -11,7 +11,7 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer, PropertyFilter
 from owrx.property.filter import ByLambda
-from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput
+from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, FrequencyInput
 from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput, SchedulerInput, WaterfallLevelsInput
 from owrx.controllers.settings import Section
@@ -503,7 +503,7 @@ class SdrDeviceDescription(object):
             ),
             WaterfallLevelsInput("waterfall_levels", "Waterfall levels"),
             SchedulerInput("scheduler", "Scheduler"),
-            NumberInput("center_freq", "Center frequency", append="Hz"),
+            FrequencyInput("center_freq", "Center frequency"),
             NumberInput("samp_rate", "Sample rate", append="S/s"),
             NumberInput("start_freq", "Initial frequency", append="Hz"),
             ModesInput("start_mod", "Initial modulation"),
