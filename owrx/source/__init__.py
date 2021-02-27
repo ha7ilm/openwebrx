@@ -494,10 +494,9 @@ class SdrDeviceDescription(object):
                 "services",
                 "Run background services on this device",
             ),
-            NumberInput(
+            FrequencyInput(
                 "lfo_offset",
                 "Oscilator offset",
-                append="Hz",
                 infotext="Use this when the actual receiving frequency differs from the frequency to be tuned on the"
                 + " device. <br/> Formula: Center frequency + oscillator offset = sdr tune frequency",
             ),
@@ -505,7 +504,7 @@ class SdrDeviceDescription(object):
             SchedulerInput("scheduler", "Scheduler"),
             FrequencyInput("center_freq", "Center frequency"),
             NumberInput("samp_rate", "Sample rate", append="S/s"),
-            NumberInput("start_freq", "Initial frequency", append="Hz"),
+            FrequencyInput("start_freq", "Initial frequency"),
             ModesInput("start_mod", "Initial modulation"),
             NumberInput("initial_squelch_level", "Initial squelch level", append="dBFS"),
         ]

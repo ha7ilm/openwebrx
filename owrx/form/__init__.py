@@ -322,8 +322,8 @@ class ModesInput(DropdownInput):
 
 
 class FrequencyInput(Input):
-    def __init__(self, id, label):
-        super().__init__(id, label)
+    def __init__(self, id, label, infotext=None):
+        super().__init__(id, label, infotext=infotext)
 
     def defaultConverter(self):
         return IntConverter()
@@ -337,7 +337,7 @@ class FrequencyInput(Input):
     def render_input(self, value):
         append = """
             <div class="input-group-append">
-                <select class="input-group-text frequency-exponent" name="{id}-exponent">
+                <select class="input-group-text frequency-exponent" name="{id}-exponent" {disabled}>
                     <option value="0" selected>Hz</option>
                     <option value="3">kHz</option>
                     <option value="6">MHz</option>
@@ -347,6 +347,7 @@ class FrequencyInput(Input):
             </div>
         """.format(
             id=self.id,
+            disabled="disabled" if self.disabled else "",
         )
 
         return """
