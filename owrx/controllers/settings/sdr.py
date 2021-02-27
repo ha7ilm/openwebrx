@@ -1,8 +1,9 @@
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
 from owrx.controllers.settings import SettingsFormController
-from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing
+from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing, SdrClientClass
 from owrx.config import Config
+from owrx.connection import OpenWebRxReceiverClient
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
 from abc import ABCMeta
@@ -26,6 +27,24 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
             # TODO: this only returns non-failed sources...
             source = SdrService.getSource(device_id)
 
+            additional_info = ""
+
+            if source is not None:
+                profiles = source.getProfiles()
+                currentProfile = profiles[source.getProfileId()]
+                clients = {c: len(source.getClients(c)) for c in SdrClientClass}
+                clients = {c: v for c, v in clients.items() if v}
+                connections = len([c for c in source.getClients() if isinstance(c, OpenWebRxReceiverClient)])
+                additional_info = """
+                    <div>Current profile: {current_profile}</div>
+                    <div>Clients: {clients}</div>
+                    <div>Connections: {connections}</div>
+                """.format(
+                    current_profile=currentProfile["name"],
+                    clients=", ".join("{cls}: {count}".format(cls=c.name, count=v) for c, v in clients.items()),
+                    connections=connections,
+                )
+
             return """
                 <li class="list-group-item">
                     <a href="{device_link}">
@@ -33,12 +52,14 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                     </a>
                     <div>State: {state}</div>
                     <div>{num_profiles} profile(s)</div>
+                    {additional_info}
                 </li>
             """.format(
                 device_name=config["name"],
                 device_link="{}/{}".format(self.request.path, quote(device_id)),
                 state="Unknown" if source is None else source.getState(),
                 num_profiles=len(config["profiles"]),
+                additional_info=additional_info,
             )
 
         return """

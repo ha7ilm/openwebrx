@@ -298,9 +298,13 @@ class SdrSource(ABC):
             if self.monitor:
                 self.monitor.join()
 
+    def getClients(self, *args):
+        if not args:
+            return self.clients
+        return [c for c in self.clients if c.getClientClass() in args]
+
     def hasClients(self, *args):
-        clients = [c for c in self.clients if c.getClientClass() in args]
-        return len(clients) > 0
+        return len(self.getClients(*args)) > 0
 
     def addClient(self, c: SdrSourceEventClient):
         if c in self.clients:
