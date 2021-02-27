@@ -737,8 +737,10 @@ function on_ws_recv(evt) {
                             bandwidth = config['samp_rate'];
                         if ('center_freq' in config)
                             center_freq = config['center_freq'];
-                        if ('fft_size' in config)
+                        if ('fft_size' in config) {
                             fft_size = config['fft_size'];
+                            waterfall_clear();
+                        }
                         if ('audio_compression' in config) {
                             var audio_compression = config['audio_compression'];
                             audioEngine.setCompression(audio_compression);
