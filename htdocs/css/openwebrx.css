@@ -297,6 +297,7 @@ input[type=range]:disabled {
 #webrx-canvas-container canvas
 {
 	position: absolute;
+	top: 0;
 	border-style: none;
 	image-rendering: crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
@@ -771,6 +772,7 @@ img.openwebrx-mirror-img
 #openwebrx-digimode-canvas-container canvas
 {
     position: absolute;
+    top: 0;
     pointer-events: none;
     transition: width 500ms, left 500ms;
     will-change: transform;
