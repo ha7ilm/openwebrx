@@ -1,4 +1,11 @@
 $.fn.frequencyInput = function() {
+    var suffixes = {
+        "K": 3,
+        "M": 6,
+        "G": 9,
+        "T": 12
+    };
+
     this.each(function(){
         var $group = $(this);
         var currentExponent = 0;
@@ -10,6 +17,14 @@ $.fn.frequencyInput = function() {
             $input.val(parseFloat($input.val()) * 10 ** delta);
             currentExponent = newExponent;
         };
+
+        $input.on('keydown', function(e) {
+            var c = String.fromCharCode(e.which);
+            if (c in suffixes) {
+                currentExponent = suffixes[c];
+                $exponent.val(suffixes[c]);
+            }
+        });
 
         $exponent = $group.find('select.frequency-exponent');
         $exponent.on('change', setExponent);
