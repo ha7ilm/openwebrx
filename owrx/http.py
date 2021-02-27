@@ -10,7 +10,7 @@ from owrx.controllers.settings.sdr import SdrDeviceListController, SdrDeviceCont
 from owrx.controllers.settings.reporting import ReportingController
 from owrx.controllers.settings.backgrounddecoding import BackgroundDecodingController
 from owrx.controllers.settings.decoding import DecodingSettingsController
-from owrx.controllers.bookmarks import BookmarksController
+from owrx.controllers.settings.bookmarks import BookmarksController
 from owrx.controllers.session import SessionController
 from owrx.controllers.profile import ProfileController
 from owrx.controllers.imageupload import ImageUploadController
