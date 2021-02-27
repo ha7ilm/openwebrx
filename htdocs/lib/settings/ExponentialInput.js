@@ -14,7 +14,13 @@ $.fn.exponentialInput = function() {
         var setExponent = function() {
             var newExponent = parseInt($exponent.val());
             var delta = currentExponent - newExponent;
-            $input.val(parseFloat($input.val()) * 10 ** delta);
+            if (delta >= 0) {
+                $input.val(parseFloat($input.val()) * 10 ** delta);
+            } else {
+                // should not be necessary to handle this separately, but floating point precision in javascript
+                // does not handle this well otherwise
+                $input.val(parseFloat($input.val()) / 10 ** -delta);
+            }
             currentExponent = newExponent;
         };
 
