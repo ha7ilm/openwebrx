@@ -153,7 +153,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/settings/GainInput.js",
             "lib/settings/OptionalSection.js",
             "lib/settings/SchedulerInput.js",
-            "lib/settings/FrequencyInput.js",
+            "lib/settings/ExponentialInput.js",
             "settings.js",
         ],
     }

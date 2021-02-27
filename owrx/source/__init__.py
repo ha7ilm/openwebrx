@@ -11,7 +11,7 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer, PropertyFilter
 from owrx.property.filter import ByLambda
-from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, FrequencyInput
+from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, ExponentialInput
 from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput, SchedulerInput, WaterfallLevelsInput
 from owrx.controllers.settings import Section
@@ -494,17 +494,18 @@ class SdrDeviceDescription(object):
                 "services",
                 "Run background services on this device",
             ),
-            FrequencyInput(
+            ExponentialInput(
                 "lfo_offset",
                 "Oscilator offset",
+                "Hz",
                 infotext="Use this when the actual receiving frequency differs from the frequency to be tuned on the"
                 + " device. <br/> Formula: Center frequency + oscillator offset = sdr tune frequency",
             ),
             WaterfallLevelsInput("waterfall_levels", "Waterfall levels"),
             SchedulerInput("scheduler", "Scheduler"),
-            FrequencyInput("center_freq", "Center frequency"),
-            NumberInput("samp_rate", "Sample rate", append="S/s"),
-            FrequencyInput("start_freq", "Initial frequency"),
+            ExponentialInput("center_freq", "Center frequency", "Hz"),
+            ExponentialInput("samp_rate", "Sample rate", "S/s"),
+            ExponentialInput("start_freq", "Initial frequency", "Hz"),
             ModesInput("start_mod", "Initial modulation"),
             NumberInput("initial_squelch_level", "Initial squelch level", append="dBFS"),
         ]

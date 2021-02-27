@@ -7,5 +7,5 @@ $(function(){
     $('#rf_gain').gainInput();
     $('.optional-section').optionalSection();
     $('#scheduler').schedulerInput();
-    $('.frequency-input').frequencyInput();
+    $('.exponential-input').exponentialInput();
 });

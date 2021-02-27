@@ -1,4 +1,4 @@
-$.fn.frequencyInput = function() {
+$.fn.exponentialInput = function() {
     var suffixes = {
         "K": 3,
         "M": 6,
@@ -9,7 +9,7 @@ $.fn.frequencyInput = function() {
     this.each(function(){
         var $group = $(this);
         var currentExponent = 0;
-        $input = $group.find('input');
+        var $input = $group.find('input');
 
         var setExponent = function() {
             var newExponent = parseInt($exponent.val());
@@ -26,7 +26,7 @@ $.fn.frequencyInput = function() {
             }
         });
 
-        $exponent = $group.find('select.frequency-exponent');
+        var $exponent = $group.find('select.exponent');
         $exponent.on('change', setExponent);
 
         // calculate initial exponent
