@@ -1,9 +1,9 @@
 $.fn.exponentialInput = function() {
-    var suffixes = {
-        "K": 3,
-        "M": 6,
-        "G": 9,
-        "T": 12
+    var prefixes = {
+        'K': 3,
+        'M': 6,
+        'G': 9,
+        'T': 12
     };
 
     this.each(function(){
@@ -26,9 +26,9 @@ $.fn.exponentialInput = function() {
 
         $input.on('keydown', function(e) {
             var c = String.fromCharCode(e.which);
-            if (c in suffixes) {
-                currentExponent = suffixes[c];
-                $exponent.val(suffixes[c]);
+            if (c in prefixes) {
+                currentExponent = prefixes[c];
+                $exponent.val(prefixes[c]);
             }
         });
 

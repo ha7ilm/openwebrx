@@ -1,4 +1,10 @@
 function FrequencyDisplay(element) {
+    this.prefixes = {
+        'k': 3,
+        'M': 6,
+        'G': 9,
+        'T': 12
+    };
     this.element = $(element);
     this.digits = [];
     this.precision = 4;
@@ -9,13 +15,23 @@ function FrequencyDisplay(element) {
 FrequencyDisplay.prototype.setupElements = function() {
     this.displayContainer = $('<div>');
     this.digitContainer = $('<span>');
-    this.displayContainer.html([this.digitContainer, $('<span> MHz</span>')]);
+    this.unitContainer = $('<span> Hz</span>');
+    this.displayContainer.html([this.digitContainer, this.unitContainer]);
     this.element.html(this.displayContainer);
+};
+
+FrequencyDisplay.prototype.getPrefix = function() {
+    var me = this;
+    return Object.keys(me.prefixes).filter(function(key){
+        return me.prefixes[key] == me.exponent;
+    })[0] || "";
 };
 
 FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.frequency = freq;
-    var formatted = (freq / 1e6).toLocaleString(
+    this.exponent = Math.floor(Math.log10(this.frequency) / 3) * 3;
+
+    var formatted = (freq / 10 ** this.exponent).toLocaleString(
         undefined,
         {maximumFractionDigits: this.precision, minimumFractionDigits: this.precision}
     );
@@ -36,6 +52,7 @@ FrequencyDisplay.prototype.setFrequency = function(freq) {
     while (this.digits.length > formatted.length) {
         this.digits.pop().remove();
     }
+    this.unitContainer.text(' ' + this.getPrefix() + 'Hz');
 };
 
 FrequencyDisplay.prototype.setFrequencyPrecision = function(precision) {
@@ -68,7 +85,7 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
         var index = me.digitContainer.find('.digit').index(e.target);
         if (index < 0) return;
 
-        var delta = 10 ** (Math.floor(Math.max(6, Math.log10(me.frequency))) - index);
+        var delta = 10 ** (Math.floor(Math.max(me.exponent, Math.log10(me.frequency))) - index);
         if (e.originalEvent.deltaY > 0) delta *= -1;
         var newFrequency = me.frequency + delta;
 
