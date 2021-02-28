@@ -9,7 +9,7 @@ import signal
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
-from owrx.property import PropertyStack, PropertyLayer, PropertyFilter
+from owrx.property import PropertyStack, PropertyLayer, PropertyFilter, PropertyCarousel
 from owrx.property.filter import ByLambda
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, ExponentialInput
 from owrx.form.converter import OptionalConverter
@@ -67,7 +67,16 @@ class SdrSource(ABC):
         self.commandMapper = None
 
         self.props = PropertyStack()
+
         # layer 0 reserved for profile properties
+        self.profileCarousel = PropertyCarousel()
+        if "profiles" in props:
+            for profile_id, profile in props["profiles"].items():
+                profile_stack = PropertyStack()
+                profile_stack.addLayer(0, PropertyLayer(profile_id=profile_id).readonly())
+                profile_stack.addLayer(1, profile)
+                self.profileCarousel.addLayer(profile_id, profile_stack)
+        self.props.addLayer(0, PropertyFilter(self.profileCarousel, ByLambda(lambda x: x != "name")))
 
         # layer for runtime writeable properties
         # these may be set during runtime, but should not be persisted to disk with the configuration
@@ -104,9 +113,6 @@ class SdrSource(ABC):
 
         if self.isAlwaysOn() and self.state is not SdrSourceState.DISABLED:
             self.start()
-
-    def _loadProfile(self, profile):
-        self.props.replaceLayer(0, PropertyFilter(profile, ByLambda(lambda x: x != "name")))
 
     def validateProfiles(self):
         props = PropertyStack()
@@ -154,20 +160,15 @@ class SdrSource(ABC):
         return [self.getCommandMapper().map(self.getCommandValues())]
 
     def activateProfile(self, profile_id=None):
-        profiles = self.props["profiles"]
         if profile_id is None:
+            profiles = self.props["profiles"]
             profile_id = list(profiles.keys())[0]
-        if profile_id not in profiles:
-            logger.warning("invalid profile %s for sdr %s. ignoring", profile_id, self.id)
-            return
-        if profile_id == self.profile_id:
-            return
         logger.debug("activating profile {0}".format(profile_id))
-        self.props["profile_id"] = profile_id
-        profile = profiles[profile_id]
-        self.profile_id = profile_id
-
-        self._loadProfile(profile)
+        try:
+            self.profileCarousel.switch(profile_id)
+            self.profile_id = profile_id
+        except KeyError:
+            logger.warning("invalid profile %s for sdr %s. ignoring", profile_id, self.id)
 
     def getId(self):
         return self.id

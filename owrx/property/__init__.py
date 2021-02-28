@@ -183,7 +183,7 @@ class PropertyFilter(PropertyManager):
 class PropertyDelegator(PropertyManager):
     def __init__(self, pm: PropertyManager):
         self.pm = pm
-        self.pm.wire(self._fireCallbacks)
+        self.subscription = self.pm.wire(self._fireCallbacks)
         super().__init__()
 
     def __getitem__(self, item):
@@ -340,3 +340,27 @@ class PropertyStack(PropertyManager):
 
     def keys(self):
         return set([key for l in self.layers for key in l["props"].keys()])
+
+
+class PropertyCarousel(PropertyDelegator):
+    def __init__(self):
+        # start with an empty dummy layer
+        super().__init__(PropertyLayer())
+        self.layers = {}
+
+    def addLayer(self, key, value):
+        self.layers[key] = value
+
+    def switch(self, key):
+        before = self.pm
+        self.subscription.cancel()
+        self.pm = self.layers[key]
+        self.subscription = self.pm.wire(self._fireCallbacks)
+        changes = {}
+        for key in set(list(before.keys()) + list(self.keys())):
+            if key not in self:
+                changes[key] = PropertyDeleted
+            else:
+                if key not in before or before[key] != self[key]:
+                    changes[key] = self[key]
+        self._fireCallbacks(changes)
