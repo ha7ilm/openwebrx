@@ -1282,7 +1282,7 @@ var rt = function (s, n) {
 // ========================================================
 
 function panel_displayed(el){
-    return !(el.style && el.style.display && el.style.display === 'none')
+    return !(el.style && el.style.display && el.style.display === 'none') && !(el.movement && el.movement === 'collapse');
 }
 
 function toggle_panel(what, on) {
@@ -1292,7 +1292,6 @@ function toggle_panel(what, on) {
     if (typeof on !== "undefined" && displayed === on) {
         return;
     }
-    if (item.openwebrxDisableClick) return;
     if (displayed) {
         item.movement = 'collapse';
         item.style.transform = "perspective(600px) rotateX(90deg)";
@@ -1307,9 +1306,6 @@ function toggle_panel(what, on) {
     }
     item.style.transitionDuration = "600ms";
     item.style.transitionDelay = "0ms";
-
-    item.openwebrxDisableClick = true;
-
 }
 
 function first_show_panel(panel) {
@@ -1338,13 +1334,13 @@ function initPanels() {
         el.openwebrxPanelTransparent = (!!el.dataset.panelTransparent);
         el.addEventListener('transitionend', function(ev){
             if (ev.target !== el) return;
-            el.openwebrxDisableClick = false;
             el.style.transitionDuration = null;
             el.style.transitionDelay = null;
             el.style.transitionProperty = null;
             if (el.movement && el.movement === 'collapse') {
                 el.style.display = 'none';
             }
+            delete el.movement;
         });
         if (panel_displayed(el)) first_show_panel(el);
     });
