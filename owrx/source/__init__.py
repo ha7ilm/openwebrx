@@ -496,7 +496,7 @@ class SdrDeviceDescription(object):
             ),
             ExponentialInput(
                 "lfo_offset",
-                "Oscilator offset",
+                "Oscillator offset",
                 "Hz",
                 infotext="Use this when the actual receiving frequency differs from the frequency to be tuned on the"
                 + " device. <br/> Formula: Center frequency + oscillator offset = sdr tune frequency",
