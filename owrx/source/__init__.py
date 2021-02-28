@@ -475,9 +475,14 @@ class SdrDeviceDescription(object):
         except (ModuleNotFoundError, AttributeError):
             raise SdrDeviceDescriptionMissing("Device description for type {} not available".format(sdr_type))
 
+    def getDeviceInputs(self) -> List[Input]:
+        return [TextInput("name", "Device name")] + self.getInputs()
+
+    def getProfileInputs(self) -> List[Input]:
+        return [TextInput("name", "Profile name")] + self.getInputs()
+
     def getInputs(self) -> List[Input]:
         return [
-            TextInput("name", "Device name"),
             CheckboxInput("enabled", "Enable this device", converter=OptionalConverter(defaultFormValue=True)),
             GainInput("rf_gain", "Device gain", self.hasAgc()),
             NumberInput(
@@ -529,18 +534,20 @@ class SdrDeviceDescription(object):
         ]
 
     def getProfileMandatoryKeys(self):
-        return ["center_freq", "samp_rate", "start_freq", "start_mod"]
+        return ["name", "center_freq", "samp_rate", "start_freq", "start_mod"]
 
     def getProfileOptionalKeys(self):
         return ["initial_squelch_level", "rf_gain", "lfo_offset", "waterfall_levels"]
 
     def getDeviceSection(self):
-        return OptionalSection("Device settings", self.getInputs(), self.getMandatoryKeys(), self.getOptionalKeys())
+        return OptionalSection(
+            "Device settings", self.getDeviceInputs(), self.getMandatoryKeys(), self.getOptionalKeys()
+        )
 
     def getProfileSection(self):
         return OptionalSection(
             "Profile settings",
-            self.getInputs(),
+            self.getProfileInputs(),
             self.getProfileMandatoryKeys(),
             self.getProfileOptionalKeys(),
         )
