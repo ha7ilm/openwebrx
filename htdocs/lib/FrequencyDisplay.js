@@ -71,14 +71,21 @@ TuneableFrequencyDisplay.prototype = new FrequencyDisplay();
 TuneableFrequencyDisplay.prototype.setupElements = function() {
     FrequencyDisplay.prototype.setupElements.call(this);
     this.input = $('<input>');
-    this.input.hide();
-    this.element.append(this.input);
+    this.prefixInput = $('<select>');
+    this.prefixInput.append($('<option value="0">Hz</option>'));
+    this.prefixInput.append($.map(this.prefixes, function(e, p) {
+        return $('<option value="' + e + '">' + p + 'Hz</option>');
+    }));
+    this.inputGroup = $('<div class="input-group">');
+    this.inputGroup.append([this.input, this.prefixInput]);
+    this.inputGroup.hide();
+    this.element.append(this.inputGroup);
 };
 
 TuneableFrequencyDisplay.prototype.setupEvents = function() {
     var me = this;
 
-    me.element.on('wheel', function(e){
+    me.displayContainer.on('wheel', function(e){
         e.preventDefault();
         e.stopPropagation();
 
@@ -93,26 +100,59 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
     });
 
     var submit = function(){
-        var freq = parseInt(me.input.val());
+        var exponent = parseInt(me.prefixInput.val());
+        var freq = parseFloat(me.input.val()) * 10 ** exponent;
         if (!isNaN(freq)) {
             me.element.trigger('frequencychange', freq);
         }
-        me.input.hide();
+        me.inputGroup.hide();
         me.displayContainer.show();
     };
-    me.input.on('blur', submit).on('keyup', function(e){
+    $inputs = $.merge($(), me.input);
+    $inputs = $.merge($inputs, me.prefixInput);
+    $inputs.on('blur', function(e){
+        if ($inputs.toArray().indexOf(e.relatedTarget) >= 0) {
+            return;
+        }
+        submit();
+    });
+    me.input.on('keydown', function(e){
         if (e.keyCode == 13) return submit();
         if (e.keyCode == 27) {
-            me.input.hide();
+            me.inputGroup.hide();
             me.displayContainer.show();
+            return;
         }
+        var c = String.fromCharCode(e.which);
+        Object.entries(me.prefixes).forEach(function(e) {
+            if (e[0].toUpperCase() == c) {
+                me.prefixInput.val(e[1]);
+                return submit();
+            }
+        })
     });
-    me.input.on('click', function(e){
+    var currentExponent;
+    me.prefixInput.on('change', function() {
+        var newExponent = me.prefixInput.val();
+        delta = currentExponent - newExponent;
+        if (delta >= 0) {
+            me.input.val(parseFloat(me.input.val()) * 10 ** delta);
+        } else {
+            // should not be necessary to handle this separately, but floating point precision in javascript
+            // does not handle this well otherwise
+            me.input.val(parseFloat(me.input.val()) / 10 ** -delta);
+        }
+        currentExponent = newExponent;
+        me.input.focus();
+    });
+    $inputs.on('click', function(e){
         e.stopPropagation();
     });
     me.element.on('click', function(){
-        me.input.val(me.frequency);
-        me.input.show();
+        currentExponent = me.exponent;
+        me.input.val(me.frequency / 10 ** me.exponent);
+        me.prefixInput.val(me.exponent);
+        me.inputGroup.show();
         me.displayContainer.hide();
         me.input.focus();
     });

@@ -344,6 +344,19 @@ input[type=range]:disabled {
     flex: 1;
 }
 
+.webrx-actual-freq .input-group {
+    display: flex;
+    flex-direction: row;
+}
+
+.webrx-actual-freq .input-group > * {
+    flex: 0 0 auto;
+}
+
+.webrx-actual-freq .input-group input {
+    flex: 1 0 auto;
+}
+
 .webrx-actual-freq input {
     font-family: 'roboto-mono';
     width: 0;
