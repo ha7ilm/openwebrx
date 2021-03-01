@@ -132,7 +132,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "audio_compression",
         "fft_compression",
         "max_clients",
-        "frequency_display_precision",
+        "tuning_precision",
     ]
 
     def __init__(self, conn):

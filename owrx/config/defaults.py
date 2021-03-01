@@ -2,7 +2,7 @@ from owrx.property import PropertyLayer
 
 
 defaultConfig = PropertyLayer(
-    version=5,
+    version=6,
     max_clients=20,
     receiver_name="[Callsign]",
     receiver_location="Budapest, Hungary",
@@ -25,7 +25,7 @@ defaultConfig = PropertyLayer(
     waterfall_scheme="GoogleTurboWaterfall",
     waterfall_levels=PropertyLayer(min=-88, max=-20),
     waterfall_auto_level_margin=PropertyLayer(min=3, max=10, min_range=50),
-    frequency_display_precision=4,
+    tuning_precision=2,
     squelch_auto_margin=10,
     nmux_memory=50,
     google_maps_api_key="",

@@ -126,10 +126,12 @@ class GeneralSettingsController(SettingsFormController):
             ),
             Section(
                 "Display settings",
+                # TODO: custom input for this?
                 NumberInput(
-                    "frequency_display_precision",
-                    "Frequency display precision",
-                    infotext="Number of decimal digits to show on the frequency display",
+                    "tuning_precision",
+                    "Tuning precision",
+                    infotext="Specifies the precision of the frequency tuning display as an exponent of 10, in Hertz. "
+                    + "Setting this to 1 means 10Hz precision, 2 means 100Hz precision, etc.",
                 ),
             ),
             Section(

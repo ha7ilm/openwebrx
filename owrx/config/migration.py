@@ -89,13 +89,23 @@ class ConfigMigratorVersion4(ConfigMigrator):
         config["version"] = 5
 
 
+class ConfigMigratorVersion5(ConfigMigrator):
+    def migrate(self, config):
+        if "frequency_display_precision" in config:
+            # old config was always in relation to the display in MHz (1e6 Hz, hence the 6)
+            config["tuning_precision"] = 6 - config["frequency_display_precision"]
+            del config["frequency_display_precision"]
+        config["version"] = 6
+
+
 class Migrator(object):
-    currentVersion = 5
+    currentVersion = 6
     migrators = {
         1: ConfigMigratorVersion1(),
         2: ConfigMigratorVersion2(),
         3: ConfigMigratorVersion3(),
         4: ConfigMigratorVersion4(),
+        5: ConfigMigratorVersion5(),
     }
 
     @staticmethod

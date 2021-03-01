@@ -353,9 +353,9 @@ DemodulatorPanel.prototype.setMouseFrequency = function(freq) {
     this.mouseFrequencyDisplay.setFrequency(freq);
 };
 
-DemodulatorPanel.prototype.setFrequencyPrecision = function(precision) {
-    this.tuneableFrequencyDisplay.setFrequencyPrecision(precision);
-    this.mouseFrequencyDisplay.setFrequencyPrecision(precision);
+DemodulatorPanel.prototype.setTuningPrecision = function(precision) {
+    this.tuneableFrequencyDisplay.setTuningPrecision(precision);
+    this.mouseFrequencyDisplay.setTuningPrecision(precision);
 };
 
 $.fn.demodulatorPanel = function(){

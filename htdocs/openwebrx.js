@@ -770,8 +770,8 @@ function on_ws_recv(evt) {
                             waterfall_clear();
                         }
 
-                        if ('frequency_display_precision' in config)
-                            $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
+                        if ('tuning_precision' in config)
+                            $('#openwebrx-panel-receiver').demodulatorPanel().setTuningPrecision(config['tuning_precision']);
 
                         break;
                     case "secondary_config":

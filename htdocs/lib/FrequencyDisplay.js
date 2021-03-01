@@ -7,7 +7,7 @@ function FrequencyDisplay(element) {
     };
     this.element = $(element);
     this.digits = [];
-    this.precision = 4;
+    this.precision = 2;
     this.setupElements();
     this.setFrequency(0);
 }
@@ -31,9 +31,10 @@ FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.frequency = freq;
     this.exponent = Math.floor(Math.log10(this.frequency) / 3) * 3;
 
+    var digits = Math.max(0, this.exponent - this.precision);
     var formatted = (freq / 10 ** this.exponent).toLocaleString(
         undefined,
-        {maximumFractionDigits: this.precision, minimumFractionDigits: this.precision}
+        {maximumFractionDigits: digits, minimumFractionDigits: digits}
     );
     var children = this.digitContainer.children();
     for (var i = 0; i < formatted.length; i++) {
@@ -55,8 +56,8 @@ FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.unitContainer.text(' ' + this.getPrefix() + 'Hz');
 };
 
-FrequencyDisplay.prototype.setFrequencyPrecision = function(precision) {
-    if (!precision) return;
+FrequencyDisplay.prototype.setTuningPrecision = function(precision) {
+    if (typeof(precision) == 'undefined') return;
     this.precision = precision;
     this.setFrequency(this.frequency);
 };
