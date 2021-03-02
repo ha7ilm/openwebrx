@@ -23,6 +23,16 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
         return variables
 
     def render_devices(self):
+        def render_profile(profile_id, profile):
+            return """
+                <li class="list-group-item">
+                    <a href="{profile_link}">{profile_name}</a>
+                </li>
+            """.format(
+                profile_name=profile["name"],
+                profile_link="{}/{}".format(self.request.path, quote(profile_id)),
+            )
+
         def render_device(device_id, config):
             # TODO: this only returns non-failed sources...
             source = SdrService.getSource(device_id)
@@ -47,12 +57,19 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
 
             return """
                 <li class="list-group-item">
-                    <a href="{device_link}">
-                        <h3>{device_name}</h3>
-                    </a>
-                    <div>State: {state}</div>
-                    <div>{num_profiles} profile(s)</div>
-                    {additional_info}
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="{device_link}">
+                                <h3>{device_name}</h3>
+                            </a>
+                            <div>State: {state}</div>
+                            <div>{num_profiles} profile(s)</div>
+                            {additional_info}
+                        </div>
+                        <ul class="col-6 list-group list-group-flush sdr-profile-list">
+                            {profiles}
+                        </ul>
+                    </div>
                 </li>
             """.format(
                 device_name=config["name"],
@@ -60,10 +77,11 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 state="Unknown" if source is None else source.getState(),
                 num_profiles=len(config["profiles"]),
                 additional_info=additional_info,
+                profiles="".join(render_profile(p_id, p) for p_id, p in config["profiles"].items())
             )
 
         return """
-            <ul class="row list-group list-group-flush sdr-device-list">
+            <ul class="list-group list-group-flush sdr-device-list">
                 {devices}
             </ul>
         """.format(

@@ -103,6 +103,11 @@ table.bookmarks .frequency {
     background: initial;
 }
 
+.sdr-device-list .sdr-profile-list {
+    max-height: 20rem;
+    overflow-y: auto;
+}
+
 .removable-group.removable {
     display: flex;
     flex-direction: row;
