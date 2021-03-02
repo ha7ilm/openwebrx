@@ -4,8 +4,11 @@ from owrx.controllers.settings import SettingsFormController
 from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing, SdrClientClass
 from owrx.config import Config
 from owrx.connection import OpenWebRxReceiverClient
+from owrx.controllers.settings import Section
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
+from owrx.form import TextInput, DropdownInput, Option
+from owrx.property import PropertyLayer, PropertyStack
 from abc import ABCMeta
 
 
@@ -77,13 +80,16 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 state="Unknown" if source is None else source.getState(),
                 num_profiles=len(config["profiles"]),
                 additional_info=additional_info,
-                profiles="".join(render_profile(p_id, p) for p_id, p in config["profiles"].items())
+                profiles="".join(render_profile(p_id, p) for p_id, p in config["profiles"].items()),
             )
 
         return """
             <ul class="list-group list-group-flush sdr-device-list">
                 {devices}
             </ul>
+            <div class="buttons container">
+                <a class="btn btn-success" href="sdr/new">Add new device...</a>
+            </div>
         """.format(
             devices="".join(render_device(key, value) for key, value in Config.get()["sdrs"].items())
         )
@@ -109,7 +115,7 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
         config = Config.get()
         device_id = unquote(self.request.matches.group(1))
         if device_id not in config["sdrs"]:
-            return None
+            return None, None
         return device_id, config["sdrs"][device_id]
 
 
@@ -167,6 +173,56 @@ class SdrDeviceController(SdrFormController):
             return
         self.serve_template("settings/general.html", **self.template_variables())
 
+    def processFormData(self):
+        if self.device is None:
+            self.send_response("device not found", code=404)
+            return
+        return super().processFormData()
+
+
+class NewSdrDeviceController(SettingsFormController):
+    def __init__(self, handler, request, options):
+        super().__init__(handler, request, options)
+        id_layer = PropertyLayer(id="")
+        self.data_layer = PropertyLayer(name="", type="", profiles={})
+        self.stack = PropertyStack()
+        self.stack.addLayer(0, id_layer)
+        self.stack.addLayer(1, self.data_layer)
+
+    def header_variables(self):
+        variables = super().header_variables()
+        variables["assets_prefix"] = "../../"
+        return variables
+
+    def template_variables(self):
+        variables = super().template_variables()
+        variables["assets_prefix"] = "../../"
+        return variables
+
+    def getSections(self):
+        return [
+            Section(
+                "New device settings",
+                TextInput("name", "Device name"),
+                DropdownInput("type", "Device type", [Option(name, name) for name in SdrDeviceDescription.getTypes()]),
+                TextInput("id", "Device ID"),
+            )
+        ]
+
+    def getTitle(self):
+        return "New device"
+
+    def getData(self):
+        return self.stack
+
+    def store(self):
+        # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
+        config = Config.get()
+        sdrs = config["sdrs"]
+        sdrs[self.stack["id"]] = self.data_layer
+        config["sdrs"] = sdrs
+        super().store()
+
 
 class SdrProfileController(SdrFormController):
     def __init__(self, handler, request, options):
@@ -210,3 +266,9 @@ class SdrProfileController(SdrFormController):
             self.send_response("profile not found", code=404)
             return
         self.serve_template("settings/general.html", **self.template_variables())
+
+    def processFormData(self):
+        if self.profile is None:
+            self.send_response("profile not found", code=404)
+            return
+        return super().processFormData()

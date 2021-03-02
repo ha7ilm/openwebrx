@@ -6,6 +6,7 @@ import socket
 import shlex
 import time
 import signal
+import pkgutil
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
@@ -475,6 +476,16 @@ class SdrDeviceDescription(object):
             return cls()
         except (ModuleNotFoundError, AttributeError):
             raise SdrDeviceDescriptionMissing("Device description for type {} not available".format(sdr_type))
+
+    @staticmethod
+    def getTypes():
+        def has_description(module_name):
+            try:
+                SdrDeviceDescription.getByType(module_name)
+                return True
+            except SdrDeviceDescriptionMissing:
+                return False
+        return [module_name for _, module_name, _ in pkgutil.walk_packages(__path__) if has_description(module_name)]
 
     def getDeviceInputs(self) -> List[Input]:
         return [TextInput("name", "Device name")] + self.getInputs()
