@@ -11,8 +11,8 @@ class ImageInput(Input, metaclass=ABCMeta):
                 <div class="image-container">
                     <img class="{classes}" src="{url}" alt="{label}"/>
                 </div>
-                <button class="btn btn-primary upload">Upload new image...</button>
-                <button class="btn btn-secondary restore">Restore original image</button>
+                <button type="button" class="btn btn-primary upload">Upload new image...</button>
+                <button type="button" class="btn btn-secondary restore">Restore original image</button>
             </div>
         """.format(
             id=self.id, label=self.label, url=self.cachebuster(self.getUrl()), classes=" ".join(self.getImgClasses())

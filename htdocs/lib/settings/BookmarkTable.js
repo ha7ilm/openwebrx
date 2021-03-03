@@ -79,8 +79,8 @@ $.fn.bookmarktable = function() {
                 } else {
                     cell.html(
                         '<div class="btn-group btn-group-sm">' +
-                            '<button class="btn btn-primary bookmark-save">Save</button>' +
-                            '<button class="btn btn-secondary bookmark-cancel">Cancel</button>' +
+                            '<button type="button" class="btn btn-primary bookmark-save">Save</button>' +
+                            '<button type="button" class="btn btn-secondary bookmark-cancel">Cancel</button>' +
                         '</div>'
                     );
                 }

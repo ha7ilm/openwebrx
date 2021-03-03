@@ -227,7 +227,7 @@ class SchedulerInput(Input):
                 <div class="row scheduler-static-time-inputs">
                     {time_inputs}
                     {select}
-                    <button class="btn btn-sm btn-danger remove-button">X</button>
+                    <button type="button" class="btn btn-sm btn-danger remove-button">X</button>
                 </div>
             """.format(
                 time_inputs=render_time_inputs(slot),
@@ -241,10 +241,10 @@ class SchedulerInput(Input):
             <div class="row scheduler-static-time-inputs template" style="display: none;">
                 {time_inputs}
                 {select}
-                <button class="btn btn-sm btn-danger remove-button">X</button>
+                <button type="button" class="btn btn-sm btn-danger remove-button">X</button>
             </div>
             <div class="row">
-                <button class="btn btn-sm btn-primary col-12 add-button">Add...</button>
+                <button type="button" class="btn btn-sm btn-primary col-12 add-button">Add...</button>
             </div>
         """.format(
             rows=rows,

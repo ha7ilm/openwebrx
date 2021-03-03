@@ -55,7 +55,7 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                 <td class="frequency">{frequency}</td>
                 <td data-value="{modulation}">{modulation_name}</td>
                 <td>
-                    <button class="btn btn-sm btn-danger bookmark-delete">delete</button>
+                    <button type="button" class="btn btn-sm btn-danger bookmark-delete">delete</button>
                 </td>
             </tr>
         """.format(

@@ -415,7 +415,7 @@ class OptionalSection(Section):
                         {options}
                     </select>
                     <div class="input-group-append">
-                        <button class="btn btn-success option-add-button">Add</button>
+                        <button type="button" class="btn btn-success option-add-button">Add</button>
                     </div>
                 </div>
             </div>

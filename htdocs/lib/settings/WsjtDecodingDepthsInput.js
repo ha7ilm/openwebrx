@@ -5,7 +5,7 @@ $.fn.wsjtDecodingDepthsInput = function() {
         this.modeInput.val(mode);
         this.valueInput = $(inputs.get(1)).clone();
         this.valueInput.val(value);
-        this.removeButton = $('<button class="btn btn-sm btn-danger remove">Remove</button>');
+        this.removeButton = $('<button type="button" class="btn btn-sm btn-danger remove">Remove</button>');
         this.removeButton.data('row', this);
         this.el.append([this.modeInput, this.valueInput, this.removeButton].map(function(i) {
             return $('<td>').append(i);
@@ -46,7 +46,7 @@ $.fn.wsjtDecodingDepthsInput = function() {
 
         $table.on('change', updateValue);
         $el.append($table);
-        var $addButton = $('<button class="btn btn-sm btn-primary">Add...</button>');
+        var $addButton = $('<button type="button" class="btn btn-sm btn-primary">Add...</button>');
 
         $addButton.on('click', function() {
             var row = new WsjtDecodingDepthRow(inputs)

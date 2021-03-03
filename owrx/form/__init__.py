@@ -42,7 +42,7 @@ class Input(ABC):
             input=input,
             infotext=infotext,
             removable="removable" if self.removable else "",
-            removebutton='<button class="btn btn-sm btn-danger option-remove-button">Remove</button>'
+            removebutton='<button type="button" class="btn btn-sm btn-danger option-remove-button">Remove</button>'
             if self.removable
             else "",
         )
