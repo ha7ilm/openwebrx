@@ -27,7 +27,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 </li>
             """.format(
                 profile_name=profile["name"],
-                profile_link="{}settings/sdr/{}/{}".format(
+                profile_link="{}settings/sdr/{}/profile/{}".format(
                     self.get_document_root(), quote(device_id), quote(profile_id)
                 ),
             )
