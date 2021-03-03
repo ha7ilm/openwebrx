@@ -11,6 +11,7 @@ from owrx.controllers.settings.sdr import (
     SdrDeviceController,
     SdrProfileController,
     NewSdrDeviceController,
+    NewProfileController,
 )
 from owrx.controllers.settings.reporting import ReportingController
 from owrx.controllers.settings.backgrounddecoding import BackgroundDecodingController
@@ -128,6 +129,13 @@ class Router(object):
             RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController),
             RegexRoute(
                 "^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}
+            ),
+            RegexRoute("^/settings/sdr/([^/]+)/newprofile$", NewProfileController),
+            RegexRoute(
+                "^/settings/sdr/([^/]+)/newprofile$",
+                NewProfileController,
+                method="POST",
+                options={"action": "processFormData"},
             ),
             RegexRoute("^/settings/sdr/([^/]+)/profile/([^/]+)$", SdrProfileController),
             RegexRoute(

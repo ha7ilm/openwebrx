@@ -65,9 +65,12 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                             <div>{num_profiles} profile(s)</div>
                             {additional_info}
                         </div>
-                        <ul class="col-6 list-group list-group-flush sdr-profile-list">
-                            {profiles}
-                        </ul>
+                        <div class="col-6">
+                            <ul class="list-group list-group-flush sdr-profile-list">
+                                {profiles}
+                            </ul>
+                            <a href="{newprofile_link}" class="btn btn-success">Add profile...</a>
+                        </div>
                     </div>
                 </li>
             """.format(
@@ -77,6 +80,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 num_profiles=len(config["profiles"]),
                 additional_info=additional_info,
                 profiles="".join(render_profile(device_id, p_id, p) for p_id, p in config["profiles"].items()),
+                newprofile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(device_id)),
             )
 
         return """
@@ -114,6 +118,8 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
             return None, None
         return device_id, config["sdrs"][device_id]
 
+
+class SdrFormControllerWithModal(SdrFormController, metaclass=ABCMeta):
     def buildModal(self):
         return """
             <div class="modal" id="deleteModal" tabindex="-1" role="dialog">
@@ -149,7 +155,7 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
         pass
 
 
-class SdrDeviceController(SdrFormController):
+class SdrDeviceController(SdrFormControllerWithModal):
     def getData(self):
         return self.device
 
@@ -220,15 +226,17 @@ class NewSdrDeviceController(SettingsFormController):
         # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
         config = Config.get()
         sdrs = config["sdrs"]
+        if self.stack["id"] in sdrs:
+            raise ValueError("device {} already exists!".format(self.stack["id"]))
         sdrs[self.stack["id"]] = self.data_layer
         config["sdrs"] = sdrs
         super().store()
 
     def getSuccessfulRedirect(self):
-        return "{}settings/sdr/{}".format(self.get_document_root(), self.stack["id"])
+        return "{}settings/sdr/{}".format(self.get_document_root(), quote(self.stack["id"]))
 
 
-class SdrProfileController(SdrFormController):
+class SdrProfileController(SdrFormControllerWithModal):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.profile_id, self.profile = self._get_profile()
@@ -269,10 +277,10 @@ class SdrProfileController(SdrFormController):
 
     def render_buttons(self):
         return (
-                """
+            """
                 <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Remove profile...</button>
             """
-                + super().render_buttons()
+            + super().render_buttons()
         )
 
     def getModalObjectType(self):
@@ -281,4 +289,40 @@ class SdrProfileController(SdrFormController):
     def getModalConfirmUrl(self):
         return "{}settings/{}/deleteprofile/{}".format(
             self.get_document_root(), quote(self.device_id), quote(self.profile_id)
+        )
+
+
+class NewProfileController(SdrFormController):
+    def __init__(self, handler, request, options):
+        super().__init__(handler, request, options)
+        id_layer = PropertyLayer(id="")
+        self.data_layer = PropertyLayer(name="")
+        self.stack = PropertyStack()
+        self.stack.addLayer(0, id_layer)
+        self.stack.addLayer(1, self.data_layer)
+
+    def getSections(self):
+        return [
+            Section(
+                "New profile settings",
+                TextInput("name", "Profile name"),
+                TextInput("id", "Profile ID"),
+            )
+        ]
+
+    def getTitle(self):
+        return "New profile"
+
+    def store(self):
+        if self.stack["id"] in self.device["profiles"]:
+            raise ValueError("Profile {} already exists!".format(self.stack["id"]))
+        self.device["profiles"][self.stack["id"]] = self.data_layer
+        super().store()
+
+    def getData(self):
+        return self.stack
+
+    def getSuccessfulRedirect(self):
+        return "{}settings/sdr/{}/profile/{}".format(
+            self.get_document_root(), quote(self.device_id), quote(self.stack["id"])
         )
