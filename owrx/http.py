@@ -40,23 +40,23 @@ class RequestHandler(BaseHTTPRequestHandler):
         logger.debug("%s - - [%s] %s", self.address_string(), self.log_date_time_string(), format % args)
 
     def do_GET(self):
-        self.router.route(self, self.get_request("GET"))
+        self.router.route(self, self._build_request("GET"))
 
     def do_POST(self):
-        self.router.route(self, self.get_request("POST"))
+        self.router.route(self, self._build_request("POST"))
 
     def do_DELETE(self):
-        self.router.route(self, self.get_request("DELETE"))
+        self.router.route(self, self._build_request("DELETE"))
 
-    def get_request(self, method):
-        url = urlparse(self.path)
-        return Request(url, method, self.headers)
+    def _build_request(self, method):
+        return Request(self.path, method, self.headers)
 
 
 class Request(object):
     def __init__(self, url, method, headers):
-        self.path = url.path
-        self.query = parse_qs(url.query)
+        parsed_url = urlparse(url)
+        self.path = parsed_url.path
+        self.query = parse_qs(parsed_url.query)
         self.matches = None
         self.method = method
         self.headers = headers

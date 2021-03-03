@@ -13,16 +13,10 @@ from abc import ABCMeta
 
 
 class SdrDeviceListController(AuthorizationMixin, WebpageController):
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../"
-        return variables
-
     def template_variables(self):
         variables = super().template_variables()
         variables["content"] = self.render_devices()
         variables["title"] = "SDR device settings"
-        variables["assets_prefix"] = "../"
         return variables
 
     def render_devices(self):
@@ -134,16 +128,6 @@ class SdrDeviceController(SdrFormController):
     def getTitle(self):
         return self.device["name"]
 
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../../"
-        return variables
-
-    def template_variables(self):
-        variables = super().template_variables()
-        variables["assets_prefix"] = "../../"
-        return variables
-
     def render_sections(self):
         return super().render_sections() + self.render_profile_list(self.device["profiles"])
 
@@ -188,16 +172,6 @@ class NewSdrDeviceController(SettingsFormController):
         self.stack = PropertyStack()
         self.stack.addLayer(0, id_layer)
         self.stack.addLayer(1, self.data_layer)
-
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../../"
-        return variables
-
-    def template_variables(self):
-        variables = super().template_variables()
-        variables["assets_prefix"] = "../../"
-        return variables
 
     def getSections(self):
         return [
@@ -250,16 +224,6 @@ class SdrProfileController(SdrFormController):
 
     def getTitle(self):
         return self.profile["name"]
-
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../../../"
-        return variables
-
-    def template_variables(self):
-        variables = super().template_variables()
-        variables["assets_prefix"] = "../../../"
-        return variables
 
     def indexAction(self):
         if self.profile is None:

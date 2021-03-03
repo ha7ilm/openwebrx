@@ -68,16 +68,10 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
     def indexAction(self):
         self.serve_template("settings/general.html", **self.template_variables())
 
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../"
-        return variables
-
     def template_variables(self):
         variables = super().template_variables()
         variables["content"] = self.render_sections()
         variables["title"] = self.getTitle()
-        variables["assets_prefix"] = "../"
         return variables
 
     def parseFormData(self):

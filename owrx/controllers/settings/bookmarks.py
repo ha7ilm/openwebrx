@@ -10,11 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class BookmarksController(AuthorizationMixin, WebpageController):
-    def header_variables(self):
-        variables = super().header_variables()
-        variables["assets_prefix"] = "../"
-        return variables
-
     def template_variables(self):
         variables = super().template_variables()
         variables["bookmarks"] = self.render_table()

@@ -19,14 +19,19 @@ class TemplateController(Controller):
 
 
 class WebpageController(TemplateController):
+    def get_document_root(self):
+        path_parts = [part for part in self.request.path[1:].split("/")]
+        levels = max(0, len(path_parts) - 1)
+        return "../" * levels
+
     def header_variables(self):
-        variables = {"assets_prefix": ""}
+        variables = {"document_root": self.get_document_root()}
         variables.update(ReceiverDetails().__dict__())
         return variables
 
     def template_variables(self):
         header = self.render_template("include/header.include.html", **self.header_variables())
-        return {"header": header}
+        return {"header": header, "document_root": self.get_document_root()}
 
 
 class IndexController(WebpageController):
