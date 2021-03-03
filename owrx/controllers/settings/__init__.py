@@ -78,10 +78,13 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
         data = parse_qs(self.get_body().decode("utf-8"), keep_blank_values=True)
         return {k: v for i in self.getSections() for k, v in i.parse(data).items()}
 
+    def getSuccessfulRedirect(self):
+        return self.request.path
+
     def processFormData(self):
         self.processData(self.parseFormData())
         self.store()
-        self.send_redirect(self.request.path)
+        self.send_redirect(self.getSuccessfulRedirect())
 
     def processData(self, data):
         config = self.getData()

@@ -197,6 +197,9 @@ class NewSdrDeviceController(SettingsFormController):
         config["sdrs"] = sdrs
         super().store()
 
+    def getSuccessfulRedirect(self):
+        return "{}settings/sdr/{}".format(self.get_document_root(), self.stack["id"])
+
 
 class SdrProfileController(SdrFormController):
     def __init__(self, handler, request, options):
