@@ -130,6 +130,7 @@ class Router(object):
             RegexRoute(
                 "^/settings/sdr/([^/]+)$", SdrDeviceController, method="POST", options={"action": "processFormData"}
             ),
+            RegexRoute("^/settings/deletesdr/([^/]+)$", SdrDeviceController, options={"action": "deleteDevice"}),
             RegexRoute("^/settings/sdr/([^/]+)/newprofile$", NewProfileController),
             RegexRoute(
                 "^/settings/sdr/([^/]+)/newprofile$",
@@ -143,6 +144,11 @@ class Router(object):
                 SdrProfileController,
                 method="POST",
                 options={"action": "processFormData"},
+            ),
+            RegexRoute(
+                "^/settings/sdr/([^/]+)/deleteprofile/([^/]+)$",
+                SdrProfileController,
+                options={"action": "deleteProfile"},
             ),
             StaticRoute("/settings/bookmarks", BookmarksController),
             StaticRoute("/settings/bookmarks", BookmarksController, method="POST", options={"action": "new"}),

@@ -17,6 +17,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
         variables = super().template_variables()
         variables["content"] = self.render_devices()
         variables["title"] = "SDR device settings"
+        variables["modal"] = ""
         return variables
 
     def render_devices(self):
@@ -196,6 +197,15 @@ class SdrDeviceController(SdrFormControllerWithModal):
     def getModalConfirmUrl(self):
         return "{}settings/deletesdr/{}".format(self.get_document_root(), quote(self.device_id))
 
+    def deleteDevice(self):
+        if self.device_id is None:
+            return self.send_response("device not found", code=404)
+        config = Config.get()
+        sdrs = config["sdrs"]
+        del sdrs[self.device_id]
+        config.store()
+        return self.send_redirect("{}settings/sdr".format(self.get_document_root()))
+
 
 class NewSdrDeviceController(SettingsFormController):
     def __init__(self, handler, request, options):
@@ -287,9 +297,17 @@ class SdrProfileController(SdrFormControllerWithModal):
         return "profile"
 
     def getModalConfirmUrl(self):
-        return "{}settings/{}/deleteprofile/{}".format(
+        return "{}settings/sdr/{}/deleteprofile/{}".format(
             self.get_document_root(), quote(self.device_id), quote(self.profile_id)
         )
+
+    def deleteProfile(self):
+        if self.profile_id is None:
+            return self.send_response("profile not found", code=404)
+        config = Config.get()
+        del self.device["profiles"][self.profile_id]
+        config.store()
+        return self.send_redirect("{}settings/sdr".format(self.get_document_root()))
 
 
 class NewProfileController(SdrFormController):
