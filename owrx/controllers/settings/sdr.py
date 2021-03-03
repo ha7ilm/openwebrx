@@ -9,7 +9,7 @@ from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
 from owrx.form import TextInput, DropdownInput, Option
 from owrx.property import PropertyLayer, PropertyStack
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 
 class SdrDeviceListController(AuthorizationMixin, WebpageController):
@@ -114,6 +114,40 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
             return None, None
         return device_id, config["sdrs"][device_id]
 
+    def buildModal(self):
+        return """
+            <div class="modal" id="deleteModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5>Please confirm</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Do you really want to delete this {object_type}?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <a type="button" class="btn btn-danger" href="{confirm_url}">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        """.format(
+            object_type=self.getModalObjectType(),
+            confirm_url=self.getModalConfirmUrl(),
+        )
+
+    @abstractmethod
+    def getModalObjectType(self):
+        pass
+
+    @abstractmethod
+    def getModalConfirmUrl(self):
+        pass
+
 
 class SdrDeviceController(SdrFormController):
     def getData(self):
@@ -126,6 +160,14 @@ class SdrDeviceController(SdrFormController):
         except SdrDeviceDescriptionMissing:
             # TODO provide a generic interface that allows to switch the type
             return []
+
+    def render_buttons(self):
+        return (
+            """
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Remove device...</button>
+        """
+            + super().render_buttons()
+        )
 
     def getTitle(self):
         return self.device["name"]
@@ -141,6 +183,12 @@ class SdrDeviceController(SdrFormController):
             self.send_response("device not found", code=404)
             return
         return super().processFormData()
+
+    def getModalObjectType(self):
+        return "SDR device"
+
+    def getModalConfirmUrl(self):
+        return "{}settings/deletesdr/{}".format(self.get_document_root(), quote(self.device_id))
 
 
 class NewSdrDeviceController(SettingsFormController):
@@ -218,3 +266,19 @@ class SdrProfileController(SdrFormController):
             self.send_response("profile not found", code=404)
             return
         return super().processFormData()
+
+    def render_buttons(self):
+        return (
+                """
+                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Remove profile...</button>
+            """
+                + super().render_buttons()
+        )
+
+    def getModalObjectType(self):
+        return "profile"
+
+    def getModalConfirmUrl(self):
+        return "{}settings/{}/deleteprofile/{}".format(
+            self.get_document_root(), quote(self.device_id), quote(self.profile_id)
+        )

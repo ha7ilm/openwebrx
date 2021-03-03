@@ -54,16 +54,23 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
 
     def render_sections(self):
         sections = "".join(section.render(self.getData()) for section in self.getSections())
+        buttons = self.render_buttons()
         return """
             <form class="settings-body" method="POST">
                 {sections}
                 <div class="buttons container">
-                    <button type="submit" class="btn btn-primary">Apply and save</button>
+                    {buttons}
                 </div>
             </form>
         """.format(
-            sections=sections
+            sections=sections,
+            buttons=buttons,
         )
+
+    def render_buttons(self):
+        return """
+            <button type="submit" class="btn btn-primary">Apply and save</button>
+        """
 
     def indexAction(self):
         self.serve_template("settings/general.html", **self.template_variables())
@@ -72,6 +79,7 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
         variables = super().template_variables()
         variables["content"] = self.render_sections()
         variables["title"] = self.getTitle()
+        variables["modal"] = self.buildModal()
         return variables
 
     def parseFormData(self):
@@ -97,3 +105,6 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
 
     def store(self):
         Config.get().store()
+
+    def buildModal(self):
+        return ""
