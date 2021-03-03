@@ -20,14 +20,16 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
         return variables
 
     def render_devices(self):
-        def render_profile(profile_id, profile):
+        def render_profile(device_id, profile_id, profile):
             return """
                 <li class="list-group-item">
                     <a href="{profile_link}">{profile_name}</a>
                 </li>
             """.format(
                 profile_name=profile["name"],
-                profile_link="{}/{}".format(self.request.path, quote(profile_id)),
+                profile_link="{}settings/sdr/{}/{}".format(
+                    self.get_document_root(), quote(device_id), quote(profile_id)
+                ),
             )
 
         def render_device(device_id, config):
@@ -74,7 +76,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 state="Unknown" if source is None else source.getState(),
                 num_profiles=len(config["profiles"]),
                 additional_info=additional_info,
-                profiles="".join(render_profile(p_id, p) for p_id, p in config["profiles"].items()),
+                profiles="".join(render_profile(device_id, p_id, p) for p_id, p in config["profiles"].items()),
             )
 
         return """
@@ -127,29 +129,6 @@ class SdrDeviceController(SdrFormController):
 
     def getTitle(self):
         return self.device["name"]
-
-    def render_sections(self):
-        return super().render_sections() + self.render_profile_list(self.device["profiles"])
-
-    def render_profile_list(self, profiles):
-        def render_profile(profile_id, profile):
-            return """
-                <li class="list-group-item">
-                    <a href="{profile_link}">{profile_name}</a>
-                </li>
-            """.format(
-                profile_name=profile["name"],
-                profile_link="{}/{}".format(self.request.path, quote(profile_id)),
-            )
-
-        return """
-            <h3 class="settings-header">Profiles</h3>
-            <ul class="row list-group list-group-flush sdr-profile-list">
-                {profiles}
-            </ul>
-        """.format(
-            profiles="".join(render_profile(p_id, p) for p_id, p in profiles.items())
-        )
 
     def indexAction(self):
         if self.device is None:
