@@ -69,7 +69,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                             <ul class="list-group list-group-flush sdr-profile-list">
                                 {profiles}
                             </ul>
-                            <a href="{newprofile_link}" class="btn btn-success">Add profile...</a>
+                            <a href="{newprofile_link}" class="btn btn-success">Add new profile...</a>
                         </div>
                     </div>
                 </li>
