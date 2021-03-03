@@ -84,7 +84,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 {devices}
             </ul>
             <div class="buttons container">
-                <a class="btn btn-success" href="sdr/new">Add new device...</a>
+                <a class="btn btn-success" href="newsdr">Add new device...</a>
             </div>
         """.format(
             devices="".join(render_device(key, value) for key, value in Config.get()["sdrs"].items())

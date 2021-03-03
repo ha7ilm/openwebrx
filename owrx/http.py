@@ -121,9 +121,9 @@ class Router(object):
                 "/settings/general", GeneralSettingsController, method="POST", options={"action": "processFormData"}
             ),
             StaticRoute("/settings/sdr", SdrDeviceListController),
-            StaticRoute("/settings/sdr/new", NewSdrDeviceController),
+            StaticRoute("/settings/newsdr", NewSdrDeviceController),
             StaticRoute(
-                "/settings/sdr/new", NewSdrDeviceController, method="POST", options={"action": "processFormData"}
+                "/settings/newsdr", NewSdrDeviceController, method="POST", options={"action": "processFormData"}
             ),
             RegexRoute("^/settings/sdr/([^/]+)$", SdrDeviceController),
             RegexRoute(
