@@ -104,6 +104,50 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
         super().__init__(handler, request, options)
         self.device_id, self.device = self._get_device()
 
+    def getTitle(self):
+        return self.device["name"]
+
+    def render_sections(self):
+        return self.render_tabs() + super().render_sections()
+
+    def render_tabs(self):
+        return """
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link {device_active}" href="{device_link}">{device_name}</a>
+                </li>
+                {profile_tabs}
+                <li class="nav-item">
+                    <a href="{new_profile_link}" class="nav-link">New profile</a>
+                </li>
+            </ul>
+        """.format(
+            device_link="{}settings/sdr/{}".format(self.get_document_root(), quote(self.device_id)),
+            device_name=self.device["name"],
+            device_active="active" if self.isDeviceActive() else "",
+            new_profile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(self.device_id)),
+            profile_tabs="".join(
+                """
+                    <li class="nav-item">
+                        <a class="nav-link {profile_active}" href="{profile_link}">{profile_name}</a>
+                    </li>
+                """.format(
+                    profile_link="{}settings/sdr/{}/profile/{}".format(
+                        self.get_document_root(), quote(self.device_id), quote(profile_id)
+                    ),
+                    profile_name=profile["name"],
+                    profile_active="active" if self.isProfileActive(profile_id) else "",
+                )
+                for profile_id, profile in self.device["profiles"].items()
+            ),
+        )
+
+    def isDeviceActive(self) -> bool:
+        return False
+
+    def isProfileActive(self, profile_id) -> bool:
+        return False
+
     def store(self):
         # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
         config = Config.get()
@@ -176,8 +220,8 @@ class SdrDeviceController(SdrFormControllerWithModal):
             + super().render_buttons()
         )
 
-    def getTitle(self):
-        return self.device["name"]
+    def isDeviceActive(self) -> bool:
+        return True
 
     def indexAction(self):
         if self.device is None:
@@ -262,6 +306,9 @@ class SdrProfileController(SdrFormControllerWithModal):
             return None
         return profile_id, self.device["profiles"][profile_id]
 
+    def isProfileActive(self, profile_id) -> bool:
+        return profile_id == self.profile_id
+
     def getSections(self):
         try:
             description = SdrDeviceDescription.getByType(self.device["type"])
@@ -269,9 +316,6 @@ class SdrProfileController(SdrFormControllerWithModal):
         except SdrDeviceDescriptionMissing:
             # TODO provide a generic interface that allows to switch the type
             return []
-
-    def getTitle(self):
-        return self.profile["name"]
 
     def indexAction(self):
         if self.profile is None:
