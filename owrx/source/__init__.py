@@ -66,6 +66,8 @@ class SdrProfileCarousel(PropertyCarousel):
         super().__init__()
         for profile_id, profile in props["profiles"].items():
             self.addLayer(profile_id, profile)
+        # activate first available profile
+        self.switch()
 
         props["profiles"].wire(self.handleProfileUpdate)
 
@@ -114,8 +116,6 @@ class SdrSource(ABC):
 
         self.sdrProps = self.props.filter(*self.getEventNames())
 
-        self.profile_id = None
-        self.activateProfile()
         self.wireEvents()
 
         self.port = getAvailablePort()
@@ -179,22 +179,18 @@ class SdrSource(ABC):
     def getCommand(self):
         return [self.getCommandMapper().map(self.getCommandValues())]
 
-    def activateProfile(self, profile_id=None):
-        if profile_id is None:
-            profiles = self.props["profiles"]
-            profile_id = list(profiles.keys())[0]
-        logger.debug("activating profile {0}".format(profile_id))
+    def activateProfile(self, profile_id):
+        logger.debug("activating profile {0} for {1}".format(profile_id, self.getId()))
         try:
             self.profileCarousel.switch(profile_id)
-            self.profile_id = profile_id
         except KeyError:
-            logger.warning("invalid profile %s for sdr %s. ignoring", profile_id, self.id)
+            logger.warning("invalid profile %s for sdr %s. ignoring", profile_id, self.getId())
 
     def getId(self):
         return self.id
 
     def getProfileId(self):
-        return self.profile_id
+        return self.props["profile_id"]
 
     def getProfiles(self):
         return self.props["profiles"]
