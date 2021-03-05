@@ -21,18 +21,6 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
         return variables
 
     def render_devices(self):
-        def render_profile(device_id, profile_id, profile):
-            return """
-                <li class="list-group-item">
-                    <a href="{profile_link}">{profile_name}</a>
-                </li>
-            """.format(
-                profile_name=profile["name"],
-                profile_link="{}settings/sdr/{}/profile/{}".format(
-                    self.get_document_root(), quote(device_id), quote(profile_id)
-                ),
-            )
-
         def render_device(device_id, config):
             # TODO: this only returns non-failed sources...
             source = SdrService.getSource(device_id)
@@ -46,10 +34,12 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 clients = {c: v for c, v in clients.items() if v}
                 connections = len([c for c in source.getClients() if isinstance(c, OpenWebRxReceiverClient)])
                 additional_info = """
+                    <div>{num_profiles} profile(s)</div>
                     <div>Current profile: {current_profile}</div>
                     <div>Clients: {clients}</div>
                     <div>Connections: {connections}</div>
                 """.format(
+                    num_profiles=len(config["profiles"]),
                     current_profile=currentProfile["name"],
                     clients=", ".join("{cls}: {count}".format(cls=c.name, count=v) for c, v in clients.items()),
                     connections=connections,
@@ -63,14 +53,9 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                                 <h3>{device_name}</h3>
                             </a>
                             <div>State: {state}</div>
-                            <div>{num_profiles} profile(s)</div>
-                            {additional_info}
                         </div>
                         <div class="col-6">
-                            <ul class="list-group list-group-flush sdr-profile-list">
-                                {profiles}
-                            </ul>
-                            <a href="{newprofile_link}" class="btn btn-success">Add new profile...</a>
+                            {additional_info}
                         </div>
                     </div>
                 </li>
@@ -78,9 +63,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 device_name=config["name"],
                 device_link="{}/{}".format(self.request.path, quote(device_id)),
                 state="Unknown" if source is None else source.getState(),
-                num_profiles=len(config["profiles"]),
                 additional_info=additional_info,
-                profiles="".join(render_profile(device_id, p_id, p) for p_id, p in config["profiles"].items()),
                 newprofile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(device_id)),
             )
 
