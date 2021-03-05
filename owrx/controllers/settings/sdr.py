@@ -126,13 +126,14 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
                 </li>
                 {profile_tabs}
                 <li class="nav-item">
-                    <a href="{new_profile_link}" class="nav-link">New profile</a>
+                    <a href="{new_profile_link}" class="nav-link {new_profile_active}">New profile</a>
                 </li>
             </ul>
         """.format(
             device_link="{}settings/sdr/{}".format(self.get_document_root(), quote(self.device_id)),
             device_name=self.device["name"],
             device_active="active" if self.isDeviceActive() else "",
+            new_profile_active="active" if self.isNewProfileActive() else "",
             new_profile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(self.device_id)),
             profile_tabs="".join(
                 """
@@ -154,6 +155,9 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
         return False
 
     def isProfileActive(self, profile_id) -> bool:
+        return False
+
+    def isNewProfileActive(self) -> bool:
         return False
 
     def store(self):
@@ -382,6 +386,9 @@ class NewProfileController(SdrFormController):
 
     def getTitle(self):
         return "New profile"
+
+    def isNewProfileActive(self) -> bool:
+        return True
 
     def store(self):
         if self.stack["id"] in self.device["profiles"]:
