@@ -64,6 +64,9 @@ class SdrSourceEventClient(ABC):
 class SdrProfileCarousel(PropertyCarousel):
     def __init__(self, props):
         super().__init__()
+        if "profiles" not in props:
+            return
+
         for profile_id, profile in props["profiles"].items():
             self.addLayer(profile_id, profile)
         # activate first available profile
