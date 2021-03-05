@@ -36,15 +36,14 @@ input
 	vertical-align:middle;
 }
 
-input[type=range]
-{
+input[type=range] {
 	-webkit-appearance: none;
 	margin: 0 0;
-	background: transparent;
+	background: transparent !important;
 	--track-background: #B6B6B6;
 }
-input[type=range]:focus
-{
+
+input[type=range]:focus {
 	outline: none;
 }
 
@@ -826,11 +825,21 @@ img.openwebrx-mirror-img
 	font-weight: normal;
 	font-size: 13pt;
 	margin-right: 1px;
-	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #373737), color-stop(1, #4F4F4F) );
-	background:-moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
+	background:linear-gradient(#373737, #4F4F4F);
 	border-color: transparent;
 	border-width: 0px;
-	-moz-appearance: none;
+}
+
+@supports(-moz-appearance: none) {
+    .openwebrx-panel select,
+    .openwebrx-dialog select {
+    	-moz-appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20%20xmlns%3Av%3D%22https%3A%2F%2Fvecta.io%2Fnano%22%3E%3Cpath%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8s-1.9-9.2-5.5-12.8z%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fsvg%3E'),
+            linear-gradient(#373737, #4F4F4F);
+        background-repeat: no-repeat, repeat;
+        background-position: right .7em top 50%, 0 0;
+        background-size: .65em auto, 100%;
+	}
 }
 
 .openwebrx-panel select option,
