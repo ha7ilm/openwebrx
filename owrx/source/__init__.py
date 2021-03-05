@@ -82,6 +82,12 @@ class SdrProfileCarousel(PropertyCarousel):
             elif not self.hasLayer(profile_id):
                 self.addLayer(profile_id, profile)
 
+    def _getDefaultLayer(self):
+        # return the first available profile, or the default empty layer if we don't have any
+        if self.layers:
+            return next(iter(self.layers.values()))
+        return super()._getDefaultLayer()
+
 
 class SdrSource(ABC):
     def __init__(self, id, props):

@@ -345,8 +345,12 @@ class PropertyStack(PropertyManager):
 class PropertyCarousel(PropertyDelegator):
     def __init__(self):
         # start with an empty dummy layer
-        super().__init__(PropertyLayer())
+        self.emptyLayer = PropertyLayer().readonly()
+        super().__init__(self.emptyLayer)
         self.layers = {}
+
+    def _getDefaultLayer(self):
+        return self.emptyLayer
 
     def addLayer(self, key, value):
         self.layers[key] = value
@@ -355,12 +359,14 @@ class PropertyCarousel(PropertyDelegator):
         return key in self.layers
 
     def removeLayer(self, key):
+        if key in self.layers and self.layers[key] is self.pm:
+            self.switch()
         del self.layers[key]
 
-    def switch(self, key):
+    def switch(self, key=None):
         before = self.pm
         self.subscription.cancel()
-        self.pm = self.layers[key]
+        self.pm = self._getDefaultLayer() if key is None else self.layers[key]
         self.subscription = self.pm.wire(self._fireCallbacks)
         changes = {}
         for key in set(list(before.keys()) + list(self.keys())):

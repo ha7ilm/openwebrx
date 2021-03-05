@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import Mock
-from owrx.property import PropertyCarousel, PropertyLayer, PropertyDeleted
+from owrx.property import PropertyCarousel, PropertyLayer, PropertyDeleted, PropertyWriteError
 
 
 class PropertyCarouselTest(TestCase):
@@ -92,3 +92,28 @@ class PropertyCarouselTest(TestCase):
         pc.removeLayer("x")
         with self.assertRaises(KeyError):
             pc.switch("x")
+
+    def testPropertyResetAfterRemoval(self):
+        pc = PropertyCarousel()
+        pl = PropertyLayer(testkey="testvalue")
+        pc.addLayer("x", pl)
+        pc.switch("x")
+        self.assertEqual(pc["testkey"], "testvalue")
+        pc.removeLayer("x")
+        with self.assertRaises(KeyError):
+            x = pc["testkey"]
+
+    def testEmptySwitch(self):
+        pc = PropertyCarousel()
+        pl = PropertyLayer(testkey="testvalue")
+        pc.addLayer("x", pl)
+        pc.switch("x")
+        self.assertEqual(pc["testkey"], "testvalue")
+        pc.switch()
+        with self.assertRaises(KeyError):
+            x = pc["testkey"]
+
+    def testErrorOnWriteOnDefaultLayer(self):
+        pc = PropertyCarousel()
+        with self.assertRaises(PropertyWriteError):
+            pc["testkey"] = "testvalue"
