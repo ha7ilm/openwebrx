@@ -177,6 +177,12 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
 
 
 class SdrFormControllerWithModal(SdrFormController, metaclass=ABCMeta):
+    def render_remove_button(self):
+        return ""
+
+    def render_buttons(self):
+        return self.render_remove_button() + super().render_buttons()
+
     def buildModal(self):
         return """
             <div class="modal" id="deleteModal" tabindex="-1" role="dialog">
@@ -224,13 +230,10 @@ class SdrDeviceController(SdrFormControllerWithModal):
             # TODO provide a generic interface that allows to switch the type
             return []
 
-    def render_buttons(self):
-        return (
-            """
+    def render_remove_button(self):
+        return """
             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Remove device...</button>
         """
-            + super().render_buttons()
-        )
 
     def isDeviceActive(self) -> bool:
         return True
@@ -341,13 +344,10 @@ class SdrProfileController(SdrFormControllerWithModal):
             return
         return super().processFormData()
 
-    def render_buttons(self):
-        return (
-            """
-                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Remove profile...</button>
-            """
-            + super().render_buttons()
-        )
+    def render_remove_button(self):
+        return """
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Remove profile...</button>
+        """
 
     def getModalObjectType(self):
         return "profile"
@@ -363,29 +363,28 @@ class SdrProfileController(SdrFormControllerWithModal):
         config = Config.get()
         del self.device["profiles"][self.profile_id]
         config.store()
-        return self.send_redirect("{}settings/sdr".format(self.get_document_root()))
+        return self.send_redirect("{}settings/sdr/{}".format(self.get_document_root(), quote(self.device_id)))
 
 
-class NewProfileController(SdrFormController):
+class NewProfileController(SdrProfileController):
     def __init__(self, handler, request, options):
-        super().__init__(handler, request, options)
         id_layer = PropertyLayer(id="")
         self.data_layer = PropertyLayer(name="")
         self.stack = PropertyStack()
-        self.stack.addLayer(0, id_layer)
-        self.stack.addLayer(1, self.data_layer)
+        self.stack.addLayer(0, self.data_layer)
+        self.stack.addLayer(1, id_layer)
+        super().__init__(handler, request, options)
+
+    def _get_profile(self):
+        return "new", self.stack
 
     def getSections(self):
         return [
             Section(
                 "New profile settings",
-                TextInput("name", "Profile name"),
                 TextInput("id", "Profile ID"),
             )
-        ]
-
-    def getTitle(self):
-        return "New profile"
+        ] + super().getSections()
 
     def isNewProfileActive(self) -> bool:
         return True
@@ -396,10 +395,11 @@ class NewProfileController(SdrFormController):
         self.device["profiles"][self.stack["id"]] = self.data_layer
         super().store()
 
-    def getData(self):
-        return self.stack
-
     def getSuccessfulRedirect(self):
         return "{}settings/sdr/{}/profile/{}".format(
             self.get_document_root(), quote(self.device_id), quote(self.stack["id"])
         )
+
+    def render_remove_button(self):
+        # new profile doesn't have a remove button
+        return ""
