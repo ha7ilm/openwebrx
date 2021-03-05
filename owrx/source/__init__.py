@@ -410,13 +410,13 @@ class OptionalSection(Section):
                 <label class="col-form-label col-form-label-sm col-3">
                     Additional optional settings
                 </label>
-                <div class="input-group input-group-sm col-9 p-0">
-                    <select class="form-control from-control-sm optional-select">
-                        {options}
-                    </select>
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-success option-add-button">Add</button>
+                <div class="add-group col-9 p-0">
+                    <div class="add-group-select">
+                        <select class="form-control form-control-sm optional-select">
+                            {options}
+                        </select>
                     </div>
+                    <button type="button" class="btn btn-sm btn-success option-add-button">Add</button>
                 </div>
             </div>
         """.format(

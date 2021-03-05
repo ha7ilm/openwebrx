@@ -117,17 +117,17 @@ table.bookmarks .frequency {
     overflow-y: auto;
 }
 
-.removable-group.removable {
+.removable-group.removable, .add-group {
     display: flex;
     flex-direction: row;
 }
 
-.removable-group.removable .removable-item {
+.removable-group.removable .removable-item, .add-group .add-group-select {
     flex: 1 0 auto;
     margin-right: .25rem;
 }
 
-.removable-group.removable .option-remove-button {
+.removable-group.removable .option-remove-button, .add-group .option-add-button {
     flex: 0 0 70px;
 }
 
