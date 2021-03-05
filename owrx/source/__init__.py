@@ -10,7 +10,7 @@ import pkgutil
 from abc import ABC, abstractmethod
 from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
-from owrx.property import PropertyStack, PropertyLayer, PropertyFilter, PropertyCarousel
+from owrx.property import PropertyStack, PropertyLayer, PropertyFilter, PropertyCarousel, PropertyDeleted
 from owrx.property.filter import ByLambda
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, ExponentialInput
 from owrx.form.converter import OptionalConverter
@@ -61,6 +61,28 @@ class SdrSourceEventClient(ABC):
         return SdrClientClass.INACTIVE
 
 
+class SdrProfileCarousel(PropertyCarousel):
+    def __init__(self, props):
+        super().__init__()
+        for profile_id, profile in props["profiles"].items():
+            self.addLayer(profile_id, profile)
+
+        props["profiles"].wire(self.handleProfileUpdate)
+
+    def addLayer(self, profile_id, profile):
+        profile_stack = PropertyStack()
+        profile_stack.addLayer(0, PropertyLayer(profile_id=profile_id).readonly())
+        profile_stack.addLayer(1, profile)
+        super().addLayer(profile_id, profile_stack)
+
+    def handleProfileUpdate(self, changes):
+        for profile_id, profile in changes.items():
+            if profile is PropertyDeleted:
+                self.removeLayer(profile_id)
+            elif not self.hasLayer(profile_id):
+                self.addLayer(profile_id, profile)
+
+
 class SdrSource(ABC):
     def __init__(self, id, props):
         self.id = id
@@ -70,28 +92,19 @@ class SdrSource(ABC):
         self.props = PropertyStack()
 
         # layer 0 reserved for profile properties
-        self.profileCarousel = PropertyCarousel()
-        if "profiles" in props:
-            for profile_id, profile in props["profiles"].items():
-                profile_stack = PropertyStack()
-                profile_stack.addLayer(0, PropertyLayer(profile_id=profile_id).readonly())
-                profile_stack.addLayer(1, profile)
-                self.profileCarousel.addLayer(profile_id, profile_stack)
+        self.profileCarousel = SdrProfileCarousel(props)
+        # prevent profile names from overriding the device name
         self.props.addLayer(0, PropertyFilter(self.profileCarousel, ByLambda(lambda x: x != "name")))
 
-        # layer for runtime writeable properties
-        # these may be set during runtime, but should not be persisted to disk with the configuration
-        self.props.addLayer(1, PropertyLayer().filter("profile_id"))
-
         # props from our device config
-        self.props.addLayer(2, props)
+        self.props.addLayer(1, props)
 
         # the sdr_id is constant, so we put it in a separate layer
         # this is used to detect device changes, that are then sent to the client
-        self.props.addLayer(3, PropertyLayer(sdr_id=id).readonly())
+        self.props.addLayer(2, PropertyLayer(sdr_id=id).readonly())
 
         # finally, accept global config properties from the top-level config
-        self.props.addLayer(4, Config.get())
+        self.props.addLayer(3, Config.get())
 
         self.sdrProps = self.props.filter(*self.getEventNames())
 

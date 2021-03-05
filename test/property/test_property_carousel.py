@@ -76,3 +76,19 @@ class PropertyCarouselTest(TestCase):
         pc = PropertyCarousel()
         with self.assertRaises(KeyError):
             pc.switch("doesntmatter")
+
+    def testHasLayer(self):
+        pc = PropertyCarousel()
+        pc.addLayer("testkey", PropertyLayer())
+        self.assertTrue(pc.hasLayer("testkey"))
+        self.assertFalse(pc.hasLayer("otherkey"))
+
+    def testRemoveLayer(self):
+        pc = PropertyCarousel()
+        pl = PropertyLayer(testkey="testvalue")
+        pc.addLayer("x", pl)
+        pc.switch("x")
+        self.assertEqual(pc["testkey"], "testvalue")
+        pc.removeLayer("x")
+        with self.assertRaises(KeyError):
+            pc.switch("x")

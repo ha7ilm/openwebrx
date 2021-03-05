@@ -351,6 +351,12 @@ class PropertyCarousel(PropertyDelegator):
     def addLayer(self, key, value):
         self.layers[key] = value
 
+    def hasLayer(self, key):
+        return key in self.layers
+
+    def removeLayer(self, key):
+        del self.layers[key]
+
     def switch(self, key):
         before = self.pm
         self.subscription.cancel()
