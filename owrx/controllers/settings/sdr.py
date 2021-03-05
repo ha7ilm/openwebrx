@@ -108,7 +108,15 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
         return self.device["name"]
 
     def render_sections(self):
-        return self.render_tabs() + super().render_sections()
+        return """
+            {tabs}
+            <div class="tab-body">
+                {sections}
+            </div>
+        """.format(
+            tabs=self.render_tabs(),
+            sections=super().render_sections(),
+        )
 
     def render_tabs(self):
         return """

@@ -29,11 +29,8 @@ hr {
     margin: 15px 15px 0;
 }
 
-.settings-section {
-    margin-top: 3em;
-}
-
 .settings-section h3 {
+    margin-top: 1em;
     margin-bottom: 1em;
 }
 
@@ -69,6 +66,18 @@ h1 {
     height: 100px;
     padding: 20px;
     font-size: 1.2rem;
+}
+
+.tab-body {
+    overflow: auto;
+    border: 1px solid #444;
+    border-top: none;
+    border-bottom-left-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.tab-body .form-group {
+    padding-right: 15px;
 }
 
 table.bookmarks .frequency {
