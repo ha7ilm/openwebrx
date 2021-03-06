@@ -2,6 +2,7 @@ from .receiverid import ReceiverIdController
 from owrx.version import openwebrx_version
 from owrx.sdr import SdrService
 from owrx.config import Config
+from owrx.jsons import Encoder
 import json
 
 import logging
@@ -40,4 +41,4 @@ class StatusController(ReceiverIdController):
             "version": openwebrx_version,
             "sdrs": [self.getReceiverStats(r) for r in SdrService.getSources().values()],
         }
-        self.send_response(json.dumps(status), content_type="application/json")
+        self.send_response(json.dumps(status, cls=Encoder), content_type="application/json")

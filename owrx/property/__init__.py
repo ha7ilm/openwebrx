@@ -63,8 +63,13 @@ class PropertyManager(ABC):
     def keys(self):
         pass
 
+    @abstractmethod
+    def values(self):
+        pass
+
+    @abstractmethod
     def items(self):
-        return self.__dict__().items()
+        pass
 
     def __len__(self):
         return self.__dict__().__len__()
@@ -141,6 +146,12 @@ class PropertyLayer(PropertyManager):
     def keys(self):
         return self.properties.keys()
 
+    def values(self):
+        return self.properties.values()
+
+    def items(self):
+        return self.properties.items()
+
 
 class PropertyFilter(PropertyManager):
     def __init__(self, pm: PropertyManager, filter: Filter):
@@ -179,6 +190,12 @@ class PropertyFilter(PropertyManager):
     def keys(self):
         return [k for k in self.pm.keys() if self._filter.apply(k)]
 
+    def values(self):
+        return [v for k, v in self.pm.items() if self._filter.apply(k)]
+
+    def items(self):
+        return self.__dict__().items()
+
 
 class PropertyDelegator(PropertyManager):
     def __init__(self, pm: PropertyManager):
@@ -203,6 +220,12 @@ class PropertyDelegator(PropertyManager):
 
     def keys(self):
         return self.pm.keys()
+
+    def values(self):
+        return self.pm.values()
+
+    def items(self):
+        return self.pm.items()
 
 
 class PropertyValidationError(PropertyError):
@@ -340,6 +363,12 @@ class PropertyStack(PropertyManager):
 
     def keys(self):
         return set([key for l in self.layers for key in l["props"].keys()])
+
+    def values(self):
+        return [self.__getitem__(k) for k in self.keys()]
+
+    def items(self):
+        return self.__dict__().items()
 
 
 class PropertyCarousel(PropertyDelegator):
