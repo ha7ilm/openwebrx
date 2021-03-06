@@ -353,10 +353,12 @@ class PropertyCarousel(PropertyDelegator):
         return self.emptyLayer
 
     def addLayer(self, key, value):
-        self.layers[key] = value
-
-    def hasLayer(self, key):
-        return key in self.layers
+        if key in self.layers and self.layers[key] is self.pm:
+            self.layers[key] = value
+            # switch after introducing the new value
+            self.switch(key)
+        else:
+            self.layers[key] = value
 
     def removeLayer(self, key):
         if key in self.layers and self.layers[key] is self.pm:

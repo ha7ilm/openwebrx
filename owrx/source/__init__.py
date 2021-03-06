@@ -84,7 +84,7 @@ class SdrProfileCarousel(PropertyCarousel):
         for profile_id, profile in changes.items():
             if profile is PropertyDeleted:
                 self.removeLayer(profile_id)
-            elif not self.hasLayer(profile_id):
+            else:
                 self.addLayer(profile_id, profile)
 
     def _getDefaultLayer(self):
