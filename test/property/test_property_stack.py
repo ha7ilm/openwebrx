@@ -215,3 +215,14 @@ class PropertyStackTest(TestCase):
         ps.wire(mock.method)
         del low_pm["testkey"]
         mock.method.assert_called_once_with({"testkey": PropertyDeleted})
+
+    def testChangeEventWhenKeyDeleted(self):
+        ps = PropertyStack()
+        low_pm = PropertyLayer(testkey="lowvalue")
+        high_pm = PropertyLayer(testkey="highvalue")
+        ps.addLayer(0, high_pm)
+        ps.addLayer(1, low_pm)
+        mock = Mock()
+        ps.wire(mock.method)
+        del high_pm["testkey"]
+        mock.method.assert_called_once_with({"testkey": "lowvalue"})

@@ -322,11 +322,13 @@ class PropertyStack(PropertyManager):
 
     def receiveEvent(self, layer, changes):
         changesToForward = {name: value for name, value in changes.items() if layer == self._getTopLayer(name)}
-        # deletions need to be handled separately: only send them if deleted in all layers
+        # deletions need to be handled separately:
+        # * send a deletion if the key was deleted in all layers
+        # * send lower value if the key is still present in a lower layer
         deletionsToForward = {
-            name: value
+            name: PropertyDeleted if self._getTopLayer(name, False) is None else self[name]
             for name, value in changes.items()
-            if value is PropertyDeleted and self._getTopLayer(name, False) is None
+            if value is PropertyDeleted
         }
         self._fireCallbacks({**changesToForward, **deletionsToForward})
 
