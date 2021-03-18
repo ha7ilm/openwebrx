@@ -236,7 +236,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def __sendProfiles(self):
         profiles = [
             {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
-            for (sid, s) in SdrService.getSources().items()
+            for (sid, s) in SdrService.getActiveSources().items()
             for (pid, p) in s.getProfiles().items()
         ]
         self.write_profiles(profiles)

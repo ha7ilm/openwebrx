@@ -22,10 +22,11 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
 
     def render_devices(self):
         def render_device(device_id, config):
-            # TODO: this only returns non-failed sources...
-            source = SdrService.getSource(device_id)
+            sources = SdrService.getAllSources()
+            source = sources[device_id] if device_id in sources else None
 
             additional_info = ""
+            state_info = "Unknown"
 
             if source is not None:
                 profiles = source.getProfiles()
@@ -45,6 +46,15 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                     connections=connections,
                 )
 
+                state_info = ", ".join(
+                    s for s in [
+                        str(source.getState()),
+                        None if source.isEnabled() else "Disabled",
+                        "Failed" if source.isFailed() else None
+                    ]
+                    if s is not None
+                )
+
             return """
                 <li class="list-group-item">
                     <div class="row">
@@ -62,7 +72,7 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
             """.format(
                 device_name=config["name"],
                 device_link="{}/{}".format(self.request.path, quote(device_id)),
-                state="Unknown" if source is None else source.getState(),
+                state=state_info,
                 additional_info=additional_info,
                 newprofile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(device_id)),
             )

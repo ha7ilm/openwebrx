@@ -64,7 +64,7 @@ Support and info:       https://groups.io/g/openwebrx
 
     # Get error messages about unknown / unavailable features as soon as possible
     # start up "always-on" sources right away
-    SdrService.getSources()
+    SdrService.getAllSources()
 
     Services.start()
 

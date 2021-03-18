@@ -322,13 +322,13 @@ class Services(object):
     def start():
         config = Config.get()
         config.wireProperty("services_enabled", Services._receiveEvent)
-        for source in SdrService.getSources().values():
+        for source in SdrService.getActiveSources().values():
             Services.schedulers.append(ServiceScheduler(source))
 
     @staticmethod
     def _receiveEvent(state):
         if state:
-            for source in SdrService.getSources().values():
+            for source in SdrService.getActiveSources().values():
                 Services.handlers.append(ServiceHandler(source))
         else:
             while Services.handlers:

@@ -91,7 +91,7 @@ class SdrService(object):
 
     @staticmethod
     def getFirstSource():
-        sources = SdrService.getSources()
+        sources = SdrService.getActiveSources()
         if not sources:
             return None
         # TODO: configure default sdr in config? right now it will pick the first one off the list.
@@ -99,7 +99,7 @@ class SdrService(object):
 
     @staticmethod
     def getSource(id):
-        sources = SdrService.getSources()
+        sources = SdrService.getActiveSources()
         if not sources:
             return None
         if id not in sources:
@@ -107,11 +107,15 @@ class SdrService(object):
         return sources[id]
 
     @staticmethod
-    def getSources():
+    def getAllSources():
         if SdrService.sources is None:
             SdrService.sources = MappedSdrSources(Config.get()["sdrs"])
+        return SdrService.sources
+
+    @staticmethod
+    def getActiveSources():
         return {
             key: s
-            for key, s in SdrService.sources.items()
+            for key, s in SdrService.getAllSources().items()
             if not s.isFailed() and s.isEnabled()
         }
