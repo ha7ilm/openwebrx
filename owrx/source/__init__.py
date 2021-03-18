@@ -153,7 +153,7 @@ class SdrSource(ABC):
             self.enabled = changes["enabled"]
         else:
             self.enabled = True
-        for c in self.clients:
+        for c in self.clients.copy():
             if self.isEnabled():
                 c.onEnable()
             else:
@@ -164,7 +164,7 @@ class SdrSource(ABC):
 
     def fail(self):
         self.failed = True
-        for c in self.clients:
+        for c in self.clients.copy():
             c.onFail()
 
     def validateProfiles(self):
@@ -420,14 +420,14 @@ class SdrSource(ABC):
         if state == self.state:
             return
         self.state = state
-        for c in self.clients:
+        for c in self.clients.copy():
             c.onStateChange(state)
 
     def setBusyState(self, state: SdrBusyState):
         if state == self.busyState:
             return
         self.busyState = state
-        for c in self.clients:
+        for c in self.clients.copy():
             c.onBusyStateChange(state)
 
 
