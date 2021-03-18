@@ -253,7 +253,7 @@ class NewSdrDeviceController(SettingsFormController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         id_layer = PropertyLayer(id="")
-        self.data_layer = PropertyLayer(name="", type="", profiles={})
+        self.data_layer = PropertyLayer(name="", type="", profiles=PropertyLayer())
         self.stack = PropertyStack()
         self.stack.addLayer(0, id_layer)
         self.stack.addLayer(1, self.data_layer)
