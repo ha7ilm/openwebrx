@@ -1,7 +1,6 @@
 from owrx.config import Config
 from owrx.property import PropertyManager, PropertyDeleted, PropertyDelegator, PropertyLayer
 from owrx.feature import FeatureDetector, UnknownFeatureException
-from owrx.source import SdrSourceState
 from functools import partial
 
 import logging
@@ -114,5 +113,5 @@ class SdrService(object):
         return {
             key: s
             for key, s in SdrService.sources.items()
-            if s.getState() not in [SdrSourceState.FAILED, SdrSourceState.DISABLED]
+            if not s.isFailed() and s.isEnabled()
         }

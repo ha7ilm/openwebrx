@@ -231,7 +231,7 @@ class ServiceScheduler(SdrSourceEventClient):
         self.source.removeClient(self)
 
     def scheduleSelection(self, time=None):
-        if self.source.getState() is SdrSourceState.FAILED:
+        if self.source.isFailed():
             return
         seconds = 10
         if time is not None:
@@ -254,8 +254,9 @@ class ServiceScheduler(SdrSourceEventClient):
     def onStateChange(self, state: SdrSourceState):
         if state is SdrSourceState.STOPPING:
             self.scheduleSelection()
-        elif state is SdrSourceState.FAILED:
-            self.shutdown()
+
+    def onFail(self):
+        self.shutdown()
 
     def onBusyStateChange(self, state: SdrBusyState):
         if state is SdrBusyState.IDLE:

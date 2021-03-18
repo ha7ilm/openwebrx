@@ -1,5 +1,5 @@
 import threading
-from owrx.source import SdrSourceEventClient, SdrSourceState, SdrBusyState, SdrClientClass
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
 from csdr.csdr import dsp, output
@@ -117,12 +117,10 @@ class ServiceHandler(SdrSourceEventClient):
         elif state is SdrSourceState.STOPPING:
             logger.debug("sdr source becoming unavailable; stopping services.")
             self.stopServices()
-        elif state is SdrSourceState.FAILED:
-            logger.debug("sdr source failed; stopping services.")
-            self.stopServices()
 
-    def onBusyStateChange(self, state: SdrBusyState):
-        pass
+    def onFail(self):
+        logger.debug("sdr source failed; stopping services.")
+        self.stopServices()
 
     def isSupported(self, mode):
         configured = Config.get()["services_decoders"]

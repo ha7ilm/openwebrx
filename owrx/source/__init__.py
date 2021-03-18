@@ -30,8 +30,6 @@ class SdrSourceState(Enum):
     RUNNING = "Running"
     STOPPING = "Stopping"
     TUNING = "Tuning"
-    FAILED = "Failed"
-    DISABLED = "Disabled"
 
     def __str__(self):
         return self.value
@@ -48,13 +46,20 @@ class SdrClientClass(Enum):
     USER = auto()
 
 
-class SdrSourceEventClient(ABC):
-    @abstractmethod
+class SdrSourceEventClient(object):
     def onStateChange(self, state: SdrSourceState):
         pass
 
-    @abstractmethod
     def onBusyStateChange(self, state: SdrBusyState):
+        pass
+
+    def onFail(self):
+        pass
+
+    def onDisable(self):
+        pass
+
+    def onEnable(self):
         pass
 
     def getClientClass(self) -> SdrClientClass:
@@ -129,13 +134,38 @@ class SdrSource(ABC):
         self.spectrumLock = threading.Lock()
         self.process = None
         self.modificationLock = threading.Lock()
-        self.state = SdrSourceState.STOPPED if "enabled" not in props or props["enabled"] else SdrSourceState.DISABLED
+        self.state = SdrSourceState.STOPPED
+        self.enabled = "enabled" not in props or props["enabled"]
+        props.filter("enabled").wire(self._handleEnableChanged)
+        self.failed = False
         self.busyState = SdrBusyState.IDLE
 
         self.validateProfiles()
 
-        if self.isAlwaysOn() and self.state is not SdrSourceState.DISABLED:
+        if self.isAlwaysOn() and self.isEnabled():
             self.start()
+
+    def isEnabled(self):
+        return self.enabled
+
+    def _handleEnableChanged(self, changes):
+        if "enabled" in changes and changes["enabled"] is not PropertyDeleted:
+            self.enabled = changes["enabled"]
+        else:
+            self.enabled = True
+        for c in self.clients:
+            if self.isEnabled():
+                c.onEnable()
+            else:
+                c.onDisable()
+
+    def isFailed(self):
+        return self.failed
+
+    def fail(self):
+        self.failed = True
+        for c in self.clients:
+            c.onFail()
 
     def validateProfiles(self):
         props = PropertyStack()
@@ -220,7 +250,7 @@ class SdrSource(ABC):
             if self.monitor:
                 return
 
-            if self.getState() is SdrSourceState.FAILED:
+            if self.isFailed():
                 return
 
             try:
@@ -254,9 +284,8 @@ class SdrSource(ABC):
                 self.monitor = None
                 if self.getState() is SdrSourceState.RUNNING:
                     failed = True
-                    self.setState(SdrSourceState.FAILED)
-                else:
-                    self.setState(SdrSourceState.STOPPED)
+                    self.fail()
+                self.setState(SdrSourceState.STOPPED)
 
             self.monitor = threading.Thread(target=wait_for_process_to_end, name="source_monitor")
             self.monitor.start()
@@ -284,7 +313,10 @@ class SdrSource(ABC):
                 logger.exception("Exception during postStart()")
                 failed = True
 
-        self.setState(SdrSourceState.FAILED if failed else SdrSourceState.RUNNING)
+        if failed:
+            self.fail()
+        else:
+            self.setState(SdrSourceState.RUNNING)
 
     def preStart(self):
         """
@@ -302,10 +334,7 @@ class SdrSource(ABC):
         return self.monitor is not None
 
     def stop(self):
-        # don't overwrite failed flag
-        # TODO introduce a better solution?
-        if self.getState() is not SdrSourceState.FAILED:
-            self.setState(SdrSourceState.STOPPING)
+        self.setState(SdrSourceState.STOPPING)
 
         with self.modificationLock:
 
