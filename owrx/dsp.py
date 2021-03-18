@@ -214,3 +214,6 @@ class DspManager(csdr.output, SdrSourceEventClient):
     def onFail(self):
         logger.debug("received onFail(), shutting down DspSource")
         self.dsp.stop()
+
+    def onShutdown(self):
+        self.dsp.stop()

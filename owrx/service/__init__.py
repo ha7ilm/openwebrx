@@ -122,6 +122,10 @@ class ServiceHandler(SdrSourceEventClient):
         logger.debug("sdr source failed; stopping services.")
         self.stopServices()
 
+    def onShutdown(self):
+        logger.debug("sdr source is shutting down; shutting down service handler, too.")
+        self.shutdown()
+
     def onEnable(self):
         self._scheduleServiceStartup()
 

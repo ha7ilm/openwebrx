@@ -56,6 +56,9 @@ class SdrSourceEventClient(object):
     def onFail(self):
         pass
 
+    def onShutdown(self):
+        pass
+
     def onDisable(self):
         pass
 
@@ -348,6 +351,11 @@ class SdrSource(ABC):
                     pass
             if self.monitor:
                 self.monitor.join()
+
+    def shutdown(self):
+        self.stop()
+        for c in self.clients.copy():
+            c.onShutdown()
 
     def getClients(self, *args):
         if not args:

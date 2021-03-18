@@ -27,7 +27,7 @@ class MappedSdrSources(PropertyDelegator):
         if self.isDeviceValid(value) and key not in self:
             self._addSource(key, value)
         elif not self.isDeviceValid(value) and key in self:
-            self._removeSource(key)
+            del self[key]
 
     def _addSource(self, key, value):
         if self.isDeviceValid(value):
@@ -37,13 +37,6 @@ class MappedSdrSources(PropertyDelegator):
             value.filter("type", "profiles").wire(updateMethod),
             value["profiles"].wire(updateMethod)
         ]
-
-    def _removeSource(self, key):
-        if key in self:
-            self[key].stop()
-        for sub in self.subscriptions[key]:
-            sub.cancel()
-        del self.subscriptions[key]
 
     def isDeviceValid(self, device):
         return self._hasProfiles(device) and self._sdrTypeAvailable(device)
@@ -75,15 +68,23 @@ class MappedSdrSources(PropertyDelegator):
         cls = getattr(module, className)
         return cls(id, props)
 
+    def _removeSource(self, key, source):
+        source.shutdown()
+        for sub in self.subscriptions[key]:
+            sub.cancel()
+        del self.subscriptions[key]
+
     def __setitem__(self, key, value):
-        if key in self:
-            self._removeSource(key)
+        source = self[key] if key in self else None
         super().__setitem__(key, value)
+        if source is not None:
+            self._removeSource(key, source)
 
     def __delitem__(self, key):
-        if key in self:
-            self._removeSource(key)
+        source = self[key] if key in self else None
         super().__delitem__(key)
+        if source is not None:
+            self._removeSource(key, source)
 
 
 class SdrService(object):

@@ -84,3 +84,6 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
 
     def onFail(self):
         self.dsp.stop()
+
+    def onShutdown(self):
+        self.dsp.stop()

@@ -258,6 +258,9 @@ class ServiceScheduler(SdrSourceEventClient):
     def onFail(self):
         self.shutdown()
 
+    def onShutdown(self):
+        self.shutdown()
+
     def onDisable(self):
         self.cancelTimer()
 

@@ -230,6 +230,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.write_log_message('SDR device "{0}" was disabled, selecting new device'.format(self.sdr.getName()))
         self.setSdr()
 
+    def onShutdown(self):
+        logger.warning('SDR device "%s" is shutting down, selecting new device', self.sdr.getName())
+        self.write_log_message('SDR device "{0}" is shutting down, selecting new device'.format(self.sdr.getName()))
+        self.setSdr()
+
     def getClientClass(self) -> SdrClientClass:
         return SdrClientClass.USER
 
