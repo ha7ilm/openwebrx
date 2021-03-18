@@ -40,7 +40,7 @@ class MappedSdrSources(PropertyDelegator):
 
     def _removeSource(self, key):
         if key in self:
-            self[key].shutdown()
+            self[key].stop()
         for sub in self.subscriptions[key]:
             sub.cancel()
         del self.subscriptions[key]
