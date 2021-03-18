@@ -231,7 +231,7 @@ class ServiceScheduler(SdrSourceEventClient):
         self.source.removeClient(self)
 
     def scheduleSelection(self, time=None):
-        if self.source.isFailed():
+        if not self.source.isEnabled() or self.source.isFailed():
             return
         seconds = 10
         if time is not None:
@@ -259,7 +259,7 @@ class ServiceScheduler(SdrSourceEventClient):
         self.shutdown()
 
     def onDisable(self):
-        self.shutdown()
+        self.cancelTimer()
 
     def onEnable(self):
         self.scheduleSelection()
