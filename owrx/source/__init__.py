@@ -153,6 +153,8 @@ class SdrSource(ABC):
             self.enabled = changes["enabled"]
         else:
             self.enabled = True
+        if not self.enabled:
+            self.stop()
         for c in self.clients.copy():
             if self.isEnabled():
                 c.onEnable()

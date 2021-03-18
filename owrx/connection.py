@@ -221,11 +221,13 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.handleSdrAvailable()
 
     def onFail(self):
-        self.handleSdrFailed()
-
-    def handleSdrFailed(self):
         logger.warning('SDR device "%s" has failed, selecting new device', self.sdr.getName())
         self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
+        self.setSdr()
+
+    def onDisable(self):
+        logger.warning('SDR device "%s" was disabled, selecting new device', self.sdr.getName())
+        self.write_log_message('SDR device "{0}" was disabled, selecting new device'.format(self.sdr.getName()))
         self.setSdr()
 
     def getClientClass(self) -> SdrClientClass:

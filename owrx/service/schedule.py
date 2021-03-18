@@ -258,6 +258,12 @@ class ServiceScheduler(SdrSourceEventClient):
     def onFail(self):
         self.shutdown()
 
+    def onDisable(self):
+        self.shutdown()
+
+    def onEnable(self):
+        self.scheduleSelection()
+
     def onBusyStateChange(self, state: SdrBusyState):
         if state is SdrBusyState.IDLE:
             self.scheduleSelection()

@@ -122,6 +122,9 @@ class ServiceHandler(SdrSourceEventClient):
         logger.debug("sdr source failed; stopping services.")
         self.stopServices()
 
+    def onEnable(self):
+        self._scheduleServiceStartup()
+
     def isSupported(self, mode):
         configured = Config.get()["services_decoders"]
         available = [m.modulation for m in Modes.getAvailableServices()]
