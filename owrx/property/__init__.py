@@ -264,6 +264,9 @@ class PropertyReadOnly(PropertyDelegator):
     def __setitem__(self, key, value):
         raise PropertyWriteError(key)
 
+    def __delitem__(self, key):
+        raise PropertyWriteError(key)
+
 
 class PropertyStack(PropertyManager):
     def __init__(self):

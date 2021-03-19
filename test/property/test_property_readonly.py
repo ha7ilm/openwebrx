@@ -13,3 +13,11 @@ class PropertyReadOnlyTest(TestCase):
             ro["otherkey"] = "testvalue"
         self.assertEqual(ro["testkey"], "initial value")
         self.assertNotIn("otherkey", ro)
+
+    def testPreventsDeletes(self):
+        layer = PropertyLayer(testkey="some value")
+        ro = PropertyReadOnly(layer)
+        with self.assertRaises(PropertyWriteError):
+            del ro["testkey"]
+        self.assertEqual(ro["testkey"], "some value")
+        self.assertEqual(layer["testkey"], "some value")
