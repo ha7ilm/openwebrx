@@ -20,7 +20,8 @@ class MappedSdrSources(PropertyDelegator):
     def handleSdrDeviceChange(self, changes):
         for key, value in changes.items():
             if value is PropertyDeleted:
-                del self[key]
+                if key in self:
+                    del self[key]
             else:
                 self._addSource(key, value)
 
