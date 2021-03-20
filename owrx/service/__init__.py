@@ -12,7 +12,7 @@ from owrx.source.resampler import Resampler
 from owrx.property import PropertyLayer, PropertyDeleted
 from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
-from .schedule import ServiceScheduler
+from owrx.service.schedule import ServiceScheduler
 from owrx.modes import Modes
 
 import logging
@@ -319,28 +319,48 @@ class Js8Handler(object):
 
 
 class Services(object):
-    handlers = []
-    schedulers = []
+    handlers = {}
+    schedulers = {}
 
     @staticmethod
     def start():
         config = Config.get()
-        config.wireProperty("services_enabled", Services._receiveEvent)
-        for source in SdrService.getActiveSources().values():
-            Services.schedulers.append(ServiceScheduler(source))
+        config.wireProperty("services_enabled", Services._receiveEnabledEvent)
+        activeSources = SdrService.getActiveSources()
+        activeSources.wire(Services._receiveDeviceEvent)
+        for key, source in activeSources.items():
+            Services.schedulers[key] = ServiceScheduler(source)
 
     @staticmethod
-    def _receiveEvent(state):
+    def _receiveEnabledEvent(state):
         if state:
-            for source in SdrService.getActiveSources().values():
-                Services.handlers.append(ServiceHandler(source))
+            for key, source in SdrService.getActiveSources().__dict__().items():
+                Services.handlers[key] = ServiceHandler(source)
         else:
-            while Services.handlers:
-                Services.handlers.pop().shutdown()
+            for handler in Services.handlers.values():
+                handler.shutdown()
+            Services.handlers = {}
+
+    @staticmethod
+    def _receiveDeviceEvent(changes):
+        for key, source in changes.items():
+            if source is PropertyDeleted:
+                if key in Services.handlers:
+                    Services.handlers[key].shutdown()
+                    del Services.handlers[key]
+                if key in Services.schedulers:
+                    Services.schedulers[key].shutdown()
+                    del Services.schedulers[key]
+            else:
+                Services.schedulers[key] = ServiceScheduler(source)
+                if Config.get()["services_enabled"]:
+                    Services.handlers[key] = ServiceHandler(source)
 
     @staticmethod
     def stop():
-        while Services.handlers:
-            Services.handlers.pop().shutdown()
-        while Services.schedulers:
-            Services.schedulers.pop().shutdown()
+        for handler in Services.handlers.values():
+            handler.shutdown()
+        Services.handlers = {}
+        for scheduler in Services.schedulers.values():
+            scheduler.shutdown()
+        Services.schedulers = {}
