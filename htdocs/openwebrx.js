@@ -803,7 +803,7 @@ function on_ws_recv(evt) {
                         // this is a bit hacky since it only makes sense if the error is actually "no sdr devices"
                         // the only other error condition for which the overlay is used right now is "too many users"
                         // so there shouldn't be a problem here
-                        if (json['value'].keys()) {
+                        if (Object.keys(json['value']).length) {
                             $('#openwebrx-error-overlay').hide();
                         }
                         break;
