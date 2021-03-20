@@ -17,7 +17,7 @@ from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput, SchedulerInput, WaterfallLevelsInput
 from owrx.controllers.settings import Section
 from typing import List
-from enum import Enum, auto
+from enum import Enum
 
 import logging
 
@@ -36,14 +36,14 @@ class SdrSourceState(Enum):
 
 
 class SdrBusyState(Enum):
-    IDLE = auto()
-    BUSY = auto()
+    IDLE = 1
+    BUSY = 2
 
 
 class SdrClientClass(Enum):
-    INACTIVE = auto()
-    BACKGROUND = auto()
-    USER = auto()
+    INACTIVE = 1
+    BACKGROUND = 2
+    USER = 3
 
 
 class SdrSourceEventClient(object):
