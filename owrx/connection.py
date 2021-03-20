@@ -162,7 +162,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.write_modes(modes)
 
         self._sendProfiles()
-        SdrService.getActiveSources().wire(self._sendProfiles)
+        SdrService.getActiveSources().wire(self._onSdrDeviceChanges)
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
@@ -239,7 +239,13 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def getClientClass(self) -> SdrClientClass:
         return SdrClientClass.USER
 
-    def _sendProfiles(self, *args):
+    def _onSdrDeviceChanges(self, changes):
+        self._sendProfiles()
+        # restart the client if an sdr has become available
+        if self.sdr is None and any(s is not PropertyDeleted for s in changes.values()):
+            self.setSdr()
+
+    def _sendProfiles(self):
         profiles = [
             {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
             for (sid, s) in SdrService.getActiveSources().items()
@@ -302,13 +308,14 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         if self.sdr is not None:
             self.sdr.removeClient(self)
 
+        self.sdr = next
+
         if next is None:
             # exit condition: no sdrs available
             logger.warning("no more SDR devices available")
             self.handleNoSdrsAvailable()
             return
 
-        self.sdr = next
         self.sdr.addClient(self)
 
     def handleSdrAvailable(self):
