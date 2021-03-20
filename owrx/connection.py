@@ -161,7 +161,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         modes = Modes.getModes()
         self.write_modes(modes)
 
-        self.__sendProfiles()
+        self._sendProfiles()
+        SdrService.getActiveSources().wire(self._sendProfiles)
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
@@ -238,7 +239,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def getClientClass(self) -> SdrClientClass:
         return SdrClientClass.USER
 
-    def __sendProfiles(self):
+    def _sendProfiles(self, *args):
         profiles = [
             {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
             for (sid, s) in SdrService.getActiveSources().items()
@@ -313,8 +314,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def handleSdrAvailable(self):
         self.getDsp().setProperties(self.connectionProperties)
         self.stack.replaceLayer(0, self.sdr.getProps())
-
-        self.__sendProfiles()
 
         self.sdr.addSpectrumClient(self)
 
