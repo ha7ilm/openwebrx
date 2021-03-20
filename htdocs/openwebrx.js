@@ -800,6 +800,12 @@ function on_ws_recv(evt) {
                             return '<option value="' + profile['id'] + '">' + profile['name'] + "</option>";
                         }).join(""));
                         $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
+                        // this is a bit hacky since it only makes sense if the error is actually "no sdr devices"
+                        // the only other error condition for which the overlay is used right now is "too many users"
+                        // so there shouldn't be a problem here
+                        if (json['value'].keys()) {
+                            $('#openwebrx-error-overlay').hide();
+                        }
                         break;
                     case "features":
                         Modes.setFeatures(json['value']);
@@ -836,6 +842,7 @@ function on_ws_recv(evt) {
                         var $overlay = $('#openwebrx-error-overlay');
                         $overlay.find('.errormessage').text(json['value']);
                         $overlay.show();
+                        $("#openwebrx-panel-receiver").demodulatorPanel().stopDemodulator();
                         break;
                     case 'secondary_demod':
                         secondary_demod_push_data(json['value']);

@@ -42,6 +42,18 @@ class PropertyStackTest(TestCase):
         om.removeLayer(high_pm)
         self.assertEqual(om["testkey"], "low value")
 
+    def testLayerRemovalByPriority(self):
+        om = PropertyStack()
+        low_pm = PropertyLayer()
+        high_pm = PropertyLayer()
+        low_pm["testkey"] = "low value"
+        high_pm["testkey"] = "high value"
+        om.addLayer(1, low_pm)
+        om.addLayer(0, high_pm)
+        self.assertEqual(om["testkey"], "high value")
+        om.removeLayerByPriority(0)
+        self.assertEqual(om["testkey"], "low value")
+
     def testPropertyChange(self):
         layer = PropertyLayer()
         stack = PropertyStack()

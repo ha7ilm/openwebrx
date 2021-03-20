@@ -294,6 +294,11 @@ class PropertyStack(PropertyManager):
 
         return changes
 
+    def removeLayerByPriority(self, priority):
+        for layer in self.layers:
+            if layer["priority"] == priority:
+                self.removeLayer(layer["props"])
+
     def removeLayer(self, pm: PropertyManager):
         for layer in self.layers:
             if layer["props"] == pm:
