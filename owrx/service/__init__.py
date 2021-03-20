@@ -337,7 +337,7 @@ class Services(object):
             for key, source in SdrService.getActiveSources().__dict__().items():
                 Services.handlers[key] = ServiceHandler(source)
         else:
-            for handler in Services.handlers.values():
+            for handler in list(Services.handlers.values()):
                 handler.shutdown()
             Services.handlers = {}
 
@@ -358,9 +358,9 @@ class Services(object):
 
     @staticmethod
     def stop():
-        for handler in Services.handlers.values():
+        for handler in list(Services.handlers.values()):
             handler.shutdown()
         Services.handlers = {}
-        for scheduler in Services.schedulers.values():
+        for scheduler in list(Services.schedulers.values()):
             scheduler.shutdown()
         Services.schedulers = {}
