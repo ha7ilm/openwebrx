@@ -1,6 +1,7 @@
 from owrx.config import Config
-from owrx.property import PropertyManager, PropertyDeleted, PropertyDelegator, PropertyLayer
+from owrx.property import PropertyManager, PropertyDeleted, PropertyDelegator, PropertyLayer, PropertyReadOnly
 from owrx.feature import FeatureDetector, UnknownFeatureException
+from owrx.source import SdrSource, SdrSourceEventClient
 from functools import partial
 
 import logging
@@ -76,6 +77,8 @@ class MappedSdrSources(PropertyDelegator):
 
     def __setitem__(self, key, value):
         source = self[key] if key in self else None
+        if source is value:
+            return
         super().__setitem__(key, value)
         if source is not None:
             self._removeSource(key, source)
@@ -87,8 +90,63 @@ class MappedSdrSources(PropertyDelegator):
             self._removeSource(key, source)
 
 
+class SourceStateHandler(SdrSourceEventClient):
+    def __init__(self, pm, key, source: SdrSource):
+        self.pm = pm
+        self.key = key
+        self.source = source
+
+    def selfDestruct(self):
+        self.source.removeClient(self)
+
+    def onFail(self):
+        del self.pm[self.key]
+
+    def onDisable(self):
+        del self.pm[self.key]
+
+    def onEnable(self):
+        self.pm[self.key] = self.source
+
+    def onShutdown(self):
+        del self.pm[self.key]
+
+
+class ActiveSdrSources(PropertyReadOnly):
+    def __init__(self, pm: PropertyManager):
+        self.handlers = {}
+        self._layer = PropertyLayer()
+        super().__init__(self._layer)
+        for key, value in pm.items():
+            self._addSource(key, value)
+        pm.wire(self.handleSdrDeviceChange)
+
+    def handleSdrDeviceChange(self, changes):
+        for key, value in changes.items():
+            if value is PropertyDeleted:
+                self._removeSource(key)
+            else:
+                self._addSource(key, value)
+
+    def isAvailable(self, source: SdrSource):
+        return source.isEnabled() and not source.isFailed()
+
+    def _addSource(self, key, source: SdrSource):
+        if self.isAvailable(source):
+            self._layer[key] = source
+        self.handlers[key] = SourceStateHandler(self._layer, key, source)
+        source.addClient(self.handlers[key])
+
+    def _removeSource(self, key):
+        self.handlers[key].selfDestruct()
+        del self.handlers[key]
+        if key in self._layer:
+            del self._layer[key]
+
+
 class SdrService(object):
     sources = None
+    activeSources = None
 
     @staticmethod
     def getFirstSource():
@@ -115,8 +173,6 @@ class SdrService(object):
 
     @staticmethod
     def getActiveSources():
-        return {
-            key: s
-            for key, s in SdrService.getAllSources().items()
-            if not s.isFailed() and s.isEnabled()
-        }
+        if SdrService.activeSources is None:
+            SdrService.activeSources = ActiveSdrSources(SdrService.getAllSources())
+        return SdrService.activeSources
