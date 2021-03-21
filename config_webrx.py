@@ -33,7 +33,7 @@ config_webrx: configuration options for OpenWebRX
 """
 
 # configuration version. please only modify if you're able to perform the associated migration steps.
-version = 5
+version = 6
 
 # NOTE: you can find additional information about configuring OpenWebRX in the Wiki:
 # https://github.com/jketterl/openwebrx/wiki/Configuration-guide
@@ -270,8 +270,12 @@ waterfall_auto_level_margin = {"min": 3, "max": 10, "min_range": 50}
 #                                                          current_max_power_level __|
 
 # This setting allows you to modify the precision of the frequency displays in OpenWebRX.
-# Set this to the number of digits you would like to see:
-#frequency_display_precision = 4
+# Set this to exponent of 10 to select the most precise digit in Hz you'd like to see
+# examples:
+# a value of 2 selects 10^2 = 100Hz tuning precision (default):
+#tuning_precision = 2
+# a value of 1 selects 10^1 = 10Hz tuning precision:
+#tuning_precision = 1
 
 # This setting tells the auto-squelch the offset to add to the current signal level to use as the new squelch level.
 # Lowering this setting will give you a more sensitive squelch, but it may also cause unwanted squelch openings when
