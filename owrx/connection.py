@@ -269,9 +269,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                             params = message["params"]
                             dsp.setProperties(params)
 
-                elif message["type"] == "config":
-                    if "params" in message:
-                        self.setParams(message["params"])
                 elif message["type"] == "setsdr":
                     if "params" in message:
                         self.setSdr(message["params"]["sdr"])
@@ -347,21 +344,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.dsp = None
         if self.sdr is not None:
             self.sdr.removeSpectrumClient(self)
-
-    def setParams(self, params):
-        config = Config.get()
-        # allow direct configuration only if enabled in the config
-        if "configurable_keys" not in config:
-            return
-        keys = config["configurable_keys"]
-        if not keys:
-            return
-        protected = self.stack.filter(*keys)
-        for key, value in params.items():
-            try:
-                protected[key] = value
-            except KeyError:
-                pass
 
     def getDsp(self):
         if self.dsp is None and self.sdr is not None:
