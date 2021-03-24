@@ -121,125 +121,125 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # For more details on specific types, please checkout the wiki:
 # https://github.com/jketterl/openwebrx/wiki/Supported-Hardware#sdr-devices
 
-sdrs = {
-    "rtlsdr": {
-        "name": "RTL-SDR USB Stick",
-        "type": "rtl_sdr",
-        "ppm": 0,
-        # you can change this if you use an upconverter. formula is:
-        # center_freq + lfo_offset = actual frequency on the sdr
-        # "lfo_offset": 0,
-        "profiles": {
-            "70cm": {
-                "name": "70cm Relais",
-                "center_freq": 438800000,
-                "rf_gain": 29,
-                "samp_rate": 2400000,
-                "start_freq": 439275000,
-                "start_mod": "nfm",
-            },
-            "2m": {
-                "name": "2m komplett",
-                "center_freq": 145000000,
-                "rf_gain": 29,
-                "samp_rate": 2048000,
-                "start_freq": 145725000,
-                "start_mod": "nfm",
-            },
-        },
-    },
-    "airspy": {
-        "name": "Airspy HF+",
-        "type": "airspyhf",
-        "ppm": 0,
-        "rf_gain": "auto",
-        "profiles": {
-            "20m": {
-                "name": "20m",
-                "center_freq": 14150000,
-                "samp_rate": 384000,
-                "start_freq": 14070000,
-                "start_mod": "usb",
-            },
-            "30m": {
-                "name": "30m",
-                "center_freq": 10125000,
-                "samp_rate": 192000,
-                "start_freq": 10142000,
-                "start_mod": "usb",
-            },
-            "40m": {
-                "name": "40m",
-                "center_freq": 7100000,
-                "samp_rate": 256000,
-                "start_freq": 7070000,
-                "start_mod": "lsb",
-            },
-            "80m": {
-                "name": "80m",
-                "center_freq": 3650000,
-                "samp_rate": 384000,
-                "start_freq": 3570000,
-                "start_mod": "lsb",
-            },
-            "49m": {
-                "name": "49m Broadcast",
-                "center_freq": 6050000,
-                "samp_rate": 384000,
-                "start_freq": 6070000,
-                "start_mod": "am",
-            },
-        },
-    },
-    "sdrplay": {
-        "name": "SDRPlay RSP2",
-        "type": "sdrplay",
-        "ppm": 0,
-        "antenna": "Antenna A",
-        "profiles": {
-            "20m": {
-                "name": "20m",
-                "center_freq": 14150000,
-                "rf_gain": 0,
-                "samp_rate": 500000,
-                "start_freq": 14070000,
-                "start_mod": "usb",
-            },
-            "30m": {
-                "name": "30m",
-                "center_freq": 10125000,
-                "rf_gain": 0,
-                "samp_rate": 250000,
-                "start_freq": 10142000,
-                "start_mod": "usb",
-            },
-            "40m": {
-                "name": "40m",
-                "center_freq": 7100000,
-                "rf_gain": 0,
-                "samp_rate": 500000,
-                "start_freq": 7070000,
-                "start_mod": "lsb",
-            },
-            "80m": {
-                "name": "80m",
-                "center_freq": 3650000,
-                "rf_gain": 0,
-                "samp_rate": 500000,
-                "start_freq": 3570000,
-                "start_mod": "lsb",
-            },
-            "49m": {
-                "name": "49m Broadcast",
-                "center_freq": 6000000,
-                "rf_gain": 0,
-                "samp_rate": 500000,
-                "start_freq": 6070000,
-                "start_mod": "am",
-            },
-        },
-    },
-}
+#sdrs = {
+#    "rtlsdr": {
+#        "name": "RTL-SDR USB Stick",
+#        "type": "rtl_sdr",
+#        "ppm": 0,
+#        # you can change this if you use an upconverter. formula is:
+#        # center_freq + lfo_offset = actual frequency on the sdr
+#        # "lfo_offset": 0,
+#        "profiles": {
+#            "70cm": {
+#                "name": "70cm Relais",
+#                "center_freq": 438800000,
+#                "rf_gain": 29,
+#                "samp_rate": 2400000,
+#                "start_freq": 439275000,
+#                "start_mod": "nfm",
+#            },
+#            "2m": {
+#                "name": "2m komplett",
+#                "center_freq": 145000000,
+#                "rf_gain": 29,
+#                "samp_rate": 2048000,
+#                "start_freq": 145725000,
+#                "start_mod": "nfm",
+#            },
+#        },
+#    },
+#    "airspy": {
+#        "name": "Airspy HF+",
+#        "type": "airspyhf",
+#        "ppm": 0,
+#        "rf_gain": "auto",
+#        "profiles": {
+#            "20m": {
+#                "name": "20m",
+#                "center_freq": 14150000,
+#                "samp_rate": 384000,
+#                "start_freq": 14070000,
+#                "start_mod": "usb",
+#            },
+#            "30m": {
+#                "name": "30m",
+#                "center_freq": 10125000,
+#                "samp_rate": 192000,
+#                "start_freq": 10142000,
+#                "start_mod": "usb",
+#            },
+#            "40m": {
+#                "name": "40m",
+#                "center_freq": 7100000,
+#                "samp_rate": 256000,
+#                "start_freq": 7070000,
+#                "start_mod": "lsb",
+#            },
+#            "80m": {
+#                "name": "80m",
+#                "center_freq": 3650000,
+#                "samp_rate": 384000,
+#                "start_freq": 3570000,
+#                "start_mod": "lsb",
+#            },
+#            "49m": {
+#                "name": "49m Broadcast",
+#                "center_freq": 6050000,
+#                "samp_rate": 384000,
+#                "start_freq": 6070000,
+#                "start_mod": "am",
+#            },
+#        },
+#    },
+#    "sdrplay": {
+#        "name": "SDRPlay RSP2",
+#        "type": "sdrplay",
+#        "ppm": 0,
+#        "antenna": "Antenna A",
+#        "profiles": {
+#            "20m": {
+#                "name": "20m",
+#                "center_freq": 14150000,
+#                "rf_gain": 0,
+#                "samp_rate": 500000,
+#                "start_freq": 14070000,
+#                "start_mod": "usb",
+#            },
+#            "30m": {
+#                "name": "30m",
+#                "center_freq": 10125000,
+#                "rf_gain": 0,
+#                "samp_rate": 250000,
+#                "start_freq": 10142000,
+#                "start_mod": "usb",
+#            },
+#            "40m": {
+#                "name": "40m",
+#                "center_freq": 7100000,
+#                "rf_gain": 0,
+#                "samp_rate": 500000,
+#                "start_freq": 7070000,
+#                "start_mod": "lsb",
+#            },
+#            "80m": {
+#                "name": "80m",
+#                "center_freq": 3650000,
+#                "rf_gain": 0,
+#                "samp_rate": 500000,
+#                "start_freq": 3570000,
+#                "start_mod": "lsb",
+#            },
+#            "49m": {
+#                "name": "49m Broadcast",
+#                "center_freq": 6000000,
+#                "rf_gain": 0,
+#                "samp_rate": 500000,
+#                "start_freq": 6070000,
+#                "start_mod": "am",
+#            },
+#        },
+#    },
+#}
 
 # ==== Color themes ====
 

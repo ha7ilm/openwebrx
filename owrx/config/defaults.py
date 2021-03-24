@@ -21,7 +21,125 @@ defaultConfig = PropertyLayer(
     digimodes_fft_size=2048,
     digital_voice_unvoiced_quality=1,
     digital_voice_dmr_id_lookup=True,
-    # sdrs=...
+    sdrs=PropertyLayer(
+        rtlsdr=PropertyLayer(
+            name="RTL-SDR USB Stick",
+            type="rtl_sdr",
+            profiles=PropertyLayer(
+                **{
+                    "70cm": PropertyLayer(
+                        name="70cm Relais",
+                        center_freq=438800000,
+                        rf_gain=29,
+                        samp_rate=2400000,
+                        start_freq=439275000,
+                        start_mod="nfm",
+                    ),
+                    "2m": PropertyLayer(
+                        name="2m komplett",
+                        center_freq=145000000,
+                        rf_gain=29,
+                        samp_rate=2048000,
+                        start_freq=145725000,
+                        start_mod="nfm",
+                    ),
+                }
+            ),
+        ),
+        airspy=PropertyLayer(
+            name="Airspy HF+",
+            type="airspyhf",
+            rf_gain="auto",
+            profiles=PropertyLayer(
+                **{
+                    "20m": PropertyLayer(
+                        name="20m",
+                        center_freq=14150000,
+                        samp_rate=384000,
+                        start_freq=14070000,
+                        start_mod="usb",
+                    ),
+                    "30m": PropertyLayer(
+                        name="30m",
+                        center_freq=10125000,
+                        samp_rate=192000,
+                        start_freq=10142000,
+                        start_mod="usb",
+                    ),
+                    "40m": PropertyLayer(
+                        name="40m",
+                        center_freq=7100000,
+                        samp_rate=256000,
+                        start_freq=7070000,
+                        start_mod="lsb",
+                    ),
+                    "80m": PropertyLayer(
+                        name="80m",
+                        center_freq=3650000,
+                        samp_rate=384000,
+                        start_freq=3570000,
+                        start_mod="lsb",
+                    ),
+                    "49m": PropertyLayer(
+                        name="49m Broadcast",
+                        center_freq=6050000,
+                        samp_rate=384000,
+                        start_freq=6070000,
+                        start_mod="am",
+                    ),
+                }
+            ),
+        ),
+        sdrplay=PropertyLayer(
+            name="SDRPlay RSP2",
+            type="sdrplay",
+            antenna="Antenna A",
+            profiles=PropertyLayer(
+                **{
+                    "20m": PropertyLayer(
+                        name="20m",
+                        center_freq=14150000,
+                        rf_gain=0,
+                        samp_rate=500000,
+                        start_freq=14070000,
+                        start_mod="usb",
+                    ),
+                    "30m": PropertyLayer(
+                        name="30m",
+                        center_freq=10125000,
+                        rf_gain=0,
+                        samp_rate=250000,
+                        start_freq=10142000,
+                        start_mod="usb",
+                    ),
+                    "40m": PropertyLayer(
+                        name="40m",
+                        center_freq=7100000,
+                        rf_gain=0,
+                        samp_rate=500000,
+                        start_freq=7070000,
+                        start_mod="lsb",
+                    ),
+                    "80m": PropertyLayer(
+                        name="80m",
+                        center_freq=3650000,
+                        rf_gain=0,
+                        samp_rate=500000,
+                        start_freq=3570000,
+                        start_mod="lsb",
+                    ),
+                    "49m": PropertyLayer(
+                        name="49m Broadcast",
+                        center_freq=6000000,
+                        rf_gain=0,
+                        samp_rate=500000,
+                        start_freq=6070000,
+                        start_mod="am",
+                    ),
+                }
+            ),
+        ),
+    ),
     waterfall_scheme="GoogleTurboWaterfall",
     waterfall_levels=PropertyLayer(min=-88, max=-20),
     waterfall_auto_level_margin=PropertyLayer(min=3, max=10, min_range=50),
