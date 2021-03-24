@@ -20,6 +20,7 @@ from owrx.controllers.settings.bookmarks import BookmarksController
 from owrx.controllers.session import SessionController
 from owrx.controllers.profile import ProfileController
 from owrx.controllers.imageupload import ImageUploadController
+from owrx.controllers.robots import RobotsController
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import re
@@ -105,6 +106,7 @@ class Router(object):
     def __init__(self):
         self.routes = [
             StaticRoute("/", IndexController),
+            StaticRoute("/robots.txt", RobotsController),
             StaticRoute("/status.json", StatusController),
             RegexRoute("^/static/(.+)$", OwrxAssetsController),
             RegexRoute("^/compiled/(.+)$", CompiledAssetsController),
