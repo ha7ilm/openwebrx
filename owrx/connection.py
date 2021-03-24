@@ -297,6 +297,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             return
 
         self.stopDsp()
+        self.stack.removeLayerByPriority(0)
 
         if self.sdr is not None:
             self.sdr.removeClient(self)
@@ -318,7 +319,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.sdr.addSpectrumClient(self)
 
     def handleNoSdrsAvailable(self):
-        self.stack.removeLayerByPriority(0)
         self.write_sdr_error("No SDR Devices available")
 
     def startDsp(self):
