@@ -15,6 +15,7 @@ from owrx.property.filter import ByLambda
 from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, ExponentialInput
 from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput, SchedulerInput, WaterfallLevelsInput
+from owrx.form.validator import RequiredValidator
 from owrx.controllers.settings import Section
 from typing import List
 from enum import Enum
@@ -520,7 +521,9 @@ class OptionalSection(Section):
 
     def parse(self, data):
         data, errors = super().parse(data)
-        # remove optional keys if they have been removed from the form
+        # filter out errors for optional fields
+        errors = [e for e in errors if e.getKey() not in self.optional or e.getKey() in data]
+        # remove optional keys if they have been removed from the form by setting them to None
         for k in self.optional:
             if k not in data:
                 data[k] = None
@@ -550,10 +553,16 @@ class SdrDeviceDescription(object):
         return [module_name for _, module_name, _ in pkgutil.walk_packages(__path__) if has_description(module_name)]
 
     def getDeviceInputs(self) -> List[Input]:
-        return [TextInput("name", "Device name")] + self.getInputs()
+        keys = self.getDeviceMandatoryKeys() + self.getDeviceOptionalKeys()
+        return [TextInput("name", "Device name", validator=RequiredValidator())] + [
+            i for i in self.getInputs() if i.id in keys
+        ]
 
     def getProfileInputs(self) -> List[Input]:
-        return [TextInput("name", "Profile name")] + self.getInputs()
+        keys = self.getProfileMandatoryKeys() + self.getProfileOptionalKeys()
+        return [TextInput("name", "Profile name", validator=RequiredValidator())] + [
+            i for i in self.getInputs() if i.id in keys
+        ]
 
     def getInputs(self) -> List[Input]:
         return [
@@ -593,10 +602,10 @@ class SdrDeviceDescription(object):
         # default is True since most devices have agc. override in subclasses if agc is not available
         return True
 
-    def getMandatoryKeys(self):
+    def getDeviceMandatoryKeys(self):
         return ["name", "enabled"]
 
-    def getOptionalKeys(self):
+    def getDeviceOptionalKeys(self):
         return [
             "ppm",
             "always-on",
@@ -615,7 +624,7 @@ class SdrDeviceDescription(object):
 
     def getDeviceSection(self):
         return OptionalSection(
-            "Device settings", self.getDeviceInputs(), self.getMandatoryKeys(), self.getOptionalKeys()
+            "Device settings", self.getDeviceInputs(), self.getDeviceMandatoryKeys(), self.getDeviceOptionalKeys()
         )
 
     def getProfileSection(self):

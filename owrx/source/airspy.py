@@ -31,8 +31,8 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
             ),
         ]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["bias_tee", "bitpack"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["bias_tee", "bitpack"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee"]

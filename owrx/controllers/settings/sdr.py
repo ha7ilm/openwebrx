@@ -275,7 +275,7 @@ class NewSdrDeviceController(SettingsFormController):
         return [
             Section(
                 "New device settings",
-                TextInput("name", "Device name"),
+                TextInput("name", "Device name", validator=RequiredValidator()),
                 DropdownInput("type", "Device type", [Option(name, name) for name in SdrDeviceDescription.getTypes()]),
                 TextInput("id", "Device ID", validator=RequiredValidator()),
             )

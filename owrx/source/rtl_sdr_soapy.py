@@ -18,8 +18,8 @@ class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [BiasTeeInput(), DirectSamplingInput()]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["bias_tee", "direct_sampling"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["bias_tee", "direct_sampling"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]

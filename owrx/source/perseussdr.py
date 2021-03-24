@@ -58,9 +58,9 @@ class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
             CheckboxInput("wideband", "Disable analog filters"),
         ]
 
-    def getOptionalKeys(self):
+    def getDeviceOptionalKeys(self):
         # no rf_gain
-        return [key for key in super().getOptionalKeys() if key != "rf_gain"] + [
+        return [key for key in super().getDeviceOptionalKeys() if key != "rf_gain"] + [
             "attenuator",
             "adc_preamp",
             "adc_dither",

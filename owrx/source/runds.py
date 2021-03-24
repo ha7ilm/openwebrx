@@ -44,8 +44,8 @@ class RundsDeviceDescription(ConnectorDeviceDescription):
             CheckboxInput("long", "Use 32-bit sample size (LONG)"),
         ]
 
-    def getMandatoryKeys(self):
-        return super().getMandatoryKeys() + ["device"]
+    def getDeviceMandatoryKeys(self):
+        return super().getDeviceMandatoryKeys() + ["device"]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["protocol", "long"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["protocol", "long"]

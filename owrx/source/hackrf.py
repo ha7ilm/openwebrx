@@ -18,8 +18,8 @@ class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [BiasTeeInput()]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["bias_tee"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["bias_tee"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee"]

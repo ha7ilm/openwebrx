@@ -98,8 +98,8 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
             TextInput("antenna", "Antenna"),
         ]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["device", "rf_gain", "antenna"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["device", "rf_gain", "antenna"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["antenna"]

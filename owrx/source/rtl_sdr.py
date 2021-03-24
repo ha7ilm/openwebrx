@@ -27,8 +27,8 @@ class RtlSdrDeviceDescription(ConnectorDeviceDescription):
             DirectSamplingInput(),
         ]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["device", "bias_tee", "direct_sampling"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["device", "bias_tee", "direct_sampling"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]

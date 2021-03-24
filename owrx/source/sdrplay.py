@@ -54,8 +54,8 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
             ),
         ]
 
-    def getOptionalKeys(self):
-        return super().getOptionalKeys() + ["bias_tee", "rf_notch", "dab_notch", "if_mode"]
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["bias_tee", "rf_notch", "dab_notch", "if_mode"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "rf_notch", "dab_notch", "if_mode"]
