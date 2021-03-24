@@ -54,7 +54,8 @@ class SessionController(WebpageController):
                         target = "/pwchange?{0}".format(urlencode({"ref": target}))
                     self.send_redirect(target, cookies=cookie)
                     return
-        self.send_redirect("/login")
+        target = "?{}".format(urlencode({"ref": self.request.query["ref"][0]})) if "ref" in self.request.query else ""
+        self.send_redirect(self.request.path + target)
 
     def logoutAction(self):
         self.send_redirect("logout happening here")
