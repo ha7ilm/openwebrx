@@ -9,7 +9,7 @@ from owrx.form import (
     DropdownInput,
     Option,
 )
-from owrx.form.converter import WaterfallColorsConverter
+from owrx.form.converter import WaterfallColorsConverter, IntConverter
 from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.gfx import AvatarInput, TopPhotoInput
 from owrx.form.device import WaterfallLevelsInput
@@ -126,12 +126,11 @@ class GeneralSettingsController(SettingsFormController):
             ),
             Section(
                 "Display settings",
-                # TODO: custom input for this?
-                NumberInput(
+                DropdownInput(
                     "tuning_precision",
                     "Tuning precision",
-                    infotext="Specifies the precision of the frequency tuning display as an exponent of 10, in Hertz. "
-                    + "Setting this to 1 means 10Hz precision, 2 means 100Hz precision, etc.",
+                    options=[Option(str(i), "{} Hz".format(10 ** i)) for i in range(0, 6)],
+                    converter=IntConverter()
                 ),
             ),
             Section(
