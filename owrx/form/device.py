@@ -10,7 +10,8 @@ class GainInput(Input):
         self.has_agc = has_agc
         self.gain_stages = gain_stages
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
+        # TODO display errors
         try:
             display_value = float(value)
         except (ValueError, TypeError):
@@ -29,11 +30,11 @@ class GainInput(Input):
             </div>
         """.format(
             id=self.id,
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             value=display_value,
             label=self.label,
             options=self.render_options(value),
-            stageoption="" if self.gain_stages is None else self.render_stage_option(value),
+            stageoption="" if self.gain_stages is None else self.render_stage_option(value, errors),
             disabled="disabled" if self.disabled else "",
         )
 
@@ -71,7 +72,7 @@ class GainInput(Input):
 
         return "stages"
 
-    def render_stage_option(self, value):
+    def render_stage_option(self, value, errors):
         try:
             value_dict = {k: v for item in SoapySettings.parse(value) for k, v in item.items()}
         except (AttributeError, ValueError):
@@ -93,7 +94,7 @@ class GainInput(Input):
                     id=self.id,
                     stage=stage,
                     value=value_dict[stage] if stage in value_dict else "",
-                    classes=self.input_classes(),
+                    classes=self.input_classes(errors),
                     disabled="disabled" if self.disabled else "",
                 )
                 for stage in self.gain_stages
@@ -172,12 +173,12 @@ class SchedulerInput(Input):
         super().__init__(id, label)
         self.profiles = {}
 
-    def render(self, config):
+    def render(self, config, errors):
         if "profiles" in config:
             self.profiles = config["profiles"]
-        return super().render(config)
+        return super().render(config, errors)
 
-    def render_profiles_select(self, value, config_key, stage, extra_classes=""):
+    def render_profiles_select(self, value, errors, config_key, stage, extra_classes=""):
         stage_value = ""
         if value and "schedule" in value and config_key in value["schedule"]:
             stage_value = value["schedule"][config_key]
@@ -188,7 +189,7 @@ class SchedulerInput(Input):
             </select> 
         """.format(
             id="{}-{}".format(self.id, stage),
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             extra_classes=extra_classes,
             disabled="disabled" if self.disabled else "",
             options="".join(
@@ -203,7 +204,7 @@ class SchedulerInput(Input):
             ),
         )
 
-    def render_static_entires(self, value):
+    def render_static_entires(self, value, errors):
         def render_time_inputs(v):
             values = ["{}:{}".format(x[0:2], x[2:4]) for x in [v[0:4], v[5:9]]]
             return '<div class="p-1">-</div>'.join(
@@ -211,7 +212,7 @@ class SchedulerInput(Input):
                     <input type="time" class="{classes}" id="{id}" name="{id}" {disabled} value="{value}">
                 """.format(
                     id="{}-{}-{}".format(self.id, "time", "start" if i == 0 else "end"),
-                    classes=self.input_classes(),
+                    classes=self.input_classes(errors),
                     disabled="disabled" if self.disabled else "",
                     value=v,
                 )
@@ -231,7 +232,7 @@ class SchedulerInput(Input):
                 </div>
             """.format(
                 time_inputs=render_time_inputs(slot),
-                select=self.render_profiles_select(value, slot, "profile"),
+                select=self.render_profiles_select(value, errors, slot, "profile"),
             )
             for slot, entry in schedule.items()
         )
@@ -249,10 +250,10 @@ class SchedulerInput(Input):
         """.format(
             rows=rows,
             time_inputs=render_time_inputs("0000-0000"),
-            select=self.render_profiles_select("", "0000-0000", "profile"),
+            select=self.render_profiles_select("", errors, "0000-0000", "profile"),
         )
 
-    def render_daylight_entries(self, value):
+    def render_daylight_entries(self, value, errors):
         return "".join(
             """
                 <div class="row">
@@ -261,12 +262,12 @@ class SchedulerInput(Input):
                 </div>
             """.format(
                 name=name,
-                select=self.render_profiles_select(value, stage, stage, extra_classes="col-9"),
+                select=self.render_profiles_select(value, errors, stage, stage, extra_classes="col-9"),
             )
             for stage, name in [("day", "Day"), ("night", "Night"), ("greyline", "Greyline")]
         )
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         return """
             <div id="{id}">
                 <select class="{classes} mode" id="{id}-select" name="{id}-select" {disabled}>
@@ -281,11 +282,11 @@ class SchedulerInput(Input):
             </div>
         """.format(
             id=self.id,
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             disabled="disabled" if self.disabled else "",
             options=self.render_options(value),
-            entries=self.render_static_entires(value),
-            stages=self.render_daylight_entries(value),
+            entries=self.render_static_entires(value, errors),
+            stages=self.render_daylight_entries(value, errors),
         )
 
     def _get_mode(self, value):
@@ -341,7 +342,8 @@ class SchedulerInput(Input):
 
 
 class WaterfallLevelsInput(Input):
-    def render_input(self, value):
+    def render_input(self, value, errors):
+        # TODO display errors
         return """
             <div class="row" id="{id}">
                 {inputs}
@@ -364,7 +366,7 @@ class WaterfallLevelsInput(Input):
                     name=name,
                     label=label,
                     value=value[name] if value and name in value else "0",
-                    classes=self.input_classes(),
+                    classes=self.input_classes(errors),
                     disabled="disabled" if self.disabled else "",
                 )
                 for name, label in [("min", "Minimum"), ("max", "Maximum")]

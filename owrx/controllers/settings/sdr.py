@@ -8,6 +8,7 @@ from owrx.controllers.settings import Section
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
 from owrx.form import TextInput, DropdownInput, Option
+from owrx.form.validator import RequiredValidator
 from owrx.property import PropertyLayer, PropertyStack
 from abc import ABCMeta, abstractmethod
 
@@ -235,7 +236,7 @@ class SdrDeviceController(SdrFormControllerWithModal):
         if self.device is None:
             self.send_response("device not found", code=404)
             return
-        self.serve_template("settings/general.html", **self.template_variables())
+        super().indexAction()
 
     def processFormData(self):
         if self.device is None:
@@ -276,7 +277,7 @@ class NewSdrDeviceController(SettingsFormController):
                 "New device settings",
                 TextInput("name", "Device name"),
                 DropdownInput("type", "Device type", [Option(name, name) for name in SdrDeviceDescription.getTypes()]),
-                TextInput("id", "Device ID"),
+                TextInput("id", "Device ID", validator=RequiredValidator()),
             )
         ]
 
@@ -331,7 +332,7 @@ class SdrProfileController(SdrFormControllerWithModal):
         if self.profile is None:
             self.send_response("profile not found", code=404)
             return
-        self.serve_template("settings/general.html", **self.template_variables())
+        super().indexAction()
 
     def processFormData(self):
         if self.profile is None:
@@ -377,7 +378,7 @@ class NewProfileController(SdrProfileController):
         return [
             Section(
                 "New profile settings",
-                TextInput("id", "Profile ID"),
+                TextInput("id", "Profile ID", validator=RequiredValidator()),
             )
         ] + super().getSections()
 

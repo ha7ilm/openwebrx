@@ -1,16 +1,18 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from owrx.modes import Modes
 from owrx.config import Config
+from owrx.form.validator import Validator
 from owrx.form.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter
 from enum import Enum
 
 
 class Input(ABC):
-    def __init__(self, id, label, infotext=None, converter: Converter = None, disabled=False, removable=False):
+    def __init__(self, id, label, infotext=None, converter: Converter = None, validator: Validator = None, disabled=False, removable=False):
         self.id = id
         self.label = label
         self.infotext = infotext
         self.converter = self.defaultConverter() if converter is None else converter
+        self.validator = validator
         self.disabled = disabled
         self.removable = removable
 
@@ -24,7 +26,6 @@ class Input(ABC):
         return NullConverter()
 
     def bootstrap_decorate(self, input):
-        infotext = "<small>{text}</small>".format(text=self.infotext) if self.infotext else ""
         return """
             <div class="form-group row" data-field="{id}">
                 <label class="col-form-label col-form-label-sm col-3" for="{id}">{label}</label>
@@ -40,19 +41,22 @@ class Input(ABC):
             id=self.id,
             label=self.label,
             input=input,
-            infotext=infotext,
+            infotext="<small>{text}</small>".format(text=self.infotext) if self.infotext else "",
             removable="removable" if self.removable else "",
             removebutton='<button type="button" class="btn btn-sm btn-danger option-remove-button">Remove</button>'
             if self.removable
             else "",
         )
 
-    def input_classes(self):
-        return " ".join(["form-control", "form-control-sm"])
+    def input_classes(self, error):
+        classes = ["form-control", "form-control-sm"]
+        if error:
+            classes.append("is-invalid")
+        return " ".join(classes)
 
-    def input_properties(self, value):
+    def input_properties(self, value, error):
         props = {
-            "class": self.input_classes(),
+            "class": self.input_classes(error),
             "id": self.id,
             "name": self.id,
             "placeholder": self.label,
@@ -62,26 +66,35 @@ class Input(ABC):
             props["disabled"] = "disabled"
         return props
 
-    def render_input_properties(self, value):
-        return " ".join('{}="{}"'.format(prop, value) for prop, value in self.input_properties(value).items())
+    def render_input_properties(self, value, error):
+        return " ".join('{}="{}"'.format(prop, value) for prop, value in self.input_properties(value, error).items())
 
-    def render_input(self, value):
-        return "<input {properties} />".format(properties=self.render_input_properties(value))
+    def render_errors(self, errors):
+        return "".join("""<div class="invalid-feedback">{msg}</div>""".format(msg=e) for e in errors)
 
-    def render(self, config):
+    def render_input(self, value, errors):
+        return "<input {properties} />{errors}".format(
+            properties=self.render_input_properties(value, errors), errors=self.render_errors(errors)
+        )
+
+    def render(self, config, errors):
         value = config[self.id] if self.id in config else None
-        return self.bootstrap_decorate(self.render_input(self.converter.convert_to_form(value)))
+        error = errors[self.id] if self.id in errors else []
+        return self.bootstrap_decorate(self.render_input(self.converter.convert_to_form(value), error))
 
     def parse(self, data):
-        return {self.id: self.converter.convert_from_form(data[self.id][0])} if self.id in data else {}
+        value = self.converter.convert_from_form(data[self.id][0])
+        if self.validator is not None:
+            self.validator.validate(self.id, value)
+        return {self.id: value} if self.id in data else {}
 
     def getLabel(self):
         return self.label
 
 
 class TextInput(Input):
-    def input_properties(self, value):
-        props = super().input_properties(value)
+    def input_properties(self, value, errors):
+        props = super().input_properties(value, errors)
         props["type"] = "text"
         return props
 
@@ -95,14 +108,14 @@ class NumberInput(Input):
     def defaultConverter(self):
         return IntConverter()
 
-    def input_properties(self, value):
-        props = super().input_properties(value)
+    def input_properties(self, value, errors):
+        props = super().input_properties(value, errors)
         props["type"] = "number"
         if self.step:
             props["step"] = self.step
         return props
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         if self.append:
             append = """
                 <div class="input-group-append">
@@ -120,7 +133,7 @@ class NumberInput(Input):
                 {append}
             </div>
         """.format(
-            input=super().render_input(value),
+            input=super().render_input(value, errors),
             append=append,
         )
 
@@ -135,7 +148,8 @@ class FloatInput(NumberInput):
 
 
 class LocationInput(Input):
-    def render_input(self, value):
+    def render_input(self, value, errors):
+        # TODO display errors
         return """
             <div class="row">
                 {inputs}
@@ -145,11 +159,11 @@ class LocationInput(Input):
             </div>
         """.format(
             id=self.id,
-            inputs="".join(self.render_sub_input(value, id) for id in ["lat", "lon"]),
+            inputs="".join(self.render_sub_input(value, id, errors) for id in ["lat", "lon"]),
             key=Config.get()["google_maps_api_key"],
         )
 
-    def render_sub_input(self, value, id):
+    def render_sub_input(self, value, id, errors):
         return """
             <div class="col">
                 <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}"
@@ -158,7 +172,7 @@ class LocationInput(Input):
         """.format(
             id="{0}-{1}".format(self.id, id),
             label=self.label,
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             value=value[id],
             disabled="disabled" if self.disabled else "",
         )
@@ -168,11 +182,16 @@ class LocationInput(Input):
 
 
 class TextAreaInput(Input):
-    def render_input(self, value):
+    def render_input(self, value, errors):
         return """
             <textarea class="{classes}" id="{id}" name="{id}" style="height:200px;" {disabled}>{value}</textarea>
+            {errors}
         """.format(
-            id=self.id, classes=self.input_classes(), value=value, disabled="disabled" if self.disabled else ""
+            id=self.id,
+            classes=self.input_classes(errors),
+            value=value,
+            disabled="disabled" if self.disabled else "",
+            errors=self.render_errors(errors),
         )
 
 
@@ -181,7 +200,7 @@ class CheckboxInput(Input):
         super().__init__(id, "", infotext=infotext, converter=converter)
         self.checkboxText = checkboxText
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         return """
             <div class="{classes}">
                 <input type="hidden" name="{id}" value="0" {disabled}>
@@ -189,17 +208,22 @@ class CheckboxInput(Input):
                 <label class="form-check-label" for="{id}">
                     {checkboxText}
                 </label>
+                {errors}
             </div>
         """.format(
             id=self.id,
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             checked="checked" if value else "",
             disabled="disabled" if self.disabled else "",
             checkboxText=self.checkboxText,
+            errors=self.render_errors(errors)
         )
 
-    def input_classes(self):
-        return " ".join(["form-check", "form-control-sm"])
+    def input_classes(self, error):
+        classes = ["form-check", "form-control-sm"]
+        if error:
+            classes.append("is-invalid")
+        return " ".join(classes)
 
     def parse(self, data):
         if self.id in data:
@@ -222,13 +246,14 @@ class MultiCheckboxInput(Input):
         super().__init__(id, label, infotext=infotext)
         self.options = options
 
-    def render_input(self, value):
-        return "".join(self.render_checkbox(o, value) for o in self.options)
+    def render_input(self, value, errors):
+        # TODO display errors
+        return "".join(self.render_checkbox(o, value, errors) for o in self.options)
 
     def checkbox_id(self, option):
         return "{0}-{1}".format(self.id, option.value)
 
-    def render_checkbox(self, option, value):
+    def render_checkbox(self, option, value, errors):
         return """
           <div class="{classes}">
             <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked} {disabled}>
@@ -238,7 +263,7 @@ class MultiCheckboxInput(Input):
           </div>
         """.format(
             id=self.checkbox_id(option),
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             checked="checked" if option.value in value else "",
             checkboxText=option.text,
             disabled="disabled" if self.disabled else "",
@@ -251,8 +276,11 @@ class MultiCheckboxInput(Input):
 
         return {self.id: [o.value for o in self.options if in_response(o)]}
 
-    def input_classes(self):
-        return " ".join(["form-check", "form-control-sm"])
+    def input_classes(self, error):
+        classes = ["form-check", "form-control-sm"]
+        if error:
+            classes.append("is-invalid")
+        return " ".join(classes)
 
 
 class ServicesCheckboxInput(MultiCheckboxInput):
@@ -286,14 +314,16 @@ class DropdownInput(Input):
             self.options = options
         super().__init__(id, label, infotext=infotext, converter=converter)
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         return """
             <select class="{classes}" id="{id}" name="{id}" {disabled}>{options}</select>
+            {errors}
         """.format(
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             id=self.id,
             options=self.render_options(value),
             disabled="disabled" if self.disabled else "",
+            errors=self.render_errors(errors),
         )
 
     def render_options(self, value):
@@ -329,13 +359,13 @@ class ExponentialInput(Input):
     def defaultConverter(self):
         return IntConverter()
 
-    def input_properties(self, value):
-        props = super().input_properties(value)
+    def input_properties(self, value, errors):
+        props = super().input_properties(value, errors)
         props["type"] = "number"
         props["step"] = "any"
         return props
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         append = """
             <div class="input-group-append">
                 <select class="input-group-text exponent" name="{id}-exponent" {disabled}>
@@ -358,7 +388,7 @@ class ExponentialInput(Input):
                 {append}
             </div>
         """.format(
-            input=super().render_input(value),
+            input=super().render_input(value, errors),
             append=append,
         )
 

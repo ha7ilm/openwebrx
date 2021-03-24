@@ -4,7 +4,8 @@ from datetime import datetime
 
 
 class ImageInput(Input, metaclass=ABCMeta):
-    def render_input(self, value):
+    def render_input(self, value, errors):
+        # TODO display errors
         return """
             <div class="imageupload">
                 <input type="hidden" id="{id}" name="{id}">

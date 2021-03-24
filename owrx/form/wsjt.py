@@ -9,7 +9,7 @@ class Q65ModeMatrix(Input):
     def checkbox_id(self, mode, interval):
         return "{0}-{1}-{2}".format(self.id, mode.value, interval.value)
 
-    def render_checkbox(self, mode: Q65Mode, interval: Q65Interval, value):
+    def render_checkbox(self, mode: Q65Mode, interval: Q65Interval, value, errors):
         return """
             <div class="{classes}">
                 <input class="form-check-input" type="checkbox" id="{id}" name="{id}" {checked} {disabled}>
@@ -18,16 +18,16 @@ class Q65ModeMatrix(Input):
                 </label>
             </div>
         """.format(
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             id=self.checkbox_id(mode, interval),
             checked="checked" if "{}{}".format(mode.name, interval.value) in value else "",
             checkboxText="Mode {} interval {}s".format(mode.name, interval.value),
             disabled="" if interval.is_available(mode) and not self.disabled else "disabled",
         )
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         checkboxes = "".join(
-            self.render_checkbox(mode, interval, value) for interval in Q65Interval for mode in Q65Mode
+            self.render_checkbox(mode, interval, value, errors) for interval in Q65Interval for mode in Q65Mode
         )
         return """
             <div class="matrix q65-matrix">
@@ -37,8 +37,11 @@ class Q65ModeMatrix(Input):
             checkboxes=checkboxes
         )
 
-    def input_classes(self):
-        return " ".join(["form-check", "form-control-sm"])
+    def input_classes(self, error):
+        classes = ["form-check", "form-control-sm"]
+        if error:
+            classes.append("is-invalid")
+        return " ".join(classes)
 
     def parse(self, data):
         def in_response(mode, interval):
@@ -59,7 +62,7 @@ class WsjtDecodingDepthsInput(Input):
     def defaultConverter(self):
         return JsonConverter()
 
-    def render_input(self, value):
+    def render_input(self, value, errors):
         def render_mode(m):
             return """
                 <option value={mode}>{name}</option>
@@ -76,11 +79,11 @@ class WsjtDecodingDepthsInput(Input):
             </div>
         """.format(
             id=self.id,
-            classes=self.input_classes(),
+            classes=self.input_classes(errors),
             value=html.escape(value),
             options="".join(render_mode(m) for m in Modes.getAvailableModes() if isinstance(m, WsjtMode)),
             disabled="disabled" if self.disabled else ""
         )
 
-    def input_classes(self):
-        return super().input_classes() + " wsjt-decoding-depths"
+    def input_classes(self, error):
+        return super().input_classes(error) + " wsjt-decoding-depths"

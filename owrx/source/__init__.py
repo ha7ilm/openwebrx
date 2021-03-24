@@ -488,19 +488,23 @@ class OptionalSection(Section):
             )
         )
 
-    def render_optional_inputs(self, data):
+    def render_optional_inputs(self, data, errors):
         return """
             <div class="optional-inputs" style="display: none;">
                 {inputs}
             </div>
         """.format(
-            inputs="".join(self.render_input(input, data) for input in self.optional_inputs)
+            inputs="".join(self.render_input(input, data, errors) for input in self.optional_inputs)
         )
 
-    def render_inputs(self, data):
-        return super().render_inputs(data) + self.render_optional_select() + self.render_optional_inputs(data)
+    def render_inputs(self, data, errors):
+        return (
+            super().render_inputs(data, errors)
+            + self.render_optional_select()
+            + self.render_optional_inputs(data, errors)
+        )
 
-    def render(self, data):
+    def render(self, data, errors):
         indexed_inputs = {input.id: input for input in self.inputs}
         visible_keys = set(self.mandatory + [k for k in self.optional if k in data])
         optional_keys = set(k for k in self.optional if k not in data)
@@ -512,15 +516,15 @@ class OptionalSection(Section):
         for input in self.optional_inputs:
             input.setRemovable()
             input.setDisabled()
-        return super().render(data)
+        return super().render(data, errors)
 
     def parse(self, data):
-        data = super().parse(data)
+        data, errors = super().parse(data)
         # remove optional keys if they have been removed from the form
         for k in self.optional:
             if k not in data:
                 data[k] = None
-        return data
+        return data, errors
 
 
 class SdrDeviceDescription(object):
@@ -542,6 +546,7 @@ class SdrDeviceDescription(object):
                 return True
             except SdrDeviceDescriptionMissing:
                 return False
+
         return [module_name for _, module_name, _ in pkgutil.walk_packages(__path__) if has_description(module_name)]
 
     def getDeviceInputs(self) -> List[Input]:
