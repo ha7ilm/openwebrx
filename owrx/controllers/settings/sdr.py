@@ -255,6 +255,8 @@ class SdrDeviceController(SdrFormControllerWithModal):
         config = Config.get()
         sdrs = config["sdrs"]
         del sdrs[self.device_id]
+        # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
+        config["sdrs"] = sdrs
         config.store()
         return self.send_redirect("{}settings/sdr".format(self.get_document_root()))
 
