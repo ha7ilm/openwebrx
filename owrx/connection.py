@@ -161,8 +161,9 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         modes = Modes.getModes()
         self.write_modes(modes)
 
+        self.configSubs.append(SdrService.getActiveSources().wire(self._onSdrDeviceChanges))
+        self.configSubs.append(SdrService.getAvailableProfiles().wire(self._sendProfiles))
         self._sendProfiles()
-        SdrService.getActiveSources().wire(self._onSdrDeviceChanges)
 
         CpuUsageThread.getSharedInstance().add_client(self)
 
@@ -240,17 +241,12 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         return SdrClientClass.USER
 
     def _onSdrDeviceChanges(self, changes):
-        self._sendProfiles()
         # restart the client if an sdr has become available
         if self.sdr is None and any(s is not PropertyDeleted for s in changes.values()):
             self.setSdr()
 
-    def _sendProfiles(self):
-        profiles = [
-            {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
-            for (sid, s) in SdrService.getActiveSources().items()
-            for (pid, p) in s.getProfiles().items()
-        ]
+    def _sendProfiles(self, *args):
+        profiles = [{"id": pid, "name": name} for pid, name in SdrService.getAvailableProfiles().items()]
         self.write_profiles(profiles)
 
     def handleTextMessage(self, conn, message):

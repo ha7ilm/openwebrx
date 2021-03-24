@@ -145,9 +145,47 @@ class ActiveSdrSources(PropertyReadOnly):
             del self._layer[key]
 
 
+class AvailableProfiles(PropertyReadOnly):
+    def __init__(self, pm: PropertyManager):
+        self.subscriptions = {}
+        self._layer = PropertyLayer()
+        super().__init__(self._layer)
+        for key, value in pm.items():
+            self._addSource(key, value)
+        pm.wire(self.handleSdrDeviceChange)
+
+    def handleSdrDeviceChange(self, changes):
+        for key, value in changes.items():
+            if value is PropertyDeleted:
+                self._removeSource(key)
+            else:
+                self._addSource(key, value)
+
+    def handleProfileChange(self, source_id, source: SdrSource, changes):
+        for key, value in changes.items():
+            if value is PropertyDeleted:
+                del self._layer["{}|{}".format(source_id, key)]
+            else:
+                self._layer["{}|{}".format(source_id, key)] = "{} {}".format(source.getName(), value["name"])
+
+    def _addSource(self, key, source: SdrSource):
+        for pid, p in source.getProfiles().items():
+            self._layer["{}|{}".format(key, pid)] = "{} {}".format(source.getName(), p["name"])
+        self.subscriptions[key] = source.getProfiles().wire(partial(self.handleProfileChange, key, source))
+
+    def _removeSource(self, key):
+        for profile_id in list(self._layer.keys()):
+            if profile_id.startswith("{}|".format(key)):
+                del self._layer[profile_id]
+        if key in self.subscriptions:
+            self.subscriptions[key].cancel()
+            del self.subscriptions[key]
+
+
 class SdrService(object):
     sources = None
     activeSources = None
+    availableProfiles = None
 
     @staticmethod
     def getFirstSource():
@@ -177,3 +215,9 @@ class SdrService(object):
         if SdrService.activeSources is None:
             SdrService.activeSources = ActiveSdrSources(SdrService.getAllSources())
         return SdrService.activeSources
+
+    @staticmethod
+    def getAvailableProfiles():
+        if SdrService.availableProfiles is None:
+            SdrService.availableProfiles = AvailableProfiles(SdrService.getActiveSources())
+        return SdrService.availableProfiles
