@@ -25,16 +25,20 @@ class Q65ModeMatrix(Input):
             disabled="" if interval.is_available(mode) and not self.disabled else "disabled",
         )
 
-    def render_input(self, value, errors):
-        checkboxes = "".join(
-            self.render_checkbox(mode, interval, value, errors) for interval in Q65Interval for mode in Q65Mode
-        )
+    def render_input_group(self, value, errors):
         return """
             <div class="matrix q65-matrix">
                 {checkboxes}
+                {errors}
             </div>
         """.format(
-            checkboxes=checkboxes
+            checkboxes=self.render_input(value, errors),
+            errors=self.render_errors(errors),
+        )
+
+    def render_input(self, value, errors):
+        return "".join(
+            self.render_checkbox(mode, interval, value, errors) for interval in Q65Interval for mode in Q65Mode
         )
 
     def input_classes(self, error):

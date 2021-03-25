@@ -45,7 +45,6 @@ $.fn.wsjtDecodingDepthsInput = function() {
         };
 
         $table.on('change', updateValue);
-        $el.append($table);
         var $addButton = $('<button type="button" class="btn btn-sm btn-primary">Add...</button>');
 
         $addButton.on('click', function() {
@@ -63,6 +62,7 @@ $.fn.wsjtDecodingDepthsInput = function() {
             updateValue();
             return false;
         });
-        $el.append($addButton);
+
+        $input.after($table, $addButton);
     });
 };
