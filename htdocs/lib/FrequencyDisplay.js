@@ -29,7 +29,11 @@ FrequencyDisplay.prototype.getPrefix = function() {
 
 FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.frequency = freq;
-    this.exponent = Math.floor(Math.log10(this.frequency) / 3) * 3;
+    if (Number.isNaN(this.frequency)) {
+        this.exponent = 0
+    } else {
+        this.exponent = Math.floor(Math.log10(this.frequency) / 3) * 3;
+    }
 
     var digits = Math.max(0, this.exponent - this.precision);
     var formatted = (freq / 10 ** this.exponent).toLocaleString(
