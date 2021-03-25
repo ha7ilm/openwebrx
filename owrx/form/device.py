@@ -11,23 +11,20 @@ class GainInput(Input):
         self.gain_stages = gain_stages
 
     def render_input(self, value, errors):
-        # TODO display errors
         try:
             display_value = float(value)
         except (ValueError, TypeError):
             display_value = "0.0"
 
         return """
-            <div id="{id}">
-                <select class="{classes}" id="{id}-select" name="{id}-select" {disabled}>
-                    {options}
-                </select>
-                <div class="option manual" style="display: none;">
-                    <input type="number" id="{id}-manual" name="{id}-manual" value="{value}" class="{classes}"
-                    placeholder="Manual device gain" step="any" {disabled}>
-                </div>
-                {stageoption}
+            <select class="{classes}" id="{id}-select" name="{id}-select" {disabled}>
+                {options}
+            </select>
+            <div class="option manual" style="display: none;">
+                <input type="number" id="{id}-manual" name="{id}-manual" value="{value}" class="{classes}"
+                placeholder="Manual device gain" step="any" {disabled}>
             </div>
+            {stageoption}
         """.format(
             id=self.id,
             classes=self.input_classes(errors),
@@ -36,6 +33,18 @@ class GainInput(Input):
             options=self.render_options(value),
             stageoption="" if self.gain_stages is None else self.render_stage_option(value, errors),
             disabled="disabled" if self.disabled else "",
+        )
+
+    def render_input_group(self, value, errors):
+        return """
+            <div id="{id}">
+                {input}
+                {errors}
+            </div>
+        """.format(
+            id=self.id,
+            input=self.render_input(value, errors),
+            errors=self.render_errors(errors)
         )
 
     def render_options(self, value):
@@ -342,35 +351,40 @@ class SchedulerInput(Input):
 
 
 class WaterfallLevelsInput(Input):
-    def render_input(self, value, errors):
-        # TODO display errors
+    def render_input_group(self, value, errors):
         return """
-            <div class="row" id="{id}">
-                {inputs}
+            <div class="row {rowclass}" id="{id}">
+                {input}
             </div>
+            {errors}
         """.format(
+            rowclass="is-invalid" if errors else "",
             id=self.id,
-            inputs="".join(
-                """
-                    <div class="col row">
-                        <label class="col-3 col-form-label col-form-label-sm" for="{id}-{name}">{label}</label>
-                        <div class="col-9 input-group input-group-sm">
-                            <input type="number" step="any" class="{classes}" name="{id}-{name}" value="{value}" {disabled}>
-                            <div class="input-group-append">
-                                <span class="input-group-text">dBFS</span>
-                            </div>
+            input=self.render_input(value, errors),
+            errors=self.render_errors(errors),
+        )
+
+    def render_input(self, value, errors):
+        return "".join(
+            """
+                <div class="col row">
+                    <label class="col-3 col-form-label col-form-label-sm" for="{id}-{name}">{label}</label>
+                    <div class="col-9 input-group input-group-sm">
+                        <input type="number" step="any" class="{classes}" name="{id}-{name}" value="{value}" {disabled}>
+                        <div class="input-group-append">
+                            <span class="input-group-text">dBFS</span>
                         </div>
                     </div>
-                """.format(
-                    id=self.id,
-                    name=name,
-                    label=label,
-                    value=value[name] if value and name in value else "0",
-                    classes=self.input_classes(errors),
-                    disabled="disabled" if self.disabled else "",
-                )
-                for name, label in [("min", "Minimum"), ("max", "Maximum")]
+                </div>
+            """.format(
+                id=self.id,
+                name=name,
+                label=label,
+                value=value[name] if value and name in value else "0",
+                classes=self.input_classes(errors),
+                disabled="disabled" if self.disabled else "",
             )
+            for name, label in [("min", "Minimum"), ("max", "Maximum")]
         )
 
     def parse(self, data):
