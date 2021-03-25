@@ -88,6 +88,8 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                         value = int(value)
                     setattr(bookmark, key, value)
             Bookmarks.getSharedInstance().store()
+            # TODO this should not be called explicitly... bookmarks don't have any event capability right now, though
+            Bookmarks.getSharedInstance().notifySubscriptions(bookmark)
             self.send_response("{}", content_type="application/json", code=200)
         except json.JSONDecodeError:
             self.send_response("{}", content_type="application/json", code=400)
@@ -97,7 +99,11 @@ class BookmarksController(AuthorizationMixin, WebpageController):
         try:
             data = json.loads(self.get_body())
             # sanitize
-            data = {k: data[k] for k in ["name", "frequency", "modulation"]}
+            data = {
+                "name": data["name"],
+                "frequency": int(data["frequency"]),
+                "modulation": data["modulation"],
+            }
             bookmark = Bookmark(data)
 
             bookmarks.addBookmark(bookmark)

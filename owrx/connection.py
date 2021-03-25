@@ -141,6 +141,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.dsp = None
         self.sdr = None
         self.configSubs = []
+        self.bookmarkSub = None
         self.connectionProperties = {}
 
         try:
@@ -190,7 +191,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 config["sdr_id"] = self.sdr.getId()
             self.write_config(config)
 
-        def sendBookmarks(changes=None):
+        def sendBookmarks(*args):
             cf = configProps["center_freq"]
             srh = configProps["samp_rate"] / 2
             frequencyRange = (cf - srh, cf + srh)
@@ -198,8 +199,17 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
             self.write_bookmarks(bookmarks)
 
+        def updateBookmarkSubscription(*args):
+            if self.bookmarkSub is not None:
+                self.bookmarkSub.cancel()
+            cf = configProps["center_freq"]
+            srh = configProps["samp_rate"] / 2
+            frequencyRange = (cf - srh, cf + srh)
+            self.bookmarkSub = Bookmarks.getSharedInstance().subscribe(frequencyRange, sendBookmarks)
+            sendBookmarks()
+
         self.configSubs.append(configProps.wire(sendConfig))
-        self.configSubs.append(stack.filter("center_freq", "samp_rate").wire(sendBookmarks))
+        self.configSubs.append(stack.filter("center_freq", "samp_rate").wire(updateBookmarkSubscription))
 
         # send initial config
         sendConfig()
@@ -332,6 +342,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         ClientRegistry.getSharedInstance().removeClient(self)
         while self.configSubs:
             self.configSubs.pop().cancel()
+        if self.bookmarkSub is not None:
+            self.bookmarkSub.cancel()
         super().close()
 
     def stopDsp(self):

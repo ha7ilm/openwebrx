@@ -31,6 +31,23 @@ class Bookmark(object):
         }
 
 
+class BookmakrSubscription(object):
+    def __init__(self, subscriptee, range, subscriber: callable):
+        self.subscriptee = subscriptee
+        self.range = range
+        self.subscriber = subscriber
+
+    def inRange(self, bookmark: Bookmark):
+        low, high = self.range
+        return low <= bookmark.getFrequency() <= high
+
+    def call(self, *args, **kwargs):
+        self.subscriber(*args, **kwargs)
+
+    def cancel(self):
+        self.subscriptee.unsubscribe(self)
+
+
 class Bookmarks(object):
     sharedInstance = None
 
@@ -43,6 +60,7 @@ class Bookmarks(object):
     def __init__(self):
         self.file_modified = None
         self.bookmarks = []
+        self.subscriptions = []
         self.fileList = [Bookmarks._getBookmarksFile(), "/etc/openwebrx/bookmarks.json", "bookmarks.json"]
 
     def _refresh(self):
@@ -101,8 +119,26 @@ class Bookmarks(object):
 
     def addBookmark(self, bookmark: Bookmark):
         self.bookmarks.append(bookmark)
+        self.notifySubscriptions(bookmark)
 
     def removeBookmark(self, bookmark: Bookmark):
         if bookmark not in self.bookmarks:
             return
         self.bookmarks.remove(bookmark)
+        self.notifySubscriptions(bookmark)
+
+    def notifySubscriptions(self, bookmark: Bookmark):
+        for sub in self.subscriptions:
+            if sub.inRange(bookmark):
+                try:
+                    sub.call()
+                except Exception:
+                    logger.exception("Error while calling bookmark subscriptions")
+
+    def subscribe(self, range, callback):
+        self.subscriptions.append(BookmakrSubscription(self, range, callback))
+
+    def unsubscribe(self, subscriptions: BookmakrSubscription):
+        if subscriptions not in self.subscriptions:
+            return
+        self.subscriptions.remove(subscriptions)
