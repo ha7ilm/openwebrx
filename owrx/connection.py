@@ -194,18 +194,23 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         def sendBookmarks(*args):
             cf = configProps["center_freq"]
             srh = configProps["samp_rate"] / 2
-            frequencyRange = (cf - srh, cf + srh)
-            self.write_dial_frequencies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
-            bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+            dial_frequencies = []
+            bookmarks = []
+            if "center_freq" in configProps and "samp_rate" in configProps:
+                frequencyRange = (cf - srh, cf + srh)
+                dial_frequencies = Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange)
+                bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+            self.write_dial_frequencies(dial_frequencies)
             self.write_bookmarks(bookmarks)
 
         def updateBookmarkSubscription(*args):
             if self.bookmarkSub is not None:
                 self.bookmarkSub.cancel()
-            cf = configProps["center_freq"]
-            srh = configProps["samp_rate"] / 2
-            frequencyRange = (cf - srh, cf + srh)
-            self.bookmarkSub = Bookmarks.getSharedInstance().subscribe(frequencyRange, sendBookmarks)
+            if "center_freq" in configProps and "samp_rate" in configProps:
+                cf = configProps["center_freq"]
+                srh = configProps["samp_rate"] / 2
+                frequencyRange = (cf - srh, cf + srh)
+                self.bookmarkSub = Bookmarks.getSharedInstance().subscribe(frequencyRange, sendBookmarks)
             sendBookmarks()
 
         self.configSubs.append(configProps.wire(sendConfig))
@@ -344,6 +349,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.configSubs.pop().cancel()
         if self.bookmarkSub is not None:
             self.bookmarkSub.cancel()
+            self.bookmarkSub = None
         super().close()
 
     def stopDsp(self):
