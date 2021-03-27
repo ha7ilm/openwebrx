@@ -204,7 +204,7 @@ $.fn.bookmarktable = function() {
                     data: JSON.stringify(Object.fromEntries([[name, editor.getValue()]])),
                     contentType: 'application/json',
                     method: 'POST'
-                }).then(function(){
+                }).done(function(){
                     $cell.data('value', editor.getValue());
                     $cell.html(editor.getHtml());
                 });
@@ -223,7 +223,7 @@ $.fn.bookmarktable = function() {
                 data: "{}",
                 contentType: 'application/json',
                 method: 'DELETE'
-            }).then(function(){
+            }).done(function(){
                 $row.remove();
             });
         });
@@ -270,7 +270,7 @@ $.fn.bookmarktable = function() {
                     data: JSON.stringify(data),
                     contentType: 'application/json',
                     method: 'POST'
-                }).then(function(data){
+                }).done(function(data){
                     if ('bookmark_id' in data) {
                         row.attr('data-id', data['bookmark_id']);
                         var tds = row.find('td');
