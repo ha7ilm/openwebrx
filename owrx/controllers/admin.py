@@ -36,5 +36,11 @@ class AuthorizationMixin(object):
         if self.isAuthorized():
             super().handle_request()
         else:
-            target = "/login?{0}".format(parse.urlencode({"ref": self.request.path}))
-            self.send_redirect(target)
+            if (
+                "x-requested-with" in self.request.headers
+                and self.request.headers["x-requested-with"] == "XMLHttpRequest"
+            ):
+                self.send_response("{}", code=403)
+            else:
+                target = "/login?{0}".format(parse.urlencode({"ref": self.request.path}))
+                self.send_redirect(target)
