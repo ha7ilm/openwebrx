@@ -20,7 +20,7 @@ class BookmarksController(AuthorizationMixin, WebpageController):
         bookmarks = Bookmarks.getSharedInstance()
 
         return """
-            <table class="table bookmarks" data-modes='{modes}'>
+            <table class="table" data-modes='{modes}'>
                 <tr>
                     <th>Name</th>
                     <th class="frequency">Frequency</th>

@@ -215,17 +215,35 @@ $.fn.bookmarktable = function() {
             };
         });
 
-        $table.on('click', '.bookmark-delete', function(e) {
-            var $button = $(e.target);
-            $button.prop('disabled', true);
-            var $row = $button.parents('tr');
+        var $modal = $('#deleteModal').modal({show:false});
+
+        $modal.on('hidden.bs.modal', function() {
+            var $row = $modal.data('row');
+            if (!$row) return;
+            $row.find('.bookmark-delete').prop('disabled', false);
+            $modal.removeData('row');
+        });
+
+        $modal.on('click', '.confirm', function() {
+            var $row = $modal.data('row');
+            if (!$row) return;
             $.ajax(document.location.href + "/" + $row.data('id'), {
                 data: "{}",
                 contentType: 'application/json',
                 method: 'DELETE'
             }).done(function(){
                 $row.remove();
+                $modal.modal('hide');
             });
+        });
+
+        $table.on('click', '.bookmark-delete', function(e) {
+            var $button = $(e.target);
+            $button.prop('disabled', true);
+
+            var $row = $button.parents('tr');
+            $modal.data('row', $row);
+            $modal.modal('show');
         });
 
         $(this).on('click', '.bookmark-add', function() {
