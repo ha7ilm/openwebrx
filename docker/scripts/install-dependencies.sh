@@ -60,7 +60,7 @@ rm /js8call-hamlib.patch
 CMAKE_ARGS="-D CMAKE_CXX_FLAGS=-DJS8_USE_HAMLIB_THREE" cmakebuild ${JS8CALL_DIR}
 rm ${JS8CALL_TGZ}
 
-WSJT_DIR=wsjtx-2.3.0
+WSJT_DIR=wsjtx-2.3.1
 WSJT_TGZ=${WSJT_DIR}.tgz
 wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
 tar xfz ${WSJT_TGZ}
