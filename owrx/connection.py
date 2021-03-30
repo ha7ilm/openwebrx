@@ -127,7 +127,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     global_config_keys = [
         "waterfall_scheme",
         "waterfall_colors",
-        "waterfall_auto_level_margin",
+        "waterfall_auto_levels",
+        "waterfall_auto_min_range",
         "fft_size",
         "audio_compression",
         "fft_compression",

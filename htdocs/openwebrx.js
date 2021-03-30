@@ -72,7 +72,8 @@ var waterfall_max_level;
 var waterfall_min_level_default;
 var waterfall_max_level_default;
 var waterfall_colors = buildWaterfallColors(['#000', '#FFF']);
-var waterfall_auto_level_margin;
+var waterfall_auto_levels;
+var waterfall_auto_min_range;
 
 function buildWaterfallColors(input) {
     return chroma.scale(input).colors(256, 'rgb')
@@ -110,9 +111,9 @@ function waterfallColorsDefault() {
 }
 
 function waterfallColorsAuto(levels) {
-    var min_level = levels.min - waterfall_auto_level_margin.min;
-    var max_level = levels.max + waterfall_auto_level_margin.max;
-    max_level = Math.max(min_level + (waterfall_auto_level_margin.min_range || 0), max_level);
+    var min_level = levels.min - waterfall_auto_levels.min;
+    var max_level = levels.max + waterfall_auto_levels.max;
+    max_level = Math.max(min_level + (waterfall_auto_min_range || 0), max_level);
     waterfall_min_level = min_level;
     waterfall_max_level = max_level;
     updateWaterfallSliders();
@@ -721,8 +722,10 @@ function on_ws_recv(evt) {
                             waterfall_min_level_default = config['waterfall_levels']['min'];
                             waterfall_max_level_default = config['waterfall_levels']['max'];
                         }
-                        if ('waterfall_auto_level_margin' in config)
-                            waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
+                        if ('waterfall_auto_levels' in config)
+                            waterfall_auto_levels = config['waterfall_auto_levels'];
+                        if ('waterfall_auto_min_range' in config)
+                            waterfall_auto_min_range = config['waterfall_auto_min_range'];
                         waterfallColorsDefault();
 
                         var initial_demodulator_params = {};

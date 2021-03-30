@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from owrx.property import PropertyLayer
 
 import logging
 
@@ -98,14 +99,27 @@ class ConfigMigratorVersion5(ConfigMigrator):
         config["version"] = 6
 
 
+class ConfigMigratorVersion6(ConfigMigrator):
+    def migrate(self, config):
+        if "waterfall_auto_level_margin" in config:
+            walm_config = config["waterfall_auto_level_margin"]
+            if "min_range" in walm_config:
+                config["waterfall_auto_min_range"] = walm_config["min_range"]
+            wal = {k: v for k, v in walm_config.items() if k in ["min", "max"]}
+            config["waterfall_auto_levels"] = PropertyLayer(**wal)
+            del config["waterfall_auto_level_margin"]
+        config["version"] = 7
+
+
 class Migrator(object):
-    currentVersion = 6
+    currentVersion = 7
     migrators = {
         1: ConfigMigratorVersion1(),
         2: ConfigMigratorVersion2(),
         3: ConfigMigratorVersion3(),
         4: ConfigMigratorVersion4(),
         5: ConfigMigratorVersion5(),
+        6: ConfigMigratorVersion6(),
     }
 
     @staticmethod
