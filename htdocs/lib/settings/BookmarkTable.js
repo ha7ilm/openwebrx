@@ -297,12 +297,12 @@ $.fn.bookmarktable = function() {
                 );
 
                 $.ajax(document.location.href, {
-                    data: JSON.stringify(data),
+                    data: JSON.stringify([data]),
                     contentType: 'application/json',
                     method: 'POST'
                 }).done(function(data){
-                    if ('bookmark_id' in data) {
-                        row.attr('data-id', data['bookmark_id']);
+                    if (data.length && data.length === 1 && 'bookmark_id' in data[0]) {
+                        row.attr('data-id', data[0]['bookmark_id']);
                         var tds = row.find('td');
 
                         Object.values(inputs).forEach(function(input, index) {

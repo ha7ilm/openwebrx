@@ -103,19 +103,23 @@ class BookmarksController(AuthorizationMixin, WebpageController):
 
     def new(self):
         bookmarks = Bookmarks.getSharedInstance()
-        try:
-            data = json.loads(self.get_body())
+
+        def create(bookmark_data):
             # sanitize
             data = {
-                "name": data["name"],
-                "frequency": int(data["frequency"]),
-                "modulation": data["modulation"],
+                "name": bookmark_data["name"],
+                "frequency": int(bookmark_data["frequency"]),
+                "modulation": bookmark_data["modulation"],
             }
             bookmark = Bookmark(data)
-
             bookmarks.addBookmark(bookmark)
+            return {"bookmark_id": id(bookmark)}
+
+        try:
+            data = json.loads(self.get_body())
+            result = [create(b) for b in data]
             bookmarks.store()
-            self.send_response(json.dumps({"bookmark_id": id(bookmark)}), content_type="application/json", code=200)
+            self.send_response(json.dumps(result), content_type="application/json", code=200)
         except json.JSONDecodeError:
             self.send_response("{}", content_type="application/json", code=400)
 
