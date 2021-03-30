@@ -13,10 +13,9 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
         self.sleepOnRestart()
         self.start()
 
-    def getEventNames(self):
-        return super().getEventNames() + [
-            "nmux_memory",
-        ]
+    def nmux_memory(self):
+        # in megabytes. This sets the approximate size of the circular buffer used by nmux.
+        return 50
 
     def getNmuxCommand(self):
         props = self.sdrProps
@@ -24,13 +23,10 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
         nmux_bufcnt = nmux_bufsize = 0
         while nmux_bufsize < props["samp_rate"] / 4:
             nmux_bufsize += 4096
-        while nmux_bufsize * nmux_bufcnt < props["nmux_memory"] * 1e6:
+        while nmux_bufsize * nmux_bufcnt < self.nmux_memory() * 1e6:
             nmux_bufcnt += 1
         if nmux_bufcnt == 0 or nmux_bufsize == 0:
-            raise ValueError(
-                "Error: nmux_bufsize or nmux_bufcnt is zero. "
-                "These depend on nmux_memory and samp_rate options in config_webrx.py"
-            )
+            raise ValueError("Error: unable to calculate nmux buffer parameters.")
 
         return [
             "nmux --bufsize %d --bufcnt %d --port %d --address 127.0.0.1"

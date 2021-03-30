@@ -146,7 +146,6 @@ defaultConfig = PropertyLayer(
     waterfall_auto_min_range=50,
     tuning_precision=2,
     squelch_auto_margin=10,
-    nmux_memory=50,
     google_maps_api_key="",
     map_position_retention_time=2 * 60 * 60,
     decoding_queue_workers=2,

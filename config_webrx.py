@@ -284,8 +284,6 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 # using the auto squelch.
 #squelch_auto_margin = 10  # in dB
 
-nmux_memory = 50  # in megabytes. This sets the approximate size of the circular buffer used by nmux.
-
 #google_maps_api_key = ""
 
 # how long should positions be visible on the map?
