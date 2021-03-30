@@ -396,6 +396,10 @@ input[type=range]:disabled {
 	font-family: 'roboto-mono';
 }
 
+.webrx-actual-freq .digit {
+    cursor: ns-resize;
+}
+
 .webrx-actual-freq .digit:hover {
 	color: #FFFF50;
 	border-radius: 5px;
