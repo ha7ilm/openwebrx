@@ -341,7 +341,7 @@ $.fn.bookmarktable = function() {
                     }
                     var row = $(
                         '<tr>' +
-                            '<td><input class="form-check-input" type="checkbox" value="1"></td>' +
+                            '<td><input class="form-check-input select" type="checkbox"></td>' +
                             '<td>' + b.name + '</td>' +
                             '<td class="frequency">' + renderFrequency(b.frequency) + '</td>' +
                             '<td>' + modulation + '</td>' +
@@ -355,6 +355,46 @@ $.fn.bookmarktable = function() {
                 $importModal.find('.bookmark-list').html('No personal bookmarks found in this browser');
             }
             $importModal.modal('show');
+        });
+
+        $importModal.on('click', '.confirm', function() {
+            var $list = $importModal.find('.bookmark-list table');
+            if ($list.length) {
+                var selected = $list.find('tr').filter(function(){
+                    return $(this).find('.select').is(':checked');
+                }).map(function(){
+                    return $(this).data('bookmark');
+                }).toArray();
+                if (selected.length) {
+                    $.ajax(document.location.href, {
+                        data: JSON.stringify(selected),
+                        contentType: 'application/json',
+                        method: 'POST'
+                    }).done(function(data){
+                        var modes = $table.data('modes');
+                        if (data.length && data.length == selected.length) {
+                            $table.append(data.map(function(obj, index) {
+                                var bookmark = selected[index];
+                                var modulation_name = bookmark.modulation;
+                                if (modulation_name in modes) {
+                                    modulation_name = modes[modulation_name];
+                                }
+                                return $(
+                                    '<tr data-id="' + obj.bookmark_id + '">' +
+                                        '<td data-editor="name" data-value="' + bookmark.name + '">' + bookmark.name + '</td>' +
+                                        '<td data-editor="frequency" data-value="' + bookmark.frequency + '" class="frequency">' + renderFrequency(bookmark.frequency) +'</td>' +
+                                        '<td data-editor="modulation" data-value="' + bookmark.modulation + '">' + modulation_name + '</td>' +
+                                        '<td>' +
+                                            '<button type="button" class="btn btn-sm btn-danger bookmark-delete">delete</button>' +
+                                        '</td>' +
+                                    '</tr>'
+                                )
+                            }));
+                        }
+                    });
+                }
+            }
+            $importModal.modal('hide');
         });
     });
 };
