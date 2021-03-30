@@ -1,5 +1,5 @@
---- CMakeLists.txt.orig	2021-02-01 21:00:44.879969236 +0100
-+++ CMakeLists.txt	2021-02-01 21:04:58.184642042 +0100
+--- CMakeLists.txt.orig	2021-03-30 15:28:36.956587995 +0200
++++ CMakeLists.txt	2021-03-30 15:29:45.719326832 +0200
 @@ -106,24 +106,6 @@
  
  
@@ -11,7 +11,7 @@
 -  GIT_REPOSITORY ${hamlib_repo}
 -  GIT_TAG ${hamlib_TAG}
 -  GIT_SHALLOW False
--  URL ${CMAKE_CURRENT_SOURCE_DIR}/src/${__hamlib_upstream}
+-  URL ${CMAKE_CURRENT_SOURCE_DIR}/src/${__hamlib_upstream}.tar.gz
 -  URL_HASH MD5=${hamlib_md5sum}
 -  #UPDATE_COMMAND ${CMAKE_COMMAND} -E env "[ -f ./bootstrap ] && ./bootstrap"
 -  PATCH_COMMAND ${PATCH_EXECUTABLE} -p1 -N < ${CMAKE_CURRENT_SOURCE_DIR}/hamlib.patch
