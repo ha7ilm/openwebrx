@@ -1,5 +1,6 @@
 function FrequencyDisplay(element) {
-    this.prefixes = {
+    this.suffixes = {
+        '': 0,
         'k': 3,
         'M': 6,
         'G': 9,
@@ -20,10 +21,10 @@ FrequencyDisplay.prototype.setupElements = function() {
     this.element.html(this.displayContainer);
 };
 
-FrequencyDisplay.prototype.getPrefix = function() {
+FrequencyDisplay.prototype.getSuffix = function() {
     var me = this;
-    return Object.keys(me.prefixes).filter(function(key){
-        return me.prefixes[key] == me.exponent;
+    return Object.keys(me.suffixes).filter(function(key){
+        return me.suffixes[key] == me.exponent;
     })[0] || "";
 };
 
@@ -57,7 +58,7 @@ FrequencyDisplay.prototype.setFrequency = function(freq) {
     while (this.digits.length > formatted.length) {
         this.digits.pop().remove();
     }
-    this.unitContainer.text(' ' + this.getPrefix() + 'Hz');
+    this.unitContainer.text(' ' + this.getSuffix() + 'Hz');
 };
 
 FrequencyDisplay.prototype.setTuningPrecision = function(precision) {
@@ -76,13 +77,12 @@ TuneableFrequencyDisplay.prototype = new FrequencyDisplay();
 TuneableFrequencyDisplay.prototype.setupElements = function() {
     FrequencyDisplay.prototype.setupElements.call(this);
     this.input = $('<input>');
-    this.prefixInput = $('<select>');
-    this.prefixInput.append($('<option value="0">Hz</option>'));
-    this.prefixInput.append($.map(this.prefixes, function(e, p) {
+    this.suffixInput = $('<select tabindex="-1">');
+    this.suffixInput.append($.map(this.suffixes, function(e, p) {
         return $('<option value="' + e + '">' + p + 'Hz</option>');
     }));
     this.inputGroup = $('<div class="input-group">');
-    this.inputGroup.append([this.input, this.prefixInput]);
+    this.inputGroup.append([this.input, this.suffixInput]);
     this.inputGroup.hide();
     this.element.append(this.inputGroup);
 };
@@ -105,7 +105,7 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
     });
 
     var submit = function(){
-        var exponent = parseInt(me.prefixInput.val());
+        var exponent = parseInt(me.suffixInput.val());
         var freq = parseFloat(me.input.val()) * 10 ** exponent;
         if (!isNaN(freq)) {
             me.element.trigger('frequencychange', freq);
@@ -114,7 +114,7 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
         me.displayContainer.show();
     };
     $inputs = $.merge($(), me.input);
-    $inputs = $.merge($inputs, me.prefixInput);
+    $inputs = $.merge($inputs, me.suffixInput);
     $inputs.on('blur', function(e){
         if ($inputs.toArray().indexOf(e.relatedTarget) >= 0) {
             return;
@@ -129,16 +129,16 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
             return;
         }
         var c = String.fromCharCode(e.which);
-        Object.entries(me.prefixes).forEach(function(e) {
+        Object.entries(me.suffixes).forEach(function(e) {
             if (e[0].toUpperCase() == c) {
-                me.prefixInput.val(e[1]);
+                me.suffixInput.val(e[1]);
                 return submit();
             }
         })
     });
     var currentExponent;
-    me.prefixInput.on('change', function() {
-        var newExponent = me.prefixInput.val();
+    me.suffixInput.on('change', function() {
+        var newExponent = me.suffixInput.val();
         delta = currentExponent - newExponent;
         if (delta >= 0) {
             me.input.val(parseFloat(me.input.val()) * 10 ** delta);
@@ -156,7 +156,7 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
     me.element.on('click', function(){
         currentExponent = me.exponent;
         me.input.val(me.frequency / 10 ** me.exponent);
-        me.prefixInput.val(me.exponent);
+        me.suffixInput.val(me.exponent);
         me.inputGroup.show();
         me.displayContainer.hide();
         me.input.focus();
