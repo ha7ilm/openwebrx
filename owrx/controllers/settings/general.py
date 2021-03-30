@@ -12,7 +12,7 @@ from owrx.form import (
 from owrx.form.converter import WaterfallColorsConverter, IntConverter
 from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.gfx import AvatarInput, TopPhotoInput
-from owrx.form.device import WaterfallLevelsInput
+from owrx.form.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
 from owrx.waterfall import WaterfallOptions
 import shutil
 import os
@@ -104,6 +104,19 @@ class GeneralSettingsController(SettingsFormController):
                     + "diagram.",
                 ),
                 WaterfallLevelsInput("waterfall_levels", "Waterfall levels"),
+                WaterfallAutoLevelsInput(
+                    "waterfall_auto_levels",
+                    "Automatic adjustment margins",
+                    infotext="Specifies the upper and lower dynamic headroom that should be added when automatically "
+                    + "adjusting waterfall colors",
+                ),
+                NumberInput(
+                    "waterfall_auto_min_range",
+                    "Automatic adjustment minimum range",
+                    append="dB",
+                    infotext="Minimum dynamic range the waterfall should cover after automatically adjusting "
+                    + "waterfall colors",
+                ),
             ),
             Section(
                 "Compression",
@@ -130,7 +143,7 @@ class GeneralSettingsController(SettingsFormController):
                     "tuning_precision",
                     "Tuning precision",
                     options=[Option(str(i), "{} Hz".format(10 ** i)) for i in range(0, 6)],
-                    converter=IntConverter()
+                    converter=IntConverter(),
                 ),
             ),
             Section(

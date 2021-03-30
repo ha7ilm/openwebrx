@@ -258,10 +258,10 @@ Note: if you experience audio underruns while CPU usage is 100%, you can:
 #waterfall_colors = [0x0000FF, 0x00FF00, 0xFF0000]
 
 ### Waterfall calibration
-#waterfall_auto_levels = {"min": -88, "max": -20}  # in dB
+#waterfall_levels = {"min": -88, "max": -20}  # in dB
 
-waterfall_auto_levels = {"min": 3, "max": 10}
-waterfall_auto_min_range = 50
+#waterfall_auto_levels = {"min": 3, "max": 10}
+#waterfall_auto_min_range = 50
 
 # Note: When the auto waterfall level button is clicked, the following happens:
 #   [waterfall_levels.min] = [current_min_power_level] - [waterfall_auto_levels["min"]]

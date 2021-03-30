@@ -351,6 +351,9 @@ class SchedulerInput(Input):
 
 
 class WaterfallLevelsInput(Input):
+    def __init__(self, id, label, infotext=None):
+        super().__init__(id, label, infotext=infotext)
+
     def render_input_group(self, value, errors):
         return """
             <div class="row {rowclass}" id="{id}">
@@ -364,6 +367,12 @@ class WaterfallLevelsInput(Input):
             errors=self.render_errors(errors),
         )
 
+    def getUnit(self):
+        return "dBFS"
+
+    def getFields(self):
+        return {"min": "Minimum", "max": "Maximum"}
+
     def render_input(self, value, errors):
         return "".join(
             """
@@ -372,7 +381,7 @@ class WaterfallLevelsInput(Input):
                     <div class="col-9 input-group input-group-sm">
                         <input type="number" step="any" class="{classes}" name="{id}-{name}" value="{value}" {disabled}>
                         <div class="input-group-append">
-                            <span class="input-group-text">dBFS</span>
+                            <span class="input-group-text">{unit}</span>
                         </div>
                     </div>
                 </div>
@@ -383,8 +392,9 @@ class WaterfallLevelsInput(Input):
                 value=value[name] if value and name in value else "0",
                 classes=self.input_classes(errors),
                 disabled="disabled" if self.disabled else "",
+                unit=self.getUnit(),
             )
-            for name, label in [("min", "Minimum"), ("max", "Maximum")]
+            for name, label in self.getFields().items()
         )
 
     def parse(self, data):
@@ -398,3 +408,11 @@ class WaterfallLevelsInput(Input):
             return {self.id: {k: v for name in ["min", "max"] for k, v in getValue(name).items()}}
         except KeyError:
             return {}
+
+
+class WaterfallAutoLevelsInput(WaterfallLevelsInput):
+    def getUnit(self):
+        return "dB"
+
+    def getFields(self):
+        return {"min": "Lower", "max": "Upper"}
