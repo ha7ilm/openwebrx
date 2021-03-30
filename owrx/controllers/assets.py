@@ -146,6 +146,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
         "settings.js": [
             "lib/jquery-3.2.1.min.js",
             "lib/bootstrap.bundle.min.js",
+            "lib/location-picker.min.js",
             "lib/Header.js",
             "lib/settings/MapInput.js",
             "lib/settings/ImageUpload.js",
