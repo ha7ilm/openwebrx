@@ -43,7 +43,9 @@ class BookmarksController(AuthorizationMixin, WebpageController):
                 9: "G",
                 12: "T",
             }
-            exp = int(math.log10(freq) / 3) * 3
+            exp = 0
+            if freq > 0:
+                exp = int(math.log10(freq) / 3) * 3
             num = freq
             suffix = ""
             if exp in suffixes:

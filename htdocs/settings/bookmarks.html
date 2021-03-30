@@ -20,6 +20,7 @@ ${header}
     <div class="row mt-3 bookmarks">
         ${bookmarks}
         <div class="buttons container">
+            <button type="button" class="btn btn-info bookmark-import">Import personal bookmarks...</button>
             <button type="button" class="btn btn-primary bookmark-add">Add a new bookmark</button>
         </div>
     </div>
@@ -39,6 +40,26 @@ ${header}
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary cancel" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="importModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Please select</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Please select the bookmarks you would like to import:</p>
+                <div class="bookmark-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary cancel" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary confirm">Import</button>
             </div>
         </div>
     </div>

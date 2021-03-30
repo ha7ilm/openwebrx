@@ -66,13 +66,15 @@ NameEditor.prototype.getInputHtml = function() {
 
 function FrequencyEditor(table) {
     Editor.call(this, table);
-    this.suffixes = {
-        'K': 3,
-        'M': 6,
-        'G': 9,
-        'T': 12
-    };
 }
+
+FrequencyEditor.suffixes = {
+    '': 0,
+    'K': 3,
+    'M': 6,
+    'G': 9,
+    'T': 12
+};
 
 FrequencyEditor.prototype = new Editor();
 
@@ -81,8 +83,7 @@ FrequencyEditor.prototype.getInputHtml = function() {
         '<input class="form-control form-control-sm" type="number" step="1">' +
         '<div class="input-group-append">' +
             '<select class="input-group-text exponent">' +
-                '<option value="0">Hz</option>' +
-                $.map(this.suffixes, function(v, k) {
+                $.map(FrequencyEditor.suffixes, function(v, k) {
                     // fix lowercase "kHz"
                     if (k === "K") k = "k";
                     return '<option value="' + v + '">' + k + 'Hz</option>';
@@ -117,8 +118,8 @@ FrequencyEditor.prototype.setupEvents = function() {
         if (e.keyCode == 13) return me.submit();
         if (e.keyCode == 27) return me.cancel();
         var c = String.fromCharCode(e.which);
-        if (c in me.suffixes) {
-            me.expInput.val(me.suffixes[c]);
+        if (c in FrequencyEditor.suffixes) {
+            me.expInput.val(FrequencyEditor.suffixes[c]);
         }
     });
 }
@@ -132,7 +133,7 @@ FrequencyEditor.prototype.getValue = function() {
 FrequencyEditor.prototype.setValue = function(value) {
     var value = parseFloat(value);
     var exp = 0;
-    if (!Number.isNaN(value)) {
+    if (!Number.isNaN(value) && value > 0) {
         exp = Math.floor(Math.log10(value) / 3) * 3;
     }
     this.freqInput.val(value / 10 ** exp);
@@ -143,15 +144,26 @@ FrequencyEditor.prototype.focus = function() {
     this.freqInput.focus();
 };
 
-FrequencyEditor.prototype.getHtml = function() {
-    var value = this.getValue();
+var renderFrequency = function(freq) {
     var exp = 0;
-    if (!Number.isNaN(value)) {
-        exp = Math.floor(Math.log10(value) / 3) * 3;
+    if (!Number.isNaN(freq)) {
+        exp = Math.floor(Math.log10(freq) / 3) * 3;
     }
-    var frequency = value / 10 ** exp;
-    var expString = this.expInput.find('option[value=' + exp + ']').html();
+    var frequency = freq / 10 ** exp;
+    var suffix = Object.entries(FrequencyEditor.suffixes).find(function(e) {
+        return e[1] == exp;
+    });
+    if (!suffix) {
+        return freq + ' Hz';
+    }
+    // fix lowercase 'kHz'
+    suffix = suffix[0] == 'K' ? 'k' : suffix[0];
+    var expString = suffix[0] + 'Hz';
     return frequency + ' ' + expString;
+}
+
+FrequencyEditor.prototype.getHtml = function() {
+    return renderFrequency(this.getValue());
 };
 
 function ModulationEditor(table) {
@@ -312,6 +324,37 @@ $.fn.bookmarktable = function() {
 
             $table.append(row);
             row[0].scrollIntoView();
+        });
+
+        var $importModal = $('#importModal').modal({show: false});
+
+        $(this).find('.bookmark-import').on('click', function() {
+            var storage = new BookmarkLocalStorage();
+            var bookmarks = storage.getBookmarks();
+            if (bookmarks.length) {
+                var modes = $table.data('modes');
+                var $list = $('<table class="table table-sm">');
+                $list.append(bookmarks.map(function(b) {
+                    var modulation = b.modulation;
+                    if (modulation in modes) {
+                        modulation = modes[modulation];
+                    }
+                    var row = $(
+                        '<tr>' +
+                            '<td><input class="form-check-input" type="checkbox" value="1"></td>' +
+                            '<td>' + b.name + '</td>' +
+                            '<td class="frequency">' + renderFrequency(b.frequency) + '</td>' +
+                            '<td>' + modulation + '</td>' +
+                        '</tr>'
+                    );
+                    row.data('bookmark', b);
+                    return row;
+                }));
+                $importModal.find('.bookmark-list').html($list);
+            } else {
+                $importModal.find('.bookmark-list').html('No personal bookmarks found in this browser');
+            }
+            $importModal.modal('show');
         });
     });
 };

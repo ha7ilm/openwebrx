@@ -80,7 +80,7 @@ h1 {
     padding-right: 15px;
 }
 
-.bookmarks table .frequency {
+.bookmarks table .frequency, .bookmark-list table .frequency {
     text-align: right;
 }
 
@@ -88,6 +88,10 @@ h1 {
     width: initial;
     text-align: inherit;
     display: initial;
+}
+
+.bookmark-list table .form-check-input {
+    margin-left: 0;
 }
 
 .actions {
