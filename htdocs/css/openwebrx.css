@@ -337,6 +337,7 @@ input[type=range]:disabled {
 	margin: 0;
 	display: flex;
 	flex-direction: row;
+	cursor: pointer;
 }
 
 .webrx-actual-freq > * {
