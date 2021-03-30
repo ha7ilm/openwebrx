@@ -82,7 +82,7 @@ FrequencyEditor.prototype.getInputHtml = function() {
     return '<div class="input-group input-group-sm exponential-input" name="frequency">' +
         '<input class="form-control form-control-sm" type="number" step="1">' +
         '<div class="input-group-append">' +
-            '<select class="input-group-text exponent">' +
+            '<select class="input-group-text exponent" tabindex="-1">' +
                 $.map(FrequencyEditor.suffixes, function(v, k) {
                     // fix lowercase "kHz"
                     if (k === "K") k = "k";

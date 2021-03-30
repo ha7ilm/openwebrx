@@ -375,7 +375,7 @@ class ExponentialInput(Input):
     def render_input_group(self, value, errors):
         append = """
             <div class="input-group-append">
-                <select class="input-group-text exponent" name="{id}-exponent" {disabled}>
+                <select class="input-group-text exponent" name="{id}-exponent" tabindex="-1" {disabled}>
                     <option value="0" selected>{unit}</option>
                     <option value="3">k{unit}</option>
                     <option value="6">M{unit}</option>
