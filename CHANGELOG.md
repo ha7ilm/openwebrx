@@ -11,8 +11,11 @@
   - "WFM" changed to 150kHz
   - "Packet" (APRS) changed to 12.5kHz
 - Configuration rework:
-  - System configuration separated
-  - Started replacing `config_webrx.py` with web configuration options
+  - New: fully web-based configuration interface
+  - System configuration parameters have been moved to a new, separate `openwebrx.conf` file
+  - Remaining parameters are now editable in the web configuration
+  - Existing `config_webrx.py` files will still be read, but changes made in the web configuration will be written to
+    a new storage system
   - Added upload of avatar and panorama image via web configuration
 - New devices supported:
   - HPSDR devices (Hermes Lite 2)
