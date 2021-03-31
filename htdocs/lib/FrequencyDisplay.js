@@ -115,6 +115,11 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
     };
     $inputs = $.merge($(), me.input);
     $inputs = $.merge($inputs, me.suffixInput);
+    $('body').on('click', function(e) {
+        if (!me.input.is(':visible')) return;
+        if ($.contains(me.element[0], e.target)) return;
+        submit();
+    });
     $inputs.on('blur', function(e){
         if ($inputs.toArray().indexOf(e.relatedTarget) >= 0) {
             return;
