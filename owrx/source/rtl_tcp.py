@@ -26,4 +26,4 @@ class RtlTcpDeviceDescription(ConnectorDeviceDescription):
         return super().getInputs() + [RemoteInput()]
 
     def getDeviceMandatoryKeys(self):
-        return super().getDeviceMandatoryKeys() + ["device"]
+        return super().getDeviceMandatoryKeys() + ["remote"]

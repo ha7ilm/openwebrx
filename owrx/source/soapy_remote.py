@@ -29,5 +29,8 @@ class SoapyRemoteDeviceDescription(SoapyConnectorDeviceDescription):
             ),
         ]
 
+    def getDeviceMandatoryKeys(self):
+        return super().getDeviceMandatoryKeys() + ["remote"]
+
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["remote_driver"]
