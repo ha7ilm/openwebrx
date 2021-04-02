@@ -86,7 +86,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
         return super().getInputs() + [
             TextInput(
                 "device",
-                "Device Identifier",
+                "Device identifier",
                 infotext='SoapySDR device identifier string (example: "serial=123456789")',
             ),
             GainInput(
