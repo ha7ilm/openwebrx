@@ -45,7 +45,7 @@ class RundsDeviceDescription(ConnectorDeviceDescription):
         ]
 
     def getDeviceMandatoryKeys(self):
-        return super().getDeviceMandatoryKeys() + ["device"]
+        return super().getDeviceMandatoryKeys() + ["remote"]
 
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["protocol", "long"]
