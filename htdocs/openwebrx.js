@@ -779,9 +779,12 @@ function on_ws_recv(evt) {
                         break;
                     case "secondary_config":
                         var s = json['value'];
-                        window.secondary_fft_size = s['secondary_fft_size'];
-                        window.secondary_bw = s['secondary_bw'];
-                        window.if_samp_rate = s['if_samp_rate'];
+                        if ('secondary_fft_size' in s)
+                            window.secondary_fft_size = s['secondary_fft_size'];
+                        if ('secondary_bw' in s)
+                            window.secondary_bw = s['secondary_bw'];
+                        if ('if_samp_rate' in s)
+                            window.if_samp_rate = s['if_samp_rate'];
                         secondary_demod_init_canvases();
                         break;
                     case "receiver_details":

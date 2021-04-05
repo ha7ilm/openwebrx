@@ -137,21 +137,25 @@ class DspManager(csdr.output, SdrSourceEventClient):
 
         if self.props["digimodes_enable"]:
 
+            def send_secondary_config(*args):
+                self.handler.write_secondary_dsp_config(
+                    {
+                        "secondary_fft_size": self.props["digimodes_fft_size"],
+                        "if_samp_rate": self.dsp.if_samp_rate(),
+                        "secondary_bw": self.dsp.secondary_bw(),
+                    }
+                )
+
             def set_secondary_mod(mod):
                 if mod == False:
                     mod = None
                 self.dsp.set_secondary_demodulator(mod)
                 if mod is not None:
-                    self.handler.write_secondary_dsp_config(
-                        {
-                            "secondary_fft_size": self.props["digimodes_fft_size"],
-                            "if_samp_rate": self.dsp.if_samp_rate(),
-                            "secondary_bw": self.dsp.secondary_bw(),
-                        }
-                    )
+                    send_secondary_config()
 
             self.subscriptions += [
                 self.props.wireProperty("secondary_mod", set_secondary_mod),
+                self.props.wireProperty("digimodes_fft_size", send_secondary_config),
                 self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
             ]
 
