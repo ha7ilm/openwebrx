@@ -65,7 +65,6 @@ class FeatureDetector(object):
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
-        "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         "sddc": ["sddc_connector"],
@@ -388,14 +387,6 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyUHD/wiki).
         """
         return self._has_soapy_driver("uhd")
-
-    def has_soapy_red_pitaya(self):
-        """
-        The SoapyRedPitaya allows Red Pitaya deviced to be used with SoapySDR.
-
-        You can get it [here](https://github.com/pothosware/SoapyRedPitaya/wiki).
-        """
-        return self._has_soapy_driver("redpitaya")
 
     def has_soapy_radioberry(self):
         """

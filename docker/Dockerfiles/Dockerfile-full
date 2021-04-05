@@ -18,7 +18,6 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-fcdpp.sh &&\
     /install-dependencies-radioberry.sh &&\
     /install-dependencies-uhd.sh &&\
-    /install-dependencies-redpitaya.sh &&\
     /install-dependencies-hpsdr.sh &&\
     /install-connectors.sh &&\
     /install-dependencies-runds.sh &&\
