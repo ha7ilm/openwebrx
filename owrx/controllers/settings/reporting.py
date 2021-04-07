@@ -15,6 +15,7 @@ class ReportingController(SettingsFormController):
                 CheckboxInput(
                     "aprs_igate_enabled",
                     "Send received APRS data to APRS-IS",
+                    infotext="Due to limits of the APRS-IS network, reporting will only work for background decoders"
                 ),
                 TextInput(
                     "aprs_callsign",
