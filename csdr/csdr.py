@@ -28,7 +28,7 @@ import threading
 import math
 from functools import partial
 
-from owrx.kiss import KissClient, DirewolfConfig
+from owrx.kiss import KissClient, DirewolfConfig, DirewolfConfigSubscriber
 from owrx.wsjt import (
     Ft8Profile,
     WsprProfile,
@@ -81,7 +81,7 @@ class output(object):
         return True
 
 
-class dsp(object):
+class dsp(DirewolfConfigSubscriber):
     def __init__(self, output):
         self.samp_rate = 250000
         self.output_rate = 11025
@@ -136,7 +136,7 @@ class dsp(object):
 
         self.is_service = False
         self.direwolf_config = None
-        self.direwolf_port = None
+        self.direwolf_config_path = None
         self.process = None
 
     def set_service(self, flag=True):
@@ -382,7 +382,7 @@ class dsp(object):
             if_samp_rate=self.if_samp_rate(),
             last_decimation=self.last_decimation,
             audio_rate=self.get_audio_rate(),
-            direwolf_config=self.direwolf_config,
+            direwolf_config=self.direwolf_config_path,
         )
 
         logger.debug("secondary command (demod) = %s", secondary_command_demod)
@@ -443,7 +443,7 @@ class dsp(object):
             self.output.send_output("js8_demod", chopper.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
-            kiss = KissClient(self.direwolf_port)
+            kiss = KissClient(self.direwolf_config.getPort())
             self.output.send_output("packet_demod", kiss.read)
         elif self.isPocsag():
             self.output.send_output("pocsag_demod", self.secondary_process_demod.stdout.readline)
@@ -750,27 +750,34 @@ class dsp(object):
 
     def try_create_configs(self, command):
         if "{direwolf_config}" in command:
-            self.direwolf_config = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
+            self.direwolf_config_path = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
                 tmp_dir=self.temporary_directory, myid=id(self)
             )
-            self.direwolf_port = KissClient.getFreePort()
-            file = open(self.direwolf_config, "w")
-            file.write(DirewolfConfig().getConfig(self.direwolf_port, self.is_service))
+            self.direwolf_config = DirewolfConfig()
+            self.direwolf_config.wire(self)
+            file = open(self.direwolf_config_path, "w")
+            file.write(self.direwolf_config.getConfig(self.is_service))
             file.close()
         else:
             self.direwolf_config = None
-            self.direwolf_port = None
+            self.direwolf_config_path = None
 
     def try_delete_configs(self):
-        if self.direwolf_config:
+        if self.direwolf_config is not None:
+            self.direwolf_config.unwire(self)
+            self.direwolf_config = None
+        if self.direwolf_config_path is not None:
             try:
-                os.unlink(self.direwolf_config)
+                os.unlink(self.direwolf_config_path)
             except FileNotFoundError:
                 # result suits our expectations. fine :)
                 pass
             except Exception:
                 logger.exception("try_delete_configs()")
-            self.direwolf_config = None
+            self.direwolf_config_path = None
+
+    def onConfigChanged(self):
+        self.restart()
 
     def start(self):
         with self.modification_lock:
@@ -882,6 +889,7 @@ class dsp(object):
             self.stop_secondary_demodulator()
 
             self.try_delete_pipes(self.pipe_names)
+            self.try_delete_configs()
 
     def restart(self):
         if not self.running:

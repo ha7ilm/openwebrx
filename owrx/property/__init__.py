@@ -103,14 +103,15 @@ class PropertyManager(ABC):
     def _fireCallbacks(self, changes):
         if not changes:
             return
-        for c in self.subscribers:
+        subscribers = self.subscribers.copy()
+        for c in subscribers:
             try:
                 if c.getName() is None:
                     c.call(changes)
             except Exception:
                 logger.exception("exception while firing changes")
         for name in changes:
-            for c in self.subscribers:
+            for c in subscribers:
                 try:
                     if c.getName() == name:
                         c.call(changes[name])
