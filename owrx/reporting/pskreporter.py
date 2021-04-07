@@ -9,7 +9,7 @@ from owrx.config import Config
 from owrx.version import openwebrx_version
 from owrx.locator import Locator
 from owrx.metrics import Metrics, CounterMetric
-from owrx.reporting import Reporter
+from owrx.reporting.reporter import Reporter
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,8 @@ class PskReporter(Reporter):
 
     def stop(self):
         self.cancelTimer()
+        with self.spotLock:
+            self.spots = []
 
     def __init__(self):
         self.spots = []

@@ -1,4 +1,4 @@
-from owrx.reporting import Reporter
+from owrx.reporting.reporter import Reporter
 from owrx.version import openwebrx_version
 from owrx.config import Config
 from owrx.locator import Locator
@@ -12,14 +12,13 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 
+PoisonPill = object()
+
+
 class Worker(threading.Thread):
     def __init__(self, queue: Queue):
         self.queue = queue
         self.doRun = True
-        # some constants that we don't expect to change
-        config = Config.get()
-        self.callsign = config["wsprnet_callsign"]
-        self.locator = Locator.fromCoordinates(config["receiver_gps"])
 
         super().__init__(daemon=True)
 
@@ -27,8 +26,11 @@ class Worker(threading.Thread):
         while self.doRun:
             try:
                 spot = self.queue.get()
-                self.uploadSpot(spot)
-                self.queue.task_done()
+                if spot is PoisonPill:
+                    self.doRun = False
+                else:
+                    self.uploadSpot(spot)
+                    self.queue.task_done()
             except Exception:
                 logger.exception("Exception while uploading WSPRNet spot")
 
@@ -40,6 +42,7 @@ class Worker(threading.Thread):
         return interval
 
     def uploadSpot(self, spot):
+        config = Config.get()
         # function=wspr&date=210114&time=1732&sig=-15&dt=0.5&drift=0&tqrg=7.040019&tcall=DF2UU&tgrid=JN48&dbm=37&version=2.3.0-rc3&rcall=DD5JFK&rgrid=JN58SC&rqrg=7.040047&mode=2
         # {'timestamp': 1610655960000, 'db': -23.0, 'dt': 0.3, 'freq': 7040048, 'drift': -1, 'msg': 'LA3JJ JO59 37', 'callsign': 'LA3JJ', 'locator': 'JO59', 'mode': 'WSPR'}
         date = datetime.fromtimestamp(spot["timestamp"] / 1000, tz=timezone.utc)
@@ -57,9 +60,8 @@ class Worker(threading.Thread):
                 "tgrid": spot["locator"],
                 "dbm": spot["dbm"],
                 "version": openwebrx_version,
-                "rcall": self.callsign,
-                "rgrid": self.locator,
-                # mode 2 = WSPR 2 minutes
+                "rcall": config["wsprnet_callsign"],
+                "rgrid": Locator.fromCoordinates(config["receiver_gps"]),
                 "mode": self._getMode(spot),
             }
         ).encode()
@@ -79,7 +81,10 @@ class WsprnetReporter(Reporter):
         metrics.addMetric("wsprnet.spots", self.spotCounter)
 
     def stop(self):
-        pass
+        while not self.queue.empty():
+            self.queue.get(timeout=1)
+            self.queue.task_done()
+        self.queue.put(PoisonPill)
 
     def spot(self, spot):
         try:

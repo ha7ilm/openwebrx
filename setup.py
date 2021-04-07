@@ -22,6 +22,7 @@ setup(
             "owrx.property",
             "owrx.form",
             "owrx.config",
+            "owrx.reporting",
             "csdr",
             "htdocs",
             "owrxadmin",
