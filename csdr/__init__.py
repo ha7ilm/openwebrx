@@ -376,7 +376,8 @@ class Dsp(DirewolfConfigSubscriber):
         if self.isWsjtMode() or self.isJs8():
             handler = AudioHandler(self, self.get_secondary_demodulator())
             handler.send_output("audio", self.secondary_process_demod.stdout.read)
-            self.output.send_output("wsjt_demod", handler.read)
+            output_type = "js8_demod" if self.isJs8() else "wsjt_demod"
+            self.output.send_output(output_type, handler.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_config.getPort())
