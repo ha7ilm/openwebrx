@@ -212,7 +212,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 srh = configProps["samp_rate"] / 2
                 frequencyRange = (cf - srh, cf + srh)
                 self.bookmarkSub = Bookmarks.getSharedInstance().subscribe(frequencyRange, sendBookmarks)
-            sendBookmarks()
+                sendBookmarks()
 
         self.configSubs.append(configProps.wire(sendConfig))
         self.configSubs.append(stack.filter("center_freq", "samp_rate").wire(updateBookmarkSubscription))
