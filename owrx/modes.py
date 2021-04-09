@@ -1,5 +1,6 @@
 from owrx.feature import FeatureDetector
 from functools import reduce
+from abc import ABCMeta, abstractmethod
 
 
 class Bandpass(object):
@@ -51,13 +52,39 @@ class DigitalMode(Mode):
         return Modes.findByModulation(self.underlying[0]).get_modulation()
 
 
-class WsjtMode(DigitalMode):
+class AudioChopperMode(DigitalMode, metaclass=ABCMeta):
     def __init__(self, modulation, name, bandpass=None, requirements=None):
         if bandpass is None:
             bandpass = Bandpass(0, 3000)
+        super().__init__(modulation, name, ["usb"], bandpass=bandpass, requirements=requirements, service=True)
+
+    @abstractmethod
+    def getProfiles(self):
+        pass
+
+
+class WsjtMode(AudioChopperMode):
+    def __init__(self, modulation, name, bandpass=None, requirements=None):
         if requirements is None:
             requirements = ["wsjt-x"]
-        super().__init__(modulation, name, ["usb"], bandpass=bandpass, requirements=requirements, service=True)
+        super().__init__(modulation, name, bandpass=bandpass, requirements=requirements)
+
+    def getProfiles(self):
+        # inline import due to circular dependencies
+        from owrx.wsjt import WsjtProfile
+        return WsjtProfile.getProfiles(self.modulation)
+
+
+class Js8Mode(AudioChopperMode):
+    def __init__(self, modulation, name, bandpass=None, requirements=None):
+        if requirements is None:
+            requirements = ["js8call"]
+        super().__init__(modulation, name, bandpass, requirements)
+
+    def getProfiles(self):
+        # inline import due to circular dependencies
+        from owrx.js8 import Js8Profiles
+        return Js8Profiles.getEnabledProfiles()
 
 
 class Modes(object):
@@ -89,9 +116,7 @@ class Modes(object):
         WsjtMode("fst4", "FST4", requirements=["wsjt-x-2-3"]),
         WsjtMode("fst4w", "FST4W", bandpass=Bandpass(1350, 1650), requirements=["wsjt-x-2-3"]),
         WsjtMode("q65", "Q65", requirements=["wsjt-x-2-4"]),
-        DigitalMode(
-            "js8", "JS8Call", underlying=["usb"], bandpass=Bandpass(0, 3000), requirements=["js8call"], service=True
-        ),
+        Js8Mode("js8", "JS8Call"),
         DigitalMode(
             "packet",
             "Packet",

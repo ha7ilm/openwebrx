@@ -39,6 +39,25 @@ class WsjtProfile(AudioChopperProfile, metaclass=ABCMeta):
     def getMode(self):
         pass
 
+    @staticmethod
+    def getProfiles(mode: str):
+        if mode == "ft8":
+            return [Ft8Profile()]
+        elif mode == "wspr":
+            return [WsprProfile()]
+        elif mode == "jt65":
+            return [Jt65Profile()]
+        elif mode == "jt9":
+            return [Jt9Profile()]
+        elif mode == "ft4":
+            return [Ft4Profile()]
+        elif mode == "fst4":
+            return Fst4Profile.getEnabledProfiles()
+        elif mode == "fst4w":
+            return Fst4wProfile.getEnabledProfiles()
+        elif mode == "q65":
+            return Q65Profile.getEnabledProfiles()
+
 
 class Ft8Profile(WsjtProfile):
     def getInterval(self):

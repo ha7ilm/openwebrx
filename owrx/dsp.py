@@ -8,7 +8,8 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from owrx.config.core import CoreConfig
-from csdr import csdr
+from csdr.output import Output
+from csdr import Dsp
 import threading
 import re
 
@@ -26,7 +27,7 @@ class ModulationValidator(OrValidator):
         super().__init__(BoolValidator(), RegexValidator(re.compile("^[a-z0-9]+$")))
 
 
-class DspManager(csdr.output, SdrSourceEventClient):
+class DspManager(Output, SdrSourceEventClient):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
@@ -75,7 +76,7 @@ class DspManager(csdr.output, SdrSourceEventClient):
             ),
         )
 
-        self.dsp = csdr.dsp(self)
+        self.dsp = Dsp(self)
         self.dsp.nc_port = self.sdrSource.getPort()
 
         def set_low_cut(cut):

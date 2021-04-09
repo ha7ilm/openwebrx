@@ -10,7 +10,6 @@ from multiprocessing.connection import Pipe, wait
 from datetime import datetime, timedelta
 from queue import Queue, Full, Empty
 
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -169,9 +168,8 @@ class AudioChopperProfile(ABC):
 
 
 class AudioWriter(object):
-    def __init__(self, dsp, source, profile: AudioChopperProfile):
-        self.dsp = dsp
-        self.source = source
+    def __init__(self, active_dsp: "csdr.csdr.Dsp", profile: AudioChopperProfile):
+        self.dsp = active_dsp
         self.profile = profile
         self.tmp_dir = CoreConfig().get_temporary_directory()
         self.wavefile = None
@@ -289,9 +287,9 @@ class AudioWriter(object):
 
 
 class AudioChopper(threading.Thread, metaclass=ABCMeta):
-    def __init__(self, dsp, source, *profiles: AudioChopperProfile):
-        self.source = source
-        self.writers = [AudioWriter(dsp, source, p) for p in profiles]
+    def __init__(self, active_dsp: "csdr.csdr.Dsp", readfn: callable, *profiles: AudioChopperProfile):
+        self.readfn = readfn
+        self.writers = [AudioWriter(active_dsp, p) for p in profiles]
         self.doRun = True
         super().__init__()
 
@@ -302,7 +300,7 @@ class AudioChopper(threading.Thread, metaclass=ABCMeta):
         while self.doRun:
             data = None
             try:
-                data = self.source.read(256)
+                data = self.readfn(256)
             except ValueError:
                 pass
             if data is None or (isinstance(data, bytes) and len(data) == 0):

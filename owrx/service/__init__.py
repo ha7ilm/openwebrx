@@ -2,7 +2,8 @@ import threading
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
-from csdr.csdr import dsp, output
+from csdr.output import Output
+from csdr import Dsp
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.js8 import Js8Parser
@@ -20,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ServiceOutput(output, metaclass=ABCMeta):
+class ServiceOutput(Output, metaclass=ABCMeta):
     def __init__(self, frequency):
         self.frequency = frequency
 
@@ -286,7 +287,7 @@ class ServiceHandler(SdrSourceEventClient):
             output = Js8ServiceOutput(frequency)
         else:
             output = WsjtServiceOutput(frequency)
-        d = dsp(output)
+        d = Dsp(output)
         d.nc_port = source.getPort()
         center_freq = source.getProps()["center_freq"]
         d.set_offset_freq(frequency - center_freq)

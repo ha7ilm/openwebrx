@@ -1,6 +1,7 @@
 from owrx.config.core import CoreConfig
 from owrx.config import Config
-from csdr import csdr
+import csdr
+from csdr.output import Output
 import threading
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack
@@ -10,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SpectrumThread(csdr.output, SdrSourceEventClient):
+class SpectrumThread(Output, SdrSourceEventClient):
     def __init__(self, sdrSource):
         self.sdrSource = sdrSource
         super().__init__()
@@ -26,7 +27,7 @@ class SpectrumThread(csdr.output, SdrSourceEventClient):
             "fft_compression",
         )
 
-        self.dsp = dsp = csdr.dsp(self)
+        self.dsp = dsp = csdr.Dsp(self)
         dsp.nc_port = self.sdrSource.getPort()
         dsp.set_demodulator("fft")
 

@@ -28,19 +28,10 @@ import threading
 import math
 from functools import partial
 
+from csdr.output import Output
+
 from owrx.kiss import KissClient, DirewolfConfig, DirewolfConfigSubscriber
-from owrx.wsjt import (
-    Ft8Profile,
-    WsprProfile,
-    Jt9Profile,
-    Jt65Profile,
-    Ft4Profile,
-    Fst4Profile,
-    Fst4wProfile,
-    Q65Profile,
-)
-from owrx.js8 import Js8Profiles
-from owrx.audio import AudioChopper
+from owrx.audio.handler import AudioHandler
 
 from csdr.pipe import Pipe
 
@@ -49,40 +40,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class output(object):
-    def send_output(self, t, read_fn):
-        if not self.supports_type(t):
-            # TODO rewrite the output mechanism in a way that avoids producing unnecessary data
-            logger.warning("dumping output of type %s since it is not supported.", t)
-            threading.Thread(target=self.pump(read_fn, lambda x: None), name="csdr_pump_thread").start()
-            return
-        self.receive_output(t, read_fn)
-
-    def receive_output(self, t, read_fn):
-        pass
-
-    def pump(self, read, write):
-        def copy():
-            run = True
-            while run:
-                data = None
-                try:
-                    data = read()
-                except ValueError:
-                    pass
-                if data is None or (isinstance(data, bytes) and len(data) == 0):
-                    run = False
-                else:
-                    write(data)
-
-        return copy
-
-    def supports_type(self, t):
-        return True
-
-
-class dsp(DirewolfConfigSubscriber):
-    def __init__(self, output):
+class Dsp(DirewolfConfigSubscriber):
+    def __init__(self, output: Output):
         self.samp_rate = 250000
         self.output_rate = 11025
         self.hd_output_rate = 44100
@@ -414,33 +373,10 @@ class dsp(DirewolfConfigSubscriber):
         )
         self.secondary_processes_running = True
 
-        if self.isWsjtMode():
-            smd = self.get_secondary_demodulator()
-            chopper_profiles = None
-            if smd == "ft8":
-                chopper_profiles = [Ft8Profile()]
-            elif smd == "wspr":
-                chopper_profiles = [WsprProfile()]
-            elif smd == "jt65":
-                chopper_profiles = [Jt65Profile()]
-            elif smd == "jt9":
-                chopper_profiles = [Jt9Profile()]
-            elif smd == "ft4":
-                chopper_profiles = [Ft4Profile()]
-            elif smd == "fst4":
-                chopper_profiles = Fst4Profile.getEnabledProfiles()
-            elif smd == "fst4w":
-                chopper_profiles = Fst4wProfile.getEnabledProfiles()
-            elif smd == "q65":
-                chopper_profiles = Q65Profile.getEnabledProfiles()
-            if chopper_profiles is not None and len(chopper_profiles):
-                chopper = AudioChopper(self, self.secondary_process_demod.stdout, *chopper_profiles)
-                chopper.start()
-                self.output.send_output("wsjt_demod", chopper.read)
-        elif self.isJs8():
-            chopper = AudioChopper(self, self.secondary_process_demod.stdout, *Js8Profiles.getEnabledProfiles())
-            chopper.start()
-            self.output.send_output("js8_demod", chopper.read)
+        if self.isWsjtMode() or self.isJs8():
+            handler = AudioHandler(self, self.get_secondary_demodulator())
+            handler.send_output("audio", self.secondary_process_demod.stdout.read)
+            self.output.send_output("wsjt_demod", handler.read)
         elif self.isPacket():
             # we best get the ax25 packets from the kiss socket
             kiss = KissClient(self.direwolf_config.getPort())

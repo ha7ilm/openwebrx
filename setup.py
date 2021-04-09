@@ -23,6 +23,7 @@ setup(
             "owrx.form",
             "owrx.config",
             "owrx.reporting",
+            "owrx.audio",
             "csdr",
             "htdocs",
             "owrxadmin",
