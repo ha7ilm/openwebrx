@@ -4,7 +4,7 @@ from owrx.audio import AudioChopper
 
 
 class AudioHandler(Output):
-    def __init__(self, active_dsp: "csdr.csdr.Dsp", mode: str):
+    def __init__(self, active_dsp, mode: str):
         self.dsp = active_dsp
         self.mode = Modes.findByModulation(mode)
         if mode is None or not isinstance(self.mode, AudioChopperMode):
