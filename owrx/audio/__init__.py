@@ -168,7 +168,7 @@ class AudioChopperProfile(ABC):
 
 
 class AudioWriter(object):
-    def __init__(self, active_dsp: "csdr.csdr.Dsp", profile: AudioChopperProfile):
+    def __init__(self, active_dsp, profile: AudioChopperProfile):
         self.dsp = active_dsp
         self.profile = profile
         self.tmp_dir = CoreConfig().get_temporary_directory()
@@ -287,7 +287,7 @@ class AudioWriter(object):
 
 
 class AudioChopper(threading.Thread, metaclass=ABCMeta):
-    def __init__(self, active_dsp: "csdr.csdr.Dsp", readfn: callable, *profiles: AudioChopperProfile):
+    def __init__(self, active_dsp, readfn: callable, *profiles: AudioChopperProfile):
         self.readfn = readfn
         self.writers = [AudioWriter(active_dsp, p) for p in profiles]
         self.doRun = True
