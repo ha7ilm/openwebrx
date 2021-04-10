@@ -10,6 +10,7 @@ from multiprocessing.connection import Pipe, wait
 from datetime import datetime, timedelta
 from queue import Queue, Full, Empty
 from itertools import groupby
+from typing import List
 
 import logging
 
@@ -214,7 +215,7 @@ class WaveFile(object):
 
 
 class AudioWriter(object):
-    def __init__(self, active_dsp, interval, profiles: list[AudioChopperProfile]):
+    def __init__(self, active_dsp, interval, profiles: List[AudioChopperProfile]):
         self.dsp = active_dsp
         self.interval = interval
         self.profiles = profiles
