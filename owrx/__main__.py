@@ -9,7 +9,7 @@ from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
-from owrx.audio import DecoderQueue
+from owrx.audio.queue import DecoderQueue
 import signal
 
 import logging
