@@ -1,30 +1,18 @@
-from .audio import AudioChopperProfile
-from .parser import Parser
+from owrx.audio import AudioChopperProfile, ConfigWiredProfileSource
+from owrx.parser import Parser
 import re
 from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
-from .map import Map, LocatorLocation
-from .metrics import Metrics, CounterMetric
-from .config import Config
+from owrx.map import Map, LocatorLocation
+from owrx.metrics import Metrics, CounterMetric
+from owrx.config import Config
 from abc import ABCMeta, abstractmethod
 from owrx.reporting import ReportingEngine
+from typing import List
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class Js8Profiles(object):
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["js8_enabled_profiles"] if "js8_enabled_profiles" in config else []
-        return [Js8Profiles.loadProfile(p) for p in profiles]
-
-    @staticmethod
-    def loadProfile(profileName):
-        className = "Js8{0}Profile".format(profileName[0].upper() + profileName[1:].lower())
-        return globals()[className]()
 
 
 class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
@@ -45,6 +33,20 @@ class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
     @abstractmethod
     def get_sub_mode(self):
         pass
+
+
+class Js8ProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["js8_enabled_profiles"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["js8_enabled_profiles"] if "js8_enabled_profiles" in config else []
+        return [self._loadProfile(p) for p in profiles]
+
+    def _loadProfile(self, profileName):
+        className = "Js8{0}Profile".format(profileName[0].upper() + profileName[1:].lower())
+        return globals()[className]()
 
 
 class Js8NormalProfile(Js8Profile):

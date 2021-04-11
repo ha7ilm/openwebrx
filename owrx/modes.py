@@ -1,4 +1,5 @@
 from owrx.feature import FeatureDetector
+from owrx.audio import ProfileSource
 from functools import reduce
 from abc import ABCMeta, abstractmethod
 
@@ -59,7 +60,7 @@ class AudioChopperMode(DigitalMode, metaclass=ABCMeta):
         super().__init__(modulation, name, ["usb"], bandpass=bandpass, requirements=requirements, service=True)
 
     @abstractmethod
-    def getProfiles(self):
+    def get_profile_source(self) -> ProfileSource:
         pass
 
 
@@ -69,10 +70,10 @@ class WsjtMode(AudioChopperMode):
             requirements = ["wsjt-x"]
         super().__init__(modulation, name, bandpass=bandpass, requirements=requirements)
 
-    def getProfiles(self):
+    def get_profile_source(self) -> ProfileSource:
         # inline import due to circular dependencies
-        from owrx.wsjt import WsjtProfile
-        return WsjtProfile.getProfiles(self.modulation)
+        from owrx.wsjt import WsjtProfiles
+        return WsjtProfiles.getSource(self.modulation)
 
 
 class Js8Mode(AudioChopperMode):
@@ -81,10 +82,10 @@ class Js8Mode(AudioChopperMode):
             requirements = ["js8call"]
         super().__init__(modulation, name, bandpass, requirements)
 
-    def getProfiles(self):
+    def get_profile_source(self) -> ProfileSource:
         # inline import due to circular dependencies
-        from owrx.js8 import Js8Profiles
-        return Js8Profiles.getEnabledProfiles()
+        from owrx.js8 import Js8ProfileSource
+        return Js8ProfileSource()
 
 
 class Modes(object):

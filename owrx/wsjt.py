@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
+from typing import List
+
 from owrx.map import Map, LocatorLocation
 import re
 from owrx.metrics import Metrics, CounterMetric
 from owrx.reporting import ReportingEngine
 from owrx.parser import Parser
-from owrx.audio import AudioChopperProfile
+from owrx.audio import AudioChopperProfile, StaticProfileSource, ConfigWiredProfileSource
 from abc import ABC, ABCMeta, abstractmethod
 from owrx.config import Config
 from enum import Enum
@@ -39,24 +41,69 @@ class WsjtProfile(AudioChopperProfile, metaclass=ABCMeta):
     def getMode(self):
         pass
 
+
+class Fst4ProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["fst4_enabled_intervals"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["fst4_enabled_intervals"] if "fst4_enabled_intervals" in config else []
+        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
+
+
+class Fst4wProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["fst4w_enabled_intervals"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
+        return [Fst4wProfile(i) for i in profiles if i in Fst4wProfile.availableIntervals]
+
+
+class Q65ProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["q65_enabled_combinations"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["q65_enabled_combinations"] if "q65_enabled_combinations" in config else []
+
+        def buildProfile(modestring):
+            try:
+                mode = Q65Mode[modestring[0]]
+                interval = Q65Interval(int(modestring[1:]))
+                if interval.is_available(mode):
+                    return Q65Profile(interval, mode)
+            except (ValueError, KeyError):
+                pass
+            logger.warning('"%s" is not a valid Q65 mode, or an invalid mode string, ignoring', modestring)
+            return None
+
+        mapped = [buildProfile(m) for m in profiles]
+        return [p for p in mapped if p is not None]
+
+
+class WsjtProfiles(object):
     @staticmethod
-    def getProfiles(mode: str):
+    def getSource(mode: str):
         if mode == "ft8":
-            return [Ft8Profile()]
+            return StaticProfileSource([Ft8Profile()])
         elif mode == "wspr":
-            return [WsprProfile()]
+            return StaticProfileSource([WsprProfile()])
         elif mode == "jt65":
-            return [Jt65Profile()]
+            return StaticProfileSource([Jt65Profile()])
         elif mode == "jt9":
-            return [Jt9Profile()]
+            return StaticProfileSource([Jt9Profile()])
         elif mode == "ft4":
-            return [Ft4Profile()]
+            return StaticProfileSource([Ft4Profile()])
         elif mode == "fst4":
-            return Fst4Profile.getEnabledProfiles()
+            return Fst4ProfileSource()
         elif mode == "fst4w":
-            return Fst4wProfile.getEnabledProfiles()
+            return Fst4wProfileSource()
         elif mode == "q65":
-            return Q65Profile.getEnabledProfiles()
+            return Q65ProfileSource()
 
 
 class Ft8Profile(WsjtProfile):
@@ -133,12 +180,6 @@ class Fst4Profile(WsjtProfile):
     def getMode(self):
         return "FST4"
 
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["fst4_enabled_intervals"] if "fst4_enabled_intervals" in config else []
-        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
-
 
 class Fst4wProfile(WsjtProfile):
     availableIntervals = [120, 300, 900, 1800]
@@ -154,12 +195,6 @@ class Fst4wProfile(WsjtProfile):
 
     def getMode(self):
         return "FST4W"
-
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
-        return [Fst4wProfile(i) for i in profiles if i in Fst4wProfile.availableIntervals]
 
 
 class Q65Mode(Enum):
@@ -208,25 +243,6 @@ class Q65Profile(WsjtProfile):
 
     def decoder_commandline(self, file):
         return ["jt9", "--q65", "-p", str(self.interval), "-b", self.mode.name, "-d", str(self.decoding_depth()), file]
-
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["q65_enabled_combinations"] if "q65_enabled_combinations" in config else []
-
-        def buildProfile(modestring):
-            try:
-                mode = Q65Mode[modestring[0]]
-                interval = Q65Interval(int(modestring[1:]))
-                if interval.is_available(mode):
-                    return Q65Profile(interval, mode)
-            except (ValueError, KeyError):
-                pass
-            logger.warning('"%s" is not a valid Q65 mode, or an invalid mode string, ignoring', modestring)
-            return None
-
-        mapped = [buildProfile(m) for m in profiles]
-        return [p for p in mapped if p is not None]
 
 
 class WsjtParser(Parser):
