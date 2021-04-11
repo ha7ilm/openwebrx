@@ -84,40 +84,39 @@ class Js8TurboProfile(Js8Profile):
 class Js8Parser(Parser):
     decoderRegex = re.compile(" ?<Decode(Started|Debug|Finished)>")
 
-    def parse(self, messages):
-        for raw in messages:
-            try:
-                profile, freq, raw_msg = raw
-                self.setDialFrequency(freq)
-                msg = raw_msg.decode().rstrip()
-                if Js8Parser.decoderRegex.match(msg):
-                    return
-                if msg.startswith(" EOF on input file"):
-                    return
+    def parse(self, raw):
+        try:
+            profile, freq, raw_msg = raw
+            self.setDialFrequency(freq)
+            msg = raw_msg.decode().rstrip()
+            if Js8Parser.decoderRegex.match(msg):
+                return
+            if msg.startswith(" EOF on input file"):
+                return
 
-                frame = Js8().parse_message(msg)
-                self.handler.write_js8_message(frame, self.dial_freq)
+            frame = Js8().parse_message(msg)
+            self.handler.write_js8_message(frame, self.dial_freq)
 
-                self.pushDecode()
+            self.pushDecode()
 
-                if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
-                    Map.getSharedInstance().updateLocation(
-                        frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
-                    )
-                    ReportingEngine.getSharedInstance().spot(
-                        {
-                            "callsign": frame.callsign,
-                            "mode": "JS8",
-                            "locator": frame.grid,
-                            "freq": self.dial_freq + frame.freq,
-                            "db": frame.db,
-                            "timestamp": frame.timestamp,
-                            "msg": str(frame),
-                        }
-                    )
+            if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
+                Map.getSharedInstance().updateLocation(
+                    frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
+                )
+                ReportingEngine.getSharedInstance().spot(
+                    {
+                        "callsign": frame.callsign,
+                        "mode": "JS8",
+                        "locator": frame.grid,
+                        "freq": self.dial_freq + frame.freq,
+                        "db": frame.db,
+                        "timestamp": frame.timestamp,
+                        "msg": str(frame),
+                    }
+                )
 
-            except Exception:
-                logger.exception("error while parsing js8 message")
+        except Exception:
+            logger.exception("error while parsing js8 message")
 
     def pushDecode(self):
         metrics = Metrics.getSharedInstance()

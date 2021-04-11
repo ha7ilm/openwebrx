@@ -246,44 +246,43 @@ class Q65Profile(WsjtProfile):
 
 
 class WsjtParser(Parser):
-    def parse(self, messages):
-        for data in messages:
-            try:
-                profile, freq, raw_msg = data
-                self.setDialFrequency(freq)
-                msg = raw_msg.decode().rstrip()
-                # known debug messages we know to skip
-                if msg.startswith("<DecodeFinished>"):
-                    return
-                if msg.startswith(" EOF on input file"):
-                    return
+    def parse(self, data):
+        try:
+            profile, freq, raw_msg = data
+            self.setDialFrequency(freq)
+            msg = raw_msg.decode().rstrip()
+            # known debug messages we know to skip
+            if msg.startswith("<DecodeFinished>"):
+                return
+            if msg.startswith(" EOF on input file"):
+                return
 
-                mode = profile.getMode()
-                if mode in ["WSPR", "FST4W"]:
-                    messageParser = BeaconMessageParser()
-                else:
-                    messageParser = QsoMessageParser()
-                if mode == "WSPR":
-                    decoder = WsprDecoder(profile, messageParser)
-                else:
-                    decoder = Jt9Decoder(profile, messageParser)
-                out = decoder.parse(msg, freq)
-                if isinstance(profile, Q65Profile) and not out["msg"]:
-                    # all efforts in vain, it's just a potential signal indicator
-                    return
-                out["mode"] = mode
-                out["interval"] = profile.getInterval()
+            mode = profile.getMode()
+            if mode in ["WSPR", "FST4W"]:
+                messageParser = BeaconMessageParser()
+            else:
+                messageParser = QsoMessageParser()
+            if mode == "WSPR":
+                decoder = WsprDecoder(profile, messageParser)
+            else:
+                decoder = Jt9Decoder(profile, messageParser)
+            out = decoder.parse(msg, freq)
+            if isinstance(profile, Q65Profile) and not out["msg"]:
+                # all efforts in vain, it's just a potential signal indicator
+                return
+            out["mode"] = mode
+            out["interval"] = profile.getInterval()
 
-                self.pushDecode(mode)
-                if "callsign" in out and "locator" in out:
-                    Map.getSharedInstance().updateLocation(
-                        out["callsign"], LocatorLocation(out["locator"]), mode, self.band
-                    )
-                    ReportingEngine.getSharedInstance().spot(out)
+            self.pushDecode(mode)
+            if "callsign" in out and "locator" in out:
+                Map.getSharedInstance().updateLocation(
+                    out["callsign"], LocatorLocation(out["locator"]), mode, self.band
+                )
+                ReportingEngine.getSharedInstance().spot(out)
 
-                self.handler.write_wsjt_message(out)
-            except Exception:
-                logger.exception("Exception while parsing wsjt message")
+            self.handler.write_wsjt_message(out)
+        except Exception:
+            logger.exception("Exception while parsing wsjt message")
 
     def pushDecode(self, mode):
         metrics = Metrics.getSharedInstance()

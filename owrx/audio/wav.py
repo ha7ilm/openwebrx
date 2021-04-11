@@ -38,14 +38,14 @@ class WaveFile(object):
 
 
 class AudioWriter(object):
-    def __init__(self, active_dsp, interval, profiles: List[AudioChopperProfile]):
+    def __init__(self, active_dsp, outputWriter, interval, profiles: List[AudioChopperProfile]):
         self.dsp = active_dsp
+        self.outputWriter = outputWriter
         self.interval = interval
         self.profiles = profiles
         self.wavefile = None
         self.switchingLock = threading.Lock()
         self.timer = None
-        (self.outputReader, self.outputWriter) = Pipe()
 
     def getWaveFile(self):
         tmp_dir = CoreConfig().get_temporary_directory()
@@ -114,19 +114,6 @@ class AudioWriter(object):
             self.wavefile.writeframes(data)
 
     def stop(self):
-        self.outputWriter.close()
-        self.outputWriter = None
-
-        # drain messages left in the queue so that the queue can be successfully closed
-        # this is necessary since python keeps the file descriptors open otherwise
-        try:
-            while True:
-                self.outputReader.recv()
-        except EOFError:
-            pass
-        self.outputReader.close()
-        self.outputReader = None
-
         self.cancelTimer()
         try:
             self.wavefile.close()

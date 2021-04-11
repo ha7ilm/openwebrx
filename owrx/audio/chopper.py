@@ -22,8 +22,7 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
         if mode is None or not isinstance(mode, AudioChopperMode):
             raise ValueError("Mode {} is not an audio chopper mode".format(mode_str))
         self.profile_source = mode.get_profile_source()
-        self.writersChangedOut = None
-        self.writersChangedIn = None
+        (self.outputReader, self.outputWriter) = Pipe()
         super().__init__()
 
     def stop_writers(self):
@@ -34,11 +33,10 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
         self.stop_writers()
         sorted_profiles = sorted(self.profile_source.getProfiles(), key=lambda p: p.getInterval())
         groups = {interval: list(group) for interval, group in groupby(sorted_profiles, key=lambda p: p.getInterval())}
-        writers = [AudioWriter(self.dsp, interval, profiles) for interval, profiles in groups.items()]
+        writers = [AudioWriter(self.dsp, self.outputWriter, interval, profiles) for interval, profiles in groups.items()]
         for w in writers:
             w.start()
         self.writers = writers
-        self.writersChangedOut.send(None)
 
     def supports_type(self, t):
         return t == "audio"
@@ -49,7 +47,6 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
 
     def run(self) -> None:
         logger.debug("Audio chopper starting up")
-        self.writersChangedIn, self.writersChangedOut = Pipe()
         self.setup_writers()
         self.profile_source.subscribe(self)
         while self.doRun:
@@ -67,20 +64,25 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
         logger.debug("Audio chopper shutting down")
         self.profile_source.unsubscribe(self)
         self.stop_writers()
-        self.writersChangedOut.close()
-        self.writersChangedIn.close()
+        self.outputWriter.close()
+        self.outputWriter = None
+
+        # drain messages left in the queue so that the queue can be successfully closed
+        # this is necessary since python keeps the file descriptors open otherwise
+        try:
+            while True:
+                self.outputReader.recv()
+        except EOFError:
+            pass
+        self.outputReader.close()
+        self.outputReader = None
 
     def onProfilesChanged(self):
         logger.debug("profile change received, resetting writers...")
         self.setup_writers()
 
     def read(self):
-        while True:
-            try:
-                readers = wait([w.outputReader for w in self.writers] + [self.writersChangedIn])
-                received = [(r, r.recv()) for r in readers]
-                data = [d for r, d in received if r is not self.writersChangedIn]
-                if data:
-                    return data
-            except (EOFError, OSError):
-                return None
+        try:
+            return self.outputReader.recv()
+        except (EOFError, OSError):
+            return None
