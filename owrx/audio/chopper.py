@@ -34,9 +34,10 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
         self.stop_writers()
         sorted_profiles = sorted(self.profile_source.getProfiles(), key=lambda p: p.getInterval())
         groups = {interval: list(group) for interval, group in groupby(sorted_profiles, key=lambda p: p.getInterval())}
-        self.writers = [AudioWriter(self.dsp, interval, profiles) for interval, profiles in groups.items()]
-        for w in self.writers:
+        writers = [AudioWriter(self.dsp, interval, profiles) for interval, profiles in groups.items()]
+        for w in writers:
             w.start()
+        self.writers = writers
         self.writersChangedOut.send(None)
 
     def supports_type(self, t):
@@ -48,7 +49,7 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
 
     def run(self) -> None:
         logger.debug("Audio chopper starting up")
-        self.writersChangedOut, self.writersChangedIn = Pipe()
+        self.writersChangedIn, self.writersChangedOut = Pipe()
         self.setup_writers()
         self.profile_source.subscribe(self)
         while self.doRun:
