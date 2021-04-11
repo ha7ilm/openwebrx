@@ -72,7 +72,9 @@ Support and info:       https://groups.io/g/openwebrx
         server = ThreadedHttpServer(("0.0.0.0", coreConfig.get_web_port()), RequestHandler)
         server.serve_forever()
     except SignalException:
-        WebSocketConnection.closeAll()
-        Services.stop()
-        ReportingEngine.stopAll()
-        DecoderQueue.stopAll()
+        pass
+
+    WebSocketConnection.closeAll()
+    Services.stop()
+    ReportingEngine.stopAll()
+    DecoderQueue.stopAll()
