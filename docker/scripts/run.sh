@@ -4,9 +4,6 @@ set -euo pipefail
 mkdir -p /etc/openwebrx/openwebrx.conf.d
 mkdir -p /var/lib/openwebrx
 mkdir -p /tmp/openwebrx/
-if [[ ! -f /etc/openwebrx/config_webrx.py ]] ; then
-  cp config_webrx.py /etc/openwebrx
-fi
 if [[ ! -f /etc/openwebrx/openwebrx.conf.d/20-temporary-directory.conf ]] ; then
   cat << EOF > /etc/openwebrx/openwebrx.conf.d/20-temporary-directory.conf
 [core]
