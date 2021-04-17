@@ -16,6 +16,7 @@ class ClassicConfig(PropertyReadOnly):
                 return ClassicConfig._loadPythonFile(file)
             except FileNotFoundError:
                 pass
+        return PropertyLayer()
 
     @staticmethod
     def _toLayer(dictionary: dict):
