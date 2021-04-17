@@ -28,7 +28,7 @@ defaultConfig = PropertyLayer(
             profiles=PropertyLayer(
                 **{
                     "70cm": PropertyLayer(
-                        name="70cm Relais",
+                        name="70cm Repeaters",
                         center_freq=438800000,
                         rf_gain=29,
                         samp_rate=2400000,
@@ -36,7 +36,7 @@ defaultConfig = PropertyLayer(
                         start_mod="nfm",
                     ),
                     "2m": PropertyLayer(
-                        name="2m komplett",
+                        name="2m",
                         center_freq=145000000,
                         rf_gain=29,
                         samp_rate=2048000,
