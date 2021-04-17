@@ -281,6 +281,9 @@ class NewSdrDeviceController(SettingsFormController):
                     "type",
                     "Device type",
                     [Option(sdr_type, name) for sdr_type, name in SdrDeviceDescription.getTypes().items()],
+                    infotext="Note: Switching the type will not be possible after creation since the set of available "
+                    + "options is different for each type.<br />Note: This dropdown only shows device types that have "
+                    + "their requirements met. If a type is missing from the list, please check the feature report.",
                 ),
                 TextInput("id", "Device ID", validator=RequiredValidator()),
             )
