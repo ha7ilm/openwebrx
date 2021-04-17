@@ -32,6 +32,20 @@ config_webrx: configuration options for OpenWebRX
     and use them for running your web service with OpenWebRX.)
 """
 
+"""
+DEPRECATION notice
+
+As of OpenWebRX 0.21, the configuration system has been completely overhauled.
+The configuration of OpenWebRX should now be done in the new web-based
+configuration interface exclusively.
+
+Existing configurations can still be used, but their values will be migrated
+to the new storage infrastructure as soon as the web configuration is used to
+edit them.
+
+The new configuration storage is not intended to be edited manually.
+"""
+
 # configuration version. please only modify if you're able to perform the associated migration steps.
 version = 7
 
