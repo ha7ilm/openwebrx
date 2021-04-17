@@ -7,4 +7,5 @@ class PlutoSdrSource(SoapyConnectorSource):
 
 
 class PlutoSdrDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "PlutoSDR"

@@ -50,6 +50,9 @@ class AttenuatorOptions(DropdownEnum):
 
 
 class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
+    def getName(self):
+        return "Perseus SDR"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             DropdownInput("attenuator", "Attenuator", options=AttenuatorOptions),

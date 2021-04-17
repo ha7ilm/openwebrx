@@ -21,6 +21,9 @@ class SoapyRemoteSource(SoapyConnectorSource):
 
 
 class SoapyRemoteDeviceDescription(SoapyConnectorDeviceDescription):
+    def getName(self):
+        return "Device connected to a SoapyRemote server"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             RemoteInput(),

@@ -7,4 +7,5 @@ class LimeSdrSource(SoapyConnectorSource):
 
 
 class LimeSdrDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "LimeSDR device"

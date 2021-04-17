@@ -20,6 +20,9 @@ class AirspySource(SoapyConnectorSource):
 
 
 class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
+    def getName(self):
+        return "Airspy R2 or Mini"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             BiasTeeInput(),

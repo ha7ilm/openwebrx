@@ -17,6 +17,7 @@ from owrx.form.converter import OptionalConverter
 from owrx.form.device import GainInput, SchedulerInput, WaterfallLevelsInput
 from owrx.form.validator import RequiredValidator
 from owrx.controllers.settings import Section
+from owrx.feature import FeatureDetector
 from typing import List
 from enum import Enum
 
@@ -543,14 +544,27 @@ class SdrDeviceDescription(object):
 
     @staticmethod
     def getTypes():
-        def has_description(module_name):
+        def get_description(module_name):
             try:
-                SdrDeviceDescription.getByType(module_name)
-                return True
+                description = SdrDeviceDescription.getByType(module_name)
+                return description.getName()
             except SdrDeviceDescriptionMissing:
-                return False
+                return None
 
-        return [module_name for _, module_name, _ in pkgutil.walk_packages(__path__) if has_description(module_name)]
+        descriptions = {
+            module_name: get_description(module_name) for _, module_name, _ in pkgutil.walk_packages(__path__)
+        }
+        # filter out empty names and unavailable types
+        fd = FeatureDetector()
+        return {k: v for k, v in descriptions.items() if v is not None and fd.is_available(k)}
+
+    def getName(self):
+        """
+        must be overridden with a textual representation of the device, to be used for device type selection
+
+        :return: str
+        """
+        return None
 
     def getDeviceInputs(self) -> List[Input]:
         keys = self.getDeviceMandatoryKeys() + self.getDeviceOptionalKeys()

@@ -15,6 +15,9 @@ class RtlSdrSoapySource(SoapyConnectorSource):
 
 
 class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
+    def getName(self):
+        return "RTL-SDR device (via SoapySDR)"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [BiasTeeInput(), DirectSamplingInput()]
 

@@ -7,4 +7,5 @@ class RadioberrySource(SoapyConnectorSource):
 
 
 class RadioberryDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "RadioBerry"

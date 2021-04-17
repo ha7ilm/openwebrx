@@ -48,10 +48,11 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 )
 
                 state_info = ", ".join(
-                    s for s in [
+                    s
+                    for s in [
                         str(source.getState()),
                         None if source.isEnabled() else "Disabled",
-                        "Failed" if source.isFailed() else None
+                        "Failed" if source.isFailed() else None,
                     ]
                     if s is not None
                 )
@@ -276,7 +277,11 @@ class NewSdrDeviceController(SettingsFormController):
             Section(
                 "New device settings",
                 TextInput("name", "Device name", validator=RequiredValidator()),
-                DropdownInput("type", "Device type", [Option(name, name) for name in SdrDeviceDescription.getTypes()]),
+                DropdownInput(
+                    "type",
+                    "Device type",
+                    [Option(sdr_type, name) for sdr_type, name in SdrDeviceDescription.getTypes().items()],
+                ),
                 TextInput("id", "Device ID", validator=RequiredValidator()),
             )
         ]

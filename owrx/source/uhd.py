@@ -7,4 +7,5 @@ class UhdSource(SoapyConnectorSource):
 
 
 class UhdDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "Ettus Research USRP device"

@@ -7,5 +7,8 @@ class SddcSource(ConnectorSource):
 
 
 class SddcDeviceDescription(ConnectorDeviceDescription):
+    def getName(self):
+        return "BBRF103 / RX666 / RX888 device (libsddc)"
+
     def hasAgc(self):
         return False

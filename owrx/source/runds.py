@@ -37,6 +37,9 @@ class ProtocolOptions(DropdownEnum):
 
 
 class RundsDeviceDescription(ConnectorDeviceDescription):
+    def getName(self):
+        return "R&S device using EB200 or Ammos protocol"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             RemoteInput(),

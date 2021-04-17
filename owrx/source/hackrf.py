@@ -15,6 +15,9 @@ class HackrfSource(SoapyConnectorSource):
 
 
 class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
+    def getName(self):
+        return "HackRF"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [BiasTeeInput()]
 

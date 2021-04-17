@@ -7,4 +7,5 @@ class FcdppSource(SoapyConnectorSource):
 
 
 class FcdppDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "FunCube Dongle Pro+"

@@ -7,4 +7,5 @@ class AirspyhfSource(SoapyConnectorSource):
 
 
 class AirspyhfDeviceDescription(SoapyConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "Airspy HF+ or Discovery"

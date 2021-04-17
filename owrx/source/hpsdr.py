@@ -36,4 +36,5 @@ class HpsdrSource(ConnectorSource):
 
 
 class HpsdrDeviceDescription(ConnectorDeviceDescription):
-    pass
+    def getName(self):
+        return "HPSDR devices (Hermes / Hermes Lite 2 / Red Pitaya)"

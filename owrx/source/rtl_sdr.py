@@ -16,6 +16,9 @@ class RtlSdrSource(ConnectorSource):
 
 
 class RtlSdrDeviceDescription(ConnectorDeviceDescription):
+    def getName(self):
+        return "RTL-SDR device"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             TextInput(

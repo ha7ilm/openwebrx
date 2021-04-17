@@ -22,6 +22,9 @@ class RtlTcpSource(ConnectorSource):
 
 
 class RtlTcpDeviceDescription(ConnectorDeviceDescription):
+    def getName(self):
+        return "RTL-SDR device (via rtl_tcp)"
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [RemoteInput()]
 

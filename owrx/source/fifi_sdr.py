@@ -40,4 +40,5 @@ class FifiSdrSource(DirectSource):
 
 
 class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
-    pass
+    def getName(self):
+        return "FiFi SDR"
