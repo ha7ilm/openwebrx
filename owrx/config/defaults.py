@@ -17,7 +17,6 @@ defaultConfig = PropertyLayer(
     audio_compression="adpcm",
     fft_compression="adpcm",
     wfm_deemphasis_tau=50e-6,
-    digimodes_enable=True,
     digimodes_fft_size=2048,
     digital_voice_unvoiced_quality=1,
     digital_voice_dmr_id_lookup=True,

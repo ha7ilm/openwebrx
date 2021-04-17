@@ -102,7 +102,6 @@ version = 7
 # wfm_deemphasis_tau = 75e-6  # for US and South Korea
 #wfm_deemphasis_tau = 50e-6  # for the rest of the world
 
-#digimodes_enable = True  # Decoding digimodes come with higher CPU usage.
 #digimodes_fft_size = 2048
 
 # determines the quality, and thus the cpu usage, for the ambe codec used by digital voice modes

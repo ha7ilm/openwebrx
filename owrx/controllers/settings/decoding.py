@@ -43,7 +43,6 @@ class DecodingSettingsController(SettingsFormController):
             ),
             Section(
                 "Digimodes",
-                CheckboxInput("digimodes_enable", "Enable Digimodes"),
                 NumberInput("digimodes_fft_size", "Digimodes FFT size", append="bins"),
             ),
             Section(
