@@ -14,6 +14,8 @@ from owrx.form.receiverid import ReceiverKeysConverter
 from owrx.form.gfx import AvatarInput, TopPhotoInput
 from owrx.form.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
 from owrx.waterfall import WaterfallOptions
+from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
+from owrx.controllers.settings import SettingsBreadcrumb
 import shutil
 import os
 from glob import glob
@@ -26,6 +28,9 @@ logger = logging.getLogger(__name__)
 class GeneralSettingsController(SettingsFormController):
     def getTitle(self):
         return "General Settings"
+
+    def get_breadcrumb(self) -> Breadcrumb:
+        return SettingsBreadcrumb().append(BreadcrumbItem("General Settings", "settings/general"))
 
     def getSections(self):
         return [

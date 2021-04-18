@@ -1,12 +1,16 @@
-from owrx.controllers.settings import SettingsFormController, Section
+from owrx.controllers.settings import SettingsFormController, Section, SettingsBreadcrumb
 from owrx.form.converter import OptionalConverter
 from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form import TextInput, CheckboxInput, DropdownInput, NumberInput
+from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 
 
 class ReportingController(SettingsFormController):
     def getTitle(self):
-        return "Spotting and Reporting"
+        return "Spotting and reporting"
+
+    def get_breadcrumb(self) -> Breadcrumb:
+        return SettingsBreadcrumb().append(BreadcrumbItem("Spotting and reporting", "settings/reporting"))
 
     def getSections(self):
         return [

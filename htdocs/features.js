@@ -13,8 +13,7 @@ $(function(){
             });
             $table.append(
                 '<tr>' +
-                    '<td colspan=2>' + name + '</td>' +
-                    '<td>' + converter.makeHtml(details.description) + '</td>' +
+                    '<td colspan=3>' + name + '</td>' +
                     '<td>' + (details.available ? 'YES' : 'NO') + '</td>' +
                 '</tr>' +
                 requirements.join("")

@@ -4,22 +4,32 @@ from owrx.controllers.settings import SettingsFormController
 from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing, SdrClientClass
 from owrx.config import Config
 from owrx.connection import OpenWebRxReceiverClient
-from owrx.controllers.settings import Section
+from owrx.controllers.settings import Section, SettingsBreadcrumb
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
 from owrx.form import TextInput, DropdownInput, Option
 from owrx.form.validator import RequiredValidator
 from owrx.property import PropertyLayer, PropertyStack
+from owrx.breadcrumb import BreadcrumbMixin, Breadcrumb, BreadcrumbItem
 from abc import ABCMeta, abstractmethod
 
 
-class SdrDeviceListController(AuthorizationMixin, WebpageController):
+class SdrDeviceBreadcrumb(SettingsBreadcrumb):
+    def __init__(self):
+        super().__init__()
+        self.append(BreadcrumbItem("SDR device settings", "settings/sdr"))
+
+
+class SdrDeviceListController(AuthorizationMixin, BreadcrumbMixin, WebpageController):
     def template_variables(self):
         variables = super().template_variables()
         variables["content"] = self.render_devices()
         variables["title"] = "SDR device settings"
         variables["modal"] = ""
         return variables
+
+    def get_breadcrumb(self):
+        return SdrDeviceBreadcrumb()
 
     def render_devices(self):
         def render_device(device_id, config):
@@ -213,6 +223,11 @@ class SdrFormControllerWithModal(SdrFormController, metaclass=ABCMeta):
 
 
 class SdrDeviceController(SdrFormControllerWithModal):
+    def get_breadcrumb(self) -> Breadcrumb:
+        return SdrDeviceBreadcrumb().append(
+            BreadcrumbItem(self.device["name"], "settings/sdr/{}".format(self.device_id))
+        )
+
     def getData(self):
         return self.device
 
@@ -271,6 +286,9 @@ class NewSdrDeviceController(SettingsFormController):
         self.stack.addLayer(0, id_layer)
         self.stack.addLayer(1, self.data_layer)
 
+    def get_breadcrumb(self) -> Breadcrumb:
+        return SdrDeviceBreadcrumb().append(BreadcrumbItem("New device", "settings/sdr/newsdr"))
+
     def getSections(self):
         return [
             Section(
@@ -312,6 +330,17 @@ class SdrProfileController(SdrFormControllerWithModal):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.profile_id, self.profile = self._get_profile()
+
+    def get_breadcrumb(self) -> Breadcrumb:
+        return (
+            SdrDeviceBreadcrumb()
+            .append(BreadcrumbItem(self.device["name"], "settings/sdr/{}".format(self.device_id)))
+            .append(
+                BreadcrumbItem(
+                    self.profile["name"], "settings/sdr/{}/profile/{}".format(self.device_id, self.profile_id)
+                )
+            )
+        )
 
     def getData(self):
         return self.profile
@@ -377,6 +406,13 @@ class NewProfileController(SdrProfileController):
         self.stack.addLayer(0, self.data_layer)
         self.stack.addLayer(1, id_layer)
         super().__init__(handler, request, options)
+
+    def get_breadcrumb(self) -> Breadcrumb:
+        return (
+            SdrDeviceBreadcrumb()
+            .append(BreadcrumbItem(self.device["name"], "settings/sdr/{}".format(self.device_id)))
+            .append(BreadcrumbItem("New profile", "settings/sdr/{}/newprofile".format(self.device_id)))
+        )
 
     def _get_profile(self):
         return "new", self.stack

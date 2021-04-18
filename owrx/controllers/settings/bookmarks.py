@@ -1,7 +1,9 @@
 from owrx.controllers.template import WebpageController
 from owrx.controllers.admin import AuthorizationMixin
+from owrx.controllers.settings import SettingsBreadcrumb
 from owrx.bookmarks import Bookmark, Bookmarks
 from owrx.modes import Modes
+from owrx.breadcrumb import Breadcrumb, BreadcrumbItem, BreadcrumbMixin
 import json
 import math
 
@@ -10,7 +12,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BookmarksController(AuthorizationMixin, WebpageController):
+class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController):
+    def get_breadcrumb(self) -> Breadcrumb:
+        return SettingsBreadcrumb().append(BreadcrumbItem("Bookmark editor", "settings/bookmarks"))
+
     def template_variables(self):
         variables = super().template_variables()
         variables["bookmarks"] = self.render_table()

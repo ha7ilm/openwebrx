@@ -2,6 +2,7 @@ from owrx.config import Config
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
 from owrx.form.error import FormError
+from owrx.breadcrumb import Breadcrumb, BreadcrumbItem, BreadcrumbMixin
 from abc import ABCMeta, abstractmethod
 from urllib.parse import parse_qs
 
@@ -50,7 +51,7 @@ class SettingsController(AuthorizationMixin, WebpageController):
         self.serve_template("settings.html", **self.template_variables())
 
 
-class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=ABCMeta):
+class SettingsFormController(AuthorizationMixin, BreadcrumbMixin, WebpageController, metaclass=ABCMeta):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.errors = {}
@@ -144,3 +145,9 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
 
     def buildModal(self):
         return ""
+
+
+class SettingsBreadcrumb(Breadcrumb):
+    def __init__(self):
+        super().__init__([])
+        self.append(BreadcrumbItem("Settings", "settings"))

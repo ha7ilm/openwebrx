@@ -99,7 +99,6 @@ class FeatureDetector(object):
 
         def feature_details(name):
             return {
-                "description": "",
                 "available": self.is_available(name),
                 "requirements": {name: requirement_details(name) for name in self.get_requirements(name)},
             }

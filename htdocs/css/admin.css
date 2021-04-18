@@ -152,3 +152,7 @@ h1 {
 .scheduler-static-time-inputs > select {
     flex: 1 0 auto;
 }
+
+.breadcrumb {
+    margin-top: .5rem;
+}

@@ -1,5 +1,6 @@
 from owrx.controllers.status import StatusController
-from owrx.controllers.template import IndexController, MapController, FeatureController
+from owrx.controllers.template import IndexController, MapController
+from owrx.controllers.feature import FeatureController
 from owrx.controllers.assets import OwrxAssetsController, AprsSymbolsController, CompiledAssetsController
 from owrx.controllers.websocket import WebSocketController
 from owrx.controllers.api import ApiController
