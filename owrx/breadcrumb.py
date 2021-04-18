@@ -7,9 +7,9 @@ class BreadcrumbItem(object):
         self.title = title
         self.href = href
 
-    def render(self, documentRoot):
-        return '<li class="breadcrumb-item"><a href="{documentRoot}{href}">{title}</a></li>'.format(
-            documentRoot=documentRoot, href=self.href, title=self.title
+    def render(self, documentRoot, active=False):
+        return '<li class="breadcrumb-item {active}"><a href="{documentRoot}{href}">{title}</a></li>'.format(
+            documentRoot=documentRoot, href=self.href, title=self.title, active="active" if active else ""
         )
 
 
@@ -21,9 +21,11 @@ class Breadcrumb(object):
         return """
             <ol class="breadcrumb">
                 {crumbs}
+                {last_crumb}
             </ol>
         """.format(
-            crumbs="".join(item.render(documentRoot) for item in self.items)
+            crumbs="".join(item.render(documentRoot) for item in self.items[:-1]),
+            last_crumb="".join(item.render(documentRoot, True) for item in self.items[-1:]),
         )
 
     def append(self, crumb: BreadcrumbItem):
