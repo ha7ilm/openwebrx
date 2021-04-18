@@ -42,5 +42,5 @@ class AuthorizationMixin(object):
             ):
                 self.send_response("{}", code=403)
             else:
-                target = "/login?{0}".format(parse.urlencode({"ref": self.request.path}))
+                target = "{}login?{}".format(self.get_document_root(), parse.urlencode({"ref": self.request.path[1:]}))
                 self.send_redirect(target)
