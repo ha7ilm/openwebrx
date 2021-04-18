@@ -12,6 +12,7 @@ from owrx.form.validator import RequiredValidator
 from owrx.property import PropertyLayer, PropertyStack
 from owrx.breadcrumb import BreadcrumbMixin, Breadcrumb, BreadcrumbItem
 from abc import ABCMeta, abstractmethod
+from uuid import uuid4
 
 
 class SdrDeviceBreadcrumb(SettingsBreadcrumb):
@@ -280,11 +281,8 @@ class SdrDeviceController(SdrFormControllerWithModal):
 class NewSdrDeviceController(SettingsFormController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
-        id_layer = PropertyLayer(id="")
         self.data_layer = PropertyLayer(name="", type="", profiles=PropertyLayer())
-        self.stack = PropertyStack()
-        self.stack.addLayer(0, id_layer)
-        self.stack.addLayer(1, self.data_layer)
+        self.sdr_id = str(uuid4())
 
     def get_breadcrumb(self) -> Breadcrumb:
         return SdrDeviceBreadcrumb().append(BreadcrumbItem("New device", "settings/sdr/newsdr"))
@@ -302,7 +300,6 @@ class NewSdrDeviceController(SettingsFormController):
                     + "options is different for each type.<br />Note: This dropdown only shows device types that have "
                     + "their requirements met. If a type is missing from the list, please check the feature report.",
                 ),
-                TextInput("id", "Device ID", validator=RequiredValidator()),
             )
         ]
 
@@ -310,20 +307,21 @@ class NewSdrDeviceController(SettingsFormController):
         return "New device"
 
     def getData(self):
-        return self.stack
+        return self.data_layer
 
     def store(self):
         # need to overwrite the existing key in the config since the layering won't capture the changes otherwise
         config = Config.get()
         sdrs = config["sdrs"]
-        if self.stack["id"] in sdrs:
-            raise ValueError("device {} already exists!".format(self.stack["id"]))
-        sdrs[self.stack["id"]] = self.data_layer
+        # a uuid should be unique, so i'm not sure if there's a point in this check
+        if self.sdr_id in sdrs:
+            raise ValueError("device {} already exists!".format(self.sdr_id))
+        sdrs[self.sdr_id] = self.data_layer
         config["sdrs"] = sdrs
         super().store()
 
     def getSuccessfulRedirect(self):
-        return "{}settings/sdr/{}".format(self.get_document_root(), quote(self.stack["id"]))
+        return "{}settings/sdr/{}".format(self.get_document_root(), quote(self.sdr_id))
 
 
 class SdrProfileController(SdrFormControllerWithModal):
