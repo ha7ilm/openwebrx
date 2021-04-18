@@ -110,7 +110,7 @@ class SettingsFormController(AuthorizationMixin, WebpageController, metaclass=AB
         return result, errors
 
     def getSuccessfulRedirect(self):
-        return self.request.path
+        return self.get_document_root() + self.request.path[1:]
 
     def _mergeErrors(self, errors):
         result = {}
