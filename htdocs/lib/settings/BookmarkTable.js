@@ -261,6 +261,7 @@ $.fn.bookmarktable = function() {
         $(this).on('click', '.bookmark-add', function() {
             if ($table.find('tr[data-id="new"]').length) return;
 
+            $table.find('.emptytext').remove();
             var row = $('<tr data-id="new">');
 
             var inputs = Object.fromEntries(
@@ -371,6 +372,7 @@ $.fn.bookmarktable = function() {
                         contentType: 'application/json',
                         method: 'POST'
                     }).done(function(data){
+                        $table.find('.emptytext').remove();
                         var modes = $table.data('modes');
                         if (data.length && data.length == selected.length) {
                             $table.append(data.map(function(obj, index) {

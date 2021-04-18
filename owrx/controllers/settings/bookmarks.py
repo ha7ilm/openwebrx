@@ -22,7 +22,12 @@ class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController
         return variables
 
     def render_table(self):
-        bookmarks = Bookmarks.getSharedInstance()
+        bookmarks = Bookmarks.getSharedInstance().getBookmarks()
+        emptyText = """
+            <tr class="emptytext"><td colspan="4">
+                No bookmarks in storage. You can add new bookmarks using the buttons below. 
+            </td></tr>
+        """
 
         return """
             <table class="table" data-modes='{modes}'>
@@ -35,7 +40,7 @@ class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController
                 {bookmarks}
             </table>
         """.format(
-            bookmarks="".join(self.render_bookmark(b) for b in bookmarks.getBookmarks()),
+            bookmarks="".join(self.render_bookmark(b) for b in bookmarks) if bookmarks else emptyText,
             modes=json.dumps({m.modulation: m.name for m in Modes.getAvailableModes()}),
         )
 
