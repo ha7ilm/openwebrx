@@ -73,10 +73,9 @@ class SdrDeviceListController(AuthorizationMixin, WebpageController):
                 </li>
             """.format(
                 device_name=config["name"],
-                device_link="{}/{}".format(self.request.path, quote(device_id)),
+                device_link="{}settings/sdr/{}".format(self.get_document_root(), quote(device_id)),
                 state=state_info,
                 additional_info=additional_info,
-                newprofile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(device_id)),
             )
 
         return """
