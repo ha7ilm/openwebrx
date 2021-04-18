@@ -9,7 +9,7 @@ from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
 from owrx.form import TextInput, DropdownInput, Option
 from owrx.form.validator import RequiredValidator
-from owrx.property import PropertyLayer, PropertyStack
+from owrx.property import PropertyLayer
 from owrx.breadcrumb import BreadcrumbMixin, Breadcrumb, BreadcrumbItem
 from abc import ABCMeta, abstractmethod
 from uuid import uuid4
@@ -282,7 +282,7 @@ class NewSdrDeviceController(SettingsFormController):
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.data_layer = PropertyLayer(name="", type="", profiles=PropertyLayer())
-        self.sdr_id = str(uuid4())
+        self.device_id = str(uuid4())
 
     def get_breadcrumb(self) -> Breadcrumb:
         return SdrDeviceBreadcrumb().append(BreadcrumbItem("New device", "settings/sdr/newsdr"))
@@ -314,14 +314,14 @@ class NewSdrDeviceController(SettingsFormController):
         config = Config.get()
         sdrs = config["sdrs"]
         # a uuid should be unique, so i'm not sure if there's a point in this check
-        if self.sdr_id in sdrs:
-            raise ValueError("device {} already exists!".format(self.sdr_id))
-        sdrs[self.sdr_id] = self.data_layer
+        if self.device_id in sdrs:
+            raise ValueError("device {} already exists!".format(self.device_id))
+        sdrs[self.device_id] = self.data_layer
         config["sdrs"] = sdrs
         super().store()
 
     def getSuccessfulRedirect(self):
-        return "{}settings/sdr/{}".format(self.get_document_root(), quote(self.sdr_id))
+        return "{}settings/sdr/{}".format(self.get_document_root(), quote(self.device_id))
 
 
 class SdrProfileController(SdrFormControllerWithModal):
@@ -398,11 +398,7 @@ class SdrProfileController(SdrFormControllerWithModal):
 
 class NewProfileController(SdrProfileController):
     def __init__(self, handler, request, options):
-        id_layer = PropertyLayer(id="")
         self.data_layer = PropertyLayer(name="")
-        self.stack = PropertyStack()
-        self.stack.addLayer(0, self.data_layer)
-        self.stack.addLayer(1, id_layer)
         super().__init__(handler, request, options)
 
     def get_breadcrumb(self) -> Breadcrumb:
@@ -413,28 +409,21 @@ class NewProfileController(SdrProfileController):
         )
 
     def _get_profile(self):
-        return "new", self.stack
-
-    def getSections(self):
-        return [
-            Section(
-                "New profile settings",
-                TextInput("id", "Profile ID", validator=RequiredValidator()),
-            )
-        ] + super().getSections()
+        return str(uuid4()), self.data_layer
 
     def isNewProfileActive(self) -> bool:
         return True
 
     def store(self):
-        if self.stack["id"] in self.device["profiles"]:
-            raise ValueError("Profile {} already exists!".format(self.stack["id"]))
-        self.device["profiles"][self.stack["id"]] = self.data_layer
+        # a uuid should be unique, so i'm not sure if there's a point in this check
+        if self.profile_id in self.device["profiles"]:
+            raise ValueError("Profile {} already exists!".format(self.profile_id))
+        self.device["profiles"][self.profile_id] = self.data_layer
         super().store()
 
     def getSuccessfulRedirect(self):
         return "{}settings/sdr/{}/profile/{}".format(
-            self.get_document_root(), quote(self.device_id), quote(self.stack["id"])
+            self.get_document_root(), quote(self.device_id), quote(self.profile_id)
         )
 
     def render_remove_button(self):
