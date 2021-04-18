@@ -13,9 +13,6 @@ fi
 if [[ ! -f /etc/openwebrx/bands.json ]] ; then
   cp bands.json /etc/openwebrx/
 fi
-if [[ ! -f /etc/openwebrx/bookmarks.json ]] ; then
-  cp bookmarks.json /etc/openwebrx/
-fi
 if [[ ! -f /etc/openwebrx/openwebrx.conf ]] ; then
   cp openwebrx.conf /etc/openwebrx/
 fi
