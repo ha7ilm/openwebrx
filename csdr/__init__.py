@@ -178,6 +178,7 @@ class Dsp(DirewolfConfigSubscriber):
             # m17
             elif which == "m17":
                 chain += [
+                    "dc_block",
                     "csdr limit_ff",
                     "csdr convert_f_s16",
                     "m17-demod",
