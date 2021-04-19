@@ -74,7 +74,7 @@ class FeatureDetector(object):
         "digital_voice_digiham": ["digiham", "sox"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "digital_voice_freedv": ["freedv_rx", "sox"],
-        "digital_voice_m17": ["m17_demod", "sox"],
+        "digital_voice_m17": ["m17_demod", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
         "wsjt-x-2-3": ["wsjtx_2_3", "sox"],
         "wsjt-x-2-4": ["wsjtx_2_4", "sox"],
