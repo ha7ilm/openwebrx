@@ -353,6 +353,9 @@
     "name": "11m CB",
     "lower_bound": 26965000,
     "upper_bound": 27405000,
+    "frequencies": {
+      "js8": 27245000
+    },
     "tags": ["public"]
   },
   {
