@@ -25,8 +25,13 @@ case "$1" in
 
     db_get openwebrx/admin_user_password
     if [ ! -z "${RET}" ]; then
-      # create initial openwebrx user
-      OWRX_PASSWORD="${RET}" openwebrx admin --noninteractive adduser admin
+      if ! openwebrx-admin --silent hasuser admin; then
+        # create initial openwebrx user
+        OWRX_PASSWORD="${RET}" openwebrx admin --noninteractive adduser admin
+      else
+        # change existing user's password
+        OWRX_PASSWORD="${RET}" openwebrx admin --noninteractive resetpassword admin
+      fi
     fi
     # remove password from debconf database
     db_unregister openwebrx/admin_user_password
