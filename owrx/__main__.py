@@ -10,7 +10,9 @@ from owrx.websocket import WebSocketConnection
 from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
 from owrx.audio.queue import DecoderQueue
+from owrx.admin import add_admin_parser, run_admin_action
 import signal
+import argparse
 
 import logging
 
@@ -31,6 +33,26 @@ def handleSignal(sig, frame):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="OpenWebRX - Open Source SDR Web App for Everyone!")
+    parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
+
+    moduleparser = parser.add_subparsers(title="Modules", dest="module")
+    adminparser = moduleparser.add_parser("admin", help="OpenWebRX admin actions")
+    add_admin_parser(adminparser)
+
+    args = parser.parse_args()
+
+    if args.version:
+        print("OpenWebRX version {version}".format(version=openwebrx_version))
+    elif args.module == "admin":
+        # override loglevel for admin commands, they shouldn't be that verbose
+        logging.basicConfig(level=logging.INFO, force=True)
+        run_admin_action(adminparser, args)
+    else:
+        start_receiver()
+
+
+def start_receiver():
     print(
         """
 

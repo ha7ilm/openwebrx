@@ -11,6 +11,6 @@ Description: OpenWebRX "admin" user password:
  empty for now. You can return to this prompt at a later time by running the
  command "sudo dpkg-reconfigure openwebrx".
  .
- You can also use the "openwebrx-admin" command to create, delete or manage
+ You can also use the "openwebrx admin" command to create, delete or manage
  existing users. More information is available in by running the command
- "openwebrx-admin --help".
+ "openwebrx admin --help".

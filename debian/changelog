@@ -10,6 +10,8 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
   * New reporting infrastructure, allowing WSPR and FST4W spots to be sent to
     wsprnet.org
   * Add some basic filtering capabilities to the map
+  * New arguments to the `openwebrx` command-line to facilitate the
+    administration of users (try `openwebrx admin`)
   * New command-line tool `openwebrx-admin` that facilitates the
     administration of users
   * Default bandwidth changes:

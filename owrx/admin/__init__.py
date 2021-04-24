@@ -1,16 +1,10 @@
-from owrx.version import openwebrx_version
-from owrxadmin.commands import NewUser, DeleteUser, ResetPassword, ListUsers, DisableUser, EnableUser, HasUser
-import argparse
+from owrx.admin.commands import NewUser, DeleteUser, ResetPassword, ListUsers, DisableUser, EnableUser, HasUser
 import sys
 import traceback
-import logging
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title="Commands", dest="command")
+def add_admin_parser(moduleparser):
+    subparsers = moduleparser.add_subparsers(title="Commands", dest="command")
 
     adduser_parser = subparsers.add_parser("adduser", help="Add a new user")
     adduser_parser.add_argument("user", help="Username to be added")
@@ -40,17 +34,12 @@ def main():
     hasuser_parser.add_argument("user", help="Username to be checked")
     hasuser_parser.set_defaults(cls=HasUser)
 
-    parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
-    parser.add_argument(
+    moduleparser.add_argument(
         "--noninteractive", action="store_true", help="Don't ask for any user input (useful for automation)"
     )
-    parser.add_argument("--silent", action="store_true", help="Ignore errors (useful for automation)")
-    args = parser.parse_args()
+    moduleparser.add_argument("--silent", action="store_true", help="Ignore errors (useful for automation)")
 
-    if args.version:
-        print("OpenWebRX Admin CLI version {version}".format(version=openwebrx_version))
-        sys.exit(0)
-
+def run_admin_action(parser, args):
     if hasattr(args, "cls"):
         command = args.cls()
     else:
@@ -67,3 +56,4 @@ def main():
             traceback.print_exc()
             sys.exit(1)
         sys.exit(0)
+
