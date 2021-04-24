@@ -25,7 +25,7 @@ case "$1" in
 
     db_get openwebrx/admin_user_password
     if [ ! -z "${RET}" ]; then
-      if ! openwebrx-admin --silent hasuser admin; then
+      if ! openwebrx admin --silent hasuser admin; then
         # create initial openwebrx user
         OWRX_PASSWORD="${RET}" openwebrx admin --noninteractive adduser admin
       else
