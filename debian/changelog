@@ -26,7 +26,7 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
       the web configuration will be written to a new storage system
     - Added upload of avatar and panorama image via web configuration
   * New devices supported:
-    - HPSDR devices (Hermes Lite 2) (`"type": "hpsdr"`)
+    - HPSDR devices (Hermes Lite 2) (`"type": "hpsdr"`) thanks to @jancona
     - BBRF103 / RX666 / RX888 devices supported by libsddc (`"type": "sddc"`)
     - R&S devices using the EB200 or Ammos protocols (`"type": "runds"`)
 

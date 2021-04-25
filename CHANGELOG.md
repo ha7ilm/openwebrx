@@ -18,7 +18,7 @@
     a new storage system
   - Added upload of avatar and panorama image via web configuration
 - New devices supported:
-  - HPSDR devices (Hermes Lite 2)
+  - HPSDR devices (Hermes Lite 2) thanks to @jancona
   - BBRF103 / RX666 / RX888 devices supported by libsddc
   - R&S devices using the EB200 or Ammos protocols
 
