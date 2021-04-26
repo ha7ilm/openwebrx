@@ -18,6 +18,7 @@ import argparse
 import logging
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
@@ -49,12 +50,9 @@ def main():
 
     args = parser.parse_args()
 
-    loglevel = logging.INFO
-    # set loglevel to debug when running the receiver
-    if args.module is None or args.debug:
-        loglevel = logging.DEBUG
-
-    logging.basicConfig(level=loglevel, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    # set loglevel to info for CLI commands
+    if args.module is not None and not args.debug:
+        logging.getLogger().setLevel(logging.INFO)
 
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
