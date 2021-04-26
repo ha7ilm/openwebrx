@@ -7,6 +7,7 @@ OWRX_USER="openwebrx"
 OWRX_DATADIR="/var/lib/openwebrx"
 OWRX_USERS_FILE="${OWRX_DATADIR}/users.json"
 OWRX_SETTINGS_FILE="${OWRX_DATADIR}/settings.json"
+OWRX_BOOKMARKS_FILE="${OWRX_DATADIR}/bookmarks.json"
 
 case "$1" in
   configure|reconfigure)
@@ -17,17 +18,21 @@ case "$1" in
     if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
     chown "${OWRX_USER}". ${OWRX_DATADIR}
 
+    # create empty config files now to avoid permission problems later
     if [ ! -e "${OWRX_USERS_FILE}" ]; then
-      # create an empty users file now to avoid permission problems later
       echo "[]" > "${OWRX_USERS_FILE}"
       chown "${OWRX_USER}". "${OWRX_USERS_FILE}"
       chmod 0600 "${OWRX_USERS_FILE}"
     fi
 
     if [ ! -e "${OWRX_SETTINGS_FILE}" ]; then
-      # create an empty settings file now to avoid permission problems later
       echo "{}" > "${OWRX_SETTINGS_FILE}"
       chown "${OWRX_USER}". "${OWRX_SETTINGS_FILE}"
+    fi
+
+    if [ ! -e "${OWRX_BOOKMARKS_FILE}" ]; then
+      touch "${OWRX_BOOKMARKS_FILE}"
+      chown "${OWRX_USER}". "${OWRX_BOOKMARKS_FILE}"
     fi
 
     db_get openwebrx/admin_user_password

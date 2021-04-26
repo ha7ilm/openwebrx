@@ -83,10 +83,11 @@ class Bookmarks(object):
     def _loadBookmarks(self):
         for file in self.fileList:
             try:
-                f = open(file, "r")
-                bookmarks_json = json.load(f)
-                f.close()
-                return [Bookmark(d) for d in bookmarks_json]
+                with open(file, "r") as f:
+                    content = f.read()
+                if content:
+                    bookmarks_json = json.loads(content)
+                    return [Bookmark(d) for d in bookmarks_json]
             except FileNotFoundError:
                 pass
             except json.JSONDecodeError:
