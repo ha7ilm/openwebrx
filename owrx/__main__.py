@@ -44,17 +44,21 @@ def main():
     configparser = moduleparser.add_parser("config", help="Configuration actions")
     configcommandparser = configparser.add_subparsers(title="Commands", dest="command")
 
-    migrateparser = configcommandparser.add_parser("migrate", help="Migrage configuration files")
+    migrateparser = configcommandparser.add_parser("migrate", help="Migrate configuration files")
     migrateparser.set_defaults(cls=MigrateCommand)
 
     args = parser.parse_args()
 
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
-    elif args.module in ["admin", "config"]:
+    elif args.module == "admin":
         # override loglevel for admin commands, they shouldn't be that verbose
         logging.basicConfig(level=logging.INFO, force=True)
         run_admin_action(adminparser, args)
+    elif args.module == "config":
+        # override loglevel for config commands, they shouldn't be that verbose
+        logging.basicConfig(level=logging.INFO, force=True)
+        run_admin_action(configparser, args)
     else:
         start_receiver()
 

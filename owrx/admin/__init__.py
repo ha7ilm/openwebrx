@@ -39,11 +39,12 @@ def add_admin_parser(moduleparser):
     )
     moduleparser.add_argument("--silent", action="store_true", help="Ignore errors (useful for automation)")
 
+
 def run_admin_action(parser, args):
     if hasattr(args, "cls"):
         command = args.cls()
     else:
-        if not args.silent:
+        if not hasattr(args, "silent") or not args.silent:
             parser.print_help()
             sys.exit(1)
         sys.exit(0)
