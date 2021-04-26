@@ -288,10 +288,12 @@ class SdrSource(ABC):
                 nonlocal failed
                 rc = self.process.wait()
                 logger.debug("shut down with RC={0}".format(rc))
+                self.process = None
                 self.monitor = None
                 if self.getState() is SdrSourceState.RUNNING:
-                    failed = True
                     self.fail()
+                else:
+                    failed = True
                 self.setState(SdrSourceState.STOPPED)
 
             self.monitor = threading.Thread(target=wait_for_process_to_end, name="source_monitor")
@@ -341,11 +343,9 @@ class SdrSource(ABC):
         return self.monitor is not None
 
     def stop(self):
-        self.setState(SdrSourceState.STOPPING)
-
         with self.modificationLock:
-
             if self.process is not None:
+                self.setState(SdrSourceState.STOPPING)
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
                 except ProcessLookupError:
