@@ -6,6 +6,7 @@ set -euo pipefail
 OWRX_USER="openwebrx"
 OWRX_DATADIR="/var/lib/openwebrx"
 OWRX_USERS_FILE="${OWRX_DATADIR}/users.json"
+OWRX_SETTINGS_FILE="${OWRX_DATADIR}/settings.json"
 
 case "$1" in
   configure|reconfigure)
@@ -21,6 +22,12 @@ case "$1" in
       echo "[]" > "${OWRX_USERS_FILE}"
       chown "${OWRX_USER}". "${OWRX_USERS_FILE}"
       chmod 0600 "${OWRX_USERS_FILE}"
+    fi
+
+    if [ ! -e "${OWRX_SETTINGS_FILE}" ]; then
+      # create an empty settings file now to avoid permission problems later
+      echo "{}" > "${OWRX_SETTINGS_FILE}"
+      chown "${OWRX_USER}". "${OWRX_SETTINGS_FILE}"
     fi
 
     db_get openwebrx/admin_user_password
