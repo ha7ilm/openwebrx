@@ -270,14 +270,14 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             message = json.loads(message)
             if "type" in message:
                 if message["type"] == "dspcontrol":
-                    if "action" in message and message["action"] == "start":
-                        self.startDsp()
+                    dsp = self.getDsp()
+                    if dsp is None:
+                        logger.warning("DSP not available; discarding client dspcontrol message")
+                    else:
+                        if "action" in message and message["action"] == "start":
+                            dsp.start()
 
-                    if "params" in message:
-                        dsp = self.getDsp()
-                        if dsp is None:
-                            logger.warning("DSP not available; discarding client data")
-                        else:
+                        if "params" in message:
                             params = message["params"]
                             dsp.setProperties(params)
 
@@ -336,9 +336,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
     def handleNoSdrsAvailable(self):
         self.write_sdr_error("No SDR Devices available")
-
-    def startDsp(self):
-        self.getDsp().start()
 
     def close(self):
         if self.sdr is not None:
