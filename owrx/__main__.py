@@ -1,3 +1,9 @@
+import logging
+
+# the linter will complain about this, but the logging must be configured before importing all the other modules
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config.core import CoreConfig
@@ -14,11 +20,6 @@ from owrx.audio.queue import DecoderQueue
 from owrx.admin import add_admin_parser, run_admin_action
 import signal
 import argparse
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
