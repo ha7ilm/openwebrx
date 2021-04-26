@@ -27,9 +27,9 @@ class MappedSdrSources(PropertyDelegator):
                     self._addSource(key, value)
 
     def handleDeviceUpdate(self, key, value, *args):
-        if self.isDeviceValid(value) and key not in self:
+        if key not in self and self.isDeviceValid(value):
             self[key] = self.buildNewSource(key, value)
-        elif not self.isDeviceValid(value) and key in self:
+        elif key in self and not self.isDeviceValid(value):
             del self[key]
 
     def _addSource(self, key, value):
@@ -41,7 +41,7 @@ class MappedSdrSources(PropertyDelegator):
         ]
 
     def isDeviceValid(self, device):
-        return self._hasProfiles(device) and self._sdrTypeAvailable(device)
+        return self._sdrTypeAvailable(device) and self._hasProfiles(device)
 
     def _hasProfiles(self, device):
         return "profiles" in device and device["profiles"] and len(device["profiles"]) > 0
