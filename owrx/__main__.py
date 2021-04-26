@@ -2,6 +2,7 @@ from http.server import HTTPServer
 from owrx.http import RequestHandler
 from owrx.config.core import CoreConfig
 from owrx.config import Config
+from owrx.config.commands import MigrateCommand
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
@@ -37,14 +38,20 @@ def main():
     parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
 
     moduleparser = parser.add_subparsers(title="Modules", dest="module")
-    adminparser = moduleparser.add_parser("admin", help="OpenWebRX admin actions")
+    adminparser = moduleparser.add_parser("admin", help="Administration actions")
     add_admin_parser(adminparser)
+
+    configparser = moduleparser.add_parser("config", help="Configuration actions")
+    configcommandparser = configparser.add_subparsers(title="Commands", dest="command")
+
+    migrateparser = configcommandparser.add_parser("migrate", help="Migrage configuration files")
+    migrateparser.set_defaults(cls=MigrateCommand)
 
     args = parser.parse_args()
 
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
-    elif args.module == "admin":
+    elif args.module in ["admin", "config"]:
         # override loglevel for admin commands, they shouldn't be that verbose
         logging.basicConfig(level=logging.INFO, force=True)
         run_admin_action(adminparser, args)

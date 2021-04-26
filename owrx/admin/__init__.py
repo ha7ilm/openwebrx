@@ -51,7 +51,7 @@ def run_admin_action(parser, args):
     try:
         command.run(args)
     except Exception:
-        if not args.silent:
+        if not hasattr(args, "silent") or not args.silent:
             print("Error running command:")
             traceback.print_exc()
             sys.exit(1)
