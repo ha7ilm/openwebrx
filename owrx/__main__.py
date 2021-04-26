@@ -17,7 +17,6 @@ import argparse
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -36,6 +35,7 @@ def handleSignal(sig, frame):
 def main():
     parser = argparse.ArgumentParser(description="OpenWebRX - Open Source SDR Web App for Everyone!")
     parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
+    parser.add_argument("--debug", action="store_true", help="Set loglevel to DEBUG")
 
     moduleparser = parser.add_subparsers(title="Modules", dest="module")
     adminparser = moduleparser.add_parser("admin", help="Administration actions")
@@ -49,15 +49,18 @@ def main():
 
     args = parser.parse_args()
 
+    loglevel = logging.INFO
+    # set loglevel to debug when running the receiver
+    if args.module is None or args.debug:
+        loglevel = logging.DEBUG
+
+    logging.basicConfig(level=loglevel, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
     elif args.module == "admin":
-        # override loglevel for admin commands, they shouldn't be that verbose
-        logging.basicConfig(level=logging.INFO, force=True)
         run_admin_action(adminparser, args)
     elif args.module == "config":
-        # override loglevel for config commands, they shouldn't be that verbose
-        logging.basicConfig(level=logging.INFO, force=True)
         run_admin_action(configparser, args)
     else:
         start_receiver()
