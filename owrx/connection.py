@@ -140,6 +140,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         super().__init__(conn)
 
         self.dsp = None
+        self.dspLock = threading.Lock()
         self.sdr = None
         self.configSubs = []
         self.bookmarkSub = None
@@ -351,15 +352,17 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         super().close()
 
     def stopDsp(self):
-        if self.dsp is not None:
-            self.dsp.stop()
-            self.dsp = None
+        with self.dspLock:
+            if self.dsp is not None:
+                self.dsp.stop()
+                self.dsp = None
         if self.sdr is not None:
             self.sdr.removeSpectrumClient(self)
 
     def getDsp(self):
-        if self.dsp is None and self.sdr is not None:
-            self.dsp = DspManager(self, self.sdr)
+        with self.dspLock:
+            if self.dsp is None and self.sdr is not None:
+                self.dsp = DspManager(self, self.sdr)
         return self.dsp
 
     def write_spectrum_data(self, data):
