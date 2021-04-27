@@ -213,6 +213,10 @@ DemodulatorPanel.prototype.setInitialParams = function(params) {
     $.extend(this.initialParams, params);
 };
 
+DemodulatorPanel.prototype.resetInitialParams = function() {
+    this.initialParams = {};
+};
+
 DemodulatorPanel.prototype.onHashChange = function() {
     this._apply(this.transformHashParams(this.parseHash()));
 };
