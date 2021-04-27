@@ -27,6 +27,7 @@ class SdrDeviceListController(AuthorizationMixin, BreadcrumbMixin, WebpageContro
         variables["content"] = self.render_devices()
         variables["title"] = "SDR device settings"
         variables["modal"] = ""
+        variables["error"] = ""
         return variables
 
     def get_breadcrumb(self):
