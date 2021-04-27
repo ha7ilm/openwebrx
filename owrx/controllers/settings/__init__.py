@@ -6,6 +6,10 @@ from owrx.breadcrumb import Breadcrumb, BreadcrumbItem, BreadcrumbMixin
 from abc import ABCMeta, abstractmethod
 from urllib.parse import parse_qs
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Section(object):
     def __init__(self, title, *inputs):
@@ -55,6 +59,7 @@ class SettingsFormController(AuthorizationMixin, BreadcrumbMixin, WebpageControl
     def __init__(self, handler, request, options):
         super().__init__(handler, request, options)
         self.errors = {}
+        self.globalError = None
 
     @abstractmethod
     def getSections(self):
@@ -98,6 +103,7 @@ class SettingsFormController(AuthorizationMixin, BreadcrumbMixin, WebpageControl
         variables["content"] = self.render_sections()
         variables["title"] = self.getTitle()
         variables["modal"] = self.buildModal()
+        variables["error"] = self.renderGlobalError()
         return variables
 
     def parseFormData(self):
@@ -122,14 +128,26 @@ class SettingsFormController(AuthorizationMixin, BreadcrumbMixin, WebpageControl
         return result
 
     def processFormData(self):
-        data, errors = self.parseFormData()
+        data = None
+        errors = None
+        try:
+            data, errors = self.parseFormData()
+        except Exception as e:
+            logger.exception("Error while parsing form data")
+            self.globalError = str(e)
+            return self.indexAction()
+
         if errors:
             self.errors = self._mergeErrors(errors)
-            self.indexAction()
-        else:
+            return self.indexAction()
+        try:
             self.processData(data)
             self.store()
             self.send_redirect(self.getSuccessfulRedirect())
+        except Exception as e:
+            logger.exception("Error while processing form data")
+            self.globalError = str(e)
+            return self.indexAction()
 
     def processData(self, data):
         config = self.getData()
@@ -145,6 +163,22 @@ class SettingsFormController(AuthorizationMixin, BreadcrumbMixin, WebpageControl
 
     def buildModal(self):
         return ""
+
+    def renderGlobalError(self):
+        if self.globalError is None:
+            return ""
+
+        return """
+            <div class="card text-white bg-danger">
+                <div class="card-header">Error</div>
+                <div class="card-body">
+                    <div>Your settings could not be saved due to an error:</div>
+                    <div>{error}</div>
+                </div>
+            </div>
+        """.format(
+            error=self.globalError
+        )
 
 
 class SettingsBreadcrumb(Breadcrumb):
