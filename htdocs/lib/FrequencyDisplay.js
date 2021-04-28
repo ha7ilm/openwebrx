@@ -76,7 +76,7 @@ TuneableFrequencyDisplay.prototype = new FrequencyDisplay();
 
 TuneableFrequencyDisplay.prototype.setupElements = function() {
     FrequencyDisplay.prototype.setupElements.call(this);
-    this.input = $('<input>');
+    this.input = $('<input type="number" step="any">');
     this.suffixInput = $('<select tabindex="-1">');
     this.suffixInput.append($.map(this.suffixes, function(e, p) {
         return $('<option value="' + e + '">' + p + 'Hz</option>');

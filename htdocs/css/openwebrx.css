@@ -357,6 +357,13 @@ input[type=range]:disabled {
     flex: 1 0 auto;
     margin-right: 0;
     border-right: 1px solid #373737;
+    -moz-appearance: textfield;
+}
+
+.webrx-actual-freq .input-group input::-webkit-outer-spin-button,
+.webrx-actual-freq .input-group input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .input-group > :not(:last-child) {
