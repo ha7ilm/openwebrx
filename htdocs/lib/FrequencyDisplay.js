@@ -30,7 +30,7 @@ FrequencyDisplay.prototype.getSuffix = function() {
 
 FrequencyDisplay.prototype.setFrequency = function(freq) {
     this.frequency = freq;
-    if (Number.isNaN(this.frequency)) {
+    if (this.frequency === 0 || Number.isNaN(this.frequency)) {
         this.exponent = 0
     } else {
         this.exponent = Math.floor(Math.log10(this.frequency) / 3) * 3;
