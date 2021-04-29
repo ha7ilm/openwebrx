@@ -19,7 +19,7 @@ $.fn.optionalSection = function(){
             var group = $(e.target).parents('.form-group')
             group.find('input, select').prop('disabled', true);
             $optionalInputs.append(group);
-            var $label = group.find('> label');
+            var $label = group.find('label');
             var $option = $('<option value="' + group.data('field') + '">' + $label.text() + '</option>');
             $select.append($option);
 
