@@ -38,7 +38,7 @@ AudioEngine.prototype.buildAudioContext = function() {
     }
 
     // known good sample rates
-    var goodRates = [48000, 44100]
+    var goodRates = [48000, 44100, 96000]
 
     // let the browser chose the sample rate, if it is good, use it
     var ctx = new ctxClass();
