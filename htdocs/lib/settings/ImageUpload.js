@@ -42,7 +42,7 @@ $.fn.imageUpload = function() {
                         return;
                     }
                     $.ajax({
-                        url: '/imageupload?id=' + id,
+                        url: '../imageupload?id=' + id,
                         type: 'POST',
                         data: e.target.result,
                         processData: false,
