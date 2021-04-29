@@ -49,7 +49,7 @@ $.fn.imageUpload = function() {
                         contentType: 'application/octet-stream',
                     }).done(function(data){
                         $input.val(data.file);
-                        $img.prop('src', '/imageupload?file=' + data.file);
+                        $img.prop('src', '../imageupload?file=' + data.file);
                         clearError();
                     }).fail(function(xhr, error){
                         try {
