@@ -1,4 +1,5 @@
-from owrx.controllers.settings import Section, SettingsFormController
+from owrx.controllers.settings import SettingsFormController
+from owrx.form.section import Section
 from owrx.config.core import CoreConfig
 from owrx.form.input import (
     TextInput,

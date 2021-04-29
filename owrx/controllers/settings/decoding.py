@@ -1,4 +1,5 @@
-from owrx.controllers.settings import SettingsFormController, Section, SettingsBreadcrumb
+from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
+from owrx.form.section import Section
 from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option
 from owrx.form.input.wfm import WfmTauValues
 from owrx.form.input.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput

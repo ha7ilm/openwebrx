@@ -1,7 +1,6 @@
 from owrx.config import Config
 from owrx.controllers.admin import AuthorizationMixin
 from owrx.controllers.template import WebpageController
-from owrx.form.error import FormError
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem, BreadcrumbMixin
 from abc import ABCMeta, abstractmethod
 from urllib.parse import parse_qs
@@ -9,45 +8,6 @@ from urllib.parse import parse_qs
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class Section(object):
-    def __init__(self, title, *inputs):
-        self.title = title
-        self.inputs = inputs
-
-    def render_input(self, input, data, errors):
-        return input.render(data, errors)
-
-    def render_inputs(self, data, errors):
-        return "".join([self.render_input(i, data, errors) for i in self.inputs])
-
-    def classes(self):
-        return ["col-12", "settings-section"]
-
-    def render(self, data, errors):
-        return """
-            <div class="{classes}">
-                <h3 class="settings-header">
-                    {title}
-                </h3>
-                {inputs}
-            </div>
-        """.format(
-            classes=" ".join(self.classes()), title=self.title, inputs=self.render_inputs(data, errors)
-        )
-
-    def parse(self, data):
-        parsed_data = {}
-        errors = []
-        for i in self.inputs:
-            try:
-                parsed_data.update(i.parse(data))
-            except FormError as e:
-                errors.append(e)
-            except Exception as e:
-                errors.append(FormError(i.id, "{}: {}".format(type(e).__name__, e)))
-        return parsed_data, errors
 
 
 class SettingsController(AuthorizationMixin, WebpageController):

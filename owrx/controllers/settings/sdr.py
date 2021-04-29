@@ -4,7 +4,8 @@ from owrx.controllers.settings import SettingsFormController
 from owrx.source import SdrDeviceDescription, SdrDeviceDescriptionMissing, SdrClientClass
 from owrx.config import Config
 from owrx.connection import OpenWebRxReceiverClient
-from owrx.controllers.settings import Section, SettingsBreadcrumb
+from owrx.controllers.settings import SettingsBreadcrumb
+from owrx.form.section import Section
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
 from owrx.form.input import TextInput, DropdownInput, Option

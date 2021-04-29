@@ -1,4 +1,5 @@
-from owrx.controllers.settings import SettingsFormController, Section
+from owrx.controllers.settings import SettingsFormController
+from owrx.form.section import Section
 from owrx.form.input import CheckboxInput, ServicesCheckboxInput
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.controllers.settings import SettingsBreadcrumb
