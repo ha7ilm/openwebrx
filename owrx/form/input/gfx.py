@@ -7,7 +7,7 @@ class ImageInput(Input, metaclass=ABCMeta):
     def render_input(self, value, errors):
         # TODO display errors
         return """
-            <div class="imageupload">
+            <div class="imageupload" data-max-size="{maxsize}">
                 <input type="hidden" id="{id}" name="{id}">
                 <div class="image-container">
                     <img class="{classes}" src="{url}" alt="{label}"/>
@@ -16,7 +16,11 @@ class ImageInput(Input, metaclass=ABCMeta):
                 <button type="button" class="btn btn-secondary restore">Restore original image</button>
             </div>
         """.format(
-            id=self.id, label=self.label, url=self.cachebuster(self.getUrl()), classes=" ".join(self.getImgClasses())
+            id=self.id,
+            label=self.label,
+            url=self.cachebuster(self.getUrl()),
+            classes=" ".join(self.getImgClasses()),
+            maxsize=self.getMaxSize(),
         )
 
     def cachebuster(self, url: str):
@@ -34,6 +38,10 @@ class ImageInput(Input, metaclass=ABCMeta):
     def getImgClasses(self) -> list:
         pass
 
+    @abstractmethod
+    def getMaxSize(self) -> int:
+        pass
+
 
 class AvatarInput(ImageInput):
     def getUrl(self) -> str:
@@ -42,6 +50,10 @@ class AvatarInput(ImageInput):
     def getImgClasses(self) -> list:
         return ["webrx-rx-avatar"]
 
+    def getMaxSize(self) -> int:
+        # 256 kB
+        return 250 * 1024
+
 
 class TopPhotoInput(ImageInput):
     def getUrl(self) -> str:
@@ -49,3 +61,7 @@ class TopPhotoInput(ImageInput):
 
     def getImgClasses(self) -> list:
         return ["webrx-top-photo"]
+
+    def getMaxSize(self) -> int:
+        # 2 MB
+        return 2 * 1024 * 1024

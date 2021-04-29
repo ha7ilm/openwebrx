@@ -1,6 +1,10 @@
 from datetime import datetime, timezone
 
 
+class BodySizeError(Exception):
+    pass
+
+
 class Controller(object):
     def __init__(self, handler, request, options):
         self.handler = handler
@@ -33,10 +37,12 @@ class Controller(object):
         self.handler.send_header("Location", location)
         self.handler.end_headers()
 
-    def get_body(self):
+    def get_body(self, max_size=None):
         if "Content-Length" not in self.handler.headers:
             return None
         length = int(self.handler.headers["Content-Length"])
+        if max_size is not None and length > max_size:
+            raise BodySizeError("HTTP body exceeds maximum allowed size")
         return self.handler.rfile.read(length)
 
     def handle_request(self):

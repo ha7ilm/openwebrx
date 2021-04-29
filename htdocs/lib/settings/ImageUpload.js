@@ -6,6 +6,7 @@ $.fn.imageUpload = function() {
         var originalUrl = $img.prop('src');
         var $input = $(this).find('input');
         var id = $input.prop('id');
+        var maxSize = $(this).data('max-size');
         $uploadButton.click(function(){
             $uploadButton.prop('disabled', true);
             var input = document.createElement('input');
@@ -14,9 +15,20 @@ $.fn.imageUpload = function() {
 
             input.onchange = function(e) {
                 var reader = new FileReader()
-                // TODO: implement file size check
                 reader.readAsArrayBuffer(e.target.files[0]);
+                reader.onprogress = function(e) {
+                    if (e.loaded > maxSize) {
+                        console.error('maximum file size exceeded, aborting file upload');
+                        $uploadButton.prop('disabled', false);
+                        reader.abort();
+                    }
+                };
                 reader.onload = function(e) {
+                    if (e.loaded > maxSize) {
+                        console.error('maximum file size exceeded, aborting file upload');
+                        $uploadButton.prop('disabled', false);
+                        return;
+                    }
                     $.ajax({
                         url: '/imageupload?id=' + id,
                         type: 'POST',
