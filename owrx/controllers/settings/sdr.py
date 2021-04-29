@@ -7,8 +7,8 @@ from owrx.connection import OpenWebRxReceiverClient
 from owrx.controllers.settings import Section, SettingsBreadcrumb
 from urllib.parse import quote, unquote
 from owrx.sdr import SdrService
-from owrx.form import TextInput, DropdownInput, Option
-from owrx.form.validator import RequiredValidator
+from owrx.form.input import TextInput, DropdownInput, Option
+from owrx.form.input.validator import RequiredValidator
 from owrx.property import PropertyLayer
 from owrx.breadcrumb import BreadcrumbMixin, Breadcrumb, BreadcrumbItem
 from abc import ABCMeta, abstractmethod

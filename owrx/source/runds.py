@@ -1,7 +1,7 @@
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Argument, Flag, Option
-from owrx.form import Input, DropdownInput, DropdownEnum, CheckboxInput
-from owrx.form.device import RemoteInput
+from owrx.form.input import Input, DropdownInput, DropdownEnum, CheckboxInput
+from owrx.form.input.device import RemoteInput
 from typing import List
 
 

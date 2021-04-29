@@ -1,6 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form import Input, CheckboxInput
-from owrx.form.device import BiasTeeInput
+from owrx.form.input import Input, CheckboxInput
+from owrx.form.input.device import BiasTeeInput
 from typing import List
 
 

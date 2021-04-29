@@ -1,4 +1,4 @@
-from owrx.form import DropdownEnum
+from owrx.form.input import DropdownEnum
 
 
 class AprsBeaconSymbols(DropdownEnum):

@@ -1,4 +1,4 @@
-from owrx.form import DropdownEnum
+from owrx.form.input import DropdownEnum
 from owrx.config import Config
 
 

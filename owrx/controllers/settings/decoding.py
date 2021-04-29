@@ -1,7 +1,7 @@
 from owrx.controllers.settings import SettingsFormController, Section, SettingsBreadcrumb
-from owrx.form import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option
-from owrx.form.wfm import WfmTauValues
-from owrx.form.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
+from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option
+from owrx.form.input.wfm import WfmTauValues
+from owrx.form.input.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 

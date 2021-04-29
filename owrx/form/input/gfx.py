@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from owrx.form import Input
+from owrx.form.input import Input
 from datetime import datetime
 
 

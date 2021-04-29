@@ -1,8 +1,8 @@
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option
 from typing import List
-from owrx.form import Input, TextInput
-from owrx.form.device import BiasTeeInput, DirectSamplingInput
+from owrx.form.input import Input, TextInput
+from owrx.form.input.device import BiasTeeInput, DirectSamplingInput
 
 
 class RtlSdrSource(ConnectorSource):

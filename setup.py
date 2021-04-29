@@ -21,6 +21,7 @@ setup(
             "owrx.controllers.settings",
             "owrx.property",
             "owrx.form",
+            "owrx.form.input",
             "owrx.config",
             "owrx.reporting",
             "owrx.audio",

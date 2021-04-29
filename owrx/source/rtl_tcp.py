@@ -1,7 +1,7 @@
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option, Argument
-from owrx.form import Input
-from owrx.form.device import RemoteInput
+from owrx.form.input import Input
+from owrx.form.input.device import RemoteInput
 from typing import List
 
 

@@ -2,8 +2,8 @@ from abc import ABCMeta, abstractmethod
 from owrx.command import Option
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from typing import List
-from owrx.form import Input, TextInput
-from owrx.form.device import GainInput
+from owrx.form.input import Input, TextInput
+from owrx.form.input.device import GainInput
 from owrx.soapy import SoapySettings
 
 

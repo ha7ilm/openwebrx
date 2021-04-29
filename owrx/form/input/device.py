@@ -1,4 +1,4 @@
-from owrx.form import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
+from owrx.form.input import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
 from owrx.soapy import SoapySettings
 from functools import reduce
 from operator import and_

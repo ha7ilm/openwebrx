@@ -1,6 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form import Input
-from owrx.form.device import BiasTeeInput, DirectSamplingInput
+from owrx.form.input import Input
+from owrx.form.input.device import BiasTeeInput, DirectSamplingInput
 from typing import List
 
 

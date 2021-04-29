@@ -3,7 +3,7 @@ from owrx.socket import getAvailablePort
 import socket
 from owrx.command import Flag, Option
 from typing import List
-from owrx.form import Input, NumberInput, CheckboxInput
+from owrx.form.input import Input, NumberInput, CheckboxInput
 
 import logging
 

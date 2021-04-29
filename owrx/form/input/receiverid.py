@@ -1,4 +1,4 @@
-from owrx.form.converter import Converter
+from owrx.form.input.converter import Converter
 
 
 class ReceiverKeysConverter(Converter):

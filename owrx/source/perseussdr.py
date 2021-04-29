@@ -1,6 +1,6 @@
 from owrx.source.direct import DirectSource, DirectSourceDeviceDescription
 from owrx.command import Option, Flag
-from owrx.form import Input, DropdownEnum, DropdownInput, CheckboxInput
+from owrx.form.input import Input, DropdownEnum, DropdownInput, CheckboxInput
 from typing import List
 
 

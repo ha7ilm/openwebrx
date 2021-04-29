@@ -12,10 +12,10 @@ from owrx.command import CommandMapper
 from owrx.socket import getAvailablePort
 from owrx.property import PropertyStack, PropertyLayer, PropertyFilter, PropertyCarousel, PropertyDeleted
 from owrx.property.filter import ByLambda
-from owrx.form import Input, TextInput, NumberInput, CheckboxInput, ModesInput, ExponentialInput
-from owrx.form.converter import OptionalConverter
-from owrx.form.device import GainInput, SchedulerInput, WaterfallLevelsInput
-from owrx.form.validator import RequiredValidator
+from owrx.form.input import Input, TextInput, NumberInput, CheckboxInput, ModesInput, ExponentialInput
+from owrx.form.input.converter import OptionalConverter
+from owrx.form.input.device import GainInput, SchedulerInput, WaterfallLevelsInput
+from owrx.form.input.validator import RequiredValidator
 from owrx.controllers.settings import Section
 from owrx.feature import FeatureDetector
 from typing import List

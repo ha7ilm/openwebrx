@@ -1,7 +1,7 @@
 from owrx.controllers.settings import SettingsFormController, Section, SettingsBreadcrumb
-from owrx.form.converter import OptionalConverter
-from owrx.form.aprs import AprsBeaconSymbols, AprsAntennaDirections
-from owrx.form import TextInput, CheckboxInput, DropdownInput, NumberInput
+from owrx.form.input.converter import OptionalConverter
+from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
+from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 
 

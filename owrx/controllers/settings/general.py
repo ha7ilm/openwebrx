@@ -1,6 +1,6 @@
 from owrx.controllers.settings import Section, SettingsFormController
 from owrx.config.core import CoreConfig
-from owrx.form import (
+from owrx.form.input import (
     TextInput,
     NumberInput,
     FloatInput,
@@ -9,10 +9,10 @@ from owrx.form import (
     DropdownInput,
     Option,
 )
-from owrx.form.converter import WaterfallColorsConverter, IntConverter
-from owrx.form.receiverid import ReceiverKeysConverter
-from owrx.form.gfx import AvatarInput, TopPhotoInput
-from owrx.form.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
+from owrx.form.input.converter import WaterfallColorsConverter, IntConverter
+from owrx.form.input.receiverid import ReceiverKeysConverter
+from owrx.form.input.gfx import AvatarInput, TopPhotoInput
+from owrx.form.input.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
 from owrx.waterfall import WaterfallOptions
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.controllers.settings import SettingsBreadcrumb

@@ -1,8 +1,8 @@
 from abc import ABC
 from owrx.modes import Modes
 from owrx.config import Config
-from owrx.form.validator import Validator
-from owrx.form.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter
+from owrx.form.input.validator import Validator
+from owrx.form.input.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter
 from enum import Enum
 
 

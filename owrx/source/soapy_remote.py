@@ -1,6 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form import Input, TextInput
-from owrx.form.device import RemoteInput
+from owrx.form.input import Input, TextInput
+from owrx.form.input.device import RemoteInput
 from typing import List
 
 
