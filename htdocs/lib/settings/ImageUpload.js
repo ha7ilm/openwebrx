@@ -1,12 +1,24 @@
 $.fn.imageUpload = function() {
     $.each(this, function(){
-        var $uploadButton = $(this).find('button.upload');
-        var $restoreButton = $(this).find('button.restore');
-        var $img = $(this).find('img');
+        var $this = $(this);
+        var $uploadButton = $this.find('button.upload');
+        var $restoreButton = $this.find('button.restore');
+        var $img = $this.find('img');
         var originalUrl = $img.prop('src');
-        var $input = $(this).find('input');
+        var $input = $this.find('input');
         var id = $input.prop('id');
-        var maxSize = $(this).data('max-size');
+        var maxSize = $this.data('max-size');
+        var $error;
+        var handleError = function(message) {
+            clearError();
+            $error = $('<div class="invalid-feedback">' + message + '</div>');
+            $this.after($error);
+            $this.addClass('is-invalid');
+        };
+        var clearError = function(message) {
+            if ($error) $error.remove();
+            $this.removeClass('is-invalid');
+        };
         $uploadButton.click(function(){
             $uploadButton.prop('disabled', true);
             var input = document.createElement('input');
@@ -18,14 +30,14 @@ $.fn.imageUpload = function() {
                 reader.readAsArrayBuffer(e.target.files[0]);
                 reader.onprogress = function(e) {
                     if (e.loaded > maxSize) {
-                        console.error('maximum file size exceeded, aborting file upload');
+                        handleError('Maximum file size exceeded');
                         $uploadButton.prop('disabled', false);
                         reader.abort();
                     }
                 };
                 reader.onload = function(e) {
                     if (e.loaded > maxSize) {
-                        console.error('maximum file size exceeded, aborting file upload');
+                        handleError('Maximum file size exceeded');
                         $uploadButton.prop('disabled', false);
                         return;
                     }
@@ -38,6 +50,14 @@ $.fn.imageUpload = function() {
                     }).done(function(data){
                         $input.val(data.file);
                         $img.prop('src', '/imageupload?file=' + data.file);
+                        clearError();
+                    }).fail(function(xhr, error){
+                        try {
+                            var res = JSON.parse(xhr.responseText);
+                            handleError(res.error || error);
+                        } catch (e) {
+                            handleError(error);
+                        }
                     }).always(function(){
                         $uploadButton.prop('disabled', false);
                     });
@@ -51,6 +71,7 @@ $.fn.imageUpload = function() {
         $restoreButton.click(function(){
             $input.val('restore');
             $img.prop('src', originalUrl + "&mapped=false");
+            clearError();
             return false;
         });
     });

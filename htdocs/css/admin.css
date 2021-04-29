@@ -156,3 +156,7 @@ h1 {
 .breadcrumb {
     margin-top: .5rem;
 }
+
+.imageupload.is-invalid ~ .invalid-feedback {
+    display: block;
+}
