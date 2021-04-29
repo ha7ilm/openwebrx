@@ -91,7 +91,11 @@ class AudioWriter(object):
                 pid=id(profile),
                 timestamp=datetime.utcnow().strftime(profile.getFileTimestampFormat()),
             )
-            os.link(file.getFileName(), filename)
+            try:
+                os.link(file.getFileName(), filename)
+            except OSError:
+                logger.warning("Error while linking job files")
+                continue
 
             job = QueueJob(profile, self.outputWriter, filename, self.dsp.get_operating_freq())
             try:
