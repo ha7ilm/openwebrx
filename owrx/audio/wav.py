@@ -83,9 +83,9 @@ class AudioWriter(object):
             self.wavefile = self.getWaveFile()
 
         file.close()
-        for profile in self.profiles:
-            tmp_dir = CoreConfig().get_temporary_directory()
+        tmp_dir = CoreConfig().get_temporary_directory()
 
+        for profile in self.profiles:
             # create hardlinks for the individual profiles
             filename = "{tmp_dir}/openwebrx-audiochopper-{pid}-{timestamp}.wav".format(
                 tmp_dir=tmp_dir,
@@ -95,7 +95,7 @@ class AudioWriter(object):
             try:
                 os.link(file.getFileName(), filename)
             except OSError:
-                logger.warning("Error while linking job files")
+                logger.exception("Error while linking job files")
                 continue
 
             job = QueueJob(profile, self.outputWriter, filename, self.dsp.get_operating_freq())
@@ -105,8 +105,11 @@ class AudioWriter(object):
                 logger.warning("decoding queue overflow; dropping one file")
                 job.unlink()
 
-        # our master can be deleted now, the profiles will delete their hardlinked copies after processing
-        file.unlink()
+        try:
+            # our master can be deleted now, the profiles will delete their hardlinked copies after processing
+            file.unlink()
+        except OSError:
+            logger.exception("Error while unlinking job files")
 
         self._scheduleNextSwitch()
 
