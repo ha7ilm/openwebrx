@@ -41,7 +41,7 @@ AudioEngine.prototype.buildAudioContext = function() {
     var goodRates = [48000, 44100, 96000]
 
     // let the browser chose the sample rate, if it is good, use it
-    var ctx = new ctxClass();
+    var ctx = new ctxClass({latencyHint: 'playback'});
     if (goodRates.indexOf(ctx.sampleRate) >= 0) {
         return ctx;
     }
@@ -49,7 +49,7 @@ AudioEngine.prototype.buildAudioContext = function() {
     // if that didn't work, try if any of the good rates work
     if (goodRates.some(function(sr) {
         try {
-            ctx = new ctxClass({sampleRate: sr});
+            ctx = new ctxClass({sampleRate: sr, latencyHint: 'playback'});
             return true;
         } catch (e) {
             return false;
@@ -60,7 +60,7 @@ AudioEngine.prototype.buildAudioContext = function() {
 
     // fallback: let the browser decide
     // this may cause playback problems down the line
-    return new ctxClass();
+    return new ctxClass({latencyHint: 'playback'});
 }
 
 AudioEngine.prototype.resume = function(){
