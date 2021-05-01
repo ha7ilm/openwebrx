@@ -97,7 +97,7 @@ class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController
             self.send_response("{}", content_type="application/json", code=404)
             return
         try:
-            data = json.loads(self.get_body())
+            data = json.loads(self.get_body().decode("utf-8"))
             for key in ["name", "frequency", "modulation"]:
                 if key in data:
                     value = data[key]
@@ -126,7 +126,7 @@ class BookmarksController(AuthorizationMixin, BreadcrumbMixin, WebpageController
             return {"bookmark_id": id(bookmark)}
 
         try:
-            data = json.loads(self.get_body())
+            data = json.loads(self.get_body().decode("utf-8"))
             result = [create(b) for b in data]
             bookmarks.store()
             self.send_response(json.dumps(result), content_type="application/json", code=200)
