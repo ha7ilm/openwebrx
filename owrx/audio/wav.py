@@ -56,7 +56,9 @@ class AudioWriter(object):
         return WaveFile(filename)
 
     def getNextDecodingTime(self):
-        t = datetime.utcnow()
+        # add one second to have the intervals tick over one second earlier
+        # this avoids filename collisions, but also avoids decoding wave files with less than one second of audio
+        t = datetime.utcnow() + timedelta(seconds=1)
         zeroed = t.replace(minute=0, second=0, microsecond=0)
         delta = t - zeroed
         seconds = (int(delta.total_seconds() / self.interval) + 1) * self.interval
