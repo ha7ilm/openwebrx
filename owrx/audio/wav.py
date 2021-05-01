@@ -4,7 +4,6 @@ from owrx.audio.queue import QueueJob, DecoderQueue
 import threading
 import wave
 import os
-from multiprocessing.connection import Pipe
 from datetime import datetime, timedelta
 from queue import Full
 from typing import List

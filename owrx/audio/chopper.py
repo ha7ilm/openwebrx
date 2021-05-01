@@ -4,7 +4,7 @@ from itertools import groupby
 import threading
 from owrx.audio import ProfileSourceSubscriber
 from owrx.audio.wav import AudioWriter
-from multiprocessing.connection import Pipe, wait
+from multiprocessing.connection import Pipe
 
 import logging
 
@@ -33,7 +33,9 @@ class AudioChopper(threading.Thread, Output, ProfileSourceSubscriber):
         self.stop_writers()
         sorted_profiles = sorted(self.profile_source.getProfiles(), key=lambda p: p.getInterval())
         groups = {interval: list(group) for interval, group in groupby(sorted_profiles, key=lambda p: p.getInterval())}
-        writers = [AudioWriter(self.dsp, self.outputWriter, interval, profiles) for interval, profiles in groups.items()]
+        writers = [
+            AudioWriter(self.dsp, self.outputWriter, interval, profiles) for interval, profiles in groups.items()
+        ]
         for w in writers:
             w.start()
         self.writers = writers
