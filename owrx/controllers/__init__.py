@@ -10,6 +10,7 @@ class Controller(object):
         self.handler = handler
         self.request = request
         self.options = options
+        self.responseCookies = None
 
     def send_response(
         self, content, code=200, content_type="text/html", last_modified: datetime = None, max_age=None, headers=None
@@ -25,17 +26,22 @@ class Controller(object):
             headers["Cache-Control"] = "max-age={0}".format(max_age)
         for key, value in headers.items():
             self.handler.send_header(key, value)
+        if self.responseCookies is not None:
+            self.handler.send_header("Set-Cookie", self.responseCookies.output(header=""))
         self.handler.end_headers()
         if type(content) == str:
             content = content.encode()
         self.handler.wfile.write(content)
 
-    def send_redirect(self, location, code=303, cookies=None):
+    def send_redirect(self, location, code=303):
         self.handler.send_response(code)
-        if cookies is not None:
-            self.handler.send_header("Set-Cookie", cookies.output(header=""))
+        if self.responseCookies is not None:
+            self.handler.send_header("Set-Cookie", self.responseCookies.output(header=""))
         self.handler.send_header("Location", location)
         self.handler.end_headers()
+
+    def set_response_cookies(self, cookies):
+        self.responseCookies = cookies
 
     def get_body(self, max_size=None):
         if "Content-Length" not in self.handler.headers:

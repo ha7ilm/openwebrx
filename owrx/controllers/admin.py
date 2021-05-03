@@ -11,16 +11,21 @@ class Authentication(object):
     def getUser(self, request):
         if "owrx-session" not in request.cookies:
             return None
-        session = SessionStorage.getSharedInstance().getSession(request.cookies["owrx-session"].value)
+        session_id = request.cookies["owrx-session"].value
+        storage = SessionStorage.getSharedInstance()
+        session = storage.getSession(session_id)
         if session is None:
             return None
         if "user" not in session:
             return None
         userList = UserList.getSharedInstance()
+        user = None
         try:
-            return userList[session["user"]]
+            user = userList[session["user"]]
+            storage.prolongSession(session_id)
         except KeyError:
-            return None
+            pass
+        return user
 
 
 class AuthorizationMixin(object):
