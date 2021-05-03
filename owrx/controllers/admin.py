@@ -1,6 +1,7 @@
-from .session import SessionStorage
+from owrx.controllers.session import SessionStorage
 from owrx.users import UserList
 from urllib import parse
+from http.cookies import SimpleCookie
 
 import logging
 
@@ -41,6 +42,10 @@ class AuthorizationMixin(object):
         if self.isAuthorized():
             super().handle_request()
         else:
+            cookie = SimpleCookie()
+            cookie["owrx-session"] = ""
+            cookie["owrx-session"]["expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+            self.set_response_cookies(cookie)
             if (
                 "x-requested-with" in self.request.headers
                 and self.request.headers["x-requested-with"] == "XMLHttpRequest"

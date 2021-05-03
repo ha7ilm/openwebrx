@@ -1,4 +1,4 @@
-from .template import WebpageController
+from owrx.controllers.template import WebpageController
 from urllib.parse import parse_qs, urlencode
 from uuid import uuid4
 from http.cookies import SimpleCookie
