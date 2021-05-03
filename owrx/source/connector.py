@@ -1,5 +1,6 @@
 from owrx.source import SdrSource, SdrDeviceDescription
 from owrx.socket import getAvailablePort
+from owrx.property import PropertyDeleted
 import socket
 from owrx.command import Flag, Option
 from typing import List
@@ -37,6 +38,8 @@ class ConnectorSource(SdrSource):
 
     def sendControlMessage(self, changes):
         for prop, value in changes.items():
+            if value is PropertyDeleted:
+                value = None
             logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
             self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
 
