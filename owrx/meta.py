@@ -66,7 +66,7 @@ class DmrMetaEnricher(object):
                 self.threads[id].start()
             return meta
         data = cache.get(id)
-        if "count" in data and data["count"] > 0 and "results" in data:
+        if data is not None and "count" in data and data["count"] > 0 and "results" in data:
             meta["additional"] = data["results"][0]
         return meta
 
