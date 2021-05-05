@@ -15,9 +15,16 @@ logger.setLevel(logging.INFO)
 
 
 class WaveFile(object):
-    def __init__(self, filename):
-        self.filename = filename
-        self.waveFile = wave.open(filename, "wb")
+    def __init__(self, writer_id):
+        self.timestamp = datetime.utcnow()
+        self.writer_id = writer_id
+        tmp_dir = CoreConfig().get_temporary_directory()
+        self.filename = "{tmp_dir}/openwebrx-audiochopper-master-{id}-{timestamp}.wav".format(
+            tmp_dir=tmp_dir,
+            id=self.writer_id,
+            timestamp=self.timestamp.strftime("%y%m%d_%H%M%S"),
+        )
+        self.waveFile = wave.open(self.filename, "wb")
         self.waveFile.setnchannels(1)
         self.waveFile.setsampwidth(2)
         self.waveFile.setframerate(12000)
@@ -27,6 +34,9 @@ class WaveFile(object):
 
     def getFileName(self):
         return self.filename
+
+    def getTimestamp(self):
+        return self.timestamp
 
     def writeframes(self, data):
         return self.waveFile.writeframes(data)
@@ -47,13 +57,7 @@ class AudioWriter(object):
         self.timer = None
 
     def getWaveFile(self):
-        tmp_dir = CoreConfig().get_temporary_directory()
-        filename = "{tmp_dir}/openwebrx-audiochopper-master-{id}-{timestamp}.wav".format(
-            tmp_dir=tmp_dir,
-            id=id(self),
-            timestamp=datetime.utcnow().strftime("%y%m%d_%H%M%S"),
-        )
-        return WaveFile(filename)
+        return WaveFile(id(self))
 
     def getNextDecodingTime(self):
         # add one second to have the intervals tick over one second earlier
@@ -90,7 +94,7 @@ class AudioWriter(object):
             filename = "{tmp_dir}/openwebrx-audiochopper-{pid}-{timestamp}.wav".format(
                 tmp_dir=tmp_dir,
                 pid=id(profile),
-                timestamp=datetime.utcnow().strftime(profile.getFileTimestampFormat()),
+                timestamp=file.getTimestamp().strftime(profile.getFileTimestampFormat()),
             )
             try:
                 os.link(file.getFileName(), filename)
