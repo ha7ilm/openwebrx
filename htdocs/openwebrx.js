@@ -1213,12 +1213,20 @@ var audioEngine;
 
 function openwebrx_init() {
     audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
-    $overlay = $('#openwebrx-autoplay-overlay');
-    $overlay.on('click', function(){
+    $('body').on('click', '#openwebrx-autoplay-overlay', function(){
         audioEngine.resume();
     });
     audioEngine.onStart(onAudioStart);
     if (!audioEngine.isAllowed()) {
+        var $overlay = $(
+            '<div id="openwebrx-autoplay-overlay" class="openwebrx-overlay" style="display:none;">' +
+                '<div class="overlay-content">' +
+                    '<img id="openwebrx-play-button" src="static/gfx/openwebrx-play-button.svg" />' +
+                    '<div>Start OpenWebRX</div>' +
+                '</div>' +
+            '</div>'
+        );
+        $('body').append($overlay);
         $overlay.show();
     }
     fft_codec = new ImaAdpcmCodec();
