@@ -1,4 +1,4 @@
-**unreleased**
+**1.0.0**
 - Introduced `squelch_auto_margin` config option that allows configuring the auto squelch level
 - Removed `port` configuration option; `rtltcp_compat` takes the port number with the new connectors
 - Added support for new WSJT-X modes FST4, FST4W (only available with WSJT-X 2.3) and Q65 (only avilable with

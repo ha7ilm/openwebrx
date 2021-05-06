@@ -1,4 +1,4 @@
-openwebrx (0.21.0) UNRELEASED; urgency=low
+openwebrx (1.0.0) buster hirsute; urgency=low
   * Introduced `squelch_auto_margin` config option that allows configuring the
     auto squelch level
   * Removed `port` configuration option; `rtltcp_compat` takes the port number
@@ -30,7 +30,7 @@ openwebrx (0.21.0) UNRELEASED; urgency=low
     - BBRF103 / RX666 / RX888 devices supported by libsddc
     - R&S devices using the EB200 or Ammos protocols
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 11 Oct 2020 21:12:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 06 May 2021 17:22:00 +0000
 
 openwebrx (0.20.3) buster focal; urgency=low
 
