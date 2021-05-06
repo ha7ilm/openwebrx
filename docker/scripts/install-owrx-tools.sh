@@ -41,8 +41,7 @@ cd ..
 rm -rf csdr
 
 git clone https://github.com/jketterl/digiham.git
-# latest develop as of 2021-04-20 (updated dc_block for M17)
-cmakebuild digiham 8c98b4de3d7c685c0d0bac5adf0e08f08e603a7f
+cmakebuild digiham 0.4.0
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
