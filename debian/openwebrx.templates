@@ -18,6 +18,6 @@ Description: OpenWebRX "admin" user password:
 Template: openwebrx/admin_user_configured
 Type: boolean
 Default: false
-Description: OpenWebRX "admin" user previously configured
+Description: OpenWebRX "admin" user previously configured?
  Marker used internally by the config scripts to remember if an admin user has
  been created.
