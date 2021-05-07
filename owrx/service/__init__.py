@@ -228,7 +228,7 @@ class ServiceHandler(SdrSourceEventClient):
     def get_bandwidth(self, group):
         minFreq, maxFreq = self.get_min_max(group)
         # minimum bandwidth for a resampler: 25kHz
-        return max(maxFreq - minFreq, 25000)
+        return max((maxFreq - minFreq) * 1.15, 25000)
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
