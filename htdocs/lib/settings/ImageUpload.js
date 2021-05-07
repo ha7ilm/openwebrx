@@ -20,18 +20,22 @@ $.fn.imageUpload = function() {
             $this.removeClass('is-invalid');
         };
         $uploadButton.click(function(){
-            $uploadButton.prop('disabled', true);
             var input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/jpeg, image/png, image/webp';
 
             input.onchange = function(e) {
+                $uploadButton.prop('disabled', true);
+                var $spinner = $('<span class="spinner-border spinner-border-sm mr-1" role="status"></span>');
+                $uploadButton.prepend($spinner);
+
                 var reader = new FileReader()
                 reader.readAsArrayBuffer(e.target.files[0]);
                 reader.onprogress = function(e) {
                     if (e.loaded > maxSize) {
                         handleError('Maximum file size exceeded');
                         $uploadButton.prop('disabled', false);
+                        $spinner.remove();
                         reader.abort();
                     }
                 };
@@ -39,6 +43,7 @@ $.fn.imageUpload = function() {
                     if (e.loaded > maxSize) {
                         handleError('Maximum file size exceeded');
                         $uploadButton.prop('disabled', false);
+                        $spinner.remove();
                         return;
                     }
                     $.ajax({
@@ -60,6 +65,7 @@ $.fn.imageUpload = function() {
                         }
                     }).always(function(){
                         $uploadButton.prop('disabled', false);
+                        $spinner.remove();
                     });
                 }
             };
