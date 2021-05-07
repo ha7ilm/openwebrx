@@ -96,7 +96,7 @@ class OwrxAssetsController(AssetsController):
         }
         if file in mappedFiles and ("mapped" not in self.request.query or self.request.query["mapped"][0] != "false"):
             config = CoreConfig()
-            for ext in ["png", "jpg"]:
+            for ext in ["png", "jpg", "webp"]:
                 user_file = "{}/{}.{}".format(config.get_data_directory(), mappedFiles[file], ext)
                 if os.path.exists(user_file) and os.path.isfile(user_file):
                     return user_file

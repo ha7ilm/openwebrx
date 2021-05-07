@@ -36,6 +36,9 @@ class ImageUploadController(AuthorizationMixin, AssetsController):
     def _is_jpg(self, contents):
         return contents[0:3] == bytes([0xFF, 0xD8, 0xFF])
 
+    def _is_webp(self, contents):
+        return contents[0:4] == bytes([0x52, 0x49, 0x46, 0x46]) and contents[8:12] == bytes([0x57, 0x45, 0x42, 0x50])
+
     def processImage(self):
         if "id" not in self.request.query:
             self.send_json_response({"error": "missing id"}, code=400)
@@ -55,8 +58,10 @@ class ImageUploadController(AuthorizationMixin, AssetsController):
         filetype = None
         if self._is_png(contents):
             filetype = "png"
-        if self._is_jpg(contents):
+        elif self._is_jpg(contents):
             filetype = "jpg"
+        elif self._is_webp(contents):
+            filetype = "webp"
         if filetype is None:
             self.send_json_response({"error": "unsupported file type"}, code=400)
             return

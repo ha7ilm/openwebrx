@@ -23,7 +23,7 @@ $.fn.imageUpload = function() {
             $uploadButton.prop('disabled', true);
             var input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'image/jpeg, image/png';
+            input.accept = 'image/jpeg, image/png, image/webp';
 
             input.onchange = function(e) {
                 var reader = new FileReader()
