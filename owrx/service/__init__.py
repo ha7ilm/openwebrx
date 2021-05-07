@@ -254,7 +254,10 @@ class ServiceHandler(SdrSourceEventClient):
             groups.append([f for f in freqs if previous < f["frequency"]])
 
             def get_total_bandwidth(group):
-                return bandwidth + len(group) * self.get_bandwidth(group)
+                if len(group) > 1:
+                    return bandwidth + len(group) * self.get_bandwidth(group)
+                else:
+                    return bandwidth
 
             total_bandwidth = sum([get_total_bandwidth(group) for group in groups])
             return {
