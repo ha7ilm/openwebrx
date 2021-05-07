@@ -19,6 +19,7 @@ from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.controllers.settings import SettingsBreadcrumb
 import shutil
 import os
+import re
 from glob import glob
 
 import logging
@@ -170,25 +171,36 @@ class GeneralSettingsController(SettingsFormController):
             ),
         ]
 
+    def remove_existing_image(self, image_id):
+        config = CoreConfig()
+        # remove all possible file extensions
+        for ext in ["png", "jpg", "webp"]:
+            try:
+                os.unlink("{}/{}.{}".format(config.get_data_directory(), image_id, ext))
+            except FileNotFoundError:
+                pass
+
     def handle_image(self, data, image_id):
         if image_id in data:
             config = CoreConfig()
             if data[image_id] == "restore":
-                # remove all possible file extensions
-                for ext in ["png", "jpg"]:
-                    try:
-                        os.unlink("{}/{}.{}".format(config.get_data_directory(), image_id, ext))
-                    except FileNotFoundError:
-                        pass
+                self.remove_existing_image(image_id)
             elif data[image_id]:
                 if not data[image_id].startswith(image_id):
                     logger.warning("invalid file name: %s", data[image_id])
                 else:
-                    # get file extension (luckily, all options are three characters long)
-                    ext = data[image_id][-3:]
-                    data_file = "{}/{}.{}".format(config.get_data_directory(), image_id, ext)
-                    temporary_file = "{}/{}".format(config.get_temporary_directory(), data[image_id])
-                    shutil.copy(temporary_file, data_file)
+                    # get file extension (at least 3 characters)
+                    # should be all lowercase since they are set by the upload script
+                    pattern = re.compile(".*\\.([a-z]{3,})$")
+                    matches = pattern.match(data[image_id])
+                    if matches is None:
+                        logger.warning("could not determine file extension for %s", image_id)
+                    else:
+                        self.remove_existing_image(image_id)
+                        ext = matches.group(1)
+                        data_file = "{}/{}.{}".format(config.get_data_directory(), image_id, ext)
+                        temporary_file = "{}/{}".format(config.get_temporary_directory(), data[image_id])
+                        shutil.copy(temporary_file, data_file)
             del data[image_id]
             # remove any accumulated temporary files on save
             for file in glob("{}/{}*".format(config.get_temporary_directory(), image_id)):
