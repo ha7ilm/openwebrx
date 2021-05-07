@@ -171,16 +171,20 @@ class GeneralSettingsController(SettingsFormController):
             ),
         ]
 
+    def remove_existing_image(self, image_id):
+        config = CoreConfig()
+        # remove all possible file extensions
+        for ext in ["png", "jpg", "webp"]:
+            try:
+                os.unlink("{}/{}.{}".format(config.get_data_directory(), image_id, ext))
+            except FileNotFoundError:
+                pass
+
     def handle_image(self, data, image_id):
         if image_id in data:
             config = CoreConfig()
             if data[image_id] == "restore":
-                # remove all possible file extensions
-                for ext in ["png", "jpg", "webp"]:
-                    try:
-                        os.unlink("{}/{}.{}".format(config.get_data_directory(), image_id, ext))
-                    except FileNotFoundError:
-                        pass
+                self.remove_existing_image(image_id)
             elif data[image_id]:
                 if not data[image_id].startswith(image_id):
                     logger.warning("invalid file name: %s", data[image_id])
@@ -192,6 +196,7 @@ class GeneralSettingsController(SettingsFormController):
                     if matches is None:
                         logger.warning("could not determine file extension for %s", image_id)
                     else:
+                        self.remove_existing_image(image_id)
                         ext = matches.group(1)
                         data_file = "{}/{}.{}".format(config.get_data_directory(), image_id, ext)
                         temporary_file = "{}/{}".format(config.get_temporary_directory(), data[image_id])
