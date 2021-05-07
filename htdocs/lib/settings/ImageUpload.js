@@ -54,6 +54,10 @@ $.fn.imageUpload = function() {
                         contentType: 'application/octet-stream',
                     }).done(function(data){
                         $input.val(data.file);
+                        $img.one('load', function() {
+                            $uploadButton.prop('disabled', false);
+                            $spinner.remove();
+                        });
                         $img.prop('src', '../imageupload?file=' + data.file);
                         clearError();
                     }).fail(function(xhr, error){
@@ -63,7 +67,6 @@ $.fn.imageUpload = function() {
                         } catch (e) {
                             handleError(error);
                         }
-                    }).always(function(){
                         $uploadButton.prop('disabled', false);
                         $spinner.remove();
                     });
