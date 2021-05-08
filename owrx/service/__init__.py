@@ -193,21 +193,25 @@ class ServiceHandler(SdrSourceEventClient):
                     self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
             else:
                 for group in groups:
-                    cf = self.get_center_frequency(group)
-                    bw = self.get_bandwidth(group)
-                    logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
-                    resampler_props = PropertyLayer()
-                    resampler_props["center_freq"] = cf
-                    resampler_props["samp_rate"] = bw
-                    resampler = Resampler(resampler_props, self.source)
-                    resampler.start()
+                    if len(group) > 1:
+                        cf = self.get_center_frequency(group)
+                        bw = self.get_bandwidth(group)
+                        logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
+                        resampler_props = PropertyLayer()
+                        resampler_props["center_freq"] = cf
+                        resampler_props["samp_rate"] = bw
+                        resampler = Resampler(resampler_props, self.source)
+                        resampler.start()
 
-                    for dial in group:
-                        self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
+                        for dial in group:
+                            self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
 
-                    # resampler goes in after the services since it must not be shutdown as long as the services are
-                    # still running
-                    self.services.append(resampler)
+                        # resampler goes in after the services since it must not be shutdown as long as the services are
+                        # still running
+                        self.services.append(resampler)
+                    else:
+                        dial = group[0]
+                        self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
 
     def get_min_max(self, group):
         frequencies = sorted(group, key=lambda f: f["frequency"])
@@ -224,7 +228,7 @@ class ServiceHandler(SdrSourceEventClient):
     def get_bandwidth(self, group):
         minFreq, maxFreq = self.get_min_max(group)
         # minimum bandwidth for a resampler: 25kHz
-        return max(maxFreq - minFreq, 25000)
+        return max((maxFreq - minFreq) * 1.15, 25000)
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
@@ -250,7 +254,10 @@ class ServiceHandler(SdrSourceEventClient):
             groups.append([f for f in freqs if previous < f["frequency"]])
 
             def get_total_bandwidth(group):
-                return bandwidth + len(group) * self.get_bandwidth(group)
+                if len(group) > 1:
+                    return bandwidth + len(group) * self.get_bandwidth(group)
+                else:
+                    return bandwidth
 
             total_bandwidth = sum([get_total_bandwidth(group) for group in groups])
             return {
