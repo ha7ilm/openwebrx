@@ -1,3 +1,5 @@
+**1.1.x - unreleased**
+
 **1.0.0**
 - Introduced `squelch_auto_margin` config option that allows configuring the auto squelch level
 - Removed `port` configuration option; `rtltcp_compat` takes the port number with the new connectors
