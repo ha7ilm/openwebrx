@@ -53,11 +53,11 @@ class WebSocketConnection(object):
         self.sendLock = threading.Lock()
 
         headers = {key.lower(): value for key, value in self.handler.headers.items()}
-        if not "upgrade" in headers:
+        if "upgrade" not in headers:
             raise WebSocketException("Upgrade header not found")
         if headers["upgrade"].lower() != "websocket":
             raise WebSocketException("Upgrade header does not contain expected value")
-        if not "sec-websocket-key" in headers:
+        if "sec-websocket-key" not in headers:
             raise WebSocketException("Websocket key not provided")
 
         ws_key = headers["sec-websocket-key"]
