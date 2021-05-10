@@ -244,6 +244,8 @@ class WebSocketConnection(object):
         self.interruptPipeRecv = None
 
     def close(self):
+        if not self.open:
+            return
         self.open = False
         self.interrupt()
 
