@@ -123,8 +123,10 @@
     display: none;
 }
 
-.openwebrx-main-buttons .button img {
+.openwebrx-main-buttons .button img,
+.openwebrx-main-buttons .button svg {
     height: 38px;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
 }
 
 .openwebrx-main-buttons a {
