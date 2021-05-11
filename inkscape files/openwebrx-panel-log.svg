@@ -36,7 +36,7 @@
      inkscape:pagecheckerboard="true"
      inkscape:zoom="15.572868"
      inkscape:cx="22.674387"
-     inkscape:cy="37.599262"
+     inkscape:cy="4.2078533"
      inkscape:window-x="0"
      inkscape:window-y="348"
      inkscape:window-maximized="1"
@@ -69,7 +69,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
