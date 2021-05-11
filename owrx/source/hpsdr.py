@@ -1,6 +1,8 @@
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Option
+from owrx.form.error import ValidationError
 from owrx.form.input import Input, NumberInput, TextInput
+from owrx.form.input.validator import RangeValidator
 from typing import List
 
 # In order to use an HPSDR radio, you must install hpsdrconnector from https://github.com/jancona/hpsdrconnector
@@ -47,9 +49,9 @@ class HpsdrDeviceDescription(ConnectorDeviceDescription):
         return "HPSDR devices (Hermes / Hermes Lite 2 / Red Pitaya)"
 
     def getInputs(self) -> List[Input]:
-        return list(filter(lambda x : x.id != "rf_gain", super().getInputs())) + [
-            RemoteInput(), NumberInput("rf_gain", "LNA Gain", 
-            "LNA gain between 0 (-12dB) and 60 (48dB)"),
+        return super().getInputs() + [
+            RemoteInput(), 
+            NumberInput("rf_gain", "LNA Gain", "LNA gain between 0 (-12dB) and 60 (48dB)", validator=RangeValidator(0, 60)),
             ]
 
     def getDeviceOptionalKeys(self):
