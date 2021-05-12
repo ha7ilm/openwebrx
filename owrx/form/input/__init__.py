@@ -90,10 +90,12 @@ class Input(ABC):
         return self.bootstrap_decorate(self.render_input_group(self.converter.convert_to_form(value), error))
 
     def parse(self, data):
-        value = self.converter.convert_from_form(data[self.id][0])
-        if self.validator is not None:
-            self.validator.validate(self.id, value)
-        return {self.id: value} if self.id in data else {}
+        if self.id in data:
+            value = self.converter.convert_from_form(data[self.id][0])
+            if self.validator is not None:
+                self.validator.validate(self.id, value)
+            return {self.id: value}
+        return {}
 
     def getLabel(self):
         return self.label

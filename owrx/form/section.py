@@ -103,8 +103,8 @@ class OptionalSection(Section):
 
     def render(self, data, errors):
         indexed_inputs = {input.id: input for input in self.inputs}
-        visible_keys = set(self.mandatory + [k for k in self.optional if k in data])
-        optional_keys = set(k for k in self.optional if k not in data)
+        visible_keys = set(self.mandatory + [k for k in self.optional if k in data or k in errors])
+        optional_keys = set(k for k in self.optional if k not in data and k not in errors)
         self.inputs = [input for k, input in indexed_inputs.items() if k in visible_keys]
         for input in self.inputs:
             if self._is_optional(input):
@@ -117,8 +117,6 @@ class OptionalSection(Section):
 
     def parse(self, data):
         data, errors = super().parse(data)
-        # filter out errors for optional fields
-        errors = [e for e in errors if e.getKey() not in self.optional or e.getKey() in data]
         # remove optional keys if they have been removed from the form by setting them to None
         for k in self.optional:
             if k not in data:
