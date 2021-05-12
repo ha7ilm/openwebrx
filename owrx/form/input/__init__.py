@@ -109,8 +109,8 @@ class TextInput(Input):
 
 
 class NumberInput(Input):
-    def __init__(self, id, label, infotext=None, append="", converter: Converter = None):
-        super().__init__(id, label, infotext, converter=converter)
+    def __init__(self, id, label, infotext=None, append="", converter: Converter = None, validator: Validator = None):
+        super().__init__(id, label, infotext, converter=converter, validator=validator)
         self.step = None
         self.append = append
 
