@@ -26,7 +26,7 @@ class GzipMixin(object):
         super().send_response(content, code, headers=headers, content_type=content_type, *args, **kwargs)
 
     def zipable(self, content_type):
-        types = ["application/javascript", "text/css", "text/html"]
+        types = ["application/javascript", "text/css", "text/html", "image/svg+xml"]
         return content_type in types
 
     def gzip(self, content):
