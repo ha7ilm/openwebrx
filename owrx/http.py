@@ -34,27 +34,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class RequestHandler(BaseHTTPRequestHandler):
-    def __init__(self, request, client_address, server):
-        self.router = Router()
-        super().__init__(request, client_address, server)
-
-    def log_message(self, format, *args):
-        logger.debug("%s - - [%s] %s", self.address_string(), self.log_date_time_string(), format % args)
-
-    def do_GET(self):
-        self.router.route(self, self._build_request("GET"))
-
-    def do_POST(self):
-        self.router.route(self, self._build_request("POST"))
-
-    def do_DELETE(self):
-        self.router.route(self, self._build_request("DELETE"))
-
-    def _build_request(self, method):
-        return Request(self.path, method, self.headers)
-
-
 class Request(object):
     def __init__(self, url, method, headers):
         parsed_url = urlparse(url)
@@ -195,3 +174,23 @@ class Router(object):
             controller(handler, request, route.controllerOptions).handle_request()
         else:
             handler.send_error(404, "Not Found", "The page you requested could not be found.")
+
+
+class RequestHandler(BaseHTTPRequestHandler):
+    timeout = 30
+    router = Router()
+
+    def log_message(self, format, *args):
+        logger.debug("%s - - [%s] %s", self.address_string(), self.log_date_time_string(), format % args)
+
+    def do_GET(self):
+        self.router.route(self, self._build_request("GET"))
+
+    def do_POST(self):
+        self.router.route(self, self._build_request("POST"))
+
+    def do_DELETE(self):
+        self.router.route(self, self._build_request("DELETE"))
+
+    def _build_request(self, method):
+        return Request(self.path, method, self.headers)
