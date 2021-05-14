@@ -1370,3 +1370,7 @@ img.openwebrx-mirror-img
     width: 21px;
     height: 27px;
 }
+
+.openwebrx-zoom-button svg {
+    height: 27px;
+}

@@ -142,8 +142,8 @@
                     <input title="Waterfall maximum level" id="openwebrx-waterfall-color-max" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(1);" oninput="updateVolume()">
                 </div>
                 <div class="openwebrx-panel-line">
-                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomInOneStep();"  title="Zoom in one step"><span class="sprite sprite-zoom-in"></span></div>
-                    <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutOneStep();" title="Zoom out one step"><span class="sprite sprite-zoom-out"></span></div>
+                    <div class="openwebrx-button openwebrx-square-button openwebrx-zoom-button" onclick="zoomInOneStep();" title="Zoom in one step"><svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#zoom-in"></use></svg></div>
+                    <div class="openwebrx-button openwebrx-square-button openwebrx-zoom-button" onclick="zoomOutOneStep();" title="Zoom out one step"><svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#zoom-out"></use></svg></div>
                     <div class="openwebrx-button openwebrx-square-button" onclick="zoomInTotal();"  title="Zoom in totally"><span class="sprite sprite-zoom-in-total"></span></div>
                     <div class="openwebrx-button openwebrx-square-button" onclick="zoomOutTotal();" title="Zoom out totally"><span class="sprite sprite-zoom-out-total"></span></div>
                     <div id="openwebrx-smeter-db">0 dB</div>
