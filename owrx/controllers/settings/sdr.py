@@ -138,7 +138,7 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
             </ul>
         """.format(
             device_link="{}settings/sdr/{}".format(self.get_document_root(), quote(self.device_id)),
-            device_name=self.device["name"],
+            device_name=self.device["name"] if self.device["name"] else "[Unnamed device]",
             device_active="active" if self.isDeviceActive() else "",
             new_profile_active="active" if self.isNewProfileActive() else "",
             new_profile_link="{}settings/sdr/{}/newprofile".format(self.get_document_root(), quote(self.device_id)),
@@ -151,7 +151,7 @@ class SdrFormController(SettingsFormController, metaclass=ABCMeta):
                     profile_link="{}settings/sdr/{}/profile/{}".format(
                         self.get_document_root(), quote(self.device_id), quote(profile_id)
                     ),
-                    profile_name=profile["name"],
+                    profile_name=profile["name"] if profile["name"] else "[Unnamed profile]",
                     profile_active="active" if self.isProfileActive(profile_id) else "",
                 )
                 for profile_id, profile in self.device["profiles"].items()
