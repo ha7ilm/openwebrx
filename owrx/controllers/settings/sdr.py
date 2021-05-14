@@ -85,7 +85,7 @@ class SdrDeviceListController(AuthorizationMixin, BreadcrumbMixin, WebpageContro
                     </div>
                 </li>
             """.format(
-                device_name=config["name"],
+                device_name=config["name"] if config["name"] else "[Unnamed device]",
                 device_link="{}settings/sdr/{}".format(self.get_document_root(), quote(device_id)),
                 state=state_info,
                 additional_info=additional_info,
