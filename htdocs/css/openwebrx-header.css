@@ -56,7 +56,9 @@
 }
 
 .webrx-top-logo {
+    width: 261px;
     padding: 12px;
+    filter: drop-shadow(0 0 2.5px rgba(0, 0, 0, .9));
     /* overwritten by media queries */
     display: none;
 }
