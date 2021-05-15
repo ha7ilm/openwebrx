@@ -684,13 +684,6 @@ img.openwebrx-mirror-img
 	width: 95px;
 }
 
-.openwebrx-sliderbtn-img
-{
-	width: 14px;
-	position:relative;
-	top: 1px;
-}
-
 .openwebrx-panel-line
 {
 	padding-top: 5px;
@@ -1339,14 +1332,6 @@ img.openwebrx-mirror-img
     height: 15px;
 }
 
-.openwebrx-mute-button .sprite-speaker {
-    background-position: -103px -38px;
-}
-
-.openwebrx-mute-button.muted .sprite-speaker {
-    background-position: -117px -38px;
-}
-
 .sprite-squelch {
     background-position: -131px -38px;
     width: 14px;
@@ -1373,4 +1358,30 @@ img.openwebrx-mirror-img
 
 .openwebrx-zoom-button svg {
     height: 27px;
+}
+
+.openwebrx-sliderbtn-img
+{
+	width: 14px;
+	position:relative;
+	top: 1px;
+}
+
+.openwebrx-slider-button img,
+.openwebrx-slider-button svg {
+	position:relative;
+	top: 1px;
+    height: 15px;
+}
+
+.openwebrx-mute-button svg.muted {
+    display: none;
+}
+
+.openwebrx-mute-button.muted svg.muted {
+    display: initial;
+}
+
+.openwebrx-mute-button.muted svg.unmuted {
+    display: none;
 }
