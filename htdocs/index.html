@@ -145,7 +145,9 @@
                         <svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#squelch"></use></svg>
                     </div>
                     <input title="Squelch" class="openwebrx-squelch-slider openwebrx-panel-slider" type="range" min="-150" max="0" value="-150" step="1">
-                    <div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button" onclick="waterfallColorsDefault()"><span class="sprite sprite-waterfall-default openwebrx-sliderbtn-img"></span></div>
+                    <div title="Set waterfall colors to default" id="openwebrx-waterfall-colors-default" class="openwebrx-button openwebrx-slider-button" onclick="waterfallColorsDefault()">
+                        <svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#waterfall-default"></use></svg>
+                    </div>
                     <input title="Waterfall maximum level" id="openwebrx-waterfall-color-max" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(1);" oninput="updateVolume()">
                 </div>
                 <div class="openwebrx-panel-line">
