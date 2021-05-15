@@ -88,7 +88,7 @@ BookmarkBar.prototype.render = function(){
             '<div class="bookmark" data-source="' + b.source + '"' + (b.editable?' editable="editable"':'') + '>' +
                 '<div class="bookmark-actions">' +
                     '<div class="openwebrx-button action" data-action="edit"><span class="sprite sprite-edit"></span></div>' +
-                    '<div class="openwebrx-button action" data-action="delete"><span class="sprite sprite-trashcan"><span></div>' +
+                    '<div class="openwebrx-button openwebrx-bookmark-button action" data-action="delete"><svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#trashcan"></use></svg></div>' +
                 '</div>' +
                 '<div class="bookmark-content">' + b.name + '</div>' +
             '</div>'

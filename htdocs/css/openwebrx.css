@@ -1385,3 +1385,7 @@ img.openwebrx-mirror-img
 .openwebrx-mute-button.muted svg.unmuted {
     display: none;
 }
+
+.openwebrx-bookmark-button svg {
+    height: 14px;
+}
