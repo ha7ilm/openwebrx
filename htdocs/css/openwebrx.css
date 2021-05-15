@@ -1386,6 +1386,6 @@ img.openwebrx-mirror-img
     display: none;
 }
 
-.openwebrx-bookmark-button svg {
+.bookmark .bookmark-actions .openwebrx-button svg {
     height: 14px;
 }
