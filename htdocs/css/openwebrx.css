@@ -1079,14 +1079,9 @@ img.openwebrx-mirror-img
     content: "Down: ";
 }
 
-.openwebrx-maps-pin {
-    background-image: url("../gfx/google_maps_pin.svg");
-    background-position: center;
-    background-repeat: no-repeat;
+.openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;
-    background-size: contain;
-    display: inline-block;
 }
 
 .openwebrx-message-panel {

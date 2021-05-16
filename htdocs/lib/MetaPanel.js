@@ -145,7 +145,7 @@ YsfMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
     this.hasLocation = hasLocation; this.callsign = callsign;
     var html = '';
     if (hasLocation) {
-        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"></a>';
+        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"><svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg></a>';
     }
     this.el.find('.openwebrx-ysf-source .location').html(html);
 };

@@ -180,6 +180,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         }
     } else if (msg.lat && msg.lon) {
         classes.push('openwebrx-maps-pin');
+        overlay = '<svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg>';
     }
     var attrs = [
         'class="' + classes.join(' ') + '"',
