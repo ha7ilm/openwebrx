@@ -22,5 +22,6 @@
         <g id="rx-details-arrow-up"><path d="M5 0C2.5 0 0 2.5 0 5v7h43V5c0-2.5-2.5-5-5-5zm16.5 3L30 9.5H13z" fill="#999" fill-opacity=".196"/><path d="M30 9.5H13L21.5 3z" fill="#848484" fill-opacity=".592"/></g>
         <g id="maps-pin" transform="translate(-965.78 -331.788) scale(1.1856)"><path d="M817.11 282.97c-1.258 1.343-2.046 3.299-2.016 5.139.064 3.845 1.797 5.3 4.569 10.592.998 2.328 2.04 4.792 3.031 8.873.138.602.272 1.16.334 1.21.062.048.197-.513.334-1.115.991-4.081 2.033-6.543 3.032-8.872 2.77-5.291 4.504-6.747 4.568-10.592.03-1.84-.76-3.797-2.018-5.14-1.437-1.534-3.605-2.67-5.916-2.717-2.311-.047-4.48 1.088-5.918 2.622z" fill="#ff4646" stroke="#d73534"/><circle cx="823.03" cy="288.25" r="3.035" fill="#590000"/></g>
         <g id="play-button"><circle cx="350" cy="350" r="330" fill="none" stroke="#fff" stroke-width="36"/><path d="M195 211v278l366-139z" fill="#fff"/></g>
+        <g id="meta-mute" stroke="#fff" stroke-width="5"><path stroke-linejoin="round" style="paint-order:fill" fill="none" d="m21.989 47.699 17.4 15.051V13.769L22.235 28.606H6v19.093z" transform="matrix(5.3513 0 0 5.3723 -.73 -1.542)"/><path d="m48.652 50.27 20.743-24.299M69.395 50.27 48.652 25.971" stroke-linecap="round" transform="matrix(5.3513 0 0 5.3723 -.73 -1.542)"/></g>
     </defs>
 </svg>

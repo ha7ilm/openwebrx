@@ -667,16 +667,6 @@ img.openwebrx-mirror-img
     text-align: center;
 }
 
-#openwebrx-mute-on
-{
-	color: lime;
-}
-
-#openwebrx-mute-off
-{
-	color: white;
-}
-
 .openwebrx-panel-slider
 {
 	position: relative;
@@ -993,6 +983,7 @@ img.openwebrx-mirror-img
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .openwebrx-meta-slot > * {
@@ -1001,18 +992,14 @@ img.openwebrx-mirror-img
     line-height: 1.2em;
 }
 
-.openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
+.openwebrx-meta-slot, .openwebrx-meta-slot .mute {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
 }
 
-.openwebrx-meta-slot.muted:before {
-    display: block;
-    content: "";
-    background-image: url("../gfx/openwebrx-mute.png");
-    background-position: center;
-    background-repeat: no-repeat;
+.openwebrx-meta-slot .mute {
+    display: none;
     cursor: pointer;
 
     position: absolute;
@@ -1021,6 +1008,17 @@ img.openwebrx-mirror-img
     top: 0;
     left: 0;
     background-color: rgba(0,0,0,.3);
+}
+
+.openwebrx-meta-slot .mute svg {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(0, -50%);
+}
+
+.openwebrx-meta-slot.muted .mute {
+    display: block;
 }
 
 .openwebrx-meta-slot.active {
@@ -1042,15 +1040,21 @@ img.openwebrx-mirror-img
     flex: 1;
     background-position: center;
     background-repeat: no-repeat;
+    line-height: 0;
 }
 
-.openwebrx-meta-slot.active.direct .openwebrx-meta-user-image,
-#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image {
-    background-image: url("../gfx/openwebrx-directcall.png");
+.openwebrx-meta-slot .openwebrx-meta-user-image img {
+    height: 133px;
+    display: none;
 }
 
-.openwebrx-meta-slot.active.group .openwebrx-meta-user-image {
-    background-image: url("../gfx/openwebrx-groupcall.png");
+.openwebrx-meta-slot.active.direct .openwebrx-meta-user-image .directcall,
+#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
+    display: initial;
+}
+
+.openwebrx-meta-slot.active.group .openwebrx-meta-user-image .groupcall {
+    display: initial;
 }
 
 .openwebrx-meta-slot.group .openwebrx-dmr-target:not(:empty):before {
