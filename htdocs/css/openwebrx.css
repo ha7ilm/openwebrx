@@ -781,8 +781,7 @@ img.openwebrx-mirror-img
 	transition: opacity 0.3s linear;
 }
 
-#openwebrx-autoplay-overlay img
-{
+#openwebrx-autoplay-overlay svg {
 	width: 150px;
 }
 
