@@ -1291,83 +1291,10 @@ img.openwebrx-mirror-img
     margin: -10px;
 }
 
-.sprite-zoom-in {
-    background-position: 0 -38px;
-    width: 27px;
-    height: 27px;
-}
-
-.sprite-zoom-out {
-    background-position: -27px -38px;
-    width: 27px;
-    height: 27px;
-}
-
-.sprite-zoom-in-total {
-    background-position: -54px -38px;
-    width: 24px;
-    height: 27px;
-}
-
-.sprite-zoom-out-total {
-    background-position: -78px -38px;
-    width: 25px;
-    height: 27px;
-}
-
-.sprite-edit {
-    background-position: -131px -51px;
-    width: 14px;
-    height: 14px;
-}
-
-.sprite-trashcan {
-    background-position: -145px -38px;
-    width: 14px;
-    height: 14px;
-}
-
-.sprite-speaker {
-    width: 14px;
-    height: 15px;
-}
-
-.sprite-squelch {
-    background-position: -131px -38px;
-    width: 14px;
-    height: 13px;
-}
-
-.sprite-waterfall-auto {
-    background-position: -103px -53px;
-    width: 14px;
-    height: 11px;
-}
-
-.sprite-waterfall-default {
-    background-position: -117px -53px;
-    width: 14px;
-    height: 12px;
-}
-
-.sprite-bookmark {
-    background-position: -159px -38px;
-    width: 21px;
-    height: 27px;
-}
-
 .openwebrx-zoom-button svg {
     height: 27px;
 }
 
-.openwebrx-sliderbtn-img
-{
-	width: 14px;
-	position:relative;
-	top: 1px;
-}
-
-.openwebrx-slider-button img,
 .openwebrx-slider-button svg {
 	position:relative;
 	top: 1px;

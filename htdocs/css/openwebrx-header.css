@@ -195,38 +195,8 @@
 }
 
 /*
- * Sprites (images)
+ * RX details arrow up/down switching
  */
-
-.sprite-panel-status {
-    background-position: 0 0;
-    width: 44px;
-    height: 38px;
-}
-
-.sprite-panel-log {
-    background-position: -44px 0;
-    width: 38px;
-    height: 38px;
-}
-
-.sprite-panel-receiver {
-    background-position: -82px 0;
-    width: 40px;
-    height: 38px;
-}
-
-.sprite-panel-map {
-    background-position: -122px 0;
-    width: 38px;
-    height: 38px;
-}
-
-.sprite-panel-settings {
-    background-position: -160px 0;
-    width: 38px;
-    height: 38px;
-}
 
 .openwebrx-rx-details-arrow {
     position: absolute;
