@@ -25,7 +25,8 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/runds_connector.git
-cmakebuild runds_connector 0.1.0
+# latest develop as of 2021-05-18 (individual connector versions)
+cmakebuild runds_connector adfa04bee4ee36852feb07e7b845be2c3d3f97c7
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
