@@ -157,7 +157,8 @@
                     </div>
                     <input title="Volume" id="openwebrx-panel-volume" class="openwebrx-panel-slider" type="range" min="0" max="150" value="50" step="1" onchange="updateVolume()" oninput="updateVolume()">
                     <div title="Auto-adjust waterfall colors (right-click for continuous)" id="openwebrx-waterfall-colors-auto" class="openwebrx-button openwebrx-slider-button">
-                        <svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#waterfall-auto"></use></svg>
+                        <svg class="auto" viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#waterfall-auto"></use></svg>
+                        <svg class="continuous" viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#waterfall-continuous"></use></svg>
                     </div>
                     <input title="Waterfall minimum level" id="openwebrx-waterfall-color-min" class="openwebrx-panel-slider" type="range" min="-200" max="100" value="50" step="1" onchange="updateWaterfallColors(0);" oninput="updateVolume()">
                 </div>

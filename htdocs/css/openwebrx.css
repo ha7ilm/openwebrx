@@ -1314,3 +1314,15 @@ img.openwebrx-mirror-img
 .bookmark .bookmark-actions .openwebrx-button svg {
     height: 14px;
 }
+
+#openwebrx-waterfall-colors-auto .continuous {
+    display: none;
+}
+
+#openwebrx-waterfall-colors-auto.highlighted .continuous {
+    display: initial;
+}
+
+#openwebrx-waterfall-colors-auto.highlighted .auto {
+    display: none;
+}
