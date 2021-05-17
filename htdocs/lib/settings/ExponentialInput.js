@@ -38,7 +38,7 @@ $.fn.exponentialInput = function() {
         // calculate initial exponent
         var value = parseFloat($input.val());
         if (!Number.isNaN(value)) {
-            $exponent.val(Math.floor(Math.log10(value) / 3) * 3);
+            $exponent.val(Math.floor(Math.log10(Math.abs(value)) / 3) * 3);
             setExponent();
         }
     })
