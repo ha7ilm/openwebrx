@@ -192,7 +192,7 @@ class DaylightSchedule(TimerangeSchedule):
         for event in events:
             # night profile _until_ sunrise, day profile _until_ sunset
             stype = "night" if event["type"] == "sunrise" else "day"
-            if previousEvent is not None or event["time"] - delta > now:
+            if stype in self.schedule and (previousEvent is not None or event["time"] - delta > now):
                 start = now if previousEvent is None else previousEvent
                 entries.append(DatetimeScheduleEntry(start, event["time"] - delta, self.schedule[stype]))
             if useGreyline:
