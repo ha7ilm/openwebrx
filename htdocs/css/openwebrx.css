@@ -750,19 +750,19 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-overlay {
-	position: fixed;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	opacity: 0.8;
-	background-color: #777;
-	left: 0;
-	top: 0;
-	z-index: 1001;
-	color: white;
-	font-weight: bold;
-	font-size: 20pt;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0.8;
+    background-color: #777;
+    left: 0;
+    top: 0;
+    z-index: 1001;
+    color: white;
+    font-weight: bold;
+    font-size: 20pt;
 }
 
 #openwebrx-autoplay-overlay
@@ -1325,4 +1325,15 @@ img.openwebrx-mirror-img
 
 #openwebrx-waterfall-colors-auto.highlighted .auto {
     display: none;
+}
+
+.openwebrx-waterfall-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.openwebrx-waterfall-container > * {
+    flex: 0 0 auto;
 }
