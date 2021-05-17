@@ -263,10 +263,8 @@ class FeatureDetector(object):
             True,
         )
 
-    def _check_connector(self, command):
-        required_version = LooseVersion("0.4")
-
-        owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
+    def _check_connector(self, command, required_version):
+        owrx_connector_version_regex = re.compile("^{} version (.*)$".format(re.escape(command)))
 
         try:
             process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
@@ -279,6 +277,9 @@ class FeatureDetector(object):
         except FileNotFoundError:
             return False
 
+    def _check_owrx_connector(self, command):
+        return self._check_connector(command, LooseVersion("0.4"))
+
     def has_rtl_connector(self):
         """
         The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
@@ -286,7 +287,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
-        return self._check_connector("rtl_connector")
+        return self._check_owrx_connector("rtl_connector")
 
     def has_rtl_tcp_connector(self):
         """
@@ -295,7 +296,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
-        return self._check_connector("rtl_tcp_connector")
+        return self._check_owrx_connector("rtl_tcp_connector")
 
     def has_soapy_connector(self):
         """
@@ -304,7 +305,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
-        return self._check_connector("soapy_connector")
+        return self._check_owrx_connector("soapy_connector")
 
     def _has_soapy_driver(self, driver):
         try:
@@ -535,7 +536,7 @@ class FeatureDetector(object):
 
         You can find more information [here](https://github.com/jketterl/sddc_connector).
         """
-        return self._check_connector("sddc_connector")
+        return self._check_connector("sddc_connector", LooseVersion("0.1"))
 
     def has_hpsdr_connector(self):
         """
@@ -550,4 +551,4 @@ class FeatureDetector(object):
 
         You can find more information [here](https://github.com/jketterl/runds_connector).
         """
-        return self._check_connector("runds_connector")
+        return self._check_connector("runds_connector", LooseVersion("0.2"))
