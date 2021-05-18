@@ -495,35 +495,35 @@ class MapConnection(OpenWebRxClient):
         self.mp_send({"type": "update", "value": update})
 
 
-class WebSocketMessageHandler(Handler):
-    def __init__(self):
-        self.handshake = None
-
+class HandshakeMessageHandler(Handler):
+    """
+    This handler receives text messages, but will only respond to the second handshake string.
+    As soon as a valid handshake is received, the handler replaces itself with the corresponding handler type.
+    """
     def handleTextMessage(self, conn, message):
         if message[:16] == "SERVER DE CLIENT":
             meta = message[17:].split(" ")
-            self.handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
+            handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
 
-            conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
             logger.debug("client connection initialized")
 
-            if "type" in self.handshake:
-                if self.handshake["type"] == "receiver":
+            client = None
+            if "type" in handshake:
+                if handshake["type"] == "receiver":
                     client = OpenWebRxReceiverClient(conn)
-                if self.handshake["type"] == "map":
+                elif handshake["type"] == "map":
                     client = MapConnection(conn)
-            # backwards compatibility
+                else:
+                    logger.warning("invalid connection type: %s", handshake["type"])
+
+            if client is not None:
+                # hand off all further communication to the correspondig connection
+                conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
+                conn.setMessageHandler(client)
             else:
-                client = OpenWebRxReceiverClient(conn)
-
-            # hand off all further communication to the correspondig connection
-            conn.setMessageHandler(client)
-
-            return
-
-        if not self.handshake:
+                logger.warning('invalid handshake received')
+        else:
             logger.warning("not answering client request since handshake is not complete")
-            return
 
     def handleBinaryMessage(self, conn, data):
         pass
