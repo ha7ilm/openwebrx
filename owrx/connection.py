@@ -517,7 +517,7 @@ class HandshakeMessageHandler(Handler):
                     logger.warning("invalid connection type: %s", handshake["type"])
 
             if client is not None:
-                logger.debug("handing off connection handling to %s", type(client).__name__)
+                logger.debug("handshake complete, handing off to %s", type(client).__name__)
                 # hand off all further communication to the correspondig connection
                 conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
                 conn.setMessageHandler(client)
