@@ -137,10 +137,10 @@ class WebSocketConnection(object):
         self._sendBytes(data_to_send)
 
     def _sendBytes(self, data_to_send):
-        def chunks(l, n):
-            """Yield successive n-sized chunks from l."""
-            for i in range(0, len(l), n):
-                yield l[i : i + n]
+        def chunks(input, n):
+            """Yield successive n-sized chunks from input."""
+            for i in range(0, len(input), n):
+                yield input[i: i + n]
 
         try:
             with self.sendLock:
@@ -151,9 +151,11 @@ class WebSocketConnection(object):
                         if written != len(chunk):
                             logger.error("incomplete write! closing socket!")
                             self.close()
+                            break
                     else:
                         logger.debug("socket not returned from select; closing")
                         self.close()
+                        break
         # these exception happen when the socket is closed
         except OSError:
             logger.exception("OSError while writing data")
@@ -214,9 +216,10 @@ class WebSocketConnection(object):
                             length = (header[0] << 8) + header[1]
                         if mask:
                             masking_key = protected_read(4)
-                        data = protected_read(length)
-                        if mask:
+                            data = protected_read(length)
                             data = bytes([b ^ masking_key[index % 4] for (index, b) in enumerate(data)])
+                        else:
+                            data = protected_read(length)
                         if opcode == OPCODE_TEXT_MESSAGE:
                             message = data.decode("utf-8")
                             try:
