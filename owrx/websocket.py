@@ -5,6 +5,7 @@ import json
 from multiprocessing import Pipe
 import select
 import threading
+from abc import ABC, abstractmethod
 
 import logging
 
@@ -33,6 +34,20 @@ class WebSocketClosed(WebSocketException):
     pass
 
 
+class Handler(ABC):
+    @abstractmethod
+    def handleTextMessage(self, connection, message: str):
+        pass
+
+    @abstractmethod
+    def handleBinaryMessage(self, connection, data: bytes):
+        pass
+
+    @abstractmethod
+    def handleClose(self):
+        pass
+
+
 class WebSocketConnection(object):
     connections = []
 
@@ -44,9 +59,10 @@ class WebSocketConnection(object):
             except:
                 logger.exception("exception while shutting down websocket connections")
 
-    def __init__(self, handler, messageHandler):
+    def __init__(self, handler, messageHandler: Handler):
         self.handler = handler
         self.handler.connection.setblocking(0)
+        self.messageHandler = None
         self.setMessageHandler(messageHandler)
         (self.interruptPipeRecv, self.interruptPipeSend) = Pipe(duplex=False)
         self.open = True
@@ -72,7 +88,7 @@ class WebSocketConnection(object):
         self.pingTimer = None
         self.resetPing()
 
-    def setMessageHandler(self, messageHandler):
+    def setMessageHandler(self, messageHandler: Handler):
         self.messageHandler = messageHandler
 
     def get_header(self, size, opcode):

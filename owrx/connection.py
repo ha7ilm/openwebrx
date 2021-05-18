@@ -13,6 +13,7 @@ from owrx.property import PropertyStack, PropertyDeleted
 from owrx.modes import Modes, DigitalMode
 from owrx.config import Config
 from owrx.waterfall import WaterfallOptions
+from owrx.websocket import Handler
 from queue import Queue, Full, Empty
 from js8py import Js8Frame
 from abc import ABC, ABCMeta, abstractmethod
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 PoisonPill = object()
 
 
-class Client(ABC):
+class Client(Handler, metaclass=ABCMeta):
     def __init__(self, conn):
         self.conn = conn
         self.multithreadingQueue = Queue(100)
@@ -494,7 +495,7 @@ class MapConnection(OpenWebRxClient):
         self.mp_send({"type": "update", "value": update})
 
 
-class WebSocketMessageHandler(object):
+class WebSocketMessageHandler(Handler):
     def __init__(self):
         self.handshake = None
 
