@@ -1,4 +1,5 @@
 **1.1.x - unreleased**
+- Reworked most graphical elements as SVGs for faster loadtimes and crispier display on hi-dpi displays
 
 **1.0.0**
 - Introduced `squelch_auto_margin` config option that allows configuring the auto squelch level
