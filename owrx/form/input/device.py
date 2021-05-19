@@ -1,7 +1,5 @@
 from owrx.form.input import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
 from owrx.soapy import SoapySettings
-from functools import reduce
-from operator import and_
 
 
 class GainInput(Input):
@@ -343,20 +341,21 @@ class SchedulerInput(Input):
         if select_id in data:
             if data[select_id][0] == "static":
                 keys = ["{}-{}".format(self.id, x) for x in ["time-start", "time-end", "profile"]]
-                keys_present = reduce(and_, [key in data for key in keys], True)
-                if not keys_present:
-                    return {}
-                lists = [data[key] for key in keys]
+                lists = [data[key] for key in keys if key in data]
                 settings_dict = {
                     "{}{}-{}{}".format(start[0:2], start[3:5], end[0:2], end[3:5]): profile
                     for start, end, profile in zip(*lists)
                 }
-                return {self.id: {"type": "static", "schedule": settings_dict}}
+                # only apply scheduler if any slots are available
+                if settings_dict:
+                    return {self.id: {"type": "static", "schedule": settings_dict}}
             elif data[select_id][0] == "daylight":
                 settings_dict = {s: getStageValue(s) for s in ["day", "night", "greyline"]}
                 # filter out empty ones
                 settings_dict = {s: v for s, v in settings_dict.items() if v}
-                return {self.id: {"type": "daylight", "schedule": settings_dict}}
+                # only apply scheduler if any of the slots are in use
+                if settings_dict:
+                    return {self.id: {"type": "daylight", "schedule": settings_dict}}
 
         return {}
 
