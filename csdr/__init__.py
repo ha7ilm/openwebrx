@@ -163,44 +163,37 @@ class Dsp(DirewolfConfigSubscriber):
         elif self.isDigitalVoice(which):
             chain += ["csdr fmdemod_quadri_cf"]
             chain += last_decimation_block
-            # dsd modes
-            if which in ["dstar", "nxdn"]:
-                chain += ["dc_block", "csdr limit_ff", "csdr convert_f_s16"]
-                if which == "dstar":
-                    chain += ["dsd -fd -i - -o - -u {unvoiced_quality} -g -1 "]
-                elif which == "nxdn":
-                    chain += ["dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
-                chain += [
-                    "digitalvoice_filter",
-                    "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
-                    "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
-                ]
+            chain += ["dc_block"]
             # m17
-            elif which == "m17":
+            if which == "m17":
                 chain += [
-                    "dc_block",
                     "csdr limit_ff",
                     "csdr convert_f_s16",
                     "m17-demod",
-                    "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
-                    "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
                 ]
-            # digiham modes
             else:
-                chain += ["dc_block", "rrc_filter", "gfsk_demodulator"]
-                if which == "dmr":
-                    chain += [
-                        "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe}",
-                        "mbe_synthesizer -f -u {unvoiced_quality}",
-                    ]
-                elif which == "ysf":
-                    chain += ["ysf_decoder --fifo {meta_pipe}", "mbe_synthesizer -y -f -u {unvoiced_quality}"]
-                max_gain = 0.005
-                chain += [
-                    "digitalvoice_filter -f",
-                    "CSDR_FIXED_BUFSIZE=32 csdr agc_ff --max 0.005 --initial 0.0005",
-                    "sox -t raw -r 8000 -e floating-point -b 32 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
-                ]
+                # dsd modes
+                if which in ["dstar", "nxdn"]:
+                    chain += ["csdr limit_ff", "csdr convert_f_s16"]
+                    if which == "dstar":
+                        chain += ["dsd -fd -i - -o - -u {unvoiced_quality} -g -1 "]
+                    elif which == "nxdn":
+                        chain += ["dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
+                # digiham modes
+                else:
+                    chain += ["rrc_filter", "gfsk_demodulator"]
+                    if which == "dmr":
+                        chain += [
+                            "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe}",
+                            "mbe_synthesizer",
+                        ]
+                    elif which == "ysf":
+                        chain += ["ysf_decoder --fifo {meta_pipe}", "mbe_synthesizer -y"]
+                chain += ["digitalvoice_filter"]
+            chain += [
+                "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
+                "sox -t raw -r 8000 -e signed-integer -b 16 -c 1 --buffer 32 - -t raw -r {output_rate} -e signed-integer -b 16 -c 1 - ",
+            ]
         elif which == "am":
             chain += ["csdr amdemod_cf", "csdr fastdcblock_ff"]
             chain += last_decimation_block
