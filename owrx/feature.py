@@ -231,7 +231,7 @@ class FeatureDetector(object):
         """
         required_version = LooseVersion("0.3")
 
-        digiham_version_regex = re.compile("^digiham version (.*)$")
+        digiham_version_regex = re.compile("^(.*) version (.*)$")
 
         def check_digiham_version(command):
             try:
@@ -239,9 +239,9 @@ class FeatureDetector(object):
                 matches = digiham_version_regex.match(process.stdout.readline().decode())
                 if matches is None:
                     return False
-                version = LooseVersion(matches.group(1))
+                version = LooseVersion(matches.group(2))
                 process.wait(1)
-                return version >= required_version
+                return matches.group(1) in [command, "digiham"] and version >= required_version
             except FileNotFoundError:
                 return False
 
