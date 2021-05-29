@@ -86,6 +86,7 @@ class Dsp(DirewolfConfigSubscriber):
         self.secondary_pipe_names = {"secondary_shift_pipe": Pipe.WRITE}
         self.secondary_offset_freq = 1000
         self.unvoiced_quality = 1
+        self.codecserver = None
         self.modification_lock = threading.Lock()
         self.output = output
 
@@ -185,10 +186,10 @@ class Dsp(DirewolfConfigSubscriber):
                     if which == "dmr":
                         chain += [
                             "dmr_decoder --fifo {meta_pipe} --control-fifo {dmr_control_pipe}",
-                            "mbe_synthesizer",
+                            "mbe_synthesizer {codecserver_arg}",
                         ]
                     elif which == "ysf":
-                        chain += ["ysf_decoder --fifo {meta_pipe}", "mbe_synthesizer -y"]
+                        chain += ["ysf_decoder --fifo {meta_pipe}", "mbe_synthesizer -y {codecserver_arg}"]
                 chain += ["digitalvoice_filter"]
             chain += [
                 "CSDR_FIXED_BUFSIZE=32 csdr agc_s16 --max 30 --initial 3",
@@ -641,6 +642,15 @@ class Dsp(DirewolfConfigSubscriber):
     def get_unvoiced_quality(self):
         return self.unvoiced_quality
 
+    def set_codecserver(self, s):
+        if self.codecserver == s:
+            return
+        self.codecserver = s
+        self.restart()
+
+    def get_codecserver_arg(self):
+        return "-s {}".format(self.codecserver) if self.codecserver else ""
+
     def set_dmr_filter(self, filter):
         if self.has_pipe("dmr_control_pipe"):
             self.pipes["dmr_control_pipe"].write("{0}\n".format(filter))
@@ -754,6 +764,7 @@ class Dsp(DirewolfConfigSubscriber):
                 output_rate=self.get_output_rate(),
                 smeter_report_every=int(self.if_samp_rate() / 6000),
                 unvoiced_quality=self.get_unvoiced_quality(),
+                codecserver_arg=self.get_codecserver_arg(),
                 audio_rate=self.get_audio_rate(),
                 wfm_deemphasis_tau=self.wfm_deemphasis_tau,
             )

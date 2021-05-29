@@ -72,6 +72,7 @@ class DspManager(Output, SdrSourceEventClient):
                 "start_mod",
                 "start_freq",
                 "wfm_deemphasis_tau",
+                "digital_voice_codecserver",
             ),
         )
 
@@ -130,6 +131,7 @@ class DspManager(Output, SdrSourceEventClient):
             self.props.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
             self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
             self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
+            self.props.wireProperty("digital_voice_codecserver", self.dsp.set_codecserver),
             self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 

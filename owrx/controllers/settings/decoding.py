@@ -1,8 +1,9 @@
 from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
-from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option
+from owrx.form.input import CheckboxInput, NumberInput, DropdownInput, Js8ProfileCheckboxInput, MultiCheckboxInput, Option, TextInput
 from owrx.form.input.wfm import WfmTauValues
 from owrx.form.input.wsjt import Q65ModeMatrix, WsjtDecodingDepthsInput
+from owrx.form.input.converter import OptionalConverter
 from owrx.wsjt import Fst4Profile, Fst4wProfile
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 
@@ -39,6 +40,13 @@ class DecodingSettingsController(SettingsFormController):
                     "Quality of unvoiced sounds in synthesized voice",
                     infotext="Determines the quality, and thus the cpu usage, for the ambe codec used by digital voice"
                     + " modes.<br />If you're running on a Raspberry Pi (up to 3B+) you should leave this set at 1",
+                ),
+                TextInput(
+                    "digital_voice_codecserver",
+                    "Codecserver address",
+                    infotext="Address of a remote codecserver instance (name[:port]). Leave empty to use local"
+                    + " codecserver",
+                    converter=OptionalConverter(),
                 ),
                 CheckboxInput(
                     "digital_voice_dmr_id_lookup",
