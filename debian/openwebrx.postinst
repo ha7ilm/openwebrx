@@ -12,7 +12,7 @@ OWRX_BOOKMARKS_FILE="${OWRX_DATADIR}/bookmarks.json"
 case "$1" in
   configure|reconfigure)
     adduser --system --group --no-create-home --home /nonexistent --quiet "${OWRX_USER}"
-    usermod -aG plugdev openwebrx
+    usermod -aG plugdev "${OWRX_USER}"
 
     # create OpenWebRX data directory and set the correct permissions
     if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
