@@ -1,6 +1,6 @@
 diff -ur wsjtx-orig/CMake/Modules/Findhamlib.cmake wsjtx/CMake/Modules/Findhamlib.cmake
---- wsjtx-orig/CMake/Modules/Findhamlib.cmake	2021-02-01 20:38:00.947536514 +0100
-+++ wsjtx/CMake/Modules/Findhamlib.cmake	2021-02-01 20:39:06.273680932 +0100
+--- wsjtx-orig/CMake/Modules/Findhamlib.cmake	2021-05-31 18:56:20.657682124 +0200
++++ wsjtx/CMake/Modules/Findhamlib.cmake	2021-05-31 18:57:03.963994898 +0200
 @@ -85,4 +85,4 @@
  # Handle the  QUIETLY and REQUIRED  arguments and set  HAMLIB_FOUND to
  # TRUE if all listed variables are TRUE
@@ -8,8 +8,8 @@ diff -ur wsjtx-orig/CMake/Modules/Findhamlib.cmake wsjtx/CMake/Modules/Findhamli
 -find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES hamlib_LIBRARY_DIRS)
 +find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES)
 diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
---- wsjtx-orig/CMakeLists.txt	2021-02-01 20:38:00.947536514 +0100
-+++ wsjtx/CMakeLists.txt	2021-02-01 23:02:22.503027275 +0100
+--- wsjtx-orig/CMakeLists.txt	2021-05-31 18:56:20.657682124 +0200
++++ wsjtx/CMakeLists.txt	2021-05-31 19:08:02.768474060 +0200
 @@ -122,7 +122,7 @@
  option (WSJT_QDEBUG_TO_FILE "Redirect Qt debuging messages to a trace file.")
  option (WSJT_SOFT_KEYING "Apply a ramp to CW keying envelope to reduce transients." ON)
@@ -19,7 +19,82 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  option (WSJT_RIG_NONE_CAN_SPLIT "Allow split operation with \"None\" as rig.")
  option (WSJT_TRACE_UDP "Debugging option that turns on UDP message protocol diagnostics.")
  option (WSJT_BUILD_UTILS "Build simulators and code demonstrators." ON)
-@@ -856,7 +856,7 @@
+@@ -169,74 +169,7 @@
+   )
+ 
+ set (wsjt_qt_CXXSRCS
+-  qt_helpers.cpp
+-  widgets/MessageBox.cpp
+-  MetaDataRegistry.cpp
+-  Network/NetworkServerLookup.cpp
+   revision_utils.cpp
+-  L10nLoader.cpp
+-  WFPalette.cpp
+-  Radio.cpp
+-  RadioMetaType.cpp
+-  NonInheritingProcess.cpp
+-  models/IARURegions.cpp
+-  models/Bands.cpp
+-  models/Modes.cpp
+-  models/FrequencyList.cpp
+-  models/StationList.cpp
+-  widgets/FrequencyLineEdit.cpp
+-  widgets/FrequencyDeltaLineEdit.cpp
+-  item_delegates/CandidateKeyFilter.cpp
+-  item_delegates/ForeignKeyDelegate.cpp
+-  validators/LiveFrequencyValidator.cpp
+-  GetUserId.cpp
+-  Audio/AudioDevice.cpp
+-  Transceiver/Transceiver.cpp
+-  Transceiver/TransceiverBase.cpp
+-  Transceiver/EmulateSplitTransceiver.cpp
+-  Transceiver/TransceiverFactory.cpp
+-  Transceiver/PollingTransceiver.cpp
+-  Transceiver/HamlibTransceiver.cpp
+-  Transceiver/HRDTransceiver.cpp
+-  Transceiver/DXLabSuiteCommanderTransceiver.cpp
+-  Network/NetworkMessage.cpp
+-  Network/MessageClient.cpp
+-  widgets/LettersSpinBox.cpp
+-  widgets/HintedSpinBox.cpp
+-  widgets/RestrictedSpinBox.cpp
+-  widgets/HelpTextWindow.cpp
+-  SampleDownloader.cpp
+-  SampleDownloader/DirectoryDelegate.cpp
+-  SampleDownloader/Directory.cpp
+-  SampleDownloader/FileNode.cpp
+-  SampleDownloader/RemoteFile.cpp
+-  DisplayManual.cpp
+-  MultiSettings.cpp
+-  validators/MaidenheadLocatorValidator.cpp
+-  validators/CallsignValidator.cpp
+-  widgets/SplashScreen.cpp
+-  EqualizationToolsDialog.cpp
+-  widgets/DoubleClickablePushButton.cpp
+-  widgets/DoubleClickableRadioButton.cpp
+-  Network/LotWUsers.cpp
+-  models/DecodeHighlightingModel.cpp
+-  widgets/DecodeHighlightingListView.cpp
+-  models/FoxLog.cpp
+-  widgets/AbstractLogWindow.cpp
+-  widgets/FoxLogWindow.cpp
+-  widgets/CabrilloLogWindow.cpp
+-  item_delegates/CallsignDelegate.cpp
+-  item_delegates/MaidenheadLocatorDelegate.cpp
+-  item_delegates/FrequencyDelegate.cpp
+-  item_delegates/FrequencyDeltaDelegate.cpp
+-  item_delegates/SQLiteDateTimeDelegate.cpp
+-  models/CabrilloLog.cpp
+-  logbook/AD1CCty.cpp
+-  logbook/WorkedBefore.cpp
+-  logbook/Multiplier.cpp
+-  Network/NetworkAccessManager.cpp
+-  widgets/LazyFillComboBox.cpp
+-  widgets/CheckableItemComboBox.cpp
+   )
+ 
+ set (wsjt_qtmm_CXXSRCS
+@@ -857,7 +790,7 @@
  #
  # libhamlib setup
  #
@@ -28,7 +103,17 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  find_package (hamlib 3 REQUIRED)
  find_program (RIGCTL_EXE rigctl)
  find_program (RIGCTLD_EXE rigctld)
-@@ -1376,60 +1376,6 @@
+@@ -895,9 +828,6 @@
+ if (WSJT_GENERATE_DOCS)
+   add_subdirectory (doc)
+ endif (WSJT_GENERATE_DOCS)
+-if (EXISTS ${CMAKE_SOURCE_DIR}/tests AND IS_DIRECTORY ${CMAKE_SOURCE_DIR}/tests)
+-  add_subdirectory (tests)
+-endif ()
+ 
+ #
+ # Library building setup
+@@ -1380,60 +1310,6 @@
    target_link_libraries (jt9 wsjt_fort wsjt_cxx fort_qt)
  endif (${OPENMP_FOUND} OR APPLE)
  
@@ -89,10 +174,33 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  # make a library for WSJT-X UDP servers
  # add_library (wsjtx_udp SHARED ${UDP_library_CXXSRCS})
  add_library (wsjtx_udp-static STATIC ${UDP_library_CXXSRCS})
-@@ -1492,24 +1438,9 @@
-   set_target_properties (message_aggregator PROPERTIES WIN32_EXECUTABLE ON)
- endif (WSJT_CREATE_WINMAIN)
+@@ -1473,47 +1349,9 @@
+ add_executable (wsjtx_app_version AppVersion/AppVersion.cpp ${wsjtx_app_version_VERSION_RESOURCES})
+ target_link_libraries (wsjtx_app_version wsjt_qt)
  
+-generate_version_info (message_aggregator_VERSION_RESOURCES
+-  NAME message_aggregator
+-  BUNDLE ${PROJECT_BUNDLE_NAME}
+-  ICON ${WSJTX_ICON_FILE}
+-  FILE_DESCRIPTION "Example WSJT-X UDP Message Protocol application"
+-  )
+-add_resources (message_aggregator_RESOURCES /qss ${message_aggregator_STYLESHEETS})
+-configure_file (UDPExamples/message_aggregator.qrc.in message_aggregator.qrc @ONLY)
+-qt5_add_resources (message_aggregator_RESOURCES_RCC
+-  ${CMAKE_CURRENT_BINARY_DIR}/message_aggregator.qrc
+-  contrib/QDarkStyleSheet/qdarkstyle/style.qrc
+-  )
+-add_executable (message_aggregator
+-  ${message_aggregator_CXXSRCS}
+-  ${message_aggregator_RESOURCES_RCC}
+-  ${message_aggregator_VERSION_RESOURCES}
+-  )
+-target_link_libraries (message_aggregator wsjt_qt Qt5::Widgets wsjtx_udp-static)
+-
+-if (WSJT_CREATE_WINMAIN)
+-  set_target_properties (message_aggregator PROPERTIES WIN32_EXECUTABLE ON)
+-endif (WSJT_CREATE_WINMAIN)
+-
 -if (UNIX)
 -  if (NOT WSJT_SKIP_MANPAGES)
 -    add_subdirectory (manpages)
@@ -114,7 +222,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  
  # install (TARGETS wsjtx_udp EXPORT udp
  #   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-@@ -1528,12 +1459,7 @@
+@@ -1532,12 +1370,7 @@
  #   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wsjtx
  #   )
  
@@ -128,7 +236,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    )
-@@ -1546,38 +1472,6 @@
+@@ -1549,38 +1382,6 @@
    )
  endif(WSJT_BUILD_UTILS)  
  
@@ -167,7 +275,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  install (FILES
    cty.dat
    cty.dat_copyright.txt
-@@ -1586,13 +1480,6 @@
+@@ -1589,13 +1390,6 @@
    #COMPONENT runtime
    )
  
@@ -181,3 +289,28 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  #
  # Mac installer files
  #
+@@ -1648,22 +1442,6 @@
+   )
+ 
+ 
+-if (NOT WIN32 AND NOT APPLE)
+-  # install a desktop file so wsjtx appears in the application start
+-  # menu with an icon
+-  install (
+-    FILES wsjtx.desktop message_aggregator.desktop
+-    DESTINATION share/applications
+-    #COMPONENT runtime
+-    )
+-  install (
+-    FILES icons/Unix/wsjtx_icon.png
+-    DESTINATION share/pixmaps
+-    #COMPONENT runtime
+-    )
+-endif (NOT WIN32 AND NOT APPLE)
+-
+-
+ #
+ # bundle fixup only done in non-Debug configurations
+ #
+Only in wsjtx/: CMakeLists.txt.orig
+Only in wsjtx/: .idea
