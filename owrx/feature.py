@@ -5,6 +5,7 @@ import re
 from distutils.version import LooseVersion
 import inspect
 from owrx.config.core import CoreConfig
+from owrx.config import Config
 import shlex
 import os
 from datetime import datetime, timedelta
@@ -71,7 +72,7 @@ class FeatureDetector(object):
         "hpsdr": ["hpsdr_connector"],
         "runds": ["runds_connector"],
         # optional features and their requirements
-        "digital_voice_digiham": ["digiham", "sox"],
+        "digital_voice_digiham": ["digiham", "sox", "codecserver_ambe"],
         "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "digital_voice_freedv": ["freedv_rx", "sox"],
         "digital_voice_m17": ["m17_demod", "sox", "digiham"],
@@ -552,3 +553,21 @@ class FeatureDetector(object):
         You can find more information [here](https://github.com/jketterl/runds_connector).
         """
         return self._check_connector("runds_connector", LooseVersion("0.2"))
+
+    def has_codecserver_ambe(self):
+        tmp_dir = CoreConfig().get_temporary_directory()
+        cmd = ["mbe_synthesizer", "--test"]
+        config = Config.get()
+        if "digital_voice_codecserver" in config:
+            cmd += ["--server", config["digital_voice_codecserver"]]
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=tmp_dir,
+            )
+            return process.wait() == 0
+        except FileNotFoundError:
+            return False
