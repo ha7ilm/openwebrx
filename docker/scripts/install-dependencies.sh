@@ -40,15 +40,6 @@ wget https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s
 tar xzf s6-overlay-${PLATFORM}.tar.gz -C /
 rm s6-overlay-${PLATFORM}.tar.gz
 
-git clone https://git.code.sf.net/p/itpp/git itpp
-cmakebuild itpp bb5c7e95f40e8fdb5c3f3d01a84bcbaf76f3676d
-
-git clone https://github.com/szechyjs/mbelib.git
-cmakebuild mbelib 9a04ed5c78176a9965f3d43f7aa1b1f5330e771f
-
-git clone https://github.com/f4exb/dsd.git
-cmakebuild dsd f6939f9edbbc6f66261833616391a4e59cb2b3d7
-
 JS8CALL_VERSION=2.2.0
 JS8CALL_DIR=js8call
 JS8CALL_TGZ=js8call-${JS8CALL_VERSION}.tgz
