@@ -11,7 +11,8 @@ class PropertyError(Exception):
 
 
 class PropertyDeletion(object):
-    pass
+    def __bool__(self):
+        return False
 
 
 # a special object that will be sent in events when a deletion occured
