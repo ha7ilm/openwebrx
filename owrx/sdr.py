@@ -51,7 +51,7 @@ class MappedSdrSources(PropertyDelegator):
         try:
             if not featureDetector.is_available(value["type"]):
                 logger.error(
-                    'The SDR source type "{0}" is not available. please check requirements.'.format(
+                    'The SDR source type "{0}" is not available. please check the feature report for details.'.format(
                         value["type"]
                     )
                 )
