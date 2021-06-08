@@ -1050,7 +1050,7 @@ img.openwebrx-mirror-img
 
 .openwebrx-meta-slot.active.direct .openwebrx-meta-user-image .directcall,
 #openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall,
-#openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directall {
+#openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
     display: initial;
 }
 
