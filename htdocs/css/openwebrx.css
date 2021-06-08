@@ -1098,6 +1098,7 @@ img.openwebrx-mirror-img
 .openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;
+    vertical-align: middle;
 }
 
 .openwebrx-message-panel {
