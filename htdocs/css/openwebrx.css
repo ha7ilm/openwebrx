@@ -987,7 +987,7 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot > * {
-    flex: 0;
+    flex: 1 0 auto;
     flex-basis: 1.2em;
     line-height: 1.2em;
 }
@@ -1037,14 +1037,16 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot .openwebrx-meta-user-image {
-    flex: 1;
+    flex: 0 1 100%;
     background-position: center;
     background-repeat: no-repeat;
     line-height: 0;
+    overflow: hidden;
 }
 
 .openwebrx-meta-slot .openwebrx-meta-user-image img {
-    height: 133px;
+    max-width: 100%;
+    max-height: 100%;
     display: none;
 }
 
