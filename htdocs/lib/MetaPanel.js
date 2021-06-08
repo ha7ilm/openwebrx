@@ -175,13 +175,14 @@ DStarMetaPanel.prototype.update = function(data) {
 
     if (data['sync'] && data['sync'] == 'voice') {
         this.el.find(".openwebrx-meta-slot").addClass("active");
+        this.setOurCall(data['ourcall']);
+        this.setYourCall(data['yourcall']);
+        this.setDeparture(data['departure']);
+        this.setDestination(data['destination']);
+        this.setMessage(data['message']);
+    } else {
+        this.clear();
     }
-
-    this.setOurCall(data['ourcall']);
-    this.setYourCall(data['yourcall']);
-    this.setDeparture(data['departure']);
-    this.setDestination(data['destination']);
-    this.setMessage(data['message']);
 };
 
 DStarMetaPanel.prototype.setOurCall = function(ourcall) {
