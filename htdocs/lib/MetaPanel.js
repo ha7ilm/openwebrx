@@ -164,7 +164,7 @@ YsfMetaPanel.prototype.setDown = function(down) {
 
 function DStarMetaPanel(el) {
     MetaPanel.call(this, el);
-    this.modes = ['dstar'];
+    this.modes = ['DSTAR'];
     this.clear();
 }
 
