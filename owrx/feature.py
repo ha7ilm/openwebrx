@@ -230,7 +230,7 @@ class FeatureDetector(object):
         If you have an older verison of digiham installed, please update it along with openwebrx.
         As of now, we require version 0.3 of digiham.
         """
-        required_version = LooseVersion("0.3")
+        required_version = LooseVersion("0.5")
 
         digiham_version_regex = re.compile("^(.*) version (.*)$")
 
