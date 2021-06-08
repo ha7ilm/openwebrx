@@ -6,8 +6,19 @@ import logging
 import threading
 from owrx.map import Map, LatLngLocation
 from owrx.parser import Parser
+from owrx.aprs import AprsParser, AprsLocation
+from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
+
+
+class Enricher(ABC):
+    def __init__(self, parser):
+        self.parser = parser
+
+    @abstractmethod
+    def enrich(self, meta):
+        pass
 
 
 class DmrCache(object):
@@ -38,8 +49,9 @@ class DmrCache(object):
         return self.cache[key]["data"]
 
 
-class DmrMetaEnricher(object):
-    def __init__(self):
+class DmrMetaEnricher(Enricher):
+    def __init__(self, parser):
+        super().__init__(parser)
         self.threads = {}
 
     def downloadRadioIdData(self, id):
@@ -71,10 +83,7 @@ class DmrMetaEnricher(object):
         return meta
 
 
-class YsfMetaEnricher(object):
-    def __init__(self, parser):
-        self.parser = parser
-
+class YsfMetaEnricher(Enricher):
     def enrich(self, meta):
         for key in ["source", "up", "down", "target"]:
             if key in meta:
@@ -89,10 +98,34 @@ class YsfMetaEnricher(object):
         return meta
 
 
+class DStarEnricher(Enricher):
+    def enrich(self, meta):
+        if "dpmr" in meta:
+            # we can send the DPMR stuff through our APRS parser to extract the information
+            # TODO: only thrid-party parsing accepts this format right now
+            # TODO: we also need to pass a handler, which is not needed
+            parser = AprsParser(None)
+            dprsData = parser.parseThirdpartyAprsData(meta["dpmr"])
+            logger.debug("decoded APRS data: %s", dprsData)
+            if "data" in dprsData:
+                data = dprsData["data"]
+                if "lat" in data and "lon" in data:
+                    # TODO: we could actually get the symbols from the parsed APRS data and show that
+                    meta["lat"] = data["lat"]
+                    meta["lon"] = data["lon"]
+
+                    if "ourcall" in meta:
+                        # send location info to map as well
+                        loc = AprsLocation(data)
+                        Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "APRS", self.parser.getBand())
+
+        return meta
+
+
 class MetaParser(Parser):
     def __init__(self, handler):
         super().__init__(handler)
-        self.enrichers = {"DMR": DmrMetaEnricher(), "YSF": YsfMetaEnricher(self)}
+        self.enrichers = {"DMR": DmrMetaEnricher(self), "YSF": YsfMetaEnricher(self), "DSTAR": DStarEnricher(self)}
 
     def parse(self, meta):
         fields = meta.split(";")

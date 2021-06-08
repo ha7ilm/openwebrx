@@ -180,6 +180,7 @@ DStarMetaPanel.prototype.update = function(data) {
         this.setDeparture(data['departure']);
         this.setDestination(data['destination']);
         this.setMessage(data['message']);
+        this.setLocation(data['lat'], data['lon'], data['ourcall']);
     } else {
         this.clear();
     }
@@ -188,7 +189,7 @@ DStarMetaPanel.prototype.update = function(data) {
 DStarMetaPanel.prototype.setOurCall = function(ourcall) {
     if (this.ourcall === ourcall) return;
     this.ourcall = ourcall;
-    this.el.find('.openwebrx-dstar-ourcall').text(ourcall || '');
+    this.el.find('.openwebrx-dstar-ourcall .callsign').text(ourcall || '');
 };
 
 DStarMetaPanel.prototype.setYourCall = function(yourcall) {
@@ -222,6 +223,18 @@ DStarMetaPanel.prototype.clear = function() {
     this.setDeparture();
     this.setDestination();
     this.setMessage();
+    this.setLocation();
+};
+
+DStarMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
+    var hasLocation = lat && lon && callsign && callsign != '';
+    if (hasLocation === this.hasLocation && this.callsign === callsign) return;
+    this.hasLocation = hasLocation; this.callsign = callsign;
+    var html = '';
+    if (hasLocation) {
+        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"><svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg></a>';
+    }
+    this.el.find('.openwebrx-dstar-source .location').html(html);
 };
 
 MetaPanel.types = {
