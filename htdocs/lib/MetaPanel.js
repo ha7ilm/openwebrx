@@ -162,9 +162,71 @@ YsfMetaPanel.prototype.setDown = function(down) {
     this.el.find('.openwebrx-ysf-down').text(down || '');
 }
 
+function DStarMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['dstar'];
+    this.clear();
+}
+
+DStarMetaPanel.prototype = new MetaPanel();
+
+DStarMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if (data['sync'] && data['sync'] == 'voice') {
+        this.el.find(".openwebrx-meta-slot").addClass("active");
+    }
+
+    this.setOurCall(data['ourcall']);
+    this.setYourCall(data['yourcall']);
+    this.setDeparture(data['departure']);
+    this.setDestination(data['destination']);
+    this.setMessage(data['message']);
+};
+
+DStarMetaPanel.prototype.setOurCall = function(ourcall) {
+    if (this.ourcall === ourcall) return;
+    this.ourcall = ourcall;
+    this.el.find('.openwebrx-dstar-ourcall').text(ourcall || '');
+};
+
+DStarMetaPanel.prototype.setYourCall = function(yourcall) {
+    if (this.yourcall === yourcall) return;
+    this.yourcall = yourcall;
+    this.el.find('.openwebrx-dstar-yourcall').text(yourcall || '');
+};
+
+DStarMetaPanel.prototype.setDeparture = function(departure) {
+    if (this.departure === departure) return;
+    this.departure = departure;
+    this.el.find('.openwebrx-dstar-departure').text(departure || '');
+};
+
+DStarMetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-dstar-destination').text(destination || '');
+};
+
+DStarMetaPanel.prototype.setMessage = function(message) {
+    if (this.message === message) return;
+    this.message = message;
+    this.el.find('.openwebrx-dstar-message').text(message || '');
+}
+
+DStarMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setOurCall();
+    this.setYourCall();
+    this.setDeparture();
+    this.setDestination();
+    this.setMessage();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
-    ysf: YsfMetaPanel
+    ysf: YsfMetaPanel,
+    dstar: DStarMetaPanel,
 };
 
 $.fn.metaPanel = function() {

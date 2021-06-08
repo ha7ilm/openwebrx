@@ -1049,7 +1049,8 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot.active.direct .openwebrx-meta-user-image .directcall,
-#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
+#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall,
+#openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directall {
     display: initial;
 }
 
@@ -1080,6 +1081,18 @@ img.openwebrx-mirror-img
 
 .openwebrx-ysf-down:not(:empty):before {
     content: "Down: ";
+}
+
+.openwebrx-dstar-yourcall:not(:empty):before {
+    content: "To: ";
+}
+
+.openwebrx-dstar-destination:not(:empty):before {
+    content: "Destination: ";
+}
+
+.openwebrx-dstar-departure:not(:empty):before {
+    content: "Departure: ";
 }
 
 .openwebrx-maps-pin svg {
