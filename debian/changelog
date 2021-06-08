@@ -3,6 +3,8 @@ openwebrx (1.1.0) UNRELEASED; urgency=low
   * Reworked most graphical elements as SVGs for faster loadtimes and crispier
     display on hi-dpi displays
   * Updated pipelines to match changes in digiham
+  * Changed D-Star integration to use new decoder in digiham
+  * Added D-Star metadata display
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 09 May 2021 14:05:00 +0000
 
