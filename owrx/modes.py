@@ -98,7 +98,7 @@ class Modes(object):
         AnalogMode("cw", "CW", bandpass=Bandpass(700, 900)),
         AnalogMode("dmr", "DMR", bandpass=Bandpass(-4000, 4000), requirements=["digital_voice_digiham"], squelch=False),
         AnalogMode(
-            "dstar", "D-Star", bandpass=Bandpass(-3250, 3250), requirements=["digital_voice_dsd"], squelch=False
+            "dstar", "D-Star", bandpass=Bandpass(-3250, 3250), requirements=["digital_voice_digiham"], squelch=False
         ),
         AnalogMode("nxdn", "NXDN", bandpass=Bandpass(-3250, 3250), requirements=["digital_voice_dsd"], squelch=False),
         AnalogMode("ysf", "YSF", bandpass=Bandpass(-4000, 4000), requirements=["digital_voice_digiham"], squelch=False),

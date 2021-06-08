@@ -259,6 +259,7 @@ class FeatureDetector(object):
                     "digitalvoice_filter",
                     "fsk_demodulator",
                     "pocsag_decoder",
+                    "dstar_decoder",
                 ],
             ),
             True,
