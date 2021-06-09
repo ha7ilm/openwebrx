@@ -1086,15 +1086,15 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-dstar-yourcall:not(:empty):before {
-    content: "To: ";
-}
-
-.openwebrx-dstar-destination:not(:empty):before {
-    content: "Destination: ";
+    content: "UR: ";
 }
 
 .openwebrx-dstar-departure:not(:empty):before {
-    content: "Departure: ";
+    content: "RPT1: ";
+}
+
+.openwebrx-dstar-destination:not(:empty):before {
+    content: "RPT2: ";
 }
 
 .openwebrx-maps-pin svg {
