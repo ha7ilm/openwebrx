@@ -116,7 +116,7 @@ class DStarEnricher(Enricher):
                     if "ourcall" in meta:
                         # send location info to map as well (it will show up with the correct symbol there!)
                         loc = AprsLocation(data)
-                        Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "APRS", self.parser.getBand())
+                        Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "DPRS", self.parser.getBand())
 
         return meta
 
