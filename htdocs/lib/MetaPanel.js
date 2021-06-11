@@ -234,7 +234,7 @@ DStarMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
     if (hasLocation) {
         html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"><svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg></a>';
     }
-    this.el.find('.openwebrx-dstar-source .location').html(html);
+    this.el.find('.openwebrx-dstar-ourcall .location').html(html);
 };
 
 MetaPanel.types = {

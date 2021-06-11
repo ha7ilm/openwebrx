@@ -100,22 +100,21 @@ class YsfMetaEnricher(Enricher):
 
 class DStarEnricher(Enricher):
     def enrich(self, meta):
-        if "dpmr" in meta:
-            # we can send the DPMR stuff through our APRS parser to extract the information
-            # TODO: only thrid-party parsing accepts this format right now
+        if "dprs" in meta:
+            # we can send the DPRS stuff through our APRS parser to extract the information
+            # TODO: only third-party parsing accepts this format right now
             # TODO: we also need to pass a handler, which is not needed
             parser = AprsParser(None)
-            dprsData = parser.parseThirdpartyAprsData(meta["dpmr"])
-            logger.debug("decoded APRS data: %s", dprsData)
+            dprsData = parser.parseThirdpartyAprsData(meta["dprs"])
             if "data" in dprsData:
                 data = dprsData["data"]
                 if "lat" in data and "lon" in data:
-                    # TODO: we could actually get the symbols from the parsed APRS data and show that
+                    # TODO: we could actually get the symbols from the parsed APRS data and show that on the meta panel
                     meta["lat"] = data["lat"]
                     meta["lon"] = data["lon"]
 
                     if "ourcall" in meta:
-                        # send location info to map as well
+                        # send location info to map as well (it will show up with the correct symbol there!)
                         loc = AprsLocation(data)
                         Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "APRS", self.parser.getBand())
 
@@ -129,7 +128,7 @@ class MetaParser(Parser):
 
     def parse(self, meta):
         fields = meta.split(";")
-        meta = {v[0]: "".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
+        meta = {v[0]: ":".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
 
         if "protocol" in meta:
             protocol = meta["protocol"]
