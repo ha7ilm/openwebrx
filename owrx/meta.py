@@ -92,7 +92,6 @@ class YsfMetaEnricher(Enricher):
             if key in meta:
                 meta[key] = float(meta[key])
         if "source" in meta and "lat" in meta and "lon" in meta:
-            # TODO parsing the float values should probably happen earlier
             loc = LatLngLocation(meta["lat"], meta["lon"])
             Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF", self.parser.getBand())
         return meta
@@ -100,6 +99,12 @@ class YsfMetaEnricher(Enricher):
 
 class DStarEnricher(Enricher):
     def enrich(self, meta):
+        for key in ["lat", "lon"]:
+            if key in meta:
+                meta[key] = float(meta[key])
+        if "ourcall" in meta and "lat" in meta and "lon" in meta:
+            loc = LatLngLocation(meta["lat"], meta["lon"])
+            Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "D-Star", self.parser.getBand())
         if "dprs" in meta:
             # we can send the DPRS stuff through our APRS parser to extract the information
             # TODO: only third-party parsing accepts this format right now
