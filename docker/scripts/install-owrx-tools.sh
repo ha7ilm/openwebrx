@@ -43,12 +43,12 @@ rm -rf csdr
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
-#latest develop as of 2021-05-31 (check command)
-cmakebuild codecserver 93f776303b6cee16d50496650ac31ed63f2fbb56
+#latest develop as of 2021-06-15 (queue fixes)
+cmakebuild codecserver 2cc0cac622304ea124daac1397ff8e17154f1f2b
 
 git clone https://github.com/jketterl/digiham.git
-#latest develop as of 2021-05-31 (codecserver check command)
-cmakebuild digiham 1fcb76e210def741f8f5363fd2b8047e6785521d
+#latest develop as of 2021-06-15 (dstar and nxdn addition)
+cmakebuild digiham 2d426c06cf3c7f25a6c097a19a4f01c5907e0e3d
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
