@@ -21,63 +21,69 @@ class Enricher(ABC):
         pass
 
 
-class DmrCache(object):
+class RadioIDCache(object):
     sharedInstance = None
 
     @staticmethod
     def getSharedInstance():
-        if DmrCache.sharedInstance is None:
-            DmrCache.sharedInstance = DmrCache()
-        return DmrCache.sharedInstance
+        if RadioIDCache.sharedInstance is None:
+            RadioIDCache.sharedInstance = RadioIDCache()
+        return RadioIDCache.sharedInstance
 
     def __init__(self):
         self.cache = {}
         self.cacheTimeout = timedelta(seconds=86400)
 
-    def isValid(self, key):
+    def isValid(self, mode, radio_id):
+        key = self.__key(mode, radio_id)
         if key not in self.cache:
             return False
         entry = self.cache[key]
         return entry["timestamp"] + self.cacheTimeout > datetime.now()
 
-    def put(self, key, value):
-        self.cache[key] = {"timestamp": datetime.now(), "data": value}
+    def __key(self, mode, radio_id):
+        return "{}-{}".format(mode, radio_id)
 
-    def get(self, key):
-        if not self.isValid(key):
+    def put(self, mode, radio_id, value):
+        self.cache[self.__key(mode, radio_id)] = {"timestamp": datetime.now(), "data": value}
+
+    def get(self, mode, radio_id):
+        if not self.isValid(mode, radio_id):
             return None
-        return self.cache[key]["data"]
+        return self.cache[self.__key(mode, radio_id)]["data"]
 
 
-class DmrMetaEnricher(Enricher):
-    def __init__(self, parser):
+class RadioIDEnricher(Enricher):
+    def __init__(self, mode, parser):
         super().__init__(parser)
+        self.mode = mode
         self.threads = {}
 
     def downloadRadioIdData(self, id):
-        cache = DmrCache.getSharedInstance()
+        cache = RadioIDCache.getSharedInstance()
         try:
-            logger.debug("requesting DMR metadata for id=%s", id)
-            res = request.urlopen("https://www.radioid.net/api/dmr/user/?id={0}".format(id), timeout=30).read()
+            logger.debug("requesting radioid metadata for mode=%s and id=%s", self.mode, id)
+            res = request.urlopen("https://www.radioid.net/api/{0}/user/?id={1}".format(self.mode, id), timeout=30).read()
             data = json.loads(res.decode("utf-8"))
-            cache.put(id, data)
+            cache.put(self.mode, id, data)
         except json.JSONDecodeError:
-            cache.put(id, None)
+            cache.put(self.mode, id, None)
         del self.threads[id]
 
     def enrich(self, meta):
-        if not Config.get()["digital_voice_dmr_id_lookup"]:
+        config_key = "digital_voice_{}_id_lookup".format(self.mode)
+        if not Config.get()[config_key]:
             return meta
         if "source" not in meta:
             return meta
         id = meta["source"]
-        cache = DmrCache.getSharedInstance()
-        if not cache.isValid(id):
+        cache = RadioIDCache.getSharedInstance()
+        if not cache.isValid(self.mode, id):
             if id not in self.threads:
                 self.threads[id] = threading.Thread(target=self.downloadRadioIdData, args=[id], daemon=True)
                 self.threads[id].start()
             return meta
-        data = cache.get(id)
+        data = cache.get(self.mode, id)
         if data is not None and "count" in data and data["count"] > 0 and "results" in data:
             meta["additional"] = data["results"][0]
         return meta
@@ -129,7 +135,12 @@ class DStarEnricher(Enricher):
 class MetaParser(Parser):
     def __init__(self, handler):
         super().__init__(handler)
-        self.enrichers = {"DMR": DmrMetaEnricher(self), "YSF": YsfMetaEnricher(self), "DSTAR": DStarEnricher(self)}
+        self.enrichers = {
+            "DMR": RadioIDEnricher("dmr", self),
+            "YSF": YsfMetaEnricher(self),
+            "DSTAR": DStarEnricher(self),
+            "NXDN": RadioIDEnricher("nxdn", self),
+        }
 
     def parse(self, meta):
         fields = meta.split(";")

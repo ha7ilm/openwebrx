@@ -237,10 +237,71 @@ DStarMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
     this.el.find('.openwebrx-dstar-ourcall .location').html(html);
 };
 
+function NxdnMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['NXDN'];
+    this.clear();
+}
+
+NxdnMetaPanel.prototype = new MetaPanel();
+
+NxdnMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if (data['sync'] && data['sync'] == 'voice') {
+        this.el.find(".openwebrx-meta-slot").addClass("active");
+        this.setSource(data['additional'] && data['additional']['callsign'] || data['source']);
+        this.setName(data['additional'] && data['additional']['fname']);
+        this.setDestination(data['destination']);
+        this.setMode(['conference', 'individual'].includes(data['type']) ? data['type'] : undefined);
+    } else {
+        this.clear();
+    }
+};
+
+NxdnMetaPanel.prototype.setSource = function(source) {
+    if (this.source === source) return;
+    this.source = source;
+    this.el.find('.openwebrx-nxdn-source').text(source || '');
+};
+
+NxdnMetaPanel.prototype.setName = function(name) {
+    if (this.name === name) return;
+    this.name = name;
+    this.el.find('.openwebrx-nxdn-name').text(name || '');
+};
+
+NxdnMetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-nxdn-destination').text(destination || '');
+};
+
+NxdnMetaPanel.prototype.setMode = function(mode) {
+    if (this.mode === mode) return;
+    var modes = ['individual', 'conference'];
+    if (modes.indexOf(mode) < 0) return;
+
+    this.mode = mode;
+    var classes = modes.filter(function(c){
+        return c !== mode;
+    });
+    this.el.find('.openwebrx-meta-slot').removeClass(classes.join(' ')).addClass(mode);
+};
+
+NxdnMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setMode();
+    this.setSource();
+    this.setName();
+    this.setDestination();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
     dstar: DStarMetaPanel,
+    nxdn: NxdnMetaPanel,
 };
 
 $.fn.metaPanel = function() {

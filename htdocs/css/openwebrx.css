@@ -1051,12 +1051,14 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot.active.direct .openwebrx-meta-user-image .directcall,
+.openwebrx-meta-slot.active.individual .openwebrx-meta-user-image .directcall,
 #openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall,
 #openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
     display: initial;
 }
 
-.openwebrx-meta-slot.active.group .openwebrx-meta-user-image .groupcall {
+.openwebrx-meta-slot.active.group .openwebrx-meta-user-image .groupcall,
+.openwebrx-meta-slot.active.conference .openwebrx-meta-user-image .groupcall {
     display: initial;
 }
 
@@ -1095,6 +1097,14 @@ img.openwebrx-mirror-img
 
 .openwebrx-dstar-destination:not(:empty):before {
     content: "RPT2: ";
+}
+
+.openwebrx-meta-slot.individual .openwebrx-nxdn-destination:not(:empty):before {
+    content: "Direct: ";
+}
+
+.openwebrx-meta-slot.conference .openwebrx-nxdn-destination:not(:empty):before {
+    content: "Conference: ";
 }
 
 .openwebrx-maps-pin svg {

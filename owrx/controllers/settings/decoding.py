@@ -53,6 +53,11 @@ class DecodingSettingsController(SettingsFormController):
                     'Enable lookup of DMR ids in the <a href="https://www.radioid.net/" target="_blank">'
                     + "radioid</a> database to show callsigns and names",
                 ),
+                CheckboxInput(
+                    "digital_voice_nxdn_id_lookup",
+                    'Enable lookup of NXDN ids in the <a href="https://www.radioid.net/" target="_blank">'
+                    + "radioid</a> database to show callsigns and names",
+                ),
             ),
             Section(
                 "Digimodes",

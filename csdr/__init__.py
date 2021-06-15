@@ -173,7 +173,7 @@ class Dsp(DirewolfConfigSubscriber):
                     "m17-demod",
                 ]
             else:
-                # dsd modes
+                # digiham modes
                 if which == "dstar":
                     chain += [
                         "fsk_demodulator -s 10",
@@ -181,8 +181,12 @@ class Dsp(DirewolfConfigSubscriber):
                         "mbe_synthesizer -d {codecserver_arg}",
                     ]
                 elif which == "nxdn":
-                    chain += ["csdr limit_ff", "csdr convert_f_s16", "dsd -fi -i - -o - -u {unvoiced_quality} -g -1 "]
-                # digiham modes
+                    chain += [
+                        "rrc_filter --narrow",
+                        "gfsk_demodulator --samples 20",
+                        "nxdn_decoder --fifo {meta_pipe}",
+                        "mbe_synthesizer {codecserver_arg}",
+                    ]
                 else:
                     chain += ["rrc_filter", "gfsk_demodulator"]
                     if which == "dmr":
