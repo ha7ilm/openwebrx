@@ -73,7 +73,6 @@ class FeatureDetector(object):
         "runds": ["runds_connector"],
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "sox", "codecserver_ambe"],
-        "digital_voice_dsd": ["dsd", "sox", "digiham"],
         "digital_voice_freedv": ["freedv_rx", "sox"],
         "digital_voice_m17": ["m17_demod", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
@@ -413,13 +412,6 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyFCDPP).
         """
         return self._has_soapy_driver("fcdpp")
-
-    def has_dsd(self):
-        """
-        The digital voice modes NXDN and D-Star can be decoded by the dsd project. Please note that you need the version
-        modified by F4EXB that provides stdin/stdout support. You can find it [here](https://github.com/f4exb/dsd).
-        """
-        return self.command_is_runnable("dsd -h")
 
     def has_m17_demod(self):
         """
