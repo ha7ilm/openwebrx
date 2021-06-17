@@ -5,7 +5,7 @@ ARCH=$(uname -m)
 IMAGES="openwebrx-rtlsdr openwebrx-sdrplay openwebrx-hackrf openwebrx-airspy openwebrx-rtlsdr-soapy openwebrx-plutosdr openwebrx-limesdr openwebrx-soapyremote openwebrx-perseus openwebrx-fcdpp openwebrx-radioberry openwebrx-uhd openwebrx-rtltcp openwebrx-runds openwebrx-hpsdr openwebrx-full openwebrx"
 ALL_ARCHS="x86_64 armv7l aarch64"
 TAG=${TAG:-"latest"}
-ARCHTAG="$TAG-$ARCH"
+ARCHTAG="${TAG}-${ARCH}"
 
 usage () {
   echo "Usage: ${0} [command]"
@@ -36,7 +36,7 @@ build () {
 
 push () {
   for image in ${IMAGES}; do
-    docker push jketterl/$image:$ARCHTAG
+    docker push jketterl/${image}:${ARCHTAG}
   done
 }
 
@@ -45,11 +45,11 @@ manifest () {
     # there's no docker manifest rm command, and the create --amend does not work, so we have to clean up manually
     rm -rf "${HOME}/.docker/manifests/docker.io_jketterl_${image}-${TAG}"
     IMAGE_LIST=""
-    for a in $ALL_ARCHS; do
-      IMAGE_LIST="$IMAGE_LIST jketterl/$image:$TAG-$a"
+    for a in ${ALL_ARCHS}; do
+      IMAGE_LIST="${IMAGE_LIST} jketterl/${image}:${TAG}-${a}"
     done
-    docker manifest create jketterl/$image:$TAG $IMAGE_LIST
-    docker manifest push --purge jketterl/$image:$TAG
+    docker manifest create jketterl/${image}:${TAG} ${IMAGE_LIST}
+    docker manifest push --purge jketterl/${image}:${TAG}
   done
 }
 
