@@ -279,10 +279,9 @@ NxdnMetaPanel.prototype.setDestination = function(destination) {
 
 NxdnMetaPanel.prototype.setMode = function(mode) {
     if (this.mode === mode) return;
-    var modes = ['individual', 'conference'];
-    if (modes.indexOf(mode) < 0) return;
-
     this.mode = mode;
+
+    var modes = ['individual', 'conference'];
     var classes = modes.filter(function(c){
         return c !== mode;
     });
