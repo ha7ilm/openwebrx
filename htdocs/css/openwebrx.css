@@ -987,8 +987,7 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot > * {
-    flex: 1 0 auto;
-    flex-basis: 1.2em;
+    flex: 1 0 0;
     line-height: 1.2em;
 }
 
