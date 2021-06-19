@@ -48,9 +48,9 @@ cd ..
 rm -rf sdrplay
 rm $BINARY
 
-git clone https://github.com/SDRplay/SoapySDRPlay.git
-# latest from master as of 2020-09-04
-cmakebuild SoapySDRPlay 105f8a6b3d449982d7ef860790c201aa066b8fa9
+git clone https://github.com/pothosware/SoapySDRPlay3.git
+# latest from master as of 2021-06-19 (reliability fixes)
+cmakebuild SoapySDRPlay a869f25364a1f0d5b16169ff908aa21a2ace475d
 
 SUDO_FORCE_REMOVE=yes apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
