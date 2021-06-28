@@ -59,16 +59,26 @@ class RadioIDEnricher(Enricher):
         self.mode = mode
         self.threads = {}
 
-    def downloadRadioIdData(self, id):
-        cache = RadioIDCache.getSharedInstance()
+    def _fillCache(self, id):
+        RadioIDCache.getSharedInstance().put(self.mode, id, self._downloadRadioIdData(id))
+        del self.threads[id]
+
+    def _downloadRadioIdData(self, id):
         try:
             logger.debug("requesting radioid metadata for mode=%s and id=%s", self.mode, id)
-            res = request.urlopen("https://www.radioid.net/api/{0}/user/?id={1}".format(self.mode, id), timeout=30).read()
-            data = json.loads(res.decode("utf-8"))
-            cache.put(self.mode, id, data)
+            res = request.urlopen("https://www.radioid.net/api/{0}/user/?id={1}".format(self.mode, id), timeout=30)
+            if res.status != 200:
+                logger.warning("radioid API returned error %i for mode=%s and id=%s", res.status, self.mode, id)
+                return None
+            data = json.loads(res.read().decode("utf-8"))
+            if "count" in data and data["count"] > 0 and "results" in data:
+                for item in data["results"]:
+                    if "id" in item and item["id"] == id:
+                        return item
         except json.JSONDecodeError:
-            cache.put(self.mode, id, None)
-        del self.threads[id]
+            logger.warning("unable to parse radioid response JSON")
+
+        return None
 
     def enrich(self, meta):
         config_key = "digital_voice_{}_id_lookup".format(self.mode)
@@ -76,16 +86,16 @@ class RadioIDEnricher(Enricher):
             return meta
         if "source" not in meta:
             return meta
-        id = meta["source"]
+        id = int(meta["source"])
         cache = RadioIDCache.getSharedInstance()
         if not cache.isValid(self.mode, id):
             if id not in self.threads:
-                self.threads[id] = threading.Thread(target=self.downloadRadioIdData, args=[id], daemon=True)
+                self.threads[id] = threading.Thread(target=self._fillCache, args=[id], daemon=True)
                 self.threads[id].start()
             return meta
         data = cache.get(self.mode, id)
-        if data is not None and "count" in data and data["count"] > 0 and "results" in data:
-            meta["additional"] = data["results"][0]
+        if data is not None:
+            meta["additional"] = data
         return meta
 
 
