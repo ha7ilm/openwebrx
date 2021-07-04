@@ -43,8 +43,8 @@ rm -rf csdr
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
-#latest develop as of 2021-06-17 (docker image)
-cmakebuild codecserver 7dc6084b2376944df238efba4ed48473750f67d3
+#latest develop as of 2021-07-04 (optional checksum fix)
+cmakebuild codecserver d73c9a56a773355679bc2d4a10f199b62223d7a0
 
 git clone https://github.com/jketterl/digiham.git
 #latest develop as of 2021-06-15 (DMR LCSS overflow fix; D-Star alternate terminator)
