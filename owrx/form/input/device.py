@@ -1,4 +1,6 @@
 from owrx.form.input import Input, CheckboxInput, DropdownInput, DropdownEnum, TextInput
+from owrx.form.input.converter import OptionalConverter
+from owrx.form.input.validator import RequiredValidator
 from owrx.soapy import SoapySettings
 
 
@@ -169,7 +171,11 @@ class DirectSamplingInput(DropdownInput):
 class RemoteInput(TextInput):
     def __init__(self):
         super().__init__(
-            "remote", "Remote IP and Port", infotext="Remote hostname or IP and port to connect to. Format = IP:Port"
+            "remote",
+            "Remote IP and Port",
+            infotext="Remote hostname or IP and port to connect to. Format = IP:Port",
+            converter=OptionalConverter(),
+            validator=RequiredValidator(),
         )
 
 
