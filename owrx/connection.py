@@ -376,7 +376,10 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send(bytes([0x04]) + data)
 
     def write_s_meter_level(self, level):
-        self.send({"type": "smeter", "value": level})
+        try:
+            self.send({"type": "smeter", "value": level})
+        except ValueError:
+            logger.warning("unable to send smeter value: %s", str(level))
 
     def write_cpu_usage(self, usage):
         self.mp_send({"type": "cpuusage", "value": usage})
