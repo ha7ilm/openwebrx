@@ -122,22 +122,25 @@ class DStarEnricher(Enricher):
             loc = LatLngLocation(meta["lat"], meta["lon"])
             Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "D-Star", self.parser.getBand())
         if "dprs" in meta:
-            # we can send the DPRS stuff through our APRS parser to extract the information
-            # TODO: only third-party parsing accepts this format right now
-            # TODO: we also need to pass a handler, which is not needed
-            parser = AprsParser(None)
-            dprsData = parser.parseThirdpartyAprsData(meta["dprs"])
-            if "data" in dprsData:
-                data = dprsData["data"]
-                if "lat" in data and "lon" in data:
-                    # TODO: we could actually get the symbols from the parsed APRS data and show that on the meta panel
-                    meta["lat"] = data["lat"]
-                    meta["lon"] = data["lon"]
+            try:
+                # we can send the DPRS stuff through our APRS parser to extract the information
+                # TODO: only third-party parsing accepts this format right now
+                # TODO: we also need to pass a handler, which is not needed
+                parser = AprsParser(None)
+                dprsData = parser.parseThirdpartyAprsData(meta["dprs"])
+                if "data" in dprsData:
+                    data = dprsData["data"]
+                    if "lat" in data and "lon" in data:
+                        # TODO: we could actually get the symbols from the parsed APRS data and show that on the meta panel
+                        meta["lat"] = data["lat"]
+                        meta["lon"] = data["lon"]
 
-                    if "ourcall" in meta:
-                        # send location info to map as well (it will show up with the correct symbol there!)
-                        loc = AprsLocation(data)
-                        Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "DPRS", self.parser.getBand())
+                        if "ourcall" in meta:
+                            # send location info to map as well (it will show up with the correct symbol there!)
+                            loc = AprsLocation(data)
+                            Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "DPRS", self.parser.getBand())
+            except Exception:
+                logger.exception("Error while parsing DPRS data")
 
         return meta
 
