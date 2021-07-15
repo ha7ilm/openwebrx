@@ -635,7 +635,7 @@ class Dsp(DirewolfConfigSubscriber):
         # no squelch required on digital voice modes
         actual_squelch = (
             -150
-            if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.isFreeDV()
+            if self.isDigitalVoice() or self.isPacket() or self.isPocsag() or self.isFreeDV() or self.isDrm()
             else self.squelch_level
         )
         if self.running:
