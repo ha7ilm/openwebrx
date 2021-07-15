@@ -13,12 +13,16 @@ COPY docker/scripts/install-owrx-tools.sh /
 RUN /install-owrx-tools.sh && \
     rm /install-owrx-tools.sh
 
+COPY docker/files/services/codecserver /etc/services.d/codecserver
+
 ENTRYPOINT ["/init"]
 
 WORKDIR /opt/openwebrx
 
 VOLUME /etc/openwebrx
+VOLUME /var/lib/openwebrx
 
-CMD [ "/opt/openwebrx/docker/scripts/run.sh" ]
+ENV S6_CMD_ARG0="/opt/openwebrx/docker/scripts/run.sh"
+CMD []
 
 EXPOSE 8073

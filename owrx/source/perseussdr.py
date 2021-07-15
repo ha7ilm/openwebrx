@@ -1,5 +1,7 @@
-from .direct import DirectSource
-from owrx.command import Flag, Option
+from owrx.source.direct import DirectSource, DirectSourceDeviceDescription
+from owrx.command import Option, Flag
+from owrx.form.input import Input, DropdownEnum, DropdownInput, CheckboxInput
+from typing import List
 
 
 #
@@ -29,9 +31,49 @@ class PerseussdrSource(DirectSource):
                     "samp_rate": Option("-s"),
                     "tuner_freq": Option("-f"),
                     "attenuator": Option("-u"),
-                    "adc_preamp": Option("-m"),
-                    "adc_dither": Option("-x"),
-                    "wideband": Option("-w"),
+                    "adc_preamp": Flag("-m"),
+                    "adc_dither": Flag("-x"),
+                    "wideband": Flag("-w"),
                 }
             )
         )
+
+
+class AttenuatorOptions(DropdownEnum):
+    ATTENUATOR_0 = 0
+    ATTENUATOR_10 = -10
+    ATTENUATOR_20 = -20
+    ATTENUATOR_30 = -30
+
+    def __str__(self):
+        return "{value} dB".format(value=self.value)
+
+
+class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
+    def getName(self):
+        return "Perseus SDR"
+
+    def getInputs(self) -> List[Input]:
+        return super().getInputs() + [
+            DropdownInput("attenuator", "Attenuator", options=AttenuatorOptions),
+            CheckboxInput("adc_preamp", "Activate ADC preamp"),
+            CheckboxInput("adc_dither", "Enable ADC dithering"),
+            CheckboxInput("wideband", "Disable analog filters"),
+        ]
+
+    def getDeviceOptionalKeys(self):
+        # no rf_gain
+        return [key for key in super().getDeviceOptionalKeys() if key != "rf_gain"] + [
+            "attenuator",
+            "adc_preamp",
+            "adc_dither",
+            "wideband",
+        ]
+
+    def getProfileOptionalKeys(self):
+        return [key for key in super().getProfileOptionalKeys() if key != "rf_gain"] + [
+            "attenuator",
+            "adc_preamp",
+            "adc_dither",
+            "wideband",
+        ]

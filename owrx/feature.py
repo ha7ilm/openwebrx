@@ -4,6 +4,7 @@ from operator import and_
 import re
 from distutils.version import LooseVersion
 import inspect
+from owrx.config.core import CoreConfig
 from owrx.config import Config
 import shlex
 import os
@@ -65,19 +66,18 @@ class FeatureDetector(object):
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
-        "red_pitaya": ["soapy_connector", "soapy_red_pitaya"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
         "sddc": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
-        "eb200": ["eb200_connector"],
+        "runds": ["runds_connector"],
         # optional features and their requirements
-        "digital_voice_digiham": ["digiham", "sox"],
-        "digital_voice_dsd": ["dsd", "sox", "digiham"],
+        "digital_voice_digiham": ["digiham", "sox", "codecserver_ambe"],
         "digital_voice_freedv": ["freedv_rx", "sox"],
-        "digital_voice_m17": ["m17_demod", "sox"],
+        "digital_voice_m17": ["m17_demod", "sox", "digiham"],
         "wsjt-x": ["wsjtx", "sox"],
         "wsjt-x-2-3": ["wsjtx_2_3", "sox"],
+        "wsjt-x-2-4": ["wsjtx_2_4", "sox"],
         "packet": ["direwolf", "sox"],
         "pocsag": ["digiham", "sox"],
         "js8call": ["js8", "sox"],
@@ -99,7 +99,6 @@ class FeatureDetector(object):
 
         def feature_details(name):
             return {
-                "description": "",
                 "available": self.is_available(name),
                 "requirements": {name: requirement_details(name) for name in self.get_requirements(name)},
             }
@@ -146,7 +145,7 @@ class FeatureDetector(object):
         return inspect.getdoc(self._get_requirement_method(requirement))
 
     def command_is_runnable(self, command, expected_result=None):
-        tmp_dir = Config.get()["temporary_directory"]
+        tmp_dir = CoreConfig().get_temporary_directory()
         cmd = shlex.split(command)
         env = os.environ.copy()
         # prevent X11 programs from opening windows if called from a GUI shell
@@ -230,9 +229,9 @@ class FeatureDetector(object):
         If you have an older verison of digiham installed, please update it along with openwebrx.
         As of now, we require version 0.3 of digiham.
         """
-        required_version = LooseVersion("0.3")
+        required_version = LooseVersion("0.5")
 
-        digiham_version_regex = re.compile("^digiham version (.*)$")
+        digiham_version_regex = re.compile("^(.*) version (.*)$")
 
         def check_digiham_version(command):
             try:
@@ -240,9 +239,9 @@ class FeatureDetector(object):
                 matches = digiham_version_regex.match(process.stdout.readline().decode())
                 if matches is None:
                     return False
-                version = LooseVersion(matches.group(1))
+                version = LooseVersion(matches.group(2))
                 process.wait(1)
-                return version >= required_version
+                return matches.group(1) in [command, "digiham"] and version >= required_version
             except FileNotFoundError:
                 return False
 
@@ -259,15 +258,14 @@ class FeatureDetector(object):
                     "digitalvoice_filter",
                     "fsk_demodulator",
                     "pocsag_decoder",
+                    "dstar_decoder",
                 ],
             ),
             True,
         )
 
-    def _check_connector(self, command):
-        required_version = LooseVersion("0.4")
-
-        owrx_connector_version_regex = re.compile("^owrx-connector version (.*)$")
+    def _check_connector(self, command, required_version):
+        owrx_connector_version_regex = re.compile("^{} version (.*)$".format(re.escape(command)))
 
         try:
             process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
@@ -280,6 +278,9 @@ class FeatureDetector(object):
         except FileNotFoundError:
             return False
 
+    def _check_owrx_connector(self, command):
+        return self._check_connector(command, LooseVersion("0.4"))
+
     def has_rtl_connector(self):
         """
         The owrx_connector package offers direct interfacing between your hardware and openwebrx. It allows quicker
@@ -287,7 +288,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
-        return self._check_connector("rtl_connector")
+        return self._check_owrx_connector("rtl_connector")
 
     def has_rtl_tcp_connector(self):
         """
@@ -296,7 +297,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
-        return self._check_connector("rtl_tcp_connector")
+        return self._check_owrx_connector("rtl_tcp_connector")
 
     def has_soapy_connector(self):
         """
@@ -305,7 +306,7 @@ class FeatureDetector(object):
 
         You can get it [here](https://github.com/jketterl/owrx_connector).
         """
-        return self._check_connector("soapy_connector")
+        return self._check_owrx_connector("soapy_connector")
 
     def _has_soapy_driver(self, driver):
         try:
@@ -368,7 +369,7 @@ class FeatureDetector(object):
         """
         The SoapySDR module for PlutoSDR devices is required for interfacing with PlutoSDR devices.
 
-        You can get it [here](https://github.com/photosware/SoapyPlutoSDR).
+        You can get it [here](https://github.com/pothosware/SoapyPlutoSDR).
         """
         return self._has_soapy_driver("plutosdr")
 
@@ -387,14 +388,6 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyUHD/wiki).
         """
         return self._has_soapy_driver("uhd")
-
-    def has_soapy_red_pitaya(self):
-        """
-        The SoapyRedPitaya allows Red Pitaya deviced to be used with SoapySDR.
-
-        You can get it [here](https://github.com/pothosware/SoapyRedPitaya/wiki).
-        """
-        return self._has_soapy_driver("redpitaya")
 
     def has_soapy_radioberry(self):
         """
@@ -419,13 +412,6 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyFCDPP).
         """
         return self._has_soapy_driver("fcdpp")
-
-    def has_dsd(self):
-        """
-        The digital voice modes NXDN and D-Star can be decoded by the dsd project. Please note that you need the version
-        modified by F4EXB that provides stdin/stdout support. You can find it [here](https://github.com/f4exb/dsd).
-        """
-        return self.command_is_runnable("dsd")
 
     def has_m17_demod(self):
         """
@@ -486,6 +472,12 @@ class FeatureDetector(object):
         """
         return self.has_wsjtx() and self._has_wsjtx_version(LooseVersion("2.3"))
 
+    def has_wsjtx_2_4(self):
+        """
+        WSJT-X version 2.4 introduced the Q65 mode.
+        """
+        return self.has_wsjtx() and self._has_wsjtx_version(LooseVersion("2.4"))
+
     def has_js8(self):
         """
         To decode JS8, you will need to install [JS8Call](http://js8call.com/)
@@ -538,7 +530,7 @@ class FeatureDetector(object):
 
         You can find more information [here](https://github.com/jketterl/sddc_connector).
         """
-        return self._check_connector("sddc_connector")
+        return self._check_connector("sddc_connector", LooseVersion("0.1"))
 
     def has_hpsdr_connector(self):
         """
@@ -547,10 +539,28 @@ class FeatureDetector(object):
         """
         return self.command_is_runnable("hpsdrconnector -h")
 
-    def has_eb200_connector(self):
+    def has_runds_connector(self):
         """
-        To use radios supporting the EB200 radios, you need to install the eb200_connector.
+        To use radios supporting R&S radios via EB200 or Ammos, you need to install the runds_connector.
 
-        You can find more information [here](https://github.com/jketterl/eb200_connector).
+        You can find more information [here](https://github.com/jketterl/runds_connector).
         """
-        return self._check_connector("eb200_connector")
+        return self._check_connector("runds_connector", LooseVersion("0.2"))
+
+    def has_codecserver_ambe(self):
+        tmp_dir = CoreConfig().get_temporary_directory()
+        cmd = ["mbe_synthesizer", "--test"]
+        config = Config.get()
+        if "digital_voice_codecserver" in config:
+            cmd += ["--server", config["digital_voice_codecserver"]]
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=tmp_dir,
+            )
+            return process.wait() == 0
+        except FileNotFoundError:
+            return False

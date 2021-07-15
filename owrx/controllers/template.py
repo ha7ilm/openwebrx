@@ -1,7 +1,7 @@
-from . import Controller
-import pkg_resources
+from owrx.controllers import Controller
+from owrx.details import ReceiverDetails
 from string import Template
-from owrx.config import Config
+import pkg_resources
 
 
 class TemplateController(Controller):
@@ -19,13 +19,19 @@ class TemplateController(Controller):
 
 
 class WebpageController(TemplateController):
+    def get_document_root(self):
+        path_parts = [part for part in self.request.path[1:].split("/")]
+        levels = max(0, len(path_parts) - 1)
+        return "../" * levels
+
+    def header_variables(self):
+        variables = {"document_root": self.get_document_root()}
+        variables.update(ReceiverDetails().__dict__())
+        return variables
+
     def template_variables(self):
-        settingslink = ""
-        pm = Config.get()
-        if "webadmin_enabled" in pm and pm["webadmin_enabled"]:
-            settingslink = """<a class="button" href="settings" target="openwebrx-settings"><span class="sprite sprite-panel-settings"></span><br/>Settings</a>"""
-        header = self.render_template("include/header.include.html", settingslink=settingslink)
-        return {"header": header}
+        header = self.render_template("include/header.include.html", **self.header_variables())
+        return {"header": header, "document_root": self.get_document_root()}
 
 
 class IndexController(WebpageController):
@@ -37,8 +43,3 @@ class MapController(WebpageController):
     def indexAction(self):
         # TODO check if we have a google maps api key first?
         self.serve_template("map.html", **self.template_variables())
-
-
-class FeatureController(WebpageController):
-    def indexAction(self):
-        self.serve_template("features.html", **self.template_variables())

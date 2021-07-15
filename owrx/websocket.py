@@ -1,9 +1,11 @@
+from owrx.jsons import Encoder
 import base64
 import hashlib
 import json
 from multiprocessing import Pipe
 import select
 import threading
+from abc import ABC, abstractmethod
 
 import logging
 
@@ -32,6 +34,20 @@ class WebSocketClosed(WebSocketException):
     pass
 
 
+class Handler(ABC):
+    @abstractmethod
+    def handleTextMessage(self, connection, message: str):
+        pass
+
+    @abstractmethod
+    def handleBinaryMessage(self, connection, data: bytes):
+        pass
+
+    @abstractmethod
+    def handleClose(self):
+        pass
+
+
 class WebSocketConnection(object):
     connections = []
 
@@ -43,20 +59,21 @@ class WebSocketConnection(object):
             except:
                 logger.exception("exception while shutting down websocket connections")
 
-    def __init__(self, handler, messageHandler):
+    def __init__(self, handler, messageHandler: Handler):
         self.handler = handler
         self.handler.connection.setblocking(0)
+        self.messageHandler = None
         self.setMessageHandler(messageHandler)
         (self.interruptPipeRecv, self.interruptPipeSend) = Pipe(duplex=False)
         self.open = True
         self.sendLock = threading.Lock()
 
         headers = {key.lower(): value for key, value in self.handler.headers.items()}
-        if not "upgrade" in headers:
+        if "upgrade" not in headers:
             raise WebSocketException("Upgrade header not found")
         if headers["upgrade"].lower() != "websocket":
             raise WebSocketException("Upgrade header does not contain expected value")
-        if not "sec-websocket-key" in headers:
+        if "sec-websocket-key" not in headers:
             raise WebSocketException("Websocket key not provided")
 
         ws_key = headers["sec-websocket-key"]
@@ -71,7 +88,7 @@ class WebSocketConnection(object):
         self.pingTimer = None
         self.resetPing()
 
-    def setMessageHandler(self, messageHandler):
+    def setMessageHandler(self, messageHandler: Handler):
         self.messageHandler = messageHandler
 
     def get_header(self, size, opcode):
@@ -106,7 +123,7 @@ class WebSocketConnection(object):
         # convenience
         if type(data) == dict:
             # allow_nan = False disallows NaN and Infinty to be encoded. Browser JSON will not parse them anyway.
-            data = json.dumps(data, allow_nan=False)
+            data = json.dumps(data, allow_nan=False, cls=Encoder)
 
         # string-type messages are sent as text frames
         if type(data) == str:
@@ -120,10 +137,10 @@ class WebSocketConnection(object):
         self._sendBytes(data_to_send)
 
     def _sendBytes(self, data_to_send):
-        def chunks(l, n):
-            """Yield successive n-sized chunks from l."""
-            for i in range(0, len(l), n):
-                yield l[i : i + n]
+        def chunks(input, n):
+            """Yield successive n-sized chunks from input."""
+            for i in range(0, len(input), n):
+                yield input[i: i + n]
 
         try:
             with self.sendLock:
@@ -134,9 +151,11 @@ class WebSocketConnection(object):
                         if written != len(chunk):
                             logger.error("incomplete write! closing socket!")
                             self.close()
+                            break
                     else:
                         logger.debug("socket not returned from select; closing")
                         self.close()
+                        break
         # these exception happen when the socket is closed
         except OSError:
             logger.exception("OSError while writing data")
@@ -197,9 +216,10 @@ class WebSocketConnection(object):
                             length = (header[0] << 8) + header[1]
                         if mask:
                             masking_key = protected_read(4)
-                        data = protected_read(length)
-                        if mask:
+                            data = protected_read(length)
                             data = bytes([b ^ masking_key[index % 4] for (index, b) in enumerate(data)])
+                        else:
+                            data = protected_read(length)
                         if opcode == OPCODE_TEXT_MESSAGE:
                             message = data.decode("utf-8")
                             try:
@@ -243,6 +263,8 @@ class WebSocketConnection(object):
         self.interruptPipeRecv = None
 
     def close(self):
+        if not self.open:
+            return
         self.open = False
         self.interrupt()
 

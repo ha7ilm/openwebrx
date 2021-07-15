@@ -1,7 +1,8 @@
+from owrx.config.core import CoreConfig
 from owrx.config import Config
 from csdr.chain.fft import FftChain
 import threading
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack
 
 import logging
@@ -23,9 +24,6 @@ class SpectrumThread(SdrSourceEventClient):
             "fft_fps",
             "fft_voverlap_factor",
             "fft_compression",
-            "csdr_dynamic_bufsize",
-            "csdr_print_bufsizes",
-            "csdr_through",
         )
 
         self.dsp = None
@@ -77,17 +75,20 @@ class SpectrumThread(SdrSourceEventClient):
         self.stop()
         self.start()
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_USER
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.USER
 
-    def onStateChange(self, state):
-        if state in [SdrSource.STATE_STOPPING, SdrSource.STATE_FAILED]:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.STOPPING:
             self.dsp.stop()
-        elif state == SdrSource.STATE_RUNNING:
+        elif state == SdrSourceState.RUNNING:
             if self.dsp is None:
                 self.start()
             else:
                 self.dsp.setInput(self.sdrSource.getBuffer())
 
-    def onBusyStateChange(self, state):
-        pass
+    def onFail(self):
+        self.dsp.stop()
+
+    def onShutdown(self):
+        self.dsp.stop()

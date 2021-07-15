@@ -145,7 +145,7 @@ YsfMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
     this.hasLocation = hasLocation; this.callsign = callsign;
     var html = '';
     if (hasLocation) {
-        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"></a>';
+        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"><svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg></a>';
     }
     this.el.find('.openwebrx-ysf-source .location').html(html);
 };
@@ -162,9 +162,145 @@ YsfMetaPanel.prototype.setDown = function(down) {
     this.el.find('.openwebrx-ysf-down').text(down || '');
 }
 
+function DStarMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['DSTAR'];
+    this.clear();
+}
+
+DStarMetaPanel.prototype = new MetaPanel();
+
+DStarMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if (data['sync'] && data['sync'] == 'voice') {
+        this.el.find(".openwebrx-meta-slot").addClass("active");
+        this.setOurCall(data['ourcall']);
+        this.setYourCall(data['yourcall']);
+        this.setDeparture(data['departure']);
+        this.setDestination(data['destination']);
+        this.setMessage(data['message']);
+        this.setLocation(data['lat'], data['lon'], data['ourcall']);
+    } else {
+        this.clear();
+    }
+};
+
+DStarMetaPanel.prototype.setOurCall = function(ourcall) {
+    if (this.ourcall === ourcall) return;
+    this.ourcall = ourcall;
+    this.el.find('.openwebrx-dstar-ourcall .callsign').text(ourcall || '');
+};
+
+DStarMetaPanel.prototype.setYourCall = function(yourcall) {
+    if (this.yourcall === yourcall) return;
+    this.yourcall = yourcall;
+    this.el.find('.openwebrx-dstar-yourcall').text(yourcall || '');
+};
+
+DStarMetaPanel.prototype.setDeparture = function(departure) {
+    if (this.departure === departure) return;
+    this.departure = departure;
+    this.el.find('.openwebrx-dstar-departure').text(departure || '');
+};
+
+DStarMetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-dstar-destination').text(destination || '');
+};
+
+DStarMetaPanel.prototype.setMessage = function(message) {
+    if (this.message === message) return;
+    this.message = message;
+    this.el.find('.openwebrx-dstar-message').text(message || '');
+}
+
+DStarMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setOurCall();
+    this.setYourCall();
+    this.setDeparture();
+    this.setDestination();
+    this.setMessage();
+    this.setLocation();
+};
+
+DStarMetaPanel.prototype.setLocation = function(lat, lon, callsign) {
+    var hasLocation = lat && lon && callsign && callsign != '';
+    if (hasLocation === this.hasLocation && this.callsign === callsign) return;
+    this.hasLocation = hasLocation; this.callsign = callsign;
+    var html = '';
+    if (hasLocation) {
+        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"><svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg></a>';
+    }
+    this.el.find('.openwebrx-dstar-ourcall .location').html(html);
+};
+
+function NxdnMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['NXDN'];
+    this.clear();
+}
+
+NxdnMetaPanel.prototype = new MetaPanel();
+
+NxdnMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if (data['sync'] && data['sync'] == 'voice') {
+        this.el.find(".openwebrx-meta-slot").addClass("active");
+        this.setSource(data['additional'] && data['additional']['callsign'] || data['source']);
+        this.setName(data['additional'] && data['additional']['fname']);
+        this.setDestination(data['destination']);
+        this.setMode(['conference', 'individual'].includes(data['type']) ? data['type'] : undefined);
+    } else {
+        this.clear();
+    }
+};
+
+NxdnMetaPanel.prototype.setSource = function(source) {
+    if (this.source === source) return;
+    this.source = source;
+    this.el.find('.openwebrx-nxdn-source').text(source || '');
+};
+
+NxdnMetaPanel.prototype.setName = function(name) {
+    if (this.name === name) return;
+    this.name = name;
+    this.el.find('.openwebrx-nxdn-name').text(name || '');
+};
+
+NxdnMetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-nxdn-destination').text(destination || '');
+};
+
+NxdnMetaPanel.prototype.setMode = function(mode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
+
+    var modes = ['individual', 'conference'];
+    var classes = modes.filter(function(c){
+        return c !== mode;
+    });
+    this.el.find('.openwebrx-meta-slot').removeClass(classes.join(' ')).addClass(mode);
+};
+
+NxdnMetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setMode();
+    this.setSource();
+    this.setName();
+    this.setDestination();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
-    ysf: YsfMetaPanel
+    ysf: YsfMetaPanel,
+    dstar: DStarMetaPanel,
+    nxdn: NxdnMetaPanel,
 };
 
 $.fn.metaPanel = function() {

@@ -1,5 +1,5 @@
 from owrx.command import Option
-from .direct import DirectSource
+from owrx.source.direct import DirectSource, DirectSourceDeviceDescription
 from subprocess import Popen
 
 import logging
@@ -37,3 +37,8 @@ class FifiSdrSource(DirectSource):
     def onPropertyChange(self, changes):
         if "center_freq" in changes:
             self.sendRockProgFrequency(changes["center_freq"])
+
+
+class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
+    def getName(self):
+        return "FiFi SDR"

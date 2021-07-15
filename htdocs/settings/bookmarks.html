@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>OpenWebRX Settings</title>
+    <link rel="shortcut icon" type="image/x-icon" href="../static/favicon.ico" />
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="../static/css/admin.css" />
+    <script src="../compiled/settings.js"></script>
+    <meta charset="utf-8">
+</head>
+<body>
+${header}
+<div class="container">
+    ${breadcrumb}
+    <div class="row">
+        <h1 class="col-12">Bookmarks</h1>
+    </div>
+    <div class="row">
+        <div class="col-12">Double-click the values in the table to edit them.</div>
+    </div>
+    <div class="row mt-3 bookmarks">
+        ${bookmarks}
+        <div class="buttons container">
+            <button type="button" class="btn btn-info bookmark-import">Import personal bookmarks...</button>
+            <button type="button" class="btn btn-primary bookmark-add">Add a new bookmark</button>
+        </div>
+    </div>
+    ${breadcrumb}
+</div>
+<div class="modal" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Please confirm</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Do you really want to delete this bookmark?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary cancel" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="importModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Import from personal bookmarks</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Please select the bookmarks you would like to import:</p>
+                <div class="bookmark-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary cancel" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary confirm">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>

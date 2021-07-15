@@ -3,18 +3,31 @@ from owrx.wsjt import WsjtParser
 from owrx.js8 import Js8Parser
 from owrx.aprs import AprsParser
 from owrx.pocsag import PocsagParser
-from owrx.source import SdrSource, SdrSourceEventClient
-from owrx.property import PropertyStack, PropertyLayer
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
+from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
+from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
-from csdr import csdr
+from owrx.config.core import CoreConfig
+from csdr.output import Output
+from csdr import Dsp
 import threading
+import re
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class DspManager(csdr.output, SdrSourceEventClient):
+class ModulationValidator(OrValidator):
+    """
+    This validator only allows alphanumeric characters and numbers, but no spaces or special characters
+    """
+
+    def __init__(self):
+        super().__init__(BoolValidator(), RegexValidator(re.compile("^[a-z0-9]+$")))
+
+
+class DspManager(Output, SdrSourceEventClient):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
@@ -27,22 +40,25 @@ class DspManager(csdr.output, SdrSourceEventClient):
         }
 
         self.props = PropertyStack()
+
         # local demodulator properties not forwarded to the sdr
-        self.props.addLayer(
-            0,
-            PropertyLayer().filter(
-                "output_rate",
-                "hd_output_rate",
-                "squelch_level",
-                "secondary_mod",
-                "low_cut",
-                "high_cut",
-                "offset_freq",
-                "mod",
-                "secondary_offset_freq",
-                "dmr_filter",
-            ),
-        )
+        # ensure strict validation since these can be set from the client
+        # and are used to build executable commands
+        validators = {
+            "output_rate": "int",
+            "hd_output_rate": "int",
+            "squelch_level": "num",
+            "secondary_mod": ModulationValidator(),
+            "low_cut": "num",
+            "high_cut": "num",
+            "offset_freq": "int",
+            "mod": ModulationValidator(),
+            "secondary_offset_freq": "int",
+            "dmr_filter": "int",
+        }
+        self.localProps = PropertyValidator(PropertyLayer().filter(*validators.keys()), validators)
+
+        self.props.addLayer(0, self.localProps)
         # properties that we inherit from the sdr
         self.props.addLayer(
             1,
@@ -50,21 +66,17 @@ class DspManager(csdr.output, SdrSourceEventClient):
                 "audio_compression",
                 "fft_compression",
                 "digimodes_fft_size",
-                "csdr_dynamic_bufsize",
-                "csdr_print_bufsizes",
-                "csdr_through",
-                "digimodes_enable",
                 "samp_rate",
                 "digital_voice_unvoiced_quality",
-                "temporary_directory",
                 "center_freq",
                 "start_mod",
                 "start_freq",
                 "wfm_deemphasis_tau",
+                "digital_voice_codecserver",
             ),
         )
 
-        self.dsp = csdr.dsp(self)
+        self.dsp = Dsp(self)
         self.dsp.nc_port = self.sdrSource.getPort()
 
         def set_low_cut(cut):
@@ -118,34 +130,34 @@ class DspManager(csdr.output, SdrSourceEventClient):
             self.props.wireProperty("mod", self.dsp.set_demodulator),
             self.props.wireProperty("digital_voice_unvoiced_quality", self.dsp.set_unvoiced_quality),
             self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
-            self.props.wireProperty("temporary_directory", self.dsp.set_temporary_directory),
             self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
+            self.props.wireProperty("digital_voice_codecserver", self.dsp.set_codecserver),
             self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
-        self.dsp.csdr_dynamic_bufsize = self.props["csdr_dynamic_bufsize"]
-        self.dsp.csdr_print_bufsizes = self.props["csdr_print_bufsizes"]
-        self.dsp.csdr_through = self.props["csdr_through"]
+        self.dsp.set_temporary_directory(CoreConfig().get_temporary_directory())
 
-        if self.props["digimodes_enable"]:
+        def send_secondary_config(*args):
+            self.handler.write_secondary_dsp_config(
+                {
+                    "secondary_fft_size": self.props["digimodes_fft_size"],
+                    "if_samp_rate": self.dsp.if_samp_rate(),
+                    "secondary_bw": self.dsp.secondary_bw(),
+                }
+            )
 
-            def set_secondary_mod(mod):
-                if mod == False:
-                    mod = None
-                self.dsp.set_secondary_demodulator(mod)
-                if mod is not None:
-                    self.handler.write_secondary_dsp_config(
-                        {
-                            "secondary_fft_size": self.props["digimodes_fft_size"],
-                            "if_samp_rate": self.dsp.if_samp_rate(),
-                            "secondary_bw": self.dsp.secondary_bw(),
-                        }
-                    )
+        def set_secondary_mod(mod):
+            if mod == False:
+                mod = None
+            self.dsp.set_secondary_demodulator(mod)
+            if mod is not None:
+                send_secondary_config()
 
-            self.subscriptions += [
-                self.props.wireProperty("secondary_mod", set_secondary_mod),
-                self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
-            ]
+        self.subscriptions += [
+            self.props.wireProperty("secondary_mod", set_secondary_mod),
+            self.props.wireProperty("digimodes_fft_size", send_secondary_config),
+            self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
+        ]
 
         self.startOnAvailable = False
 
@@ -188,23 +200,24 @@ class DspManager(csdr.output, SdrSourceEventClient):
             self.setProperty(k, v)
 
     def setProperty(self, prop, value):
-        self.props[prop] = value
+        self.localProps[prop] = value
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_USER
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.USER
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_RUNNING:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.RUNNING:
             logger.debug("received STATE_RUNNING, attempting DspSource restart")
             if self.startOnAvailable:
                 self.dsp.start()
                 self.startOnAvailable = False
-        elif state == SdrSource.STATE_STOPPING:
+        elif state is SdrSourceState.STOPPING:
             logger.debug("received STATE_STOPPING, shutting down DspSource")
             self.dsp.stop()
-        elif state == SdrSource.STATE_FAILED:
-            logger.debug("received STATE_FAILED, shutting down DspSource")
-            self.dsp.stop()
 
-    def onBusyStateChange(self, state):
-        pass
+    def onFail(self):
+        logger.debug("received onFail(), shutting down DspSource")
+        self.dsp.stop()
+
+    def onShutdown(self):
+        self.dsp.stop()

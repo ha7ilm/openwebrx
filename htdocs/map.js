@@ -1,4 +1,4 @@
-(function(){
+$(function(){
     var query = window.location.search.replace(/^\?/, '').split('&').map(function(v){
         var s = v.split('=');
         var r = {};
@@ -212,6 +212,8 @@
 
     var reconnect_timeout = false;
 
+    var config = {}
+
     var connect = function(){
         var ws = new WebSocket(ws_url);
         ws.onopen = function(){
@@ -225,64 +227,71 @@
                 return
             }
             if (e.data.substr(0, 16) == "CLIENT DE SERVER") {
-                console.log("Server acknowledged WebSocket connection.");
                 return
             }
             try {
                 var json = JSON.parse(e.data);
                 switch (json.type) {
                     case "config":
-                        var config = json.value;
-                        var receiverPos = {
-                            lat: config.receiver_gps.lat,
-                            lng: config.receiver_gps.lon
-                        };
-                        if (!map) $.getScript("https://maps.googleapis.com/maps/api/js?key=" + config.google_maps_api_key).done(function(){
-                            map = new google.maps.Map($('.openwebrx-map')[0], {
-                                center: receiverPos,
-                                zoom: 5,
-                            });
+                        Object.assign(config, json.value);
+                        if ('receiver_gps' in config) {
+                            var receiverPos = {
+                                lat: config.receiver_gps.lat,
+                                lng: config.receiver_gps.lon
+                            };
+                            if (!map) $.getScript("https://maps.googleapis.com/maps/api/js?key=" + config.google_maps_api_key).done(function(){
+                                map = new google.maps.Map($('.openwebrx-map')[0], {
+                                    center: receiverPos,
+                                    zoom: 5,
+                                });
 
-                            $.getScript("static/lib/nite-overlay.js").done(function(){
-                                nite.init(map);
-                                setInterval(function() { nite.refresh() }, 10000); // every 10s
-                            });
-                            $.getScript('static/lib/AprsMarker.js').done(function(){
-                                processUpdates(updateQueue);
-                                updateQueue = [];
-                            });
+                                $.getScript("static/lib/nite-overlay.js").done(function(){
+                                    nite.init(map);
+                                    setInterval(function() { nite.refresh() }, 10000); // every 10s
+                                });
+                                $.getScript('static/lib/AprsMarker.js').done(function(){
+                                    processUpdates(updateQueue);
+                                    updateQueue = [];
+                                });
 
-                            var $legend = $(".openwebrx-map-legend");
-                            setupLegendFilters($legend);
-                            map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($legend[0]);
+                                var $legend = $(".openwebrx-map-legend");
+                                setupLegendFilters($legend);
+                                map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push($legend[0]);
 
-                            if (!receiverMarker) {
-                                receiverMarker = new google.maps.Marker();
-                                receiverMarker.addListener('click', function() {
-                                    showReceiverInfoWindow(receiverMarker);
+                                if (!receiverMarker) {
+                                    receiverMarker = new google.maps.Marker();
+                                    receiverMarker.addListener('click', function() {
+                                        showReceiverInfoWindow(receiverMarker);
+                                    });
+                                }
+                                receiverMarker.setOptions({
+                                    map: map,
+                                    position: receiverPos,
+                                    title: config['receiver_name'],
+                                    config: config
+                                });
+                            }); else {
+                                receiverMarker.setOptions({
+                                    map: map,
+                                    position: receiverPos,
+                                    config: config
                                 });
                             }
+                        }
+                        if ('receiver_name' in config && receiverMarker) {
                             receiverMarker.setOptions({
-                                map: map,
-                                position: receiverPos,
-                                title: config['receiver_name'],
-                                config: config
-                            });
-                        }); else {
-                            receiverMarker.setOptions({
-                                map: map,
-                                position: receiverPos,
-                                title: config['receiver_name'],
-                                config: config
+                                title: config['receiver_name']
                             });
                         }
-                        retention_time = config.map_position_retention_time * 1000;
+                        if ('map_position_retention_time' in config) {
+                            retention_time = config.map_position_retention_time * 1000;
+                        }
                     break;
                     case "update":
                         processUpdates(json.value);
                     break;
                     case 'receiver_details':
-                        $('#webrx-top-container').header().setDetails(json['value']);
+                        $('.webrx-top-container').header().setDetails(json['value']);
                     break;
                     default:
                         console.warn('received message of unknown type: ' + json['type']);
@@ -464,4 +473,4 @@
         });
     }
 
-})();
+});

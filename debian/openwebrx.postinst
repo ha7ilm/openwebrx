@@ -1,0 +1,59 @@
+#!/bin/bash
+. /usr/share/debconf/confmodule
+
+set -euo pipefail
+
+OWRX_USER="openwebrx"
+OWRX_DATADIR="/var/lib/openwebrx"
+OWRX_USERS_FILE="${OWRX_DATADIR}/users.json"
+OWRX_SETTINGS_FILE="${OWRX_DATADIR}/settings.json"
+OWRX_BOOKMARKS_FILE="${OWRX_DATADIR}/bookmarks.json"
+
+case "$1" in
+  configure|reconfigure)
+    adduser --system --group --no-create-home --home /nonexistent --quiet "${OWRX_USER}"
+    usermod -aG plugdev "${OWRX_USER}"
+
+    # create OpenWebRX data directory and set the correct permissions
+    if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
+    chown "${OWRX_USER}". ${OWRX_DATADIR}
+
+    # create empty config files now to avoid permission problems later
+    if [ ! -e "${OWRX_USERS_FILE}" ]; then
+      echo "[]" > "${OWRX_USERS_FILE}"
+      chown "${OWRX_USER}". "${OWRX_USERS_FILE}"
+      chmod 0600 "${OWRX_USERS_FILE}"
+    fi
+
+    if [ ! -e "${OWRX_SETTINGS_FILE}" ]; then
+      echo "{}" > "${OWRX_SETTINGS_FILE}"
+      chown "${OWRX_USER}". "${OWRX_SETTINGS_FILE}"
+    fi
+
+    if [ ! -e "${OWRX_BOOKMARKS_FILE}" ]; then
+      touch "${OWRX_BOOKMARKS_FILE}"
+      chown "${OWRX_USER}". "${OWRX_BOOKMARKS_FILE}"
+    fi
+
+    db_get openwebrx/admin_user_password
+    if [ ! -z "${RET}" ]; then
+      if ! openwebrx admin --silent hasuser admin; then
+        # create initial openwebrx user
+        OWRX_PASSWORD="${RET}" openwebrx admin --noninteractive adduser admin
+      else
+        # change existing user's password
+        OWRX_PASSWORD="${RET}" openwebrx admin --noninteractive resetpassword admin
+      fi
+    fi
+    # remove password from debconf database
+    db_unregister openwebrx/admin_user_password
+    # set a marker that admin is configured to avoid future questions
+    db_set openwebrx/admin_user_configured true
+  ;;
+  *)
+    echo "postinst called with unknown argument '$1'" 1>&2
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#

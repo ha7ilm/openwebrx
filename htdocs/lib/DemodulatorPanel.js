@@ -158,7 +158,7 @@ DemodulatorPanel.prototype.updatePanels = function() {
     var modulation = this.getDemodulator().get_secondary_demod();
     $('#openwebrx-panel-digimodes').attr('data-mode', modulation);
     toggle_panel("openwebrx-panel-digimodes", !!modulation);
-    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'fst4', 'fst4w'].indexOf(modulation) >= 0);
+    toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'fst4', 'fst4w', "q65"].indexOf(modulation) >= 0);
     toggle_panel("openwebrx-panel-js8-message", modulation == "js8");
     toggle_panel("openwebrx-panel-packet-message", modulation === "packet");
     toggle_panel("openwebrx-panel-pocsag-message", modulation === "pocsag");
@@ -211,6 +211,10 @@ DemodulatorPanel.prototype._apply = function(params) {
 
 DemodulatorPanel.prototype.setInitialParams = function(params) {
     $.extend(this.initialParams, params);
+};
+
+DemodulatorPanel.prototype.resetInitialParams = function() {
+    this.initialParams = {};
 };
 
 DemodulatorPanel.prototype.onHashChange = function() {
@@ -341,7 +345,7 @@ DemodulatorPanel.prototype.updateSquelch = function() {
 };
 
 DemodulatorPanel.prototype.setSquelchMargin = function(margin) {
-    if (!margin || this.squelchMargin == margin) return;
+    if (typeof(margin) === 'undefined' || this.squelchMargin == margin) return;
     this.squelchMargin = margin;
 };
 
@@ -353,9 +357,9 @@ DemodulatorPanel.prototype.setMouseFrequency = function(freq) {
     this.mouseFrequencyDisplay.setFrequency(freq);
 };
 
-DemodulatorPanel.prototype.setFrequencyPrecision = function(precision) {
-    this.tuneableFrequencyDisplay.setFrequencyPrecision(precision);
-    this.mouseFrequencyDisplay.setFrequencyPrecision(precision);
+DemodulatorPanel.prototype.setTuningPrecision = function(precision) {
+    this.tuneableFrequencyDisplay.setTuningPrecision(precision);
+    this.mouseFrequencyDisplay.setTuningPrecision(precision);
 };
 
 $.fn.demodulatorPanel = function(){

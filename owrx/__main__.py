@@ -1,6 +1,14 @@
+import logging
+
+# the linter will complain about this, but the logging must be configured before importing all the other modules
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 from http.server import HTTPServer
 from owrx.http import RequestHandler
+from owrx.config.core import CoreConfig
 from owrx.config import Config
+from owrx.config.commands import MigrateCommand
 from owrx.feature import FeatureDetector
 from owrx.sdr import SdrService
 from socketserver import ThreadingMixIn
@@ -8,13 +16,10 @@ from owrx.service import Services
 from owrx.websocket import WebSocketConnection
 from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
-from owrx.audio import DecoderQueue
+from owrx.audio.queue import DecoderQueue
+from owrx.admin import add_admin_parser, run_admin_action
 import signal
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+import argparse
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
@@ -30,6 +35,37 @@ def handleSignal(sig, frame):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="OpenWebRX - Open Source SDR Web App for Everyone!")
+    parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
+    parser.add_argument("--debug", action="store_true", help="Set loglevel to DEBUG")
+
+    moduleparser = parser.add_subparsers(title="Modules", dest="module")
+    adminparser = moduleparser.add_parser("admin", help="Administration actions")
+    add_admin_parser(adminparser)
+
+    configparser = moduleparser.add_parser("config", help="Configuration actions")
+    configcommandparser = configparser.add_subparsers(title="Commands", dest="command")
+
+    migrateparser = configcommandparser.add_parser("migrate", help="Migrate configuration files")
+    migrateparser.set_defaults(cls=MigrateCommand)
+
+    args = parser.parse_args()
+
+    # set loglevel to info for CLI commands
+    if args.module is not None and not args.debug:
+        logging.getLogger().setLevel(logging.INFO)
+
+    if args.version:
+        print("OpenWebRX version {version}".format(version=openwebrx_version))
+    elif args.module == "admin":
+        run_admin_action(adminparser, args)
+    elif args.module == "config":
+        run_admin_action(configparser, args)
+    else:
+        start_receiver()
+
+
+def start_receiver():
     print(
         """
 
@@ -48,14 +84,9 @@ Support and info:       https://groups.io/g/openwebrx
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, handleSignal)
 
-    pm = Config.get()
-
-    configErrors = Config.validateConfig()
-    if configErrors:
-        logger.error("your configuration contains errors. please address the following errors:")
-        for e in configErrors:
-            logger.error(e)
-        return
+    # config warmup
+    Config.validateConfig()
+    coreConfig = CoreConfig()
 
     featureDetector = FeatureDetector()
     if not featureDetector.is_available("core"):
@@ -68,15 +99,17 @@ Support and info:       https://groups.io/g/openwebrx
 
     # Get error messages about unknown / unavailable features as soon as possible
     # start up "always-on" sources right away
-    SdrService.getSources()
+    SdrService.getAllSources()
 
     Services.start()
 
     try:
-        server = ThreadedHttpServer(("0.0.0.0", pm["web_port"]), RequestHandler)
+        server = ThreadedHttpServer(("0.0.0.0", coreConfig.get_web_port()), RequestHandler)
         server.serve_forever()
     except SignalException:
-        WebSocketConnection.closeAll()
-        Services.stop()
-        ReportingEngine.stopAll()
-        DecoderQueue.stopAll()
+        pass
+
+    WebSocketConnection.closeAll()
+    Services.stop()
+    ReportingEngine.stopAll()
+    DecoderQueue.stopAll()

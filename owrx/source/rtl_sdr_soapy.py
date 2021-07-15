@@ -1,4 +1,7 @@
-from .soapy import SoapyConnectorSource
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
+from owrx.form.input import Input
+from owrx.form.input.device import BiasTeeInput, DirectSamplingInput
+from typing import List
 
 
 class RtlSdrSoapySource(SoapyConnectorSource):
@@ -9,3 +12,17 @@ class RtlSdrSoapySource(SoapyConnectorSource):
 
     def getDriver(self):
         return "rtlsdr"
+
+
+class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
+    def getName(self):
+        return "RTL-SDR device (via SoapySDR)"
+
+    def getInputs(self) -> List[Input]:
+        return super().getInputs() + [BiasTeeInput(), DirectSamplingInput()]
+
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["bias_tee", "direct_sampling"]
+
+    def getProfileOptionalKeys(self):
+        return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]

@@ -1,17 +1,19 @@
 import threading
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
-from csdr.csdr import dsp, output
+from csdr.output import Output
+from csdr import Dsp
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.js8 import Js8Parser
+from owrx.config.core import CoreConfig
 from owrx.config import Config
 from owrx.source.resampler import Resampler
-from owrx.property import PropertyLayer
+from owrx.property import PropertyLayer, PropertyDeleted
 from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
-from .schedule import ServiceScheduler
+from owrx.service.schedule import ServiceScheduler
 from owrx.modes import Modes
 
 import logging
@@ -19,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ServiceOutput(output, metaclass=ABCMeta):
+class ServiceOutput(Output, metaclass=ABCMeta):
     def __init__(self, frequency):
         self.frequency = frequency
 
@@ -65,32 +67,68 @@ class ServiceHandler(SdrSourceEventClient):
         self.services = []
         self.source = source
         self.startupTimer = None
-        self.scheduler = None
+        self.activitySub = None
+        self.running = False
+        props = self.source.getProps()
+        self.enabledSub = props.wireProperty("services", self._receiveEvent)
+        self.decodersSub = None
+        # need to call _start() manually if property is not set since the default is True, but the initial call is only
+        # made if the property is present
+        if "services" not in props:
+            self._start()
+
+    def _receiveEvent(self, state):
+        # deletion means fall back to default, which is True
+        if state is PropertyDeleted:
+            state = True
+        if self.running == state:
+            return
+        if state:
+            self._start()
+        else:
+            self._stop()
+
+    def _start(self):
+        self.running = True
         self.source.addClient(self)
         props = self.source.getProps()
-        props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        self.activitySub = props.filter("center_freq", "samp_rate").wire(self.onFrequencyChange)
+        self.decodersSub = Config.get().wireProperty("services_decoders", self.onFrequencyChange)
         if self.source.isAvailable():
-            self.scheduleServiceStartup()
-        if "schedule" in props or "scheduler" in props:
-            self.scheduler = ServiceScheduler(self.source)
+            self._scheduleServiceStartup()
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_INACTIVE
+    def _stop(self):
+        if self.activitySub is not None:
+            self.activitySub.cancel()
+            self.activitySub = None
+        if self.decodersSub is not None:
+            self.decodersSub.cancel()
+            self.decodersSub = None
+        self._cancelStartupTimer()
+        self.source.removeClient(self)
+        self.stopServices()
+        self.running = False
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_RUNNING:
-            self.scheduleServiceStartup()
-        elif state == SdrSource.STATE_STOPPING:
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.INACTIVE
+
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.RUNNING:
+            self._scheduleServiceStartup()
+        elif state is SdrSourceState.STOPPING:
             logger.debug("sdr source becoming unavailable; stopping services.")
             self.stopServices()
-        elif state == SdrSource.STATE_FAILED:
-            logger.debug("sdr source failed; stopping services.")
-            self.stopServices()
-            if self.scheduler:
-                self.scheduler.shutdown()
 
-    def onBusyStateChange(self, state):
-        pass
+    def onFail(self):
+        logger.debug("sdr source failed; stopping services.")
+        self.stopServices()
+
+    def onShutdown(self):
+        logger.debug("sdr source is shutting down; shutting down service handler, too.")
+        self.shutdown()
+
+    def onEnable(self):
+        self._scheduleServiceStartup()
 
     def isSupported(self, mode):
         configured = Config.get()["services_decoders"]
@@ -98,10 +136,10 @@ class ServiceHandler(SdrSourceEventClient):
         return mode in configured and mode in available
 
     def shutdown(self):
-        self.stopServices()
-        self.source.removeClient(self)
-        if self.scheduler:
-            self.scheduler.shutdown()
+        self._stop()
+        if self.enabledSub is not None:
+            self.enabledSub.cancel()
+            self.enabledSub = None
 
     def stopServices(self):
         with self.lock:
@@ -115,11 +153,15 @@ class ServiceHandler(SdrSourceEventClient):
         self.stopServices()
         if not self.source.isAvailable():
             return
-        self.scheduleServiceStartup()
+        self._scheduleServiceStartup()
 
-    def scheduleServiceStartup(self):
+    def _cancelStartupTimer(self):
         if self.startupTimer:
             self.startupTimer.cancel()
+            self.startupTimer = None
+
+    def _scheduleServiceStartup(self):
+        self._cancelStartupTimer()
         self.startupTimer = threading.Timer(10, self.updateServices)
         self.startupTimer.start()
 
@@ -151,20 +193,25 @@ class ServiceHandler(SdrSourceEventClient):
                     self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
             else:
                 for group in groups:
-                    cf = self.get_center_frequency(group)
-                    bw = self.get_bandwidth(group)
-                    logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
-                    resampler_props = PropertyLayer()
-                    resampler_props["center_freq"] = cf
-                    resampler_props["samp_rate"] = bw
-                    resampler = Resampler(resampler_props, self.source)
-                    resampler.start()
+                    if len(group) > 1:
+                        cf = self.get_center_frequency(group)
+                        bw = self.get_bandwidth(group)
+                        logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
+                        resampler_props = PropertyLayer()
+                        resampler_props["center_freq"] = cf
+                        resampler_props["samp_rate"] = bw
+                        resampler = Resampler(resampler_props, self.source)
+                        resampler.start()
 
-                    for dial in group:
-                        self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
+                        for dial in group:
+                            self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
 
-                    # resampler goes in after the services since it must not be shutdown as long as the services are still running
-                    self.services.append(resampler)
+                        # resampler goes in after the services since it must not be shutdown as long as the services are
+                        # still running
+                        self.services.append(resampler)
+                    else:
+                        dial = group[0]
+                        self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
 
     def get_min_max(self, group):
         frequencies = sorted(group, key=lambda f: f["frequency"])
@@ -181,7 +228,7 @@ class ServiceHandler(SdrSourceEventClient):
     def get_bandwidth(self, group):
         minFreq, maxFreq = self.get_min_max(group)
         # minimum bandwidth for a resampler: 25kHz
-        return max(maxFreq - minFreq, 25000)
+        return max((maxFreq - minFreq) * 1.15, 25000)
 
     def optimizeResampling(self, freqs, bandwidth):
         freqs = sorted(freqs, key=lambda f: f["frequency"])
@@ -207,7 +254,10 @@ class ServiceHandler(SdrSourceEventClient):
             groups.append([f for f in freqs if previous < f["frequency"]])
 
             def get_total_bandwidth(group):
-                return bandwidth + len(group) * self.get_bandwidth(group)
+                if len(group) > 1:
+                    return bandwidth + len(group) * self.get_bandwidth(group)
+                else:
+                    return bandwidth
 
             total_bandwidth = sum([get_total_bandwidth(group) for group in groups])
             return {
@@ -244,7 +294,7 @@ class ServiceHandler(SdrSourceEventClient):
             output = Js8ServiceOutput(frequency)
         else:
             output = WsjtServiceOutput(frequency)
-        d = dsp(output)
+        d = Dsp(output)
         d.nc_port = source.getPort()
         center_freq = source.getProps()["center_freq"]
         d.set_offset_freq(frequency - center_freq)
@@ -255,7 +305,7 @@ class ServiceHandler(SdrSourceEventClient):
         d.set_secondary_demodulator(mode)
         d.set_audio_compression("none")
         d.set_samp_rate(source.getProps()["samp_rate"])
-        d.set_temporary_directory(Config.get()["temporary_directory"])
+        d.set_temporary_directory(CoreConfig().get_temporary_directory())
         d.set_service()
         d.start()
         return d
@@ -277,19 +327,48 @@ class Js8Handler(object):
 
 
 class Services(object):
-    handlers = []
+    handlers = {}
+    schedulers = {}
 
     @staticmethod
     def start():
-        if not Config.get()["services_enabled"]:
-            return
-        for source in SdrService.getSources().values():
-            props = source.getProps()
-            if "services" not in props or props["services"] is not False:
-                Services.handlers.append(ServiceHandler(source))
+        config = Config.get()
+        config.wireProperty("services_enabled", Services._receiveEnabledEvent)
+        activeSources = SdrService.getActiveSources()
+        activeSources.wire(Services._receiveDeviceEvent)
+        for key, source in activeSources.items():
+            Services.schedulers[key] = ServiceScheduler(source)
+
+    @staticmethod
+    def _receiveEnabledEvent(state):
+        if state:
+            for key, source in SdrService.getActiveSources().__dict__().items():
+                Services.handlers[key] = ServiceHandler(source)
+        else:
+            for handler in list(Services.handlers.values()):
+                handler.shutdown()
+            Services.handlers = {}
+
+    @staticmethod
+    def _receiveDeviceEvent(changes):
+        for key, source in changes.items():
+            if source is PropertyDeleted:
+                if key in Services.handlers:
+                    Services.handlers[key].shutdown()
+                    del Services.handlers[key]
+                if key in Services.schedulers:
+                    Services.schedulers[key].shutdown()
+                    del Services.schedulers[key]
+            else:
+                Services.schedulers[key] = ServiceScheduler(source)
+                if Config.get()["services_enabled"]:
+                    Services.handlers[key] = ServiceHandler(source)
 
     @staticmethod
     def stop():
-        for handler in Services.handlers:
+        for handler in list(Services.handlers.values()):
             handler.shutdown()
-        Services.handlers = []
+        Services.handlers = {}
+        for scheduler in list(Services.schedulers.values()):
+            scheduler.shutdown()
+        Services.schedulers = {}

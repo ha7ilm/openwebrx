@@ -87,8 +87,8 @@ BookmarkBar.prototype.render = function(){
         var $bookmark = $(
             '<div class="bookmark" data-source="' + b.source + '"' + (b.editable?' editable="editable"':'') + '>' +
                 '<div class="bookmark-actions">' +
-                    '<div class="openwebrx-button action" data-action="edit"><span class="sprite sprite-edit"></span></div>' +
-                    '<div class="openwebrx-button action" data-action="delete"><span class="sprite sprite-trashcan"><span></div>' +
+                    '<div class="openwebrx-button action" data-action="edit"><svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#edit"></use></svg></div>' +
+                    '<div class="openwebrx-button action" data-action="delete"><svg viewBox="0 0 80 80"><use xlink:href="static/gfx/svg-defs.svg#trashcan"></use></svg></div>' +
                 '</div>' +
                 '<div class="bookmark-content">' + b.name + '</div>' +
             '</div>'
@@ -144,22 +144,4 @@ BookmarkBar.prototype.getDemodulatorPanel = function() {
 
 BookmarkBar.prototype.getDemodulator = function() {
     return this.getDemodulatorPanel().getDemodulator();
-};
-
-BookmarkLocalStorage = function(){
-};
-
-BookmarkLocalStorage.prototype.getBookmarks = function(){
-    return JSON.parse(window.localStorage.getItem("bookmarks")) || [];
-};
-
-BookmarkLocalStorage.prototype.setBookmarks = function(bookmarks){
-    window.localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-};
-
-BookmarkLocalStorage.prototype.deleteBookmark = function(data) {
-    if (data.id) data = data.id;
-    var bookmarks = this.getBookmarks();
-    bookmarks = bookmarks.filter(function(b) { return b.id !== data; });
-    this.setBookmarks(bookmarks);
 };

@@ -2,19 +2,21 @@ from owrx.details import ReceiverDetails
 from owrx.dsp import DspManager
 from owrx.cpu import CpuUsageThread
 from owrx.sdr import SdrService
-from owrx.source import SdrSource, SdrSourceEventClient
+from owrx.source import SdrSourceState, SdrClientClass, SdrSourceEventClient
 from owrx.client import ClientRegistry, TooManyClientsException
 from owrx.feature import FeatureDetector
 from owrx.version import openwebrx_version
 from owrx.bands import Bandplan
 from owrx.bookmarks import Bookmarks
 from owrx.map import Map
-from owrx.property import PropertyStack
+from owrx.property import PropertyStack, PropertyDeleted
 from owrx.modes import Modes, DigitalMode
 from owrx.config import Config
+from owrx.waterfall import WaterfallOptions
+from owrx.websocket import Handler
 from queue import Queue, Full, Empty
 from js8py import Js8Frame
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 import json
 import threading
 
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 PoisonPill = object()
 
 
-class Client(ABC):
+class Client(Handler, metaclass=ABCMeta):
     def __init__(self, conn):
         self.conn = conn
         self.multithreadingQueue = Queue(100)
@@ -99,43 +101,50 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
             receiver_info = receiver_details.__dict__()
             self.write_receiver_details(receiver_info)
 
-        # TODO unsubscribe
-        receiver_details.wire(send_receiver_info)
+        self._detailsSubscription = receiver_details.wire(send_receiver_info)
         send_receiver_info()
 
     def write_receiver_details(self, details):
         self.send({"type": "receiver_details", "value": details})
 
+    def close(self):
+        self._detailsSubscription.cancel()
+        super().close()
+
 
 class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     sdr_config_keys = [
-        "waterfall_min_level",
-        "waterfall_max_level",
+        "waterfall_levels",
         "samp_rate",
         "start_mod",
         "start_freq",
         "center_freq",
         "initial_squelch_level",
+        "sdr_id",
         "profile_id",
         "squelch_auto_margin",
     ]
 
     global_config_keys = [
+        "waterfall_scheme",
         "waterfall_colors",
-        "waterfall_auto_level_margin",
+        "waterfall_auto_levels",
+        "waterfall_auto_min_range",
         "fft_size",
         "audio_compression",
         "fft_compression",
         "max_clients",
-        "frequency_display_precision",
+        "tuning_precision",
     ]
 
     def __init__(self, conn):
         super().__init__(conn)
 
         self.dsp = None
+        self.dspLock = threading.Lock()
         self.sdr = None
         self.configSubs = []
+        self.bookmarkSub = None
         self.connectionProperties = {}
 
         try:
@@ -156,14 +165,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         modes = Modes.getModes()
         self.write_modes(modes)
 
-        self.__sendProfiles()
+        self.configSubs.append(SdrService.getActiveSources().wire(self._onSdrDeviceChanges))
+        self.configSubs.append(SdrService.getAvailableProfiles().wire(self._sendProfiles))
+        self._sendProfiles()
 
         CpuUsageThread.getSharedInstance().add_client(self)
-
-    def __del__(self):
-        if hasattr(self, "configSubs"):
-            while self.configSubs:
-                self.configSubs.pop().cancel()
 
     def setupStack(self):
         stack = PropertyStack()
@@ -176,7 +182,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             if changes is None:
                 config = configProps.__dict__()
             else:
-                config = changes
+                # transform deletions into Nones
+                config = {k: v if v is not PropertyDeleted else None for k, v in changes.items()}
             if (
                 (changes is None or "start_freq" in changes or "center_freq" in changes)
                 and "start_freq" in configProps
@@ -187,49 +194,77 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 config["sdr_id"] = self.sdr.getId()
             self.write_config(config)
 
-        def sendBookmarks(changes=None):
+        def sendBookmarks(*args):
             cf = configProps["center_freq"]
             srh = configProps["samp_rate"] / 2
-            frequencyRange = (cf - srh, cf + srh)
-            self.write_dial_frequencies(Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange))
-            bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+            dial_frequencies = []
+            bookmarks = []
+            if "center_freq" in configProps and "samp_rate" in configProps:
+                frequencyRange = (cf - srh, cf + srh)
+                dial_frequencies = Bandplan.getSharedInstance().collectDialFrequencies(frequencyRange)
+                bookmarks = [b.__dict__() for b in Bookmarks.getSharedInstance().getBookmarks(frequencyRange)]
+            self.write_dial_frequencies(dial_frequencies)
             self.write_bookmarks(bookmarks)
 
+        def updateBookmarkSubscription(*args):
+            if self.bookmarkSub is not None:
+                self.bookmarkSub.cancel()
+            if "center_freq" in configProps and "samp_rate" in configProps:
+                cf = configProps["center_freq"]
+                srh = configProps["samp_rate"] / 2
+                frequencyRange = (cf - srh, cf + srh)
+                self.bookmarkSub = Bookmarks.getSharedInstance().subscribe(frequencyRange, sendBookmarks)
+                sendBookmarks()
+
         self.configSubs.append(configProps.wire(sendConfig))
-        self.configSubs.append(stack.filter("center_freq", "samp_rate").wire(sendBookmarks))
+        self.configSubs.append(stack.filter("center_freq", "samp_rate").wire(updateBookmarkSubscription))
 
         # send initial config
         sendConfig()
         return stack
 
     def setupGlobalConfig(self):
+        def writeConfig(changes):
+            # TODO it would be nicer to have all options available and switchable in the client
+            # this restores the existing functionality for now, but there is lots of potential
+            if "waterfall_scheme" in changes or "waterfall_colors" in changes:
+                scheme = WaterfallOptions(globalConfig["waterfall_scheme"]).instantiate()
+                changes["waterfall_colors"] = scheme.getColors()
+            self.write_config(changes)
+
         globalConfig = Config.get().filter(*OpenWebRxReceiverClient.global_config_keys)
-        self.configSubs.append(globalConfig.wire(self.write_config))
-        self.write_config(globalConfig.__dict__())
+        self.configSubs.append(globalConfig.wire(writeConfig))
+        writeConfig(globalConfig.__dict__())
 
-    def onStateChange(self, state):
-        if state == SdrSource.STATE_RUNNING:
+    def onStateChange(self, state: SdrSourceState):
+        if state is SdrSourceState.RUNNING:
             self.handleSdrAvailable()
-        elif state == SdrSource.STATE_FAILED:
-            self.handleSdrFailed()
 
-    def handleSdrFailed(self):
+    def onFail(self):
         logger.warning('SDR device "%s" has failed, selecting new device', self.sdr.getName())
         self.write_log_message('SDR device "{0}" has failed, selecting new device'.format(self.sdr.getName()))
         self.setSdr()
 
-    def onBusyStateChange(self, state):
-        pass
+    def onDisable(self):
+        logger.warning('SDR device "%s" was disabled, selecting new device', self.sdr.getName())
+        self.write_log_message('SDR device "{0}" was disabled, selecting new device'.format(self.sdr.getName()))
+        self.setSdr()
 
-    def getClientClass(self):
-        return SdrSource.CLIENT_USER
+    def onShutdown(self):
+        logger.warning('SDR device "%s" is shutting down, selecting new device', self.sdr.getName())
+        self.write_log_message('SDR device "{0}" is shutting down, selecting new device'.format(self.sdr.getName()))
+        self.setSdr()
 
-    def __sendProfiles(self):
-        profiles = [
-            {"name": s.getName() + " " + p["name"], "id": sid + "|" + pid}
-            for (sid, s) in SdrService.getSources().items()
-            for (pid, p) in s.getProfiles().items()
-        ]
+    def getClientClass(self) -> SdrClientClass:
+        return SdrClientClass.USER
+
+    def _onSdrDeviceChanges(self, changes):
+        # restart the client if an sdr has become available
+        if self.sdr is None and any(s is not PropertyDeleted for s in changes.values()):
+            self.setSdr()
+
+    def _sendProfiles(self, *args):
+        profiles = [{"id": pid, "name": name} for pid, name in SdrService.getAvailableProfiles().items()]
         self.write_profiles(profiles)
 
     def handleTextMessage(self, conn, message):
@@ -237,20 +272,17 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             message = json.loads(message)
             if "type" in message:
                 if message["type"] == "dspcontrol":
-                    if "action" in message and message["action"] == "start":
-                        self.startDsp()
+                    dsp = self.getDsp()
+                    if dsp is None:
+                        logger.warning("DSP not available; discarding client dspcontrol message")
+                    else:
+                        if "action" in message and message["action"] == "start":
+                            dsp.start()
 
-                    if "params" in message:
-                        dsp = self.getDsp()
-                        if dsp is None:
-                            logger.warning("DSP not available; discarding client data")
-                        else:
+                        if "params" in message:
                             params = message["params"]
                             dsp.setProperties(params)
 
-                elif message["type"] == "config":
-                    if "params" in message:
-                        self.setParams(message["params"])
                 elif message["type"] == "setsdr":
                     if "params" in message:
                         self.setSdr(message["params"]["sdr"])
@@ -283,9 +315,12 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             return
 
         self.stopDsp()
+        self.stack.removeLayerByPriority(0)
 
         if self.sdr is not None:
             self.sdr.removeClient(self)
+
+        self.sdr = next
 
         if next is None:
             # exit condition: no sdrs available
@@ -293,22 +328,16 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
             self.handleNoSdrsAvailable()
             return
 
-        self.sdr = next
         self.sdr.addClient(self)
 
     def handleSdrAvailable(self):
         self.getDsp().setProperties(self.connectionProperties)
         self.stack.replaceLayer(0, self.sdr.getProps())
 
-        self.__sendProfiles()
-
         self.sdr.addSpectrumClient(self)
 
     def handleNoSdrsAvailable(self):
         self.write_sdr_error("No SDR Devices available")
-
-    def startDsp(self):
-        self.getDsp().start()
 
     def close(self):
         if self.sdr is not None:
@@ -316,33 +345,25 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.stopDsp()
         CpuUsageThread.getSharedInstance().remove_client(self)
         ClientRegistry.getSharedInstance().removeClient(self)
+        while self.configSubs:
+            self.configSubs.pop().cancel()
+        if self.bookmarkSub is not None:
+            self.bookmarkSub.cancel()
+            self.bookmarkSub = None
         super().close()
 
     def stopDsp(self):
-        if self.dsp is not None:
-            self.dsp.stop()
-            self.dsp = None
+        with self.dspLock:
+            if self.dsp is not None:
+                self.dsp.stop()
+                self.dsp = None
         if self.sdr is not None:
             self.sdr.removeSpectrumClient(self)
 
-    def setParams(self, params):
-        config = Config.get()
-        # allow direct configuration only if enabled in the config
-        if "configurable_keys" not in config:
-            return
-        keys = config["configurable_keys"]
-        if not keys:
-            return
-        protected = self.stack.filter(*keys)
-        for key, value in params.items():
-            try:
-                protected[key] = value
-            except KeyError:
-                pass
-
     def getDsp(self):
-        if self.dsp is None and self.sdr is not None:
-            self.dsp = DspManager(self, self.sdr)
+        with self.dspLock:
+            if self.dsp is None and self.sdr is not None:
+                self.dsp = DspManager(self, self.sdr)
         return self.dsp
 
     def write_spectrum_data(self, data):
@@ -355,7 +376,10 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send(bytes([0x04]) + data)
 
     def write_s_meter_level(self, level):
-        self.send({"type": "smeter", "value": level})
+        try:
+            self.send({"type": "smeter", "value": level})
+        except ValueError:
+            logger.warning("unable to send smeter value: %s", str(level))
 
     def write_cpu_usage(self, usage):
         self.mp_send({"type": "cpuusage", "value": usage})
@@ -448,14 +472,15 @@ class MapConnection(OpenWebRxClient):
         super().__init__(conn)
 
         pm = Config.get()
-        self.write_config(
-            pm.filter(
-                "google_maps_api_key",
-                "receiver_gps",
-                "map_position_retention_time",
-                "receiver_name",
-            ).__dict__()
+        filtered_config = pm.filter(
+            "google_maps_api_key",
+            "receiver_gps",
+            "map_position_retention_time",
+            "receiver_name",
         )
+        filtered_config.wire(self.write_config)
+
+        self.write_config(filtered_config.__dict__())
 
         Map.getSharedInstance().addClient(self)
 
@@ -473,35 +498,36 @@ class MapConnection(OpenWebRxClient):
         self.mp_send({"type": "update", "value": update})
 
 
-class WebSocketMessageHandler(object):
-    def __init__(self):
-        self.handshake = None
-
+class HandshakeMessageHandler(Handler):
+    """
+    This handler receives text messages, but will only respond to the second handshake string.
+    As soon as a valid handshake is received, the handler replaces itself with the corresponding handler type.
+    """
     def handleTextMessage(self, conn, message):
         if message[:16] == "SERVER DE CLIENT":
             meta = message[17:].split(" ")
-            self.handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
+            handshake = {v[0]: "=".join(v[1:]) for v in map(lambda x: x.split("="), meta)}
 
-            conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
             logger.debug("client connection initialized")
 
-            if "type" in self.handshake:
-                if self.handshake["type"] == "receiver":
+            client = None
+            if "type" in handshake:
+                if handshake["type"] == "receiver":
                     client = OpenWebRxReceiverClient(conn)
-                if self.handshake["type"] == "map":
+                elif handshake["type"] == "map":
                     client = MapConnection(conn)
-            # backwards compatibility
+                else:
+                    logger.warning("invalid connection type: %s", handshake["type"])
+
+            if client is not None:
+                logger.debug("handshake complete, handing off to %s", type(client).__name__)
+                # hand off all further communication to the correspondig connection
+                conn.send("CLIENT DE SERVER server=openwebrx version={version}".format(version=openwebrx_version))
+                conn.setMessageHandler(client)
             else:
-                client = OpenWebRxReceiverClient(conn)
-
-            # hand off all further communication to the correspondig connection
-            conn.setMessageHandler(client)
-
-            return
-
-        if not self.handshake:
+                logger.warning('invalid handshake received')
+        else:
             logger.warning("not answering client request since handshake is not complete")
-            return
 
     def handleBinaryMessage(self, conn, data):
         pass

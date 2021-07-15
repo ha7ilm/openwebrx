@@ -1,9 +1,18 @@
-from owrx.property import PropertyLayer
+from owrx.property import PropertyLayer, PropertyDeleted
 from unittest import TestCase
 from unittest.mock import Mock
 
 
 class PropertyLayerTest(TestCase):
+    def testCreationWithKwArgs(self):
+        pm = PropertyLayer(testkey="value")
+        self.assertEqual(pm["testkey"], "value")
+
+        # this should be synonymous, so this is rather for illustration purposes
+        contents = {"testkey": "value"}
+        pm = PropertyLayer(**contents)
+        self.assertEqual(pm["testkey"], "value")
+
     def testKeyIsset(self):
         pm = PropertyLayer()
         self.assertFalse("some_key" in pm)
@@ -57,4 +66,28 @@ class PropertyLayerTest(TestCase):
         mock = Mock()
         pm.wire(mock.method)
         pm["testkey"] = "testvalue"
+        mock.method.assert_not_called()
+
+    def testDeletionIsSent(self):
+        pm = PropertyLayer(testkey="somevalue")
+        mock = Mock()
+        pm.wireProperty("testkey", mock.method)
+        mock.method.reset_mock()
+        del pm["testkey"]
+        mock.method.assert_called_once_with(PropertyDeleted)
+
+    def testDeletionInGeneralWiring(self):
+        pm = PropertyLayer(testkey="somevalue")
+        mock = Mock()
+        pm.wire(mock.method)
+        del pm["testkey"]
+        mock.method.assert_called_once_with({"testkey": PropertyDeleted})
+
+    def testNoDeletionEventWhenPropertyDoesntExist(self):
+        pm = PropertyLayer(otherkey="somevalue")
+        mock = Mock()
+        pm.wireProperty("testkey", mock.method)
+        mock.method.reset_mock()
+        with self.assertRaises(KeyError):
+            del pm["testkey"]
         mock.method.assert_not_called()

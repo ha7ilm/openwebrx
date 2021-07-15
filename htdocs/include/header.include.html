@@ -1,25 +1,25 @@
-<div id="webrx-top-container">
-    <div id="webrx-top-bar" class="webrx-top-bar-parts">
-        <a href="https://www.openwebrx.de/" target="_blank"><img src="static/gfx/openwebrx-top-logo.png" id="webrx-top-logo" alt="OpenWebRX Logo"/></a>
-        <img id="webrx-rx-avatar" class="openwebrx-photo-trigger" src="static/gfx/openwebrx-avatar.png" alt="Receiver avatar"/>
-        <div id="webrx-rx-texts">
-            <div id="webrx-rx-title" class="openwebrx-photo-trigger"></div>
-            <div id="webrx-rx-desc" class="openwebrx-photo-trigger"></div>
+<div class="webrx-top-container">
+    <div class="webrx-top-bar">
+        <a href="https://www.openwebrx.de/" target="_blank"><svg viewBox="0 0 591 100" class="webrx-top-logo"><title>Visit the OpenWebRX homepage</title><use xlink:href="${document_root}static/gfx/svg-defs.svg#top-logo"></use></svg></a>
+        <img class="webrx-rx-avatar openwebrx-photo-trigger" src="${document_root}static/gfx/openwebrx-avatar.png" alt="Receiver avatar"/>
+        <div class="webrx-rx-texts openwebrx-photo-trigger">
+            <h1 class="webrx-rx-title">${receiver_name}</h1>
+            <div class="webrx-rx-desc">${receiver_location} | Loc: ${locator}, ASL: ${receiver_asl} m</div>
         </div>
-        <section id="openwebrx-main-buttons">
-            <div class="button" data-toggle-panel="openwebrx-panel-status"><span class="sprite sprite-panel-status"></span><br/>Status</div>
-            <div class="button" data-toggle-panel="openwebrx-panel-log"><span class="sprite sprite-panel-log"></span><br/>Log</div>
-            <div class="button" data-toggle-panel="openwebrx-panel-receiver"><span class="sprite sprite-panel-receiver"></span><br/>Receiver</div>
-            <a class="button" href="map" target="openwebrx-map"><span class="sprite sprite-panel-map"></span><br/>Map</a>
-            ${settingslink}
+        <section class="openwebrx-main-buttons">
+            <div class="button" data-toggle-panel="openwebrx-panel-status"><svg viewBox="0 0 80 80"><use xlink:href="${document_root}static/gfx/svg-defs.svg#panel-status"></use></svg><br/>Status</div>
+            <div class="button" data-toggle-panel="openwebrx-panel-log"><svg viewBox="0 0 80 80"><use xlink:href="${document_root}static/gfx/svg-defs.svg#panel-log"></use></svg><br/>Log</div>
+            <div class="button" data-toggle-panel="openwebrx-panel-receiver"><svg viewBox="0 0 80 80"><use xlink:href="${document_root}static/gfx/svg-defs.svg#panel-receiver"></use></svg><br/>Receiver</div>
+            <a class="button" href="${document_root}map" target="openwebrx-map"><svg viewBox="0 0 80 80"><use xlink:href="${document_root}static/gfx/svg-defs.svg#panel-map"></use></svg><br/>Map</a>
+            <a class="button" href="${document_root}settings" target="openwebrx-settings"><svg viewBox="0 0 80 80"><use xlink:href="${document_root}static/gfx/svg-defs.svg#panel-settings"></use></svg><br/>Settings</a>
         </section>
     </div>
-    <div id="openwebrx-description-container">
-        <div id="webrx-rx-photo-title"></div>
-        <div id="webrx-rx-photo-desc"></div>
+    <div class="openwebrx-description-container">
+        <div class="webrx-rx-photo-title">${photo_title}</div>
+        <div class="webrx-rx-photo-desc">${photo_desc}</div>
     </div>
-    <div id="openwebrx-rx-details-arrow">
-        <a id="openwebrx-rx-details-arrow-up" class="openwebrx-photo-trigger" style="display: none;"><span class="sprite sprite-rx-details-arrow-up"></span></a>
-        <a id="openwebrx-rx-details-arrow-down" class="openwebrx-photo-trigger"><span class="sprite sprite-rx-details-arrow-down"></span></a>
-    </div>
+    <a class="openwebrx-rx-details-arrow openwebrx-rx-details-arrow--down openwebrx-photo-trigger">
+        <svg class="down" viewBox="0 0 43 12"><use xlink:href="static/gfx/svg-defs.svg#rx-details-arrow-down"></use></svg>
+        <svg class="up" viewBox="0 0 43 12"><use xlink:href="static/gfx/svg-defs.svg#rx-details-arrow-up"></use></svg>
+    </a>
 </div>

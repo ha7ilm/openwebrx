@@ -1,21 +1,60 @@
-openwebrx (0.21.0) UNRELEASED; urgency=low
+openwebrx (1.1.0) UNRELEASED; urgency=low
+
+  * Reworked most graphical elements as SVGs for faster loadtimes and crispier
+    display on hi-dpi displays
+  * Updated pipelines to match changes in digiham
+  * Changed D-Star and NXDN integrations to use new decoder from digiham
+  * Added D-Star and NXDN metadata display
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 09 May 2021 14:05:00 +0000
+
+openwebrx (1.0.0) buster hirsute; urgency=low
   * Introduced `squelch_auto_margin` config option that allows configuring the
     auto squelch level
   * Removed `port` configuration option; `rtltcp_compat` takes the port number
     with the new connectors
-  * Added support for new WSJT-X modes FST4 and FST4W (only available with
-    WSJT-X 2.3)
+  * Added support for new WSJT-X modes FST4, FST4W (only available with WSJT-X
+    2.3) and Q65 (only available with WSJT-X 2.4)
   * Added support for demodulating M17 digital voice signals using
     m17-cxx-demod
   * New reporting infrastructure, allowing WSPR and FST4W spots to be sent to
     wsprnet.org
   * Add some basic filtering capabilities to the map
+  * New arguments to the `openwebrx` command-line to facilitate the
+    administration of users (try `openwebrx admin`)
+  * New command-line tool `openwebrx-admin` that facilitates the
+    administration of users
+  * Default bandwidth changes:
+    - "WFM" changed to 150kHz
+    - "Packet" (APRS) changed to 12.5kHz
+  * Configuration rework:
+    - New: fully web-based configuration interface
+    - System configuration parameters have been moved to a new, separate
+      `openwebrx.conf` file
+    - Remaining parameters are now editable in the web configuration
+    - Existing `config_webrx.py` files will still be read, but changes made in
+      the web configuration will be written to a new storage system
+    - Added upload of avatar and panorama image via web configuration
   * New devices supported:
-    - HPSDR devices (Hermes Lite 2) (`"type": "hpsdr"`)
-    - BBRF103 / RX666 / RX888 devices supported by libsddc (`"type": "sddc"`)
-    - Devices using the EB200 protocol (`"type": "eb200"`)
+    - HPSDR devices (Hermes Lite 2) thanks to @jancona
+    - BBRF103 / RX666 / RX888 devices supported by libsddc
+    - R&S devices using the EB200 or Ammos protocols
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 11 Oct 2020 21:12:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 06 May 2021 17:22:00 +0000
+
+openwebrx (0.20.3) buster focal; urgency=low
+
+  * Fix a compatibility issue with python versions <= 3.6
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 26 Jan 2021 15:28:00 +0000
+
+openwebrx (0.20.2) buster focal; urgency=high
+
+  * Fix a security problem that allowed arbitrary commands to be executed on
+    the receiver (See github issue #215:
+    https://github.com/jketterl/openwebrx/issues/215)
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 24 Jan 2021 22:50:00 +0000
 
 openwebrx (0.20.1) buster focal; urgency=low
 

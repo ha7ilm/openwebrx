@@ -18,8 +18,8 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libfftw3-bin"
-BUILD_PACKAGES="git autoconf automake libtool libfftw3-dev pkg-config cmake make gcc g++"
+STATIC_PACKAGES="libfftw3-bin libprotobuf17"
+BUILD_PACKAGES="git autoconf automake libtool libfftw3-dev pkg-config cmake make gcc g++ libprotobuf-dev protobuf-compiler"
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
@@ -40,8 +40,15 @@ make install
 cd ..
 rm -rf csdr
 
+git clone https://github.com/jketterl/codecserver.git
+mkdir -p /usr/local/etc/codecserver
+cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
+#latest develop as of 2021-07-04 (optional checksum fix)
+cmakebuild codecserver d73c9a56a773355679bc2d4a10f199b62223d7a0
+
 git clone https://github.com/jketterl/digiham.git
-cmakebuild digiham 0.3.0
+#latest develop as of 2021-06-15 (DMR LCSS overflow fix; D-Star alternate terminator)
+cmakebuild digiham 418145d74b528596a39198a537ab56207d932595
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean

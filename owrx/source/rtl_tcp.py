@@ -1,5 +1,8 @@
-from .connector import ConnectorSource
+from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option, Argument
+from owrx.form.input import Input
+from owrx.form.input.device import RemoteInput
+from typing import List
 
 
 class RtlTcpSource(ConnectorSource):
@@ -16,3 +19,14 @@ class RtlTcpSource(ConnectorSource):
                 }
             )
         )
+
+
+class RtlTcpDeviceDescription(ConnectorDeviceDescription):
+    def getName(self):
+        return "RTL-SDR device (via rtl_tcp)"
+
+    def getInputs(self) -> List[Input]:
+        return super().getInputs() + [RemoteInput()]
+
+    def getDeviceMandatoryKeys(self):
+        return super().getDeviceMandatoryKeys() + ["remote"]

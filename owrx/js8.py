@@ -1,30 +1,18 @@
-from .audio import AudioChopperProfile
-from .parser import Parser
+from owrx.audio import AudioChopperProfile, ConfigWiredProfileSource
+from owrx.parser import Parser
 import re
 from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
-from .map import Map, LocatorLocation
-from .metrics import Metrics, CounterMetric
-from .config import Config
+from owrx.map import Map, LocatorLocation
+from owrx.metrics import Metrics, CounterMetric
+from owrx.config import Config
 from abc import ABCMeta, abstractmethod
 from owrx.reporting import ReportingEngine
+from typing import List
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class Js8Profiles(object):
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["js8_enabled_profiles"] if "js8_enabled_profiles" in config else []
-        return [Js8Profiles.loadProfile(p) for p in profiles]
-
-    @staticmethod
-    def loadProfile(profileName):
-        className = "Js8{0}Profile".format(profileName[0].upper() + profileName[1:].lower())
-        return globals()[className]()
 
 
 class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
@@ -45,6 +33,20 @@ class Js8Profile(AudioChopperProfile, metaclass=ABCMeta):
     @abstractmethod
     def get_sub_mode(self):
         pass
+
+
+class Js8ProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["js8_enabled_profiles"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["js8_enabled_profiles"] if "js8_enabled_profiles" in config else []
+        return [self._loadProfile(p) for p in profiles]
+
+    def _loadProfile(self, profileName):
+        className = "Js8{0}Profile".format(profileName[0].upper() + profileName[1:].lower())
+        return globals()[className]()
 
 
 class Js8NormalProfile(Js8Profile):
@@ -82,40 +84,39 @@ class Js8TurboProfile(Js8Profile):
 class Js8Parser(Parser):
     decoderRegex = re.compile(" ?<Decode(Started|Debug|Finished)>")
 
-    def parse(self, messages):
-        for raw in messages:
-            try:
-                profile, freq, raw_msg = raw
-                self.setDialFrequency(freq)
-                msg = raw_msg.decode().rstrip()
-                if Js8Parser.decoderRegex.match(msg):
-                    return
-                if msg.startswith(" EOF on input file"):
-                    return
+    def parse(self, raw):
+        try:
+            profile, freq, raw_msg = raw
+            self.setDialFrequency(freq)
+            msg = raw_msg.decode().rstrip()
+            if Js8Parser.decoderRegex.match(msg):
+                return
+            if msg.startswith(" EOF on input file"):
+                return
 
-                frame = Js8().parse_message(msg)
-                self.handler.write_js8_message(frame, self.dial_freq)
+            frame = Js8().parse_message(msg)
+            self.handler.write_js8_message(frame, self.dial_freq)
 
-                self.pushDecode()
+            self.pushDecode()
 
-                if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
-                    Map.getSharedInstance().updateLocation(
-                        frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
-                    )
-                    ReportingEngine.getSharedInstance().spot(
-                        {
-                            "callsign": frame.callsign,
-                            "mode": "JS8",
-                            "locator": frame.grid,
-                            "freq": self.dial_freq + frame.freq,
-                            "db": frame.db,
-                            "timestamp": frame.timestamp,
-                            "msg": str(frame),
-                        }
-                    )
+            if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
+                Map.getSharedInstance().updateLocation(
+                    frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
+                )
+                ReportingEngine.getSharedInstance().spot(
+                    {
+                        "callsign": frame.callsign,
+                        "mode": "JS8",
+                        "locator": frame.grid,
+                        "freq": self.dial_freq + frame.freq,
+                        "db": frame.db,
+                        "timestamp": frame.timestamp,
+                        "msg": str(frame),
+                    }
+                )
 
-            except Exception:
-                logger.exception("error while parsing js8 message")
+        except Exception:
+            logger.exception("error while parsing js8 message")
 
     def pushDecode(self):
         metrics = Metrics.getSharedInstance()

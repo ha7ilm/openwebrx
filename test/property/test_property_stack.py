@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import Mock
-from owrx.property import PropertyLayer, PropertyStack
+from owrx.property import PropertyLayer, PropertyStack, PropertyDeleted
 
 
 class PropertyStackTest(TestCase):
@@ -40,6 +40,18 @@ class PropertyStackTest(TestCase):
         om.addLayer(0, high_pm)
         self.assertEqual(om["testkey"], "high value")
         om.removeLayer(high_pm)
+        self.assertEqual(om["testkey"], "low value")
+
+    def testLayerRemovalByPriority(self):
+        om = PropertyStack()
+        low_pm = PropertyLayer()
+        high_pm = PropertyLayer()
+        low_pm["testkey"] = "low value"
+        high_pm["testkey"] = "high value"
+        om.addLayer(1, low_pm)
+        om.addLayer(0, high_pm)
+        self.assertEqual(om["testkey"], "high value")
+        om.removeLayerByPriority(0)
         self.assertEqual(om["testkey"], "low value")
 
     def testPropertyChange(self):
@@ -135,7 +147,7 @@ class PropertyStackTest(TestCase):
         mock.method.assert_called_once_with("unique value")
         mock.reset_mock()
         stack.removeLayer(high_layer)
-        mock.method.assert_called_once_with(None)
+        mock.method.assert_called_once_with(PropertyDeleted)
 
     def testReplaceLayer(self):
         first_layer = PropertyLayer()
@@ -162,7 +174,7 @@ class PropertyStackTest(TestCase):
         mock = Mock()
         stack.wire(mock.method)
         stack.removeLayer(layer)
-        mock.method.assert_called_once_with({"testkey": None})
+        mock.method.assert_called_once_with({"testkey": PropertyDeleted})
         mock.reset_mock()
 
         layer["testkey"] = "after"
@@ -185,3 +197,44 @@ class PropertyStackTest(TestCase):
 
         stack.replaceLayer(0, second_layer)
         mock.method.assert_not_called()
+
+    def testWritesToExpectedLayer(self):
+        om = PropertyStack()
+        low_pm = PropertyLayer()
+        high_pm = PropertyLayer()
+        low_pm["testkey"] = "low value"
+        om.addLayer(1, low_pm)
+        om.addLayer(0, high_pm)
+        om["testkey"] = "new value"
+        self.assertEqual(low_pm["testkey"], "new value")
+
+    def testDeletionEvent(self):
+        ps = PropertyStack()
+        pm = PropertyLayer(testkey="testvalue")
+        ps.addLayer(0, pm)
+        mock = Mock()
+        ps.wire(mock.method)
+        del ps["testkey"]
+        mock.method.assert_called_once_with({"testkey": PropertyDeleted})
+
+    def testDeletionWithSecondLayer(self):
+        ps = PropertyStack()
+        low_pm = PropertyLayer(testkey="testvalue")
+        high_pm = PropertyLayer()
+        ps.addLayer(0, high_pm)
+        ps.addLayer(1, low_pm)
+        mock = Mock()
+        ps.wire(mock.method)
+        del low_pm["testkey"]
+        mock.method.assert_called_once_with({"testkey": PropertyDeleted})
+
+    def testChangeEventWhenKeyDeleted(self):
+        ps = PropertyStack()
+        low_pm = PropertyLayer(testkey="lowvalue")
+        high_pm = PropertyLayer(testkey="highvalue")
+        ps.addLayer(0, high_pm)
+        ps.addLayer(1, low_pm)
+        mock = Mock()
+        ps.wire(mock.method)
+        del high_pm["testkey"]
+        mock.method.assert_called_once_with({"testkey": "lowvalue"})

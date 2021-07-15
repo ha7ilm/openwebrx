@@ -6,10 +6,6 @@ body {
     flex-direction: column;
 }
 
-#webrx-top-container {
-    flex: none;
-}
-
 .openwebrx-map {
     flex: 1 1 auto;
 }

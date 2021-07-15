@@ -1,4 +1,7 @@
-from .soapy import SoapyConnectorSource
+from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
+from owrx.form.input import Input
+from owrx.form.input.device import BiasTeeInput
+from typing import List
 
 
 class HackrfSource(SoapyConnectorSource):
@@ -9,3 +12,20 @@ class HackrfSource(SoapyConnectorSource):
 
     def getDriver(self):
         return "hackrf"
+
+
+class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
+    def getName(self):
+        return "HackRF"
+
+    def getInputs(self) -> List[Input]:
+        return super().getInputs() + [BiasTeeInput()]
+
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["bias_tee"]
+
+    def getProfileOptionalKeys(self):
+        return super().getProfileOptionalKeys() + ["bias_tee"]
+
+    def getGainStages(self):
+        return ["LNA", "AMP", "VGA"]

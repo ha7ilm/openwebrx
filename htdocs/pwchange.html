@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>OpenWebRX Password change</title>
+    <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico" />
+    <link rel="stylesheet" href="static/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="static/css/login.css" />
+    <script src="static/lib/jquery-3.2.1.min.js"></script>
+    <script src="static/lib/Header.js"></script>
+    <meta charset="utf-8">
+</head>
+<body>
+${header}
+<div class="login-container">
+    <div class="login">
+        <div class="alert alert-primary">
+            Your password has been automatically generated and must be changed in order to proceed.
+        </div>
+        <form method="POST">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <label for="confirm">Password confirmation</label>
+                <input type="password" class="form-control" id="confirm" name="confirm" placeholder="Password confirmation">
+            </div>
+            <button type="submit" class="btn btn-secondary btn-login">Change password</button>
+        </form>
+    </div>
+</div>
+</body>

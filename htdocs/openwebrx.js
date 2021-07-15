@@ -72,7 +72,8 @@ var waterfall_max_level;
 var waterfall_min_level_default;
 var waterfall_max_level_default;
 var waterfall_colors = buildWaterfallColors(['#000', '#FFF']);
-var waterfall_auto_level_margin;
+var waterfall_auto_levels;
+var waterfall_auto_min_range;
 
 function buildWaterfallColors(input) {
     return chroma.scale(input).colors(256, 'rgb')
@@ -110,9 +111,9 @@ function waterfallColorsDefault() {
 }
 
 function waterfallColorsAuto(levels) {
-    var min_level = levels.min - waterfall_auto_level_margin.min;
-    var max_level = levels.max + waterfall_auto_level_margin.max;
-    max_level = Math.max(min_level + (waterfall_auto_level_margin.min_range || 0), max_level);
+    var min_level = levels.min - waterfall_auto_levels.min;
+    var max_level = levels.max + waterfall_auto_levels.max;
+    max_level = Math.max(min_level + (waterfall_auto_min_range || 0), max_level);
     waterfall_min_level = min_level;
     waterfall_max_level = max_level;
     updateWaterfallSliders();
@@ -511,7 +512,7 @@ function resize_scale() {
 }
 
 function canvas_get_freq_offset(relativeX) {
-    var rel = (relativeX / canvases[0].clientWidth);
+    var rel = (relativeX / canvas_container.clientWidth);
     return Math.round((bandwidth * rel) - (bandwidth / 2));
 }
 
@@ -684,7 +685,11 @@ function zoom_calc() {
 }
 
 var networkSpeedMeasurement;
-var currentprofile;
+var currentprofile = {
+    toString: function() {
+        return this['sdr_id'] + '|' + this['profile_id'];
+    }
+};
 
 var COMPRESS_FFT_PAD_N = 10; //should be the same as in csdr.c
 
@@ -713,12 +718,14 @@ function on_ws_recv(evt) {
                         var config = json['value'];
                         if ('waterfall_colors' in config)
                             waterfall_colors = buildWaterfallColors(config['waterfall_colors']);
-                        if ('waterfall_min_level' in config)
-                            waterfall_min_level_default = config['waterfall_min_level'];
-                        if ('waterfall_max_level' in config)
-                            waterfall_max_level_default = config['waterfall_max_level'];
-                        if ('waterfall_auto_level_margin' in config)
-                            waterfall_auto_level_margin = config['waterfall_auto_level_margin'];
+                        if ('waterfall_levels' in config) {
+                            waterfall_min_level_default = config['waterfall_levels']['min'];
+                            waterfall_max_level_default = config['waterfall_levels']['max'];
+                        }
+                        if ('waterfall_auto_levels' in config)
+                            waterfall_auto_levels = config['waterfall_auto_levels'];
+                        if ('waterfall_auto_min_range' in config)
+                            waterfall_auto_min_range = config['waterfall_auto_min_range'];
                         waterfallColorsDefault();
 
                         var initial_demodulator_params = {};
@@ -733,8 +740,10 @@ function on_ws_recv(evt) {
                             bandwidth = config['samp_rate'];
                         if ('center_freq' in config)
                             center_freq = config['center_freq'];
-                        if ('fft_size' in config)
+                        if ('fft_size' in config) {
                             fft_size = config['fft_size'];
+                            waterfall_clear();
+                        }
                         if ('audio_compression' in config) {
                             var audio_compression = config['audio_compression'];
                             audioEngine.setCompression(audio_compression);
@@ -756,26 +765,30 @@ function on_ws_recv(evt) {
                             demodulatorPanel.setSquelchMargin(config['squelch_auto_margin']);
                         bookmarks.loadLocalBookmarks();
 
-                        if ('sdr_id' in config && 'profile_id' in config) {
-                            currentprofile = config['sdr_id'] + '|' + config['profile_id'];
-                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+                        if ('sdr_id' in config || 'profile_id' in config) {
+                            currentprofile['sdr_id'] = config['sdr_id'] || currentprofile['sdr_id'];
+                            currentprofile['profile_id'] = config['profile_id'] || currentprofile['profile_id'];
+                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
+
+                            waterfall_clear();
                         }
 
-                        waterfall_clear();
-
-                        if ('frequency_display_precision' in config)
-                            $('#openwebrx-panel-receiver').demodulatorPanel().setFrequencyPrecision(config['frequency_display_precision']);
+                        if ('tuning_precision' in config)
+                            $('#openwebrx-panel-receiver').demodulatorPanel().setTuningPrecision(config['tuning_precision']);
 
                         break;
                     case "secondary_config":
                         var s = json['value'];
-                        window.secondary_fft_size = s['secondary_fft_size'];
-                        window.secondary_bw = s['secondary_bw'];
-                        window.if_samp_rate = s['if_samp_rate'];
+                        if ('secondary_fft_size' in s)
+                            window.secondary_fft_size = s['secondary_fft_size'];
+                        if ('secondary_bw' in s)
+                            window.secondary_bw = s['secondary_bw'];
+                        if ('if_samp_rate' in s)
+                            window.if_samp_rate = s['if_samp_rate'];
                         secondary_demod_init_canvases();
                         break;
                     case "receiver_details":
-                        $('#webrx-top-container').header().setDetails(json['value']);
+                        $('.webrx-top-container').header().setDetails(json['value']);
                         break;
                     case "smeter":
                         smeter_level = json['value'];
@@ -792,8 +805,12 @@ function on_ws_recv(evt) {
                         listbox.html(json['value'].map(function (profile) {
                             return '<option value="' + profile['id'] + '">' + profile['name'] + "</option>";
                         }).join(""));
-                        if (currentprofile) {
-                            $('#openwebrx-sdr-profiles-listbox').val(currentprofile);
+                        $('#openwebrx-sdr-profiles-listbox').val(currentprofile.toString());
+                        // this is a bit hacky since it only makes sense if the error is actually "no sdr devices"
+                        // the only other error condition for which the overlay is used right now is "too many users"
+                        // so there shouldn't be a problem here
+                        if (Object.keys(json['value']).length) {
+                            $('#openwebrx-error-overlay').hide();
                         }
                         break;
                     case "features":
@@ -831,6 +848,7 @@ function on_ws_recv(evt) {
                         var $overlay = $('#openwebrx-error-overlay');
                         $overlay.find('.errormessage').text(json['value']);
                         $overlay.show();
+                        $("#openwebrx-panel-receiver").demodulatorPanel().stopDemodulator();
                         break;
                     case 'secondary_demod':
                         secondary_demod_push_data(json['value']);
@@ -988,7 +1006,9 @@ function onAudioStart(apiType){
 var reconnect_timeout = false;
 
 function on_ws_closed() {
-    $("#openwebrx-panel-receiver").demodulatorPanel().stopDemodulator();
+    var demodulatorPanel = $("#openwebrx-panel-receiver").demodulatorPanel();
+    demodulatorPanel.stopDemodulator();
+    demodulatorPanel.resetInitialParams();
     if (reconnect_timeout) {
         // max value: roundabout 8 and a half minutes
         reconnect_timeout = Math.min(reconnect_timeout * 2, 512000);
@@ -1061,15 +1081,15 @@ var canvas_context;
 var canvases = [];
 var canvas_default_height = 200;
 var canvas_container;
-var canvas_actual_line;
+var canvas_actual_line = -1;
 
 function add_canvas() {
     var new_canvas = document.createElement("canvas");
     new_canvas.width = fft_size;
     new_canvas.height = canvas_default_height;
-    canvas_actual_line = canvas_default_height - 1;
-    new_canvas.openwebrx_top = (-canvas_default_height + 1);
-    new_canvas.style.top = new_canvas.openwebrx_top.toString() + "px";
+    canvas_actual_line = canvas_default_height;
+    new_canvas.openwebrx_top = -canvas_default_height;
+    new_canvas.style.transform = 'translate(0, ' + new_canvas.openwebrx_top.toString() + 'px)';
     canvas_context = new_canvas.getContext("2d");
     canvas_container.appendChild(new_canvas);
     canvases.push(new_canvas);
@@ -1090,14 +1110,13 @@ function init_canvas_container() {
     canvas_container.addEventListener("wheel", canvas_mousewheel, false);
     var frequency_container = $("#openwebrx-frequency-container");
     frequency_container.on("wheel", canvas_mousewheel, false);
-    add_canvas();
 }
 
 canvas_maxshift = 0;
 
 function shift_canvases() {
     canvases.forEach(function (p) {
-        p.style.top = (p.openwebrx_top++).toString() + "px";
+        p.style.transform = 'translate(0, ' + (p.openwebrx_top++).toString() + 'px)';
     });
     canvas_maxshift++;
 }
@@ -1136,6 +1155,9 @@ function waterfall_add(data) {
         waterfallColorsContinuous(level);
     }
 
+    // create new canvas if the current one is full (or there isn't one)
+    if (canvas_actual_line <= 0) add_canvas();
+
     //Add line to waterfall image
     var oneline_image = canvas_context.createImageData(w, 1);
     for (var x = 0; x < w; x++) {
@@ -1145,18 +1167,17 @@ function waterfall_add(data) {
     }
 
     //Draw image
-    canvas_context.putImageData(oneline_image, 0, canvas_actual_line--);
+    canvas_context.putImageData(oneline_image, 0, --canvas_actual_line);
     shift_canvases();
-    if (canvas_actual_line < 0) add_canvas();
 }
 
 function waterfall_clear() {
-    while (canvases.length) //delete all canvases
-    {
+    //delete all canvases
+    while (canvases.length) {
         var x = canvases.shift();
         x.parentNode.removeChild(x);
     }
-    add_canvas();
+    canvas_actual_line = -1;
 }
 
 function openwebrx_resize() {
@@ -1192,12 +1213,13 @@ var audioEngine;
 
 function openwebrx_init() {
     audioEngine = new AudioEngine(audio_buffer_maximal_length_sec, audioReporter);
-    $overlay = $('#openwebrx-autoplay-overlay');
+    var $overlay = $('#openwebrx-autoplay-overlay');
     $overlay.on('click', function(){
         audioEngine.resume();
     });
     audioEngine.onStart(onAudioStart);
     if (!audioEngine.isAllowed()) {
+        $('body').append($overlay);
         $overlay.show();
     }
     fft_codec = new ImaAdpcmCodec();
@@ -1276,7 +1298,7 @@ var rt = function (s, n) {
 // ========================================================
 
 function panel_displayed(el){
-    return !(el.style && el.style.display && el.style.display === 'none')
+    return !(el.style && el.style.display && el.style.display === 'none') && !(el.movement && el.movement === 'collapse');
 }
 
 function toggle_panel(what, on) {
@@ -1286,7 +1308,6 @@ function toggle_panel(what, on) {
     if (typeof on !== "undefined" && displayed === on) {
         return;
     }
-    if (item.openwebrxDisableClick) return;
     if (displayed) {
         item.movement = 'collapse';
         item.style.transform = "perspective(600px) rotateX(90deg)";
@@ -1301,9 +1322,6 @@ function toggle_panel(what, on) {
     }
     item.style.transitionDuration = "600ms";
     item.style.transitionDelay = "0ms";
-
-    item.openwebrxDisableClick = true;
-
 }
 
 function first_show_panel(panel) {
@@ -1332,13 +1350,13 @@ function initPanels() {
         el.openwebrxPanelTransparent = (!!el.dataset.panelTransparent);
         el.addEventListener('transitionend', function(ev){
             if (ev.target !== el) return;
-            el.openwebrxDisableClick = false;
             el.style.transitionDuration = null;
             el.style.transitionDelay = null;
             el.style.transitionProperty = null;
             if (el.movement && el.movement === 'collapse') {
                 el.style.display = 'none';
             }
+            delete el.movement;
         });
         if (panel_displayed(el)) first_show_panel(el);
     });
@@ -1401,7 +1419,9 @@ function secondary_demod_init_canvases() {
 }
 
 function secondary_demod_canvases_update_top() {
-    for (var i = 0; i < 2; i++) secondary_demod_canvases[i].style.top = secondary_demod_canvases[i].openwebrx_top + "px";
+    for (var i = 0; i < 2; i++) {
+        secondary_demod_canvases[i].style.transform = 'translate(0, ' + secondary_demod_canvases[i].openwebrx_top + 'px)';
+    }
 }
 
 function secondary_demod_swap_canvases() {

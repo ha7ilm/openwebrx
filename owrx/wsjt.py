@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
+from typing import List
+
 from owrx.map import Map, LocatorLocation
 import re
 from owrx.metrics import Metrics, CounterMetric
 from owrx.reporting import ReportingEngine
 from owrx.parser import Parser
-from owrx.audio import AudioChopperProfile
+from owrx.audio import AudioChopperProfile, StaticProfileSource, ConfigWiredProfileSource
 from abc import ABC, ABCMeta, abstractmethod
 from owrx.config import Config
+from enum import Enum
 
 import logging
 
@@ -37,6 +40,70 @@ class WsjtProfile(AudioChopperProfile, metaclass=ABCMeta):
     @abstractmethod
     def getMode(self):
         pass
+
+
+class Fst4ProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["fst4_enabled_intervals"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["fst4_enabled_intervals"] if "fst4_enabled_intervals" in config else []
+        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
+
+
+class Fst4wProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["fst4w_enabled_intervals"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
+        return [Fst4wProfile(i) for i in profiles if i in Fst4wProfile.availableIntervals]
+
+
+class Q65ProfileSource(ConfigWiredProfileSource):
+    def getPropertiesToWire(self) -> List[str]:
+        return ["q65_enabled_combinations"]
+
+    def getProfiles(self) -> List[AudioChopperProfile]:
+        config = Config.get()
+        profiles = config["q65_enabled_combinations"] if "q65_enabled_combinations" in config else []
+
+        def buildProfile(modestring):
+            try:
+                mode = Q65Mode[modestring[0]]
+                interval = Q65Interval(int(modestring[1:]))
+                if interval.is_available(mode):
+                    return Q65Profile(interval, mode)
+            except (ValueError, KeyError):
+                pass
+            logger.warning('"%s" is not a valid Q65 mode, or an invalid mode string, ignoring', modestring)
+            return None
+
+        mapped = [buildProfile(m) for m in profiles]
+        return [p for p in mapped if p is not None]
+
+
+class WsjtProfiles(object):
+    @staticmethod
+    def getSource(mode: str):
+        if mode == "ft8":
+            return StaticProfileSource([Ft8Profile()])
+        elif mode == "wspr":
+            return StaticProfileSource([WsprProfile()])
+        elif mode == "jt65":
+            return StaticProfileSource([Jt65Profile()])
+        elif mode == "jt9":
+            return StaticProfileSource([Jt9Profile()])
+        elif mode == "ft4":
+            return StaticProfileSource([Ft4Profile()])
+        elif mode == "fst4":
+            return Fst4ProfileSource()
+        elif mode == "fst4w":
+            return Fst4wProfileSource()
+        elif mode == "q65":
+            return Q65ProfileSource()
 
 
 class Ft8Profile(WsjtProfile):
@@ -113,12 +180,6 @@ class Fst4Profile(WsjtProfile):
     def getMode(self):
         return "FST4"
 
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["fst4_enabled_intervals"] if "fst4_enabled_intervals" in config else []
-        return [Fst4Profile(i) for i in profiles if i in Fst4Profile.availableIntervals]
-
 
 class Fst4wProfile(WsjtProfile):
     availableIntervals = [120, 300, 900, 1800]
@@ -135,49 +196,93 @@ class Fst4wProfile(WsjtProfile):
     def getMode(self):
         return "FST4W"
 
-    @staticmethod
-    def getEnabledProfiles():
-        config = Config.get()
-        profiles = config["fst4w_enabled_intervals"] if "fst4w_enabled_intervals" in config else []
-        return [Fst4wProfile(i) for i in profiles if i in Fst4wProfile.availableIntervals]
+
+class Q65Mode(Enum):
+    # value is the bandwidth multiplier according to https://physics.princeton.edu/pulsar/k1jt/Q65_Quick_Start.pdf
+    A = 1
+    B = 2
+    C = 4
+    D = 8
+    E = 16
+
+    def is_available(self, interval: "Q65Interval"):
+        return interval.is_available(self)
+
+
+class Q65Interval(Enum):
+    # (interval, occupied bandwidth in mode "A")
+    # according to https://physics.princeton.edu/pulsar/k1jt/Q65_Quick_Start.pdf
+    INTERVAL_15 = (15, 433)
+    INTERVAL_30 = (30, 217)
+    INTERVAL_60 = (60, 108)
+    INTERVAL_120 = (120, 49)
+    INTERVAL_300 = (300, 19)
+
+    def __new__(cls, *args, **kwargs):
+        interval, occupied_bandwidth = args
+        obj = object.__new__(cls)
+        obj._value_ = interval
+        obj.occupied_bandwidth = occupied_bandwidth
+        return obj
+
+    def is_available(self, mode: Q65Mode):
+        # total bandwidth must not exceed the typical SSB bandwidth
+        return self.occupied_bandwidth * mode.value < 2700
+
+
+class Q65Profile(WsjtProfile):
+    def __init__(self, interval: Q65Interval, mode: Q65Mode):
+        self.interval = interval.value
+        self.mode = mode
+
+    def getMode(self):
+        return "Q65"
+
+    def getInterval(self):
+        return self.interval
+
+    def decoder_commandline(self, file):
+        return ["jt9", "--q65", "-p", str(self.interval), "-b", self.mode.name, "-d", str(self.decoding_depth()), file]
 
 
 class WsjtParser(Parser):
-    def parse(self, messages):
-        for data in messages:
-            try:
-                profile, freq, raw_msg = data
-                self.setDialFrequency(freq)
-                msg = raw_msg.decode().rstrip()
-                # known debug messages we know to skip
-                if msg.startswith("<DecodeFinished>"):
-                    return
-                if msg.startswith(" EOF on input file"):
-                    return
+    def parse(self, data):
+        try:
+            profile, freq, raw_msg = data
+            self.setDialFrequency(freq)
+            msg = raw_msg.decode().rstrip()
+            # known debug messages we know to skip
+            if msg.startswith("<DecodeFinished>"):
+                return
+            if msg.startswith(" EOF on input file"):
+                return
 
-                mode = profile.getMode()
-                if mode in ["WSPR", "FST4W"]:
-                    messageParser = BeaconMessageParser()
-                else:
-                    messageParser = QsoMessageParser()
-                if mode == "WSPR":
-                    decoder = WsprDecoder(profile, messageParser)
-                else:
-                    decoder = Jt9Decoder(profile, messageParser)
-                out = decoder.parse(msg, freq)
-                out["mode"] = mode
-                out["interval"] = profile.getInterval()
+            mode = profile.getMode()
+            if mode in ["WSPR", "FST4W"]:
+                messageParser = BeaconMessageParser()
+            else:
+                messageParser = QsoMessageParser()
+            if mode == "WSPR":
+                decoder = WsprDecoder(profile, messageParser)
+            else:
+                decoder = Jt9Decoder(profile, messageParser)
+            out = decoder.parse(msg, freq)
+            if isinstance(profile, Q65Profile) and not out["msg"]:
+                # all efforts in vain, it's just a potential signal indicator
+                return
+            out["mode"] = mode
+            out["interval"] = profile.getInterval()
 
-                self.pushDecode(mode)
-                if "callsign" in out and "locator" in out:
-                    Map.getSharedInstance().updateLocation(
-                        out["callsign"], LocatorLocation(out["locator"]), mode, self.band
-                    )
-                    ReportingEngine.getSharedInstance().spot(out)
+            self.pushDecode(mode)
+            if "callsign" in out and "locator" in out:
+                Map.getSharedInstance().updateLocation(
+                    out["callsign"], LocatorLocation(out["locator"]), mode, self.band
+                )
+                ReportingEngine.getSharedInstance().spot(out)
 
-                self.handler.write_wsjt_message(out)
-            except Exception:
-                logger.exception("Exception while parsing wsjt message")
+            self.handler.write_wsjt_message(out)
+        except Exception:
+            logger.exception("Exception while parsing wsjt message")
 
     def pushDecode(self, mode):
         metrics = Metrics.getSharedInstance()
@@ -206,9 +311,9 @@ class Decoder(ABC):
 
     def parse_timestamp(self, instring):
         dateformat = self.profile.getTimestampFormat()
-        remain = instring[len(dateformat) + 1:]
+        remain = instring[len(dateformat) + 1 :]
         try:
-            ts = datetime.strptime(instring[0: len(dateformat)], dateformat)
+            ts = datetime.strptime(instring[0 : len(dateformat)], dateformat)
             return remain, int(
                 datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
             )

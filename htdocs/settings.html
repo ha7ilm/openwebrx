@@ -11,17 +11,31 @@
 <body>
 ${header}
 <div class="container">
-    <div class="col-12">
-        <h1>Settings</h1>
+    <div class="row">
+        <h1 class="col-12">Settings</h1>
     </div>
-    <div class="col-12">
-        <a href="generalsettings">General settings</a>
-    </div>
-    <div class="col-12">
-        <a href="sdrsettings">SDR device settings</a>
-    </div>
-    <div class="col-12">
-        <a href="features">Feature report</a>
+    <div class="row settings-grid">
+        <div class="col-4">
+            <a class="btn btn-secondary" href="settings/general">General settings</a>
+        </div>
+        <div class="col-4">
+            <a class="btn btn-secondary" href="settings/sdr">SDR devices and profiles</a>
+        </div>
+        <div class="col-4">
+            <a class="btn btn-secondary" href="settings/bookmarks">Bookmark editor</a>
+        </div>
+        <div class="col-4">
+            <a class="btn btn-secondary" href="settings/decoding">Demodulation and decoding</a>
+        </div>
+        <div class="col-4">
+            <a class="btn btn-secondary" href="settings/backgrounddecoding">Background decoding</a>
+        </div>
+        <div class="col-4">
+            <a class="btn btn-secondary" href="settings/reporting">Spotting and reporting</a>
+        </div>
+        <div class="col-4">
+            <a class="btn btn-secondary" href="features">Feature report</a>
+        </div>
     </div>
 </div>
 </body>

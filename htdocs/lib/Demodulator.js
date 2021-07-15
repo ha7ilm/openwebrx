@@ -5,14 +5,14 @@ function Filter(demodulator) {
 
 Filter.prototype.getLimits = function() {
     var max_bw;
-    if (this.demodulator.get_secondary_demod() === 'pocsag') {
+    if (['pocsag', 'packet'].indexOf(this.demodulator.get_secondary_demod()) >= 0) {
         max_bw = 12500;
+    } else if (['dmr', 'dstar', 'nxdn', 'ysf', 'm17'].indexOf(this.demodulator.get_modulation()) >= 0) {
+        max_bw = 6250;
     } else if (this.demodulator.get_modulation() === 'wfm') {
         max_bw = 100000;
     } else if (this.demodulator.get_modulation() === 'drm') {
-        max_bw = 100000;
-    } else if (this.demodulator.get_secondary_demod() === 'packet') {
-        max_bw = 12500;
+        max_bw = 50000;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
     }

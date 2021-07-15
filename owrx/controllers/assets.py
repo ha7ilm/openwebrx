@@ -1,5 +1,5 @@
 from . import Controller
-from owrx.config import Config
+from owrx.config.core import CoreConfig
 from datetime import datetime, timezone
 import mimetypes
 import os
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class GzipMixin(object):
-    def send_response(self, content, headers=None, content_type="text/html", *args, **kwargs):
+    def send_response(self, content, code=200, headers=None, content_type="text/html", *args, **kwargs):
         if self.zipable(content_type) and "accept-encoding" in self.request.headers:
             accepted = [s.strip().lower() for s in self.request.headers["accept-encoding"].split(",")]
             if "gzip" in accepted:
@@ -23,10 +23,10 @@ class GzipMixin(object):
                 if headers is None:
                     headers = {}
                 headers["Content-Encoding"] = "gzip"
-        super().send_response(content, headers=headers, content_type=content_type, *args, **kwargs)
+        super().send_response(content, code, headers=headers, content_type=content_type, *args, **kwargs)
 
     def zipable(self, content_type):
-        types = ["application/javascript", "text/css", "text/html"]
+        types = ["application/javascript", "text/css", "text/html", "image/svg+xml"]
         return content_type in types
 
     def gzip(self, content):
@@ -78,7 +78,7 @@ class AssetsController(GzipMixin, ModificationAwareController, metaclass=ABCMeta
             f.close()
 
             if content_type is None:
-                (content_type, encoding) = mimetypes.MimeTypes().guess_type(file)
+                (content_type, encoding) = mimetypes.guess_type(self.getFilePath(file))
             self.send_response(data, content_type=content_type, last_modified=modified, max_age=3600)
         except FileNotFoundError:
             self.send_response("file not found", code=404)
@@ -90,13 +90,22 @@ class AssetsController(GzipMixin, ModificationAwareController, metaclass=ABCMeta
 
 class OwrxAssetsController(AssetsController):
     def getFilePath(self, file):
+        mappedFiles = {
+            "gfx/openwebrx-avatar.png": "receiver_avatar",
+            "gfx/openwebrx-top-photo.jpg": "receiver_top_photo",
+        }
+        if file in mappedFiles and ("mapped" not in self.request.query or self.request.query["mapped"][0] != "false"):
+            config = CoreConfig()
+            for ext in ["png", "jpg", "webp"]:
+                user_file = "{}/{}.{}".format(config.get_data_directory(), mappedFiles[file], ext)
+                if os.path.exists(user_file) and os.path.isfile(user_file):
+                    return user_file
         return pkg_resources.resource_filename("htdocs", file)
 
 
 class AprsSymbolsController(AssetsController):
     def __init__(self, handler, request, options):
-        pm = Config.get()
-        path = pm["aprs_symbols_path"]
+        path = CoreConfig().get_aprs_symbols_path()
         if not path.endswith("/"):
             path += "/"
         self.path = path
@@ -116,6 +125,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
             "lib/Header.js",
             "lib/Demodulator.js",
             "lib/DemodulatorPanel.js",
+            "lib/BookmarkLocalStorage.js",
             "lib/BookmarkBar.js",
             "lib/BookmarkDialog.js",
             "lib/AudioEngine.js",
@@ -135,9 +145,19 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
         ],
         "settings.js": [
             "lib/jquery-3.2.1.min.js",
+            "lib/bootstrap.bundle.min.js",
+            "lib/location-picker.min.js",
             "lib/Header.js",
-            "lib/settings/Input.js",
-            "lib/settings/SdrDevice.js",
+            "lib/settings/MapInput.js",
+            "lib/settings/ImageUpload.js",
+            "lib/BookmarkLocalStorage.js",
+            "lib/settings/BookmarkTable.js",
+            "lib/settings/WsjtDecodingDepthsInput.js",
+            "lib/settings/WaterfallDropdown.js",
+            "lib/settings/GainInput.js",
+            "lib/settings/OptionalSection.js",
+            "lib/settings/SchedulerInput.js",
+            "lib/settings/ExponentialInput.js",
             "settings.js",
         ],
     }
@@ -159,7 +179,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
 
         contents = [self.getContents(f) for f in files]
 
-        (content_type, encoding) = mimetypes.MimeTypes().guess_type(profileName)
+        (content_type, encoding) = mimetypes.guess_type(profileName)
         self.send_response("\n".join(contents), content_type=content_type, last_modified=modified, max_age=3600)
 
     def getContents(self, file):

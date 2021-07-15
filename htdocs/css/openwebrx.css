@@ -36,15 +36,14 @@ input
 	vertical-align:middle;
 }
 
-input[type=range]
-{
+input[type=range] {
 	-webkit-appearance: none;
 	margin: 0 0;
-	background: transparent;
+	background: transparent !important;
 	--track-background: #B6B6B6;
 }
-input[type=range]:focus
-{
+
+input[type=range]:focus {
 	outline: none;
 }
 
@@ -297,11 +296,13 @@ input[type=range]:disabled {
 #webrx-canvas-container canvas
 {
 	position: absolute;
+	top: 0;
 	border-style: none;
 	image-rendering: crisp-edges;
 	image-rendering: -webkit-optimize-contrast;
     width: 100%;
     height: 200px;
+    will-change: transform;
 }
 
 #openwebrx-log-scroll
@@ -336,10 +337,56 @@ input[type=range]:disabled {
 	margin: 0;
 	display: flex;
 	flex-direction: row;
+	cursor: pointer;
 }
 
 .webrx-actual-freq > * {
     flex: 1;
+}
+
+.webrx-actual-freq .input-group {
+    display: flex;
+    flex-direction: row;
+}
+
+.webrx-actual-freq .input-group > * {
+    flex: 0 0 auto;
+}
+
+.webrx-actual-freq .input-group input {
+    flex: 1 0 auto;
+    margin-right: 0;
+    border-right: 1px solid #373737;
+    -moz-appearance: textfield;
+}
+
+.webrx-actual-freq .input-group input::-webkit-outer-spin-button,
+.webrx-actual-freq .input-group input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input-group > :not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group > :not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.input-group :first-child {
+    padding-left: 5px;
+}
+
+.input-group :last-child {
+    padding-right: 5px
+}
+
+.webrx-actual-freq .input-group input, .webrx-actual-freq .input-group select {
+    outline: none;
+    font-size: 16pt;
 }
 
 .webrx-actual-freq input {
@@ -355,7 +402,10 @@ input[type=range]:disabled {
 .webrx-actual-freq, .webrx-actual-freq input {
 	font-size: 16pt;
 	font-family: 'roboto-mono';
-	line-height: 22px;
+}
+
+.webrx-actual-freq .digit {
+    cursor: ns-resize;
 }
 
 .webrx-actual-freq .digit:hover {
@@ -552,6 +602,7 @@ img.openwebrx-mirror-img
     -moz-user-select: none;
     -ms-user-select: none;
     overflow: hidden;
+    z-index: 1
 }
 
 .openwebrx-progressbar-bar {
@@ -564,6 +615,7 @@ img.openwebrx-mirror-img
 	transition-timing-function: ease-in-out;
 	transform: translate(-100%) translateZ(0);
 	will-change: transform, background-color;
+	z-index: 0;
 }
 
 .openwebrx-progressbar--over .openwebrx-progressbar-bar {
@@ -573,11 +625,11 @@ img.openwebrx-mirror-img
 .openwebrx-progressbar-text
 {
 	position: absolute;
-	left:50;
+	left:50%;
 	top:50%;
 	transform: translate(-50%, -50%);
 	white-space: nowrap;
-	z-index: 1;
+	z-index: 2;
 }
 
 #openwebrx-panel-status
@@ -602,6 +654,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-receiver .frequencies-container {
     display: flex;
     flex-direction: row;
+    gap: 5px;
 }
 
 #openwebrx-panel-receiver .frequencies {
@@ -614,28 +667,11 @@ img.openwebrx-mirror-img
     text-align: center;
 }
 
-#openwebrx-mute-on
-{
-	color: lime;
-}
-
-#openwebrx-mute-off
-{
-	color: white;
-}
-
 .openwebrx-panel-slider
 {
 	position: relative;
 	top: -2px;
 	width: 95px;
-}
-
-.openwebrx-sliderbtn-img
-{
-	width: 14px;
-	position:relative;
-	top: 1px;
 }
 
 .openwebrx-panel-line
@@ -714,19 +750,19 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-overlay {
-	position: fixed;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	opacity: 0.8;
-	background-color: #777;
-	left: 0;
-	top: 0;
-	z-index: 1001;
-	color: white;
-	font-weight: bold;
-	font-size: 20pt;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0.8;
+    background-color: #777;
+    left: 0;
+    top: 0;
+    z-index: 1001;
+    color: white;
+    font-weight: bold;
+    font-size: 20pt;
 }
 
 #openwebrx-autoplay-overlay
@@ -735,8 +771,7 @@ img.openwebrx-mirror-img
 	transition: opacity 0.3s linear;
 }
 
-#openwebrx-autoplay-overlay img
-{
+#openwebrx-autoplay-overlay svg {
 	width: 150px;
 }
 
@@ -768,11 +803,14 @@ img.openwebrx-mirror-img
 #openwebrx-digimode-canvas-container canvas
 {
     position: absolute;
+    top: 0;
     pointer-events: none;
     transition: width 500ms, left 500ms;
+    will-change: transform;
 }
 
 .openwebrx-panel select,
+.openwebrx-panel input,
 .openwebrx-dialog select,
 .openwebrx-dialog input {
 	border-radius: 5px;
@@ -781,11 +819,26 @@ img.openwebrx-mirror-img
 	font-weight: normal;
 	font-size: 13pt;
 	margin-right: 1px;
-	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.0	, #373737), color-stop(1, #4F4F4F) );
-	background:-moz-linear-gradient( center top, #373737 0%, #4F4F4F 100% );
+	background:linear-gradient(#373737, #4F4F4F);
 	border-color: transparent;
 	border-width: 0px;
-	-moz-appearance: none;
+}
+
+@supports(-moz-appearance: none) {
+    .openwebrx-panel select,
+    .openwebrx-dialog select {
+        -moz-appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20%20xmlns%3Av%3D%22https%3A%2F%2Fvecta.io%2Fnano%22%3E%3Cpath%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8s-1.9-9.2-5.5-12.8z%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fsvg%3E'),
+            linear-gradient(#373737, #4F4F4F);
+        background-repeat: no-repeat, repeat;
+        background-position: right .3em top 50%, 0 0;
+        background-size: .65em auto, 100%;
+    }
+
+    .openwebrx-panel .input-group select,
+    .openwebrx-dialog .input-group select {
+        padding-right: 1em;
+    }
 }
 
 .openwebrx-panel select option,
@@ -912,6 +965,8 @@ img.openwebrx-mirror-img
     display: flex;
     flex-direction: row;
     gap: 10px;
+    /* compatibility with iOS 14.2 */
+    flex: 0 0 auto;
 }
 
 .openwebrx-meta-slot {
@@ -928,26 +983,22 @@ img.openwebrx-mirror-img
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .openwebrx-meta-slot > * {
-    flex: 0;
-    flex-basis: 1.2em;
+    flex: 1 0 0;
     line-height: 1.2em;
 }
 
-.openwebrx-meta-slot, .openwebrx-meta-slot.muted:before {
+.openwebrx-meta-slot, .openwebrx-meta-slot .mute {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
 }
 
-.openwebrx-meta-slot.muted:before {
-    display: block;
-    content: "";
-    background-image: url("../gfx/openwebrx-mute.png");
-    background-position: center;
-    background-repeat: no-repeat;
+.openwebrx-meta-slot .mute {
+    display: none;
     cursor: pointer;
 
     position: absolute;
@@ -956,6 +1007,17 @@ img.openwebrx-mirror-img
     top: 0;
     left: 0;
     background-color: rgba(0,0,0,.3);
+}
+
+.openwebrx-meta-slot .mute svg {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(0, -50%);
+}
+
+.openwebrx-meta-slot.muted .mute {
+    display: block;
 }
 
 .openwebrx-meta-slot.active {
@@ -974,18 +1036,29 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-meta-slot .openwebrx-meta-user-image {
-    flex: 1;
+    flex: 0 1 100%;
     background-position: center;
     background-repeat: no-repeat;
+    line-height: 0;
+    overflow: hidden;
 }
 
-.openwebrx-meta-slot.active.direct .openwebrx-meta-user-image,
-#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image {
-    background-image: url("../gfx/openwebrx-directcall.png");
+.openwebrx-meta-slot .openwebrx-meta-user-image img {
+    max-width: 100%;
+    max-height: 100%;
+    display: none;
 }
 
-.openwebrx-meta-slot.active.group .openwebrx-meta-user-image {
-    background-image: url("../gfx/openwebrx-groupcall.png");
+.openwebrx-meta-slot.active.direct .openwebrx-meta-user-image .directcall,
+.openwebrx-meta-slot.active.individual .openwebrx-meta-user-image .directcall,
+#openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall,
+#openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
+    display: initial;
+}
+
+.openwebrx-meta-slot.active.group .openwebrx-meta-user-image .groupcall,
+.openwebrx-meta-slot.active.conference .openwebrx-meta-user-image .groupcall {
+    display: initial;
 }
 
 .openwebrx-meta-slot.group .openwebrx-dmr-target:not(:empty):before {
@@ -998,6 +1071,7 @@ img.openwebrx-mirror-img
 
 .openwebrx-dmr-timeslot-panel * {
     cursor: pointer;
+    user-select: none;
 }
 
 .openwebrx-ysf-mode:not(:empty):before {
@@ -1012,14 +1086,30 @@ img.openwebrx-mirror-img
     content: "Down: ";
 }
 
-.openwebrx-maps-pin {
-    background-image: url("../gfx/google_maps_pin.svg");
-    background-position: center;
-    background-repeat: no-repeat;
+.openwebrx-dstar-yourcall:not(:empty):before {
+    content: "UR: ";
+}
+
+.openwebrx-dstar-departure:not(:empty):before {
+    content: "RPT1: ";
+}
+
+.openwebrx-dstar-destination:not(:empty):before {
+    content: "RPT2: ";
+}
+
+.openwebrx-meta-slot.individual .openwebrx-nxdn-destination:not(:empty):before {
+    content: "Direct: ";
+}
+
+.openwebrx-meta-slot.conference .openwebrx-nxdn-destination:not(:empty):before {
+    content: "Conference: ";
+}
+
+.openwebrx-maps-pin svg {
     width: 15px;
     height: 15px;
-    background-size: contain;
-    display: inline-block;
+    vertical-align: middle;
 }
 
 .openwebrx-message-panel {
@@ -1192,6 +1282,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="js8"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-select-channel,
@@ -1201,7 +1292,8 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="pocsag"] #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="js8"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-select-channel
 {
     display: none;
 }
@@ -1215,81 +1307,58 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="pocsag"] #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="js8"]    #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-canvas-container
 {
     height: 200px;
     margin: -10px;
 }
 
-.sprite-zoom-in {
-    background-position: 0 -38px;
-    width: 27px;
+.openwebrx-zoom-button svg {
     height: 27px;
 }
 
-.sprite-zoom-out {
-    background-position: -27px -38px;
-    width: 27px;
-    height: 27px;
-}
-
-.sprite-zoom-in-total {
-    background-position: -54px -38px;
-    width: 24px;
-    height: 27px;
-}
-
-.sprite-zoom-out-total {
-    background-position: -78px -38px;
-    width: 25px;
-    height: 27px;
-}
-
-.sprite-edit {
-    background-position: -131px -51px;
-    width: 14px;
+.openwebrx-slider-button svg {
+	position:relative;
+	top: 1px;
     height: 14px;
 }
 
-.sprite-trashcan {
-    background-position: -145px -38px;
-    width: 14px;
+.openwebrx-mute-button svg.muted {
+    display: none;
+}
+
+.openwebrx-mute-button.muted svg.muted {
+    display: initial;
+}
+
+.openwebrx-mute-button.muted svg.unmuted {
+    display: none;
+}
+
+.bookmark .bookmark-actions .openwebrx-button svg {
     height: 14px;
 }
 
-.sprite-speaker {
-    width: 14px;
-    height: 15px;
+#openwebrx-waterfall-colors-auto .continuous {
+    display: none;
 }
 
-.openwebrx-mute-button .sprite-speaker {
-    background-position: -103px -38px;
+#openwebrx-waterfall-colors-auto.highlighted .continuous {
+    display: initial;
 }
 
-.openwebrx-mute-button.muted .sprite-speaker {
-    background-position: -117px -38px;
+#openwebrx-waterfall-colors-auto.highlighted .auto {
+    display: none;
 }
 
-.sprite-squelch {
-    background-position: -131px -38px;
-    width: 14px;
-    height: 13px;
+.openwebrx-waterfall-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
-.sprite-waterfall-auto {
-    background-position: -103px -53px;
-    width: 14px;
-    height: 11px;
-}
-
-.sprite-waterfall-default {
-    background-position: -117px -53px;
-    width: 14px;
-    height: 12px;
-}
-
-.sprite-bookmark {
-    background-position: -159px -38px;
-    width: 21px;
-    height: 27px;
+.openwebrx-waterfall-container > * {
+    flex: 0 0 auto;
 }

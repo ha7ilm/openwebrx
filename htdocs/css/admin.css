@@ -1,14 +1,162 @@
 @import url("openwebrx-header.css");
 @import url("openwebrx-globals.css");
 
+html, body {
+    height: unset;
+}
+
+body {
+    margin-bottom: 5rem;
+}
+
+hr {
+    background: #444;
+}
+
 .buttons {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #222;
+    z-index: 2;
+    padding: 10px;
     text-align: right;
+    border-top: 1px solid #444;
 }
 
 .row .map-input {
     margin: 15px 15px 0;
 }
 
-.device {
-    margin-top: 20px;
+.settings-section h3 {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+h1 {
+    margin: 1em 0;
+    text-align: center;
+}
+
+.matrix {
+    display: grid;
+}
+
+.q65-matrix {
+    grid-template-columns: repeat(5, auto);
+}
+
+.imageupload .image-container {
+    max-width: 100%;
+    padding: 7px;
+}
+
+.imageupload img.webrx-top-photo {
+    max-height: 350px;
+    max-width: 100%;
+}
+
+.settings-grid > div {
+    padding: 20px;
+}
+
+.settings-grid .btn {
+    width: 100%;
+    height: 100px;
+    padding: 20px;
+    font-size: 1.2rem;
+}
+
+.tab-body {
+    overflow: auto;
+    border: 1px solid #444;
+    border-top: none;
+    border-bottom-left-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.tab-body .form-group {
+    padding-right: 15px;
+}
+
+.bookmarks table .frequency, .bookmark-list table .frequency {
+    text-align: right;
+}
+
+.bookmarks table input, .bookmarks table select {
+    width: initial;
+    text-align: inherit;
+    display: initial;
+}
+
+.bookmark-list table .form-check-input {
+    margin-left: 0;
+}
+
+.actions {
+    margin: 1rem 0;
+}
+
+.actions .btn {
+    width: 100%;
+}
+
+.wsjt-decoding-depths-table {
+    width: auto;
+    margin: 0;
+}
+
+.wsjt-decoding-depths-table td:first-child {
+    padding-left: 0;
+}
+
+.sdr-device-list .list-group-item,
+.sdr-profile-list .list-group-item {
+    background: initial;
+}
+
+.sdr-device-list .sdr-profile-list {
+    max-height: 20rem;
+    overflow-y: auto;
+}
+
+.removable-group.removable, .add-group {
+    display: flex;
+    flex-direction: row;
+}
+
+.removable-group.removable .removable-item, .add-group .add-group-select {
+    flex: 1 0 auto;
+    margin-right: .25rem;
+}
+
+.removable-group.removable .option-remove-button, .add-group .option-add-button {
+    flex: 0 0 70px;
+}
+
+.option-add-button, .option-remove-button {
+    width: 70px;
+}
+
+.scheduler-static-time-inputs  {
+    display: flex;
+    flex-direction: row;
+}
+
+.scheduler-static-time-inputs > * {
+    flex: 0 0 auto;
+    width: unset;
+}
+
+.scheduler-static-time-inputs > select {
+    flex: 1 0 auto;
+}
+
+.breadcrumb {
+    margin-top: .5rem;
+}
+
+.imageupload.is-invalid ~ .invalid-feedback {
+    display: block;
 }

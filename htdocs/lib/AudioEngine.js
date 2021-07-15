@@ -6,27 +6,15 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.audioReporter = audioReporter;
     this.initStats();
     this.resetStats();
-    var ctx = window.AudioContext || window.webkitAudioContext;
-    if (!ctx) {
-        return;
-    }
 
     this.onStartCallbacks = [];
 
     this.started = false;
-    // try common working sample rates
-    if (![48000, 44100].some(function(sr) {
-        try {
-            this.audioContext = new ctx({sampleRate: sr});
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }, this)) {
-        // fallback: let the browser decide
-        // this may cause playback problems down the line
-        this.audioContext = new ctx();
+    this.audioContext = this.buildAudioContext();
+    if (!this.audioContext) {
+        return;
     }
+
     var me = this;
     this.audioContext.onstatechange = function() {
         if (me.audioContext.state !== 'running') return;
@@ -41,6 +29,38 @@ function AudioEngine(maxBufferLength, audioReporter) {
     this.hdResampler = new Interpolator(this.hdResamplingFactor);
 
     this.maxBufferSize = maxBufferLength * this.getSampleRate();
+}
+
+AudioEngine.prototype.buildAudioContext = function() {
+    var ctxClass = window.AudioContext || window.webkitAudioContext;
+    if (!ctxClass) {
+        return;
+    }
+
+    // known good sample rates
+    var goodRates = [48000, 44100, 96000]
+
+    // let the browser chose the sample rate, if it is good, use it
+    var ctx = new ctxClass({latencyHint: 'playback'});
+    if (goodRates.indexOf(ctx.sampleRate) >= 0) {
+        return ctx;
+    }
+
+    // if that didn't work, try if any of the good rates work
+    if (goodRates.some(function(sr) {
+        try {
+            ctx = new ctxClass({sampleRate: sr, latencyHint: 'playback'});
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }, this)) {
+        return ctx;
+    }
+
+    // fallback: let the browser decide
+    // this may cause playback problems down the line
+    return new ctxClass({latencyHint: 'playback'});
 }
 
 AudioEngine.prototype.resume = function(){
