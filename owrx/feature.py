@@ -369,7 +369,7 @@ class FeatureDetector(object):
         """
         The SoapySDR module for PlutoSDR devices is required for interfacing with PlutoSDR devices.
 
-        You can get it [here](https://github.com/photosware/SoapyPlutoSDR).
+        You can get it [here](https://github.com/pothosware/SoapyPlutoSDR).
         """
         return self._has_soapy_driver("plutosdr")
 
