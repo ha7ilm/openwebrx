@@ -1,5 +1,5 @@
 from csdr.chain import Chain
-from pycsdr.modules import Fft, LogPower, LogAveragePower, FftExchangeSides, CompressFftAdpcm
+from pycsdr.modules import Fft, LogPower, LogAveragePower, FftSwap, FftAdpcm
 
 import logging
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class FftAverager(Chain):
                 if self.input is not None:
                     self.worker.setInput(self.input)
             else:
-                self.worker.setFftAverages(avg_number=fft_averages)
+                self.worker.setAvgNumber(avg_number=fft_averages)
         self.workers = [self.worker]
         self.fftAverages = fft_averages
 
@@ -53,7 +53,7 @@ class FftChain(Chain):
 
         self.fft = Fft(size=self.size, every_n_samples=self.blockSize)
         self.averager = FftAverager(fft_size=self.size, fft_averages=10)
-        self.fftExchangeSides = FftExchangeSides(fft_size=self.size)
+        self.fftExchangeSides = FftSwap(fft_size=self.size)
         workers = [
             self.fft,
             self.averager,
@@ -61,7 +61,7 @@ class FftChain(Chain):
         ]
         self.compressFftAdpcm = None
         if fft_compression == "adpcm":
-            self.compressFftAdpcm = CompressFftAdpcm(fft_size=self.size)
+            self.compressFftAdpcm = FftAdpcm(fft_size=self.size)
             workers += [self.compressFftAdpcm]
 
         self._updateParameters()

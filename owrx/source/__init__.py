@@ -21,7 +21,8 @@ from owrx.feature import FeatureDetector
 from typing import List
 from enum import Enum
 
-from pycsdr.modules import SocketClient, Buffer
+from pycsdr.modules import TcpSource, Buffer
+from pycsdr.types import Format
 
 import logging
 
@@ -111,7 +112,7 @@ class SdrSource(ABC):
         self.id = id
 
         self.commandMapper = None
-        self.socketClient = None
+        self.tcpSource = None
         self.buffer = None
 
         self.props = PropertyStack()
@@ -248,16 +249,16 @@ class SdrSource(ABC):
     def getPort(self):
         return self.port
 
-    def _getSocketCLient(self):
+    def _getTcpSource(self):
         with self.modificationLock:
-            if self.socketClient is None:
-                self.socketClient = SocketClient(self.port)
-        return self.socketClient
+            if self.tcpSource is None:
+                self.tcpSource = TcpSource(self.port)
+        return self.tcpSource
 
     def getBuffer(self):
         if self.buffer is None:
-            self.buffer = Buffer()
-            self._getSocketCLient().setOutput(self.buffer)
+            self.buffer = Buffer(Format.COMPLEX_FLOAT)
+            self._getTcpSource().setOutput(self.buffer)
         return self.buffer
 
     def getCommandValues(self):
@@ -369,9 +370,9 @@ class SdrSource(ABC):
                     pass
             if self.monitor:
                 self.monitor.join()
-            if self.socketClient is not None:
-                self.socketClient.stop()
-                self.socketClient = None
+            if self.tcpSource is not None:
+                self.tcpSource.stop()
+                self.tcpSource = None
                 self.buffer = None
 
     def shutdown(self):

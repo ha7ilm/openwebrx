@@ -1,11 +1,10 @@
 from pycsdr.modules import Buffer
-from pycsdr.api import Flow
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class Chain(Flow):
+class Chain:
     def __init__(self, *workers):
         self.input = None
         self.output = None
@@ -14,7 +13,7 @@ class Chain(Flow):
             self._connect(self.workers[i - 1], self.workers[i])
 
     def _connect(self, w1, w2):
-        buffer = Buffer()
+        buffer = Buffer(w1.getOutputFormat())
         w1.setOutput(buffer)
         w2.setInput(buffer)
 
@@ -36,9 +35,12 @@ class Chain(Flow):
         self.output = buffer
         self.workers[-1].setOutput(buffer)
 
+    def getOutputFormat(self):
+        return self.workers[-1].getOutputFormat()
+
     def pump(self, write):
         if self.output is None:
-            self.setOutput(Buffer())
+            self.setOutput(Buffer(self.getOutputFormat()))
 
         def copy():
             run = True
