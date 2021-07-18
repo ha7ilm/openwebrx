@@ -18,10 +18,10 @@ class Chain:
         w2.setInput(buffer)
 
     def stop(self):
-        if self.output is not None:
-            self.output.stop()
         for w in self.workers:
             w.stop()
+        self.setInput(None)
+        self.setOutput(None)
 
     def setInput(self, buffer):
         if self.input == buffer:
@@ -32,6 +32,8 @@ class Chain:
     def setOutput(self, buffer):
         if self.output == buffer:
             return
+        if self.output is not None:
+            self.output.stop()
         self.output = buffer
         self.workers[-1].setOutput(buffer)
 
