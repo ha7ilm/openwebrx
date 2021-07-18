@@ -29,11 +29,6 @@ class SpectrumThread(SdrSourceEventClient):
         self.dsp = None
 
         self.subscriptions = []
-        self.subscriptions += [
-            # these props require a restart
-            self.props.wireProperty("fft_size", self.restart),
-            self.props.wireProperty("fft_compression", self.restart),
-        ]
 
         logger.debug("Spectrum thread initialized successfully.")
 
@@ -51,6 +46,7 @@ class SpectrumThread(SdrSourceEventClient):
         self.sdrSource.addClient(self)
 
         self.subscriptions += [
+            self.props.filter("fft_size", "fft_compression").wire(self.restart),
             # these props can be set on the fly
             self.props.wireProperty("samp_rate", self.dsp.setSampleRate),
             self.props.wireProperty("fft_fps", self.dsp.setFps),
