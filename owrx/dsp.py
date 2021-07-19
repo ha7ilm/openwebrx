@@ -167,6 +167,7 @@ class DspManager(Output, SdrSourceEventClient):
 
     def start(self):
         if self.sdrSource.isAvailable():
+            self.dsp.setBuffer(self.sdrSource.getBuffer())
             self.dsp.start()
         else:
             self.startOnAvailable = True
@@ -209,6 +210,7 @@ class DspManager(Output, SdrSourceEventClient):
         if state is SdrSourceState.RUNNING:
             logger.debug("received STATE_RUNNING, attempting DspSource restart")
             if self.startOnAvailable:
+                self.dsp.setBuffer(self.sdrSource.getBuffer())
                 self.dsp.start()
                 self.startOnAvailable = False
         elif state is SdrSourceState.STOPPING:

@@ -35,6 +35,9 @@ from owrx.audio.chopper import AudioChopper
 
 from csdr.pipe import Pipe
 
+from csdr.chain.demodulator import DemodulatorChain
+from csdr.chain.fm import Fm
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -115,6 +118,10 @@ class Dsp(DirewolfConfigSubscriber):
         self.pipe_base_path = "{tmp_dir}/openwebrx_pipe_".format(tmp_dir=self.temporary_directory)
 
     def chain(self, which):
+        if self.pycsdr_enabled and which == "nfm":
+            self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Fm(self.get_audio_rate()))
+            return self.pycsdr_chain
+
         chain = ["nc -v 127.0.0.1 {nc_port}"]
         chain += ["csdr shift_addfast_cc --fifo {shift_pipe}"]
         if self.decimation > 1:
@@ -463,10 +470,7 @@ class Dsp(DirewolfConfigSubscriber):
         self.samp_rate = samp_rate
         self.calculate_decimation()
         if self.running:
-            if self.pycsdr_chain is not None:
-                self.pycsdr_chain.setSampleRate(self.samp_rate)
-            else:
-                self.restart()
+            self.restart()
 
     def calculate_decimation(self):
         (self.decimation, self.last_decimation) = self.get_decimation(self.samp_rate, self.get_audio_rate())
@@ -580,7 +584,11 @@ class Dsp(DirewolfConfigSubscriber):
             return
         self.offset_freq = offset_freq
         if self.running:
-            self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
+            if self.pycsdr_chain is not None and isinstance(self.pycsdr_chain, DemodulatorChain):
+                self.pycsdr_chain.setShiftRate(-float(self.offset_freq) / self.samp_rate)
+            else:
+                self.pipes["shift_pipe"].write("%g\n" % (-float(self.offset_freq) / self.samp_rate))
+
 
     def set_center_freq(self, center_freq):
         # dsp only needs to know this to be able to pass it to decoders in the form of get_operating_freq()
@@ -596,9 +604,12 @@ class Dsp(DirewolfConfigSubscriber):
         self.low_cut = low_cut
         self.high_cut = high_cut
         if self.running:
-            self.pipes["bpf_pipe"].write(
-                "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
-            )
+            if self.pycsdr_chain is not None and isinstance(self.pycsdr_chain, DemodulatorChain):
+                self.pycsdr_chain.setBandpass(low_cut, high_cut)
+            else:
+                self.pipes["bpf_pipe"].write(
+                    "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
+                )
 
     def get_bpf(self):
         return [self.low_cut, self.high_cut]
@@ -615,7 +626,10 @@ class Dsp(DirewolfConfigSubscriber):
             else self.squelch_level
         )
         if self.running:
-            self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
+            if self.pycsdr_chain is not None and isinstance(self.pycsdr_chain, DemodulatorChain):
+                self.pycsdr_chain.setSquelchLevel(self.convertToLinear(actual_squelch))
+            else:
+                self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 
     def set_unvoiced_quality(self, q):
         self.unvoiced_quality = q
@@ -708,7 +722,13 @@ class Dsp(DirewolfConfigSubscriber):
                 return
             self.running = True
 
-            command_base = " | ".join(self.chain(self.demodulator))
+            chain = self.chain(self.demodulator)
+            if self.pycsdr_enabled and isinstance(chain, DemodulatorChain):
+                chain.setInput(self.buffer)
+                self.output.send_output("audio", chain.getOutput().read)
+                return
+
+            command_base = " | ".join(chain)
 
             # create control pipes for csdr
             self.try_create_pipes(self.pipe_names, command_base)
