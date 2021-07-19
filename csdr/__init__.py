@@ -38,6 +38,7 @@ from csdr.pipe import Pipe
 from csdr.chain.demodulator import DemodulatorChain
 from csdr.chain.fm import Fm
 from csdr.chain.am import Am
+from csdr.chain.ssb import Ssb
 
 import logging
 
@@ -125,6 +126,9 @@ class Dsp(DirewolfConfigSubscriber):
                 return self.pycsdr_chain
             elif which == "am":
                 self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Am())
+                return self.pycsdr_chain
+            elif which == "ssb":
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Ssb())
                 return self.pycsdr_chain
 
         chain = ["nc -v 127.0.0.1 {nc_port}"]
