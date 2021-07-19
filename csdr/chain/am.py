@@ -18,6 +18,4 @@ class Am(Demodulator):
         super().__init__(*workers)
 
     def setLastDecimation(self, decimation: Chain):
-        # TODO: build api to replace workers
-        # TODO: replace placeholder
-        pass
+        self.replace(2, decimation)

@@ -1,45 +1,25 @@
 from csdr.chain import Chain
 from pycsdr.modules import Fft, LogPower, LogAveragePower, FftSwap, FftAdpcm
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 class FftAverager(Chain):
     def __init__(self, fft_size, fft_averages):
         self.fftSize = fft_size
-        self.fftAverages = None
-        self.worker = None
-        self.input = None
-        self.output = None
-        self.setFftAverages(fft_averages)
-        workers = [self.worker]
+        self.fftAverages = fft_averages
+        workers = [self._getWorker()]
         super().__init__(*workers)
 
     def setFftAverages(self, fft_averages):
         if self.fftAverages == fft_averages:
             return
-        if fft_averages == 0 and self.fftAverages != 0:
-            if self.worker is not None:
-                self.worker.stop()
-            self.worker = LogPower(add_db=70)
-            if self.output is not None:
-                self.worker.setOutput(self.output)
-            if self.input is not None:
-                self.worker.setInput(self.input)
-        elif fft_averages != 0:
-            if self.fftAverages == 0 or self.worker is None:
-                if self.worker is not None:
-                    self.worker.stop()
-                self.worker = LogAveragePower(add_db=-70, fft_size=self.fftSize, avg_number=fft_averages)
-                if self.output is not None:
-                    self.worker.setOutput(self.output)
-                if self.input is not None:
-                    self.worker.setInput(self.input)
-            else:
-                self.worker.setAvgNumber(avg_number=fft_averages)
-        self.workers = [self.worker]
         self.fftAverages = fft_averages
+        self.replace(0, self._getWorker())
+
+    def _getWorker(self):
+        if self.fftAverages == 0:
+            return LogPower(add_db=-70)
+        else:
+            return LogAveragePower(add_db=-70, fft_size=self.fftSize, avg_number=self.fftAverages)
 
 
 class FftChain(Chain):

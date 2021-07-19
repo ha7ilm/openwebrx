@@ -1,14 +1,11 @@
 from pycsdr.modules import Buffer
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 class Chain:
     def __init__(self, *workers):
         self.input = None
         self.output = None
-        self.workers = workers
+        self.workers = list(workers)
         for i in range(1, len(self.workers)):
             self._connect(self.workers[i - 1], self.workers[i])
 
@@ -54,6 +51,35 @@ class Chain:
             return self.workers[-1].getOutputFormat()
         else:
             return self.input.getOutputFormat()
+
+    def replace(self, index, newWorker):
+        if index >= len(self.workers):
+            raise IndexError("Index {} does not exist".format(index))
+
+        self.workers[index].stop()
+        self.workers[index] = newWorker
+
+        if index == 0:
+            newWorker.setInput(self.input)
+        else:
+            previousWorker = self.workers[index - 1]
+            if isinstance(previousWorker, Chain):
+                newWorker.setInput(previousWorker.getOutput())
+            else:
+                buffer = Buffer(previousWorker.getOutputFormat())
+                previousWorker.setOutput(buffer)
+                newWorker.setInput(buffer)
+
+        if index < len(self.workers) - 1:
+            nextWorker = self.workers[index + 1]
+            if isinstance(newWorker, Chain):
+                nextWorker.setInput(newWorker.getOutput())
+            else:
+                buffer = Buffer(newWorker.getOutputFormat())
+                newWorker.setOutput(buffer)
+                nextWorker.setInput(buffer)
+        else:
+            newWorker.setOutput(self.output)
 
     def pump(self, write):
         output = self.getOutput()
