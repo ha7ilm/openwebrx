@@ -37,6 +37,7 @@ from csdr.pipe import Pipe
 
 from csdr.chain.demodulator import DemodulatorChain
 from csdr.chain.fm import Fm
+from csdr.chain.am import Am
 
 import logging
 
@@ -118,9 +119,13 @@ class Dsp(DirewolfConfigSubscriber):
         self.pipe_base_path = "{tmp_dir}/openwebrx_pipe_".format(tmp_dir=self.temporary_directory)
 
     def chain(self, which):
-        if self.pycsdr_enabled and which == "nfm":
-            self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Fm(self.get_audio_rate()))
-            return self.pycsdr_chain
+        if self.pycsdr_enabled:
+            if which == "nfm":
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Fm(self.get_audio_rate()))
+                return self.pycsdr_chain
+            elif which == "am":
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Am())
+                return self.pycsdr_chain
 
         chain = ["nc -v 127.0.0.1 {nc_port}"]
         chain += ["csdr shift_addfast_cc --fifo {shift_pipe}"]
