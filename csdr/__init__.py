@@ -605,7 +605,7 @@ class Dsp(DirewolfConfigSubscriber):
         self.high_cut = high_cut
         if self.running:
             if self.pycsdr_chain is not None and isinstance(self.pycsdr_chain, DemodulatorChain):
-                self.pycsdr_chain.setBandpass(low_cut, high_cut)
+                self.pycsdr_chain.setBandpass(float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
             else:
                 self.pipes["bpf_pipe"].write(
                     "%g %g\n" % (float(self.low_cut) / self.if_samp_rate(), float(self.high_cut) / self.if_samp_rate())
@@ -724,6 +724,9 @@ class Dsp(DirewolfConfigSubscriber):
 
             chain = self.chain(self.demodulator)
             if self.pycsdr_enabled and isinstance(chain, DemodulatorChain):
+                self.set_squelch_level(self.squelch_level)
+                self.set_bpf(self.low_cut, self.high_cut)
+                self.set_offset_freq(self.offset_freq)
                 chain.setInput(self.buffer)
                 self.output.send_output("audio", chain.getOutput().read)
                 return

@@ -19,7 +19,7 @@ class DemodulatorChain(Chain):
         self.decimation = FirDecimate(decimation, transition)
 
         bp_transition = 320.0 / if_samp_rate
-        self.bandpass = Bandpass(bp_transition, use_fft=True)
+        self.bandpass = Bandpass(transition=bp_transition, use_fft=True)
 
         self.squelch = Squelch(5)
 
