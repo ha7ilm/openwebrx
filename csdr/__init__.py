@@ -93,7 +93,6 @@ class Dsp(DirewolfConfigSubscriber):
         self.pipes = {}
         self.secondary_pipe_names = {"secondary_shift_pipe": Pipe.WRITE}
         self.secondary_offset_freq = 1000
-        self.unvoiced_quality = 1
         self.codecserver = None
         self.modification_lock = threading.Lock()
         self.output = output
@@ -640,13 +639,6 @@ class Dsp(DirewolfConfigSubscriber):
             else:
                 self.pipes["squelch_pipe"].write("%g\n" % (self.convertToLinear(actual_squelch)))
 
-    def set_unvoiced_quality(self, q):
-        self.unvoiced_quality = q
-        self.restart()
-
-    def get_unvoiced_quality(self):
-        return self.unvoiced_quality
-
     def set_codecserver(self, s):
         if self.codecserver == s:
             return
@@ -774,7 +766,6 @@ class Dsp(DirewolfConfigSubscriber):
                 nc_port=self.nc_port,
                 output_rate=self.get_output_rate(),
                 smeter_report_every=int(self.if_samp_rate() / 6000),
-                unvoiced_quality=self.get_unvoiced_quality(),
                 codecserver_arg=self.get_codecserver_arg(),
                 audio_rate=self.get_audio_rate(),
                 wfm_deemphasis_tau=self.wfm_deemphasis_tau,
