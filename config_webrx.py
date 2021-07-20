@@ -104,9 +104,6 @@ version = 7
 
 #digimodes_fft_size = 2048
 
-# determines the quality, and thus the cpu usage, for the ambe codec used by digital voice modes
-# if you're running on a Raspi (up to 3B+) you'll want to leave this on 1
-#digital_voice_unvoiced_quality = 1
 # enables lookup of DMR ids using the radioid api
 #digital_voice_dmr_id_lookup = True
 
