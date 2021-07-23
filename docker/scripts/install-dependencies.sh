@@ -102,8 +102,7 @@ rm -rf dream
 rm dream-2.1.1-svn808.tar.gz
 
 git clone https://github.com/mobilinkd/m17-cxx-demod.git
-# latest master as of 2021-04-20
-cmakebuild m17-cxx-demod c1d954fd5e5c53d28a2524e99484f832f9dcb826
+cmakebuild m17-cxx-demod v2.0
 
 git clone https://github.com/hessu/aprs-symbols /usr/share/aprs-symbols
 pushd /usr/share/aprs-symbols
