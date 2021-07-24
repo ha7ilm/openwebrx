@@ -1,10 +1,9 @@
 from csdr.chain import Chain
-from csdr.chain.demodulator import Demodulator
 from pycsdr.modules import RealPart, Agc, Convert
 from pycsdr.types import Format
 
 
-class Ssb(Demodulator):
+class Ssb(Chain):
     def __init__(self):
         workers = [
             RealPart(),

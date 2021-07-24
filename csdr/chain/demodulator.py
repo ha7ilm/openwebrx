@@ -1,16 +1,10 @@
 from csdr.chain import Chain
-from pycsdr.modules import Module, Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator
-from abc import ABCMeta, abstractmethod
-
-
-class Demodulator(Chain, metaclass=ABCMeta):
-    @abstractmethod
-    def setLastDecimation(self, decimation: Module):
-        pass
+from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator
+from pycsdr.types import Format
 
 
 class DemodulatorChain(Chain):
-    def __init__(self, samp_rate: int, audioRate: int, shiftRate: float, demodulator: Demodulator):
+    def __init__(self, samp_rate: int, audioRate: int, shiftRate: float, demodulator: Chain):
         self.shift = Shift(shiftRate)
 
         decimation, fraction = self._getDecimation(samp_rate, audioRate)
@@ -23,16 +17,12 @@ class DemodulatorChain(Chain):
 
         self.squelch = Squelch(5)
 
-        if fraction != 1.0:
-            demodulator.setLastDecimation(FractionalDecimator(fraction))
+        workers = [self.shift, self.decimation]
 
-        workers = [
-            self.shift,
-            self.decimation,
-            self.bandpass,
-            self.squelch,
-            demodulator
-        ]
+        if fraction != 1.0:
+            workers += [FractionalDecimator(Format.COMPLEX_FLOAT, fraction)]
+
+        workers += [self.bandpass, self.squelch, demodulator]
 
         super().__init__(*workers)
 
