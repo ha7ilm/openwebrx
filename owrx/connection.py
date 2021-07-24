@@ -19,6 +19,7 @@ from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
 import json
 import threading
+import struct
 
 import logging
 
@@ -376,6 +377,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send(bytes([0x04]) + data)
 
     def write_s_meter_level(self, level):
+        if isinstance(level, memoryview):
+            level, = struct.unpack('f', level)
+        if not isinstance(level, float):
+            logger.warning("s-meter value has unexpected type")
+            return
         try:
             self.send({"type": "smeter", "value": level})
         except ValueError:

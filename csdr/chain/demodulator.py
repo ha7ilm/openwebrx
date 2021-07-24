@@ -1,5 +1,5 @@
 from csdr.chain import Chain
-from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator
+from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator, Writer
 from pycsdr.types import Format
 
 
@@ -15,7 +15,7 @@ class DemodulatorChain(Chain):
         bp_transition = 320.0 / if_samp_rate
         self.bandpass = Bandpass(transition=bp_transition, use_fft=True)
 
-        self.squelch = Squelch(5)
+        self.squelch = Squelch(5, int(if_samp_rate / 6000))
 
         workers = [self.shift, self.decimation]
 
@@ -34,6 +34,9 @@ class DemodulatorChain(Chain):
 
     def setBandpass(self, low_cut: float, high_cut: float):
         self.bandpass.setBandpass(low_cut, high_cut)
+
+    def setPowerWriter(self, writer: Writer):
+        self.squelch.setPowerWriter(writer)
 
     def _getDecimation(self, input_rate, output_rate):
         if output_rate <= 0:
