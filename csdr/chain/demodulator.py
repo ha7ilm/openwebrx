@@ -1,11 +1,11 @@
 from csdr.chain import Chain
-from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator
+from pycsdr.modules import Module, Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator
 from abc import ABCMeta, abstractmethod
 
 
 class Demodulator(Chain, metaclass=ABCMeta):
     @abstractmethod
-    def setLastDecimation(self, decimation: Chain):
+    def setLastDecimation(self, decimation: Module):
         pass
 
 
@@ -24,7 +24,7 @@ class DemodulatorChain(Chain):
         self.squelch = Squelch(5)
 
         if fraction != 1.0:
-            demodulator.setLastDecimation(Chain(FractionalDecimator(fraction)))
+            demodulator.setLastDecimation(FractionalDecimator(fraction))
 
         workers = [
             self.shift,
