@@ -35,6 +35,7 @@ from owrx.audio.chopper import AudioChopper
 
 from csdr.pipe import Pipe
 
+from pycsdr.modules import Buffer
 from csdr.chain.demodulator import DemodulatorChain
 from csdr.chain.fm import Fm
 from csdr.chain.am import Am
@@ -49,6 +50,7 @@ class Dsp(DirewolfConfigSubscriber):
     def __init__(self, output: Output):
         self.pycsdr_enabled = True
         self.pycsdr_chain = None
+        self.pycsdr_reader = None
         self.buffer = None
 
         self.samp_rate = 250000
@@ -729,7 +731,10 @@ class Dsp(DirewolfConfigSubscriber):
                 self.set_bpf(self.low_cut, self.high_cut)
                 self.set_offset_freq(self.offset_freq)
                 chain.setInput(self.buffer)
-                self.output.send_output("audio", chain.getOutput().read)
+                outputBuffer = Buffer(chain.getOutputFormat())
+                chain.setWriter(outputBuffer)
+                self.pycsdr_reader = outputBuffer.getReader()
+                self.output.send_output("audio", self.pycsdr_reader.read)
                 return
 
             command_base = " | ".join(chain)
@@ -824,6 +829,8 @@ class Dsp(DirewolfConfigSubscriber):
             if self.pycsdr_enabled and self.pycsdr_chain is not None:
                 self.pycsdr_chain.stop()
                 self.pycsdr_chain = None
+                self.pycsdr_reader.stop()
+                self.pycsdr_reader = None
             if self.process is not None:
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)

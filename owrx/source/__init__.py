@@ -252,13 +252,13 @@ class SdrSource(ABC):
     def _getTcpSource(self):
         with self.modificationLock:
             if self.tcpSource is None:
-                self.tcpSource = TcpSource(self.port)
+                self.tcpSource = TcpSource(self.port, Format.COMPLEX_FLOAT)
         return self.tcpSource
 
     def getBuffer(self):
         if self.buffer is None:
             self.buffer = Buffer(Format.COMPLEX_FLOAT)
-            self._getTcpSource().setOutput(self.buffer)
+            self._getTcpSource().setWriter(self.buffer)
         return self.buffer
 
     def getCommandValues(self):
