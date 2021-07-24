@@ -15,7 +15,10 @@ class DemodulatorChain(Chain):
         bp_transition = 320.0 / if_samp_rate
         self.bandpass = Bandpass(transition=bp_transition, use_fft=True)
 
-        self.squelch = Squelch(5, int(if_samp_rate / 6000))
+        readings_per_second = 4
+        # s-meter readings are available every 1024 samples
+        # the reporting interval is measured in those 1024-sample blocks
+        self.squelch = Squelch(5, int(if_samp_rate / (readings_per_second * 1024)))
 
         workers = [self.shift, self.decimation]
 
