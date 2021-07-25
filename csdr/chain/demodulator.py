@@ -10,7 +10,10 @@ class DemodulatorChain(Chain):
         decimation, fraction = self._getDecimation(samp_rate, audioRate)
         if_samp_rate = samp_rate / decimation
         transition = 0.15 * (if_samp_rate / float(samp_rate))
-        self.decimation = FirDecimate(decimation, transition)
+        # set the cutoff on the fist decimation stage lower so that the resulting output
+        # is already prepared for the second (fractional) decimation stage.
+        # this spares us a second filter.
+        self.decimation = FirDecimate(decimation, transition, 0.5 * decimation / (samp_rate / audioRate))
 
         bp_transition = 320.0 / audioRate
         self.bandpass = Bandpass(transition=bp_transition, use_fft=True)
