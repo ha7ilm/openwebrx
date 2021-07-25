@@ -38,7 +38,7 @@ from csdr.pipe import Pipe
 from pycsdr.modules import Buffer
 from pycsdr.types import Format
 from csdr.chain.demodulator import DemodulatorChain
-from csdr.chain.fm import Fm
+from csdr.chain.fm import NFm, WFm
 from csdr.chain.am import Am
 from csdr.chain.ssb import Ssb
 from csdr.chain.clientaudio import ClientAudioChain
@@ -127,13 +127,16 @@ class Dsp(DirewolfConfigSubscriber):
     def chain(self, which):
         if self.pycsdr_enabled:
             if which == "nfm":
-                self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Fm(self.get_audio_rate()))
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, NFm(self.get_audio_rate()))
                 return self.pycsdr_chain
             elif which == "am":
                 self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Am())
                 return self.pycsdr_chain
             elif which == "ssb":
                 self.pycsdr_chain = DemodulatorChain(self.samp_rate, self.get_audio_rate(), 0.0, Ssb())
+                return self.pycsdr_chain
+            elif which == "wfm":
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, 200000, 0.0, WFm(self.get_audio_rate(), self.wfm_deemphasis_tau))
                 return self.pycsdr_chain
 
         chain = ["nc -v 127.0.0.1 {nc_port}"]
@@ -737,7 +740,8 @@ class Dsp(DirewolfConfigSubscriber):
 
                 chain.setInput(self.buffer)
 
-                self.pycsdr_client_chain = ClientAudioChain(self.get_audio_rate(), self.get_output_rate(), self.audio_compression)
+                output_rate = self.get_hd_output_rate() if self.isHdAudio() else self.get_output_rate()
+                self.pycsdr_client_chain = ClientAudioChain(self.get_audio_rate(), output_rate, self.audio_compression)
                 buffer = Buffer(chain.getOutputFormat())
                 chain.setWriter(buffer)
                 self.pycsdr_client_chain.setInput(buffer)
@@ -745,7 +749,8 @@ class Dsp(DirewolfConfigSubscriber):
                 outputBuffer = Buffer(self.pycsdr_client_chain.getOutputFormat())
                 self.pycsdr_client_chain.setWriter(outputBuffer)
                 self.pycsdr_reader = outputBuffer.getReader()
-                self.output.send_output("audio", self.pycsdr_reader.read)
+                audio_type = "hd_audio" if self.isHdAudio() else "audio"
+                self.output.send_output(audio_type, self.pycsdr_reader.read)
 
                 powerBuffer = Buffer(Format.FLOAT)
                 chain.setPowerWriter(powerBuffer)
