@@ -10,7 +10,6 @@ class Ssb(Chain):
             # empty chain as placeholder for the "last decimation"
             Chain(),
             Agc(Format.FLOAT),
-            Convert(Format.FLOAT, Format.SHORT),
         ]
         super().__init__(*workers)
 

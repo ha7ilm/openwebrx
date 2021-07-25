@@ -13,6 +13,5 @@ class Fm(Chain):
             Limit(),
             NfmDeemphasis(sampleRate),
             agc,
-            Convert(Format.FLOAT, Format.SHORT),
         ]
         super().__init__(*workers)

@@ -12,7 +12,6 @@ class Am(Chain):
             AmDemod(),
             DcBlock(),
             agc,
-            Convert(Format.FLOAT, Format.SHORT),
         ]
 
         super().__init__(*workers)

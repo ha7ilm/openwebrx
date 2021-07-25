@@ -41,6 +41,7 @@ from csdr.chain.demodulator import DemodulatorChain
 from csdr.chain.fm import Fm
 from csdr.chain.am import Am
 from csdr.chain.ssb import Ssb
+from csdr.chain.clientaudio import ClientAudioChain
 
 import logging
 
@@ -51,6 +52,7 @@ class Dsp(DirewolfConfigSubscriber):
     def __init__(self, output: Output):
         self.pycsdr_enabled = True
         self.pycsdr_chain = None
+        self.pycsdr_client_chain = None
         self.pycsdr_reader = None
         self.pycsdr_power_reader = None
         self.buffer = None
@@ -732,11 +734,19 @@ class Dsp(DirewolfConfigSubscriber):
                 self.set_squelch_level(self.squelch_level)
                 self.set_bpf(self.low_cut, self.high_cut)
                 self.set_offset_freq(self.offset_freq)
+
                 chain.setInput(self.buffer)
-                outputBuffer = Buffer(chain.getOutputFormat())
-                chain.setWriter(outputBuffer)
+
+                self.pycsdr_client_chain = ClientAudioChain(self.get_audio_rate(), self.get_output_rate(), self.audio_compression)
+                buffer = Buffer(chain.getOutputFormat())
+                chain.setWriter(buffer)
+                self.pycsdr_client_chain.setInput(buffer)
+
+                outputBuffer = Buffer(self.pycsdr_client_chain.getOutputFormat())
+                self.pycsdr_client_chain.setWriter(outputBuffer)
                 self.pycsdr_reader = outputBuffer.getReader()
                 self.output.send_output("audio", self.pycsdr_reader.read)
+
                 powerBuffer = Buffer(Format.FLOAT)
                 chain.setPowerWriter(powerBuffer)
                 self.pycsdr_power_reader = powerBuffer.getReader()
@@ -839,6 +849,8 @@ class Dsp(DirewolfConfigSubscriber):
                 self.pycsdr_reader = None
                 self.pycsdr_power_reader.stop()
                 self.pycsdr_power_reader = None
+                self.pycsdr_client_chain.stop()
+                self.pycsdr_client_chain = None
             if self.process is not None:
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
