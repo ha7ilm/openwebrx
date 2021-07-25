@@ -10,5 +10,5 @@ class ClientAudioChain(Chain):
             workers += [AudioResampler(inputRate, clientRate)]
         workers += [Convert(Format.FLOAT, Format.SHORT)]
         if compression == "adpcm":
-            workers += [AdpcmEncoder()]
+            workers += [AdpcmEncoder(sync=True)]
         super().__init__(*workers)

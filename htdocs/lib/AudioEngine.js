@@ -282,7 +282,7 @@ AudioEngine.prototype.processAudio = function(data, resampler) {
     var buffer;
     if (this.compression === "adpcm") {
         //resampling & ADPCM
-        buffer = this.audioCodec.decode(new Uint8Array(data));
+        buffer = this.audioCodec.decodeWithSync(new Uint8Array(data));
     } else {
         buffer = new Int16Array(data);
     }
@@ -328,6 +328,10 @@ ImaAdpcmCodec.prototype.reset = function() {
     this.stepIndex = 0;
     this.predictor = 0;
     this.step = 0;
+    this.synchronized = 0;
+    this.syncWord = "SYNC";
+    this.syncCounter = 0;
+    this.skip = 0;
 };
 
 ImaAdpcmCodec.imaIndexTable = [ -1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8 ];
@@ -351,6 +355,43 @@ ImaAdpcmCodec.prototype.decode = function(data) {
         output[i * 2 + 1] = this.decodeNibble((data[i] >> 4) & 0x0F);
     }
     return output;
+};
+
+ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
+    var output = new Int16Array(data.length * 2);
+    var index = this.skip;
+    var oi = 0;
+    while (index < data.length) {
+        while (this.synchronized < 4 && index < data.length) {
+            if (data[index] === this.syncWord.charCodeAt(this.synchronized)) {
+                this.synchronized++;
+            } else {
+                this.synchronized = 0;
+            }
+            index++;
+            if (this.synchronized === 4) {
+                if (index + 4 < data.length) {
+                    var syncData = new Int16Array(data.buffer.slice(index, index + 4));
+                    this.stepIndex = syncData[0];
+                    this.predictor = syncData[1];
+                }
+                this.syncCounter = 1000;
+                index += 4;
+                break;
+            }
+        }
+        while (index < data.length) {
+            if (this.syncCounter-- < 0) {
+                this.synchronized = 0;
+                break;
+            }
+            output[oi++] = this.decodeNibble(data[index] & 0x0F);
+            output[oi++] = this.decodeNibble(data[index] >> 4);
+            index++;
+        }
+    }
+    this.skip = index - data.length;
+    return output.slice(0, oi);
 };
 
 ImaAdpcmCodec.prototype.decodeNibble = function(nibble) {

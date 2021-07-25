@@ -258,7 +258,7 @@ class Dsp(DirewolfConfigSubscriber):
                 chain += ["csdr convert_f_s16"]
 
         if self.audio_compression == "adpcm":
-            chain += ["csdr encode_ima_adpcm_i16_u8"]
+            chain += ["csdr++ adpcm -e --sync"]
         return chain
 
     def secondary_chain(self, which):
