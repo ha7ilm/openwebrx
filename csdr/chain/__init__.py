@@ -106,7 +106,7 @@ class Chain:
                     data = self.reader.read()
                 except ValueError:
                     pass
-                if data is None or (isinstance(data, bytes) and len(data) == 0):
+                if data is None:
                     run = False
                 else:
                     write(data)
