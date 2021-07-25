@@ -12,13 +12,13 @@ class DemodulatorChain(Chain):
         transition = 0.15 * (if_samp_rate / float(samp_rate))
         self.decimation = FirDecimate(decimation, transition)
 
-        bp_transition = 320.0 / if_samp_rate
+        bp_transition = 320.0 / audioRate
         self.bandpass = Bandpass(transition=bp_transition, use_fft=True)
 
         readings_per_second = 4
         # s-meter readings are available every 1024 samples
         # the reporting interval is measured in those 1024-sample blocks
-        self.squelch = Squelch(5, int(if_samp_rate / (readings_per_second * 1024)))
+        self.squelch = Squelch(5, int(audioRate / (readings_per_second * 1024)))
 
         workers = [self.shift, self.decimation]
 
