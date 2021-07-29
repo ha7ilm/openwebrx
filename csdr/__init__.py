@@ -41,6 +41,7 @@ from csdr.chain.demodulator import DemodulatorChain
 from csdr.chain.fm import NFm, WFm
 from csdr.chain.am import Am
 from csdr.chain.ssb import Ssb
+from csdr.chain.digiham import Dstar
 from csdr.chain.clientaudio import ClientAudioChain
 
 import logging
@@ -137,6 +138,9 @@ class Dsp(DirewolfConfigSubscriber):
                 return self.pycsdr_chain
             elif which == "wfm":
                 self.pycsdr_chain = DemodulatorChain(self.samp_rate, 200000, 0.0, WFm(self.get_audio_rate(), self.wfm_deemphasis_tau))
+                return self.pycsdr_chain
+            elif which == "dstar":
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, 48000, 0.0, Dstar(self.codecserver))
                 return self.pycsdr_chain
 
         chain = ["nc -v 127.0.0.1 {nc_port}"]
@@ -741,7 +745,8 @@ class Dsp(DirewolfConfigSubscriber):
                 chain.setInput(self.buffer)
 
                 output_rate = self.get_hd_output_rate() if self.isHdAudio() else self.get_output_rate()
-                self.pycsdr_client_chain = ClientAudioChain(self.get_audio_rate(), output_rate, self.audio_compression)
+                audio_rate = 8000 if self.isDigitalVoice() else self.get_audio_rate()
+                self.pycsdr_client_chain = ClientAudioChain(chain.getOutputFormat(), audio_rate, output_rate, self.audio_compression)
                 buffer = Buffer(chain.getOutputFormat())
                 chain.setWriter(buffer)
                 self.pycsdr_client_chain.setInput(buffer)

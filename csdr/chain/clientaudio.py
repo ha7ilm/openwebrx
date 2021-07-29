@@ -4,8 +4,10 @@ from pycsdr.types import Format
 
 
 class ClientAudioChain(Chain):
-    def __init__(self, inputRate: int, clientRate: int, compression: str):
+    def __init__(self, format: Format, inputRate: int, clientRate: int, compression: str):
         workers = []
+        if format != Format.FLOAT:
+            workers += [Convert(format, Format.FLOAT)]
         if inputRate != clientRate:
             workers += [AudioResampler(inputRate, clientRate)]
         workers += [Convert(Format.FLOAT, Format.SHORT)]
