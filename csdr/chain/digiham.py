@@ -1,31 +1,44 @@
 from csdr.chain import Chain
-from pycsdr.modules import FmDemod
-from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder
+from pycsdr.modules import FmDemod, Agc
+from pycsdr.types import Format
+from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder
+from digiham.ambe import Modes
 
 
 class Dstar(Chain):
     def __init__(self, codecserver: str = ""):
+        if codecserver is None:
+            codecserver = ""
+        agc = Agc(Format.SHORT)
+        agc.setMaxGain(30)
+        agc.setInitialGain(3)
         workers = [
             FmDemod(),
             DcBlock(),
             FskDemodulator(samplesPerSymbol=10),
             DstarDecoder(),
-            MbeSynthesizer(codecserver),
-            DigitalVoiceFilter()
+            MbeSynthesizer(Modes.DStarMode, codecserver),
+            DigitalVoiceFilter(),
+            agc
         ]
         super().__init__(*workers)
 
 
 class Nxdn(Chain):
     def __init__(self, codecserver: str = ""):
+        if codecserver is None:
+            codecserver = ""
+        agc = Agc(Format.SHORT)
+        agc.setMaxGain(30)
+        agc.setInitialGain(3)
         workers = [
             FmDemod(),
             DcBlock(),
             NarrowRrcFilter(),
-            # todo: switch out with gfsk
-            FskDemodulator(samplesPerSymbol=20),
+            GfskDemodulator(samplesPerSymbol=20),
             NxdnDecoder(),
-            MbeSynthesizer(codecserver),
-            DigitalVoiceFilter()
+            MbeSynthesizer(Modes.NxdnMode, codecserver),
+            DigitalVoiceFilter(),
+            agc,
         ]
         super().__init__(*workers)
