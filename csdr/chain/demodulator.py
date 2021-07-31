@@ -5,6 +5,8 @@ from pycsdr.types import Format
 
 class DemodulatorChain(Chain):
     def __init__(self, samp_rate: int, audioRate: int, shiftRate: float, demodulator: Chain):
+        self.demodulator = demodulator
+
         self.shift = Shift(shiftRate)
 
         decimation, fraction = self._getDecimation(samp_rate, audioRate)
@@ -43,6 +45,9 @@ class DemodulatorChain(Chain):
 
     def setPowerWriter(self, writer: Writer):
         self.squelch.setPowerWriter(writer)
+
+    def setMetaWriter(self, writer: Writer):
+        self.demodulator.setMetaWriter(writer)
 
     def _getDecimation(self, input_rate, output_rate):
         if output_rate <= 0:

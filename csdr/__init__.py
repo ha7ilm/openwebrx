@@ -56,6 +56,7 @@ class Dsp(DirewolfConfigSubscriber):
         self.pycsdr_client_chain = None
         self.pycsdr_reader = None
         self.pycsdr_power_reader = None
+        self.pycsdr_meta_reader = None
         self.buffer = None
 
         self.samp_rate = 250000
@@ -764,6 +765,22 @@ class Dsp(DirewolfConfigSubscriber):
                 chain.setPowerWriter(powerBuffer)
                 self.pycsdr_power_reader = powerBuffer.getReader()
                 self.output.send_output("smeter", self.pycsdr_power_reader.read)
+
+                if self.isDigitalVoice():
+                    metaBuffer = Buffer(Format.CHAR)
+                    chain.setMetaWriter(metaBuffer)
+                    self.pycsdr_meta_reader = metaBuffer.getReader()
+
+                    def read_meta():
+                        raw = self.pycsdr_meta_reader.read()
+                        if raw is None or len(raw) == 0:
+                            return None
+                        else:
+                            raw = raw.tobytes().decode("cp437")
+                            return raw.rstrip("\n")
+
+                    self.output.send_output("meta", read_meta)
+
                 return
 
             command_base = " | ".join(chain)
@@ -864,6 +881,9 @@ class Dsp(DirewolfConfigSubscriber):
                 self.pycsdr_power_reader = None
                 self.pycsdr_client_chain.stop()
                 self.pycsdr_client_chain = None
+                if self.pycsdr_meta_reader is not None:
+                    self.pycsdr_meta_reader.stop()
+                    self.pycsdr_meta_reader = None
             if self.process is not None:
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
