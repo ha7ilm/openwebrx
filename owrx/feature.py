@@ -259,6 +259,8 @@ class FeatureDetector(object):
                     "fsk_demodulator",
                     "pocsag_decoder",
                     "dstar_decoder",
+                    "nxdn_decoder",
+                    "dc_block",
                 ],
             ),
             True,
