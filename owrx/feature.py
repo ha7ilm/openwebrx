@@ -281,7 +281,7 @@ class FeatureDetector(object):
             return False
 
     def _check_owrx_connector(self, command):
-        return self._check_connector(command, LooseVersion("0.4"))
+        return self._check_connector(command, LooseVersion("0.5"))
 
     def has_rtl_connector(self):
         """
