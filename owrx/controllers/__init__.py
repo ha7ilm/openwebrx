@@ -31,7 +31,9 @@ class Controller(object):
         self.handler.end_headers()
         if type(content) == str:
             content = content.encode()
-        self.handler.wfile.write(content)
+        while len(content):
+            w = self.handler.wfile.write(content)
+            content = content[w:]
 
     def send_redirect(self, location, code=303):
         self.handler.send_response(code)
