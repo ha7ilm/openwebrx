@@ -1,4 +1,6 @@
-**1.1.x - unreleased**
+**unreleased**
+
+**1.1.0**
 - Reworked most graphical elements as SVGs for faster loadtimes and crispier display on hi-dpi displays
 - Updated pipelines to match changes in digiham
 - Changed D-Star and NXDN integrations to use new decoders from digiham

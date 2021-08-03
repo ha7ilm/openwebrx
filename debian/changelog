@@ -1,4 +1,8 @@
-openwebrx (1.1.0) UNRELEASED; urgency=low
+openwebrx (1.2.0) UNRELEASED; urgency=low
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 03 Aug 2021 13:54:00 +0000
+
+openwebrx (1.1.0) buster hirsute; urgency=low
 
   * Reworked most graphical elements as SVGs for faster loadtimes and crispier
     display on hi-dpi displays
@@ -6,7 +10,7 @@ openwebrx (1.1.0) UNRELEASED; urgency=low
   * Changed D-Star and NXDN integrations to use new decoder from digiham
   * Added D-Star and NXDN metadata display
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 09 May 2021 14:05:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 02 Aug 2021 16:24:00 +0000
 
 openwebrx (1.0.0) buster hirsute; urgency=low
   * Introduced `squelch_auto_margin` config option that allows configuring the

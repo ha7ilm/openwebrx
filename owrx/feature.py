@@ -259,6 +259,8 @@ class FeatureDetector(object):
                     "fsk_demodulator",
                     "pocsag_decoder",
                     "dstar_decoder",
+                    "nxdn_decoder",
+                    "dc_block",
                 ],
             ),
             True,
@@ -279,7 +281,7 @@ class FeatureDetector(object):
             return False
 
     def _check_owrx_connector(self, command):
-        return self._check_connector(command, LooseVersion("0.4"))
+        return self._check_connector(command, LooseVersion("0.5"))
 
     def has_rtl_connector(self):
         """
@@ -548,6 +550,11 @@ class FeatureDetector(object):
         return self._check_connector("runds_connector", LooseVersion("0.2"))
 
     def has_codecserver_ambe(self):
+        """
+        Codecserver is used to decode audio data from digital voice modes using the AMBE codec.
+
+        You can find more information [here](https://github.com/jketterl/codecserver).
+        """
         tmp_dir = CoreConfig().get_temporary_directory()
         cmd = ["mbe_synthesizer", "--test"]
         config = Config.get()
