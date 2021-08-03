@@ -550,6 +550,11 @@ class FeatureDetector(object):
         return self._check_connector("runds_connector", LooseVersion("0.2"))
 
     def has_codecserver_ambe(self):
+        """
+        Codecserver is used to decode audio data from digital voice modes using the AMBE codec.
+
+        You can find more information [here](https://github.com/jketterl/codecserver).
+        """
         tmp_dir = CoreConfig().get_temporary_directory()
         cmd = ["mbe_synthesizer", "--test"]
         config = Config.get()
