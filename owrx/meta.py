@@ -17,7 +17,7 @@ class Enricher(ABC):
         self.parser = parser
 
     @abstractmethod
-    def enrich(self, meta):
+    def enrich(self, meta, callback):
         pass
 
 
@@ -58,9 +58,15 @@ class RadioIDEnricher(Enricher):
         super().__init__(parser)
         self.mode = mode
         self.threads = {}
+        self.callbacks = {}
 
     def _fillCache(self, id):
-        RadioIDCache.getSharedInstance().put(self.mode, id, self._downloadRadioIdData(id))
+        data = self._downloadRadioIdData(id)
+        RadioIDCache.getSharedInstance().put(self.mode, id, data)
+        if id in self.callbacks:
+            while self.callbacks[id]:
+                self.callbacks[id].pop()(data)
+            del self.callbacks[id]
         del self.threads[id]
 
     def _downloadRadioIdData(self, id):
@@ -80,7 +86,7 @@ class RadioIDEnricher(Enricher):
 
         return None
 
-    def enrich(self, meta):
+    def enrich(self, meta, callback):
         config_key = "digital_voice_{}_id_lookup".format(self.mode)
         if not Config.get()[config_key]:
             return meta
@@ -92,6 +98,15 @@ class RadioIDEnricher(Enricher):
             if id not in self.threads:
                 self.threads[id] = threading.Thread(target=self._fillCache, args=[id], daemon=True)
                 self.threads[id].start()
+            if id not in self.callbacks:
+                self.callbacks[id] = []
+
+            def onFinish(data):
+                if data is not None:
+                    meta["additional"] = data
+                callback(meta)
+
+            self.callbacks[id].append(onFinish)
             return meta
         data = cache.get(self.mode, id)
         if data is not None:
@@ -100,7 +115,7 @@ class RadioIDEnricher(Enricher):
 
 
 class YsfMetaEnricher(Enricher):
-    def enrich(self, meta):
+    def enrich(self, meta, callback):
         for key in ["source", "up", "down", "target"]:
             if key in meta:
                 meta[key] = meta[key].strip()
@@ -114,7 +129,7 @@ class YsfMetaEnricher(Enricher):
 
 
 class DStarEnricher(Enricher):
-    def enrich(self, meta):
+    def enrich(self, meta, callback):
         for key in ["lat", "lon"]:
             if key in meta:
                 meta[key] = float(meta[key])
@@ -154,14 +169,22 @@ class MetaParser(Parser):
             "DSTAR": DStarEnricher(self),
             "NXDN": RadioIDEnricher("nxdn", self),
         }
+        self.currentMetaData = None
 
     def parse(self, raw: str):
         for meta in raw.split("\n"):
             fields = meta.split(";")
             meta = {v[0]: ":".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
 
+            self.currentMetaData = None
             if "protocol" in meta:
                 protocol = meta["protocol"]
                 if protocol in self.enrichers:
-                    meta = self.enrichers[protocol].enrich(meta)
+                    self.currentMetaData = meta = self.enrichers[protocol].enrich(meta, self.receive)
             self.handler.write_metadata(meta)
+
+    def receive(self, meta):
+        # we may have moved on in the meantime
+        if meta is not self.currentMetaData:
+            return
+        self.handler.write_metadata(meta)
