@@ -155,12 +155,13 @@ class MetaParser(Parser):
             "NXDN": RadioIDEnricher("nxdn", self),
         }
 
-    def parse(self, meta):
-        fields = meta.split(";")
-        meta = {v[0]: ":".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
+    def parse(self, raw: str):
+        for meta in raw.split("\n"):
+            fields = meta.split(";")
+            meta = {v[0]: ":".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
 
-        if "protocol" in meta:
-            protocol = meta["protocol"]
-            if protocol in self.enrichers:
-                meta = self.enrichers[protocol].enrich(meta)
-        self.handler.write_metadata(meta)
+            if "protocol" in meta:
+                protocol = meta["protocol"]
+                if protocol in self.enrichers:
+                    meta = self.enrichers[protocol].enrich(meta)
+            self.handler.write_metadata(meta)
