@@ -1,7 +1,7 @@
 from csdr.chain import Chain
 from pycsdr.modules import FmDemod, Agc, Writer
 from pycsdr.types import Format
-from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder
+from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder
 from digiham.ambe import Modes
 
 
@@ -9,6 +9,9 @@ class DigihamChain(Chain):
     def __init__(self, codecserver: str = ""):
         if codecserver is None:
             codecserver = ""
+        agc = Agc(Format.SHORT)
+        agc.setMaxGain(30)
+        agc.setInitialGain(3)
         workers = [
             FmDemod(),
             DcBlock(),
@@ -16,7 +19,7 @@ class DigihamChain(Chain):
             self.decoder,
             MbeSynthesizer(self.mbeMode, codecserver),
             DigitalVoiceFilter(),
-            self.agc
+            agc
         ]
         super().__init__(*workers)
 
@@ -29,9 +32,6 @@ class Dstar(DigihamChain):
         self.fskDemodulator = FskDemodulator(samplesPerSymbol=10)
         self.decoder = DstarDecoder()
         self.mbeMode = Modes.DStarMode
-        self.agc = Agc(Format.SHORT)
-        self.agc.setMaxGain(30)
-        self.agc.setInitialGain(3)
         super().__init__(codecserver)
 
 
@@ -40,7 +40,11 @@ class Nxdn(DigihamChain):
         self.fskDemodulator = GfskDemodulator(samplesPerSymbol=20)
         self.decoder = NxdnDecoder()
         self.mbeMode = Modes.NxdnMode
-        self.agc = Agc(Format.SHORT)
-        self.agc.setMaxGain(30)
-        self.agc.setInitialGain(3)
+        super().__init__(codecserver)
+
+class Dmr(DigihamChain):
+    def __init__(self, codecserver: str = ""):
+        self.fskDemodulator = GfskDemodulator(samplesPerSymbol=10)
+        self.decoder = DmrDecoder()
+        self.mbeMode = Modes.DmrMode
         super().__init__(codecserver)
