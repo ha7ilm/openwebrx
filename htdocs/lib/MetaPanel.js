@@ -22,7 +22,7 @@ function DmrMetaSlot(el) {
 DmrMetaSlot.prototype.update = function(data) {
     this.el[data['sync'] ? "addClass" : "removeClass"]("sync");
     if (data['sync'] && data['sync'] === "voice") {
-        this.setId(data['additional'] && data['additional']['callsign'] || data['source']);
+        this.setId(data['additional'] && data['additional']['callsign'] || data['talkeralias'] || data['source']);
         this.setName(data['additional'] && data['additional']['fname']);
         this.setMode(['group', 'direct'].includes(data['type']) ? data['type'] : undefined);
         this.setTarget(data['target']);
