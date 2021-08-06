@@ -42,9 +42,13 @@ class Nxdn(DigihamChain):
         self.mbeMode = Modes.NxdnMode
         super().__init__(codecserver)
 
+
 class Dmr(DigihamChain):
     def __init__(self, codecserver: str = ""):
         self.fskDemodulator = GfskDemodulator(samplesPerSymbol=10)
         self.decoder = DmrDecoder()
         self.mbeMode = Modes.DmrMode
         super().__init__(codecserver)
+
+    def setSlotFilter(self, filter: int) -> None:
+        self.decoder.setSlotFilter(filter)

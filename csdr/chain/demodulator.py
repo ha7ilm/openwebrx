@@ -1,6 +1,7 @@
 from csdr.chain import Chain
 from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator, Writer
 from pycsdr.types import Format
+from csdr.chain.digiham import Dmr
 
 
 class DemodulatorChain(Chain):
@@ -48,6 +49,10 @@ class DemodulatorChain(Chain):
 
     def setMetaWriter(self, writer: Writer):
         self.demodulator.setMetaWriter(writer)
+
+    def setDmrFilter(self, filter: int) -> None:
+        if isinstance(self.demodulator, Dmr):
+            self.demodulator.setSlotFilter(filter)
 
     def _getDecimation(self, input_rate, output_rate):
         if output_rate <= 0:
