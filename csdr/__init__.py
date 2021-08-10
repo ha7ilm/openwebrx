@@ -41,7 +41,7 @@ from csdr.chain.demodulator import DemodulatorChain
 from csdr.chain.fm import NFm, WFm
 from csdr.chain.am import Am
 from csdr.chain.ssb import Ssb
-from csdr.chain.digiham import Dstar, Nxdn, Dmr
+from csdr.chain.digiham import Dstar, Nxdn, Dmr, Ysf
 from csdr.chain.clientaudio import ClientAudioChain
 
 import logging
@@ -148,6 +148,9 @@ class Dsp(DirewolfConfigSubscriber):
                 return self.pycsdr_chain
             elif which == "dmr":
                 self.pycsdr_chain = DemodulatorChain(self.samp_rate, 48000, 0.0, Dmr(self.codecserver))
+                return self.pycsdr_chain
+            elif which == "ysf":
+                self.pycsdr_chain = DemodulatorChain(self.samp_rate, 48000, 0.0, Ysf(self.codecserver))
                 return self.pycsdr_chain
 
         chain = ["nc -v 127.0.0.1 {nc_port}"]
