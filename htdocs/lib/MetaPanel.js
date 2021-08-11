@@ -112,7 +112,9 @@ YsfMetaPanel.prototype.update = function(data) {
         this.setLocation(data['lat'], data['lon'], data['source']);
         this.setUp(data['up']);
         this.setDown(data['down']);
-        this.el.find(".openwebrx-meta-slot").addClass("active");
+        if (data['mode'].indexOf('data') < 0) {
+            this.el.find(".openwebrx-meta-slot").addClass("active");
+        }
     } else {
         this.clear();
     }
