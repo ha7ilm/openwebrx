@@ -784,7 +784,7 @@ class Dsp(DirewolfConfigSubscriber):
                         if raw is None or len(raw) == 0:
                             return None
                         else:
-                            raw = raw.tobytes().decode("cp437")
+                            raw = raw.tobytes().decode("utf-8")
                             return raw.rstrip("\n")
 
                     self.output.send_output("meta", read_meta)
