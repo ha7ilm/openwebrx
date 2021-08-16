@@ -3,57 +3,39 @@ from pycsdr.modules import Buffer, Writer
 
 class Chain:
     def __init__(self, *workers):
-        self.input = None
-        self.output = None
         self.reader = None
+        self.writer = None
+        self.clientReader = None
         self.workers = list(workers)
-        filtered = self._filterWorkers()
-        for i in range(1, len(filtered)):
-            self._connect(filtered[i - 1], filtered[i])
-
-    def _filterWorkers(self):
-        return [w for w in self.workers if not isinstance(w, Chain) or not w.empty()]
-
-    def empty(self):
-        return len(self.workers) <= 0
+        for i in range(1, len(self.workers)):
+            self._connect(self.workers[i - 1], self.workers[i])
 
     def _connect(self, w1, w2):
         writer = Buffer(w1.getOutputFormat())
         w1.setWriter(writer)
-        if isinstance(w2, Chain):
-            w2.setInput(writer)
-        else:
-            w2.setReader(writer.getReader())
+        w2.setReader(writer.getReader())
+
+    def setReader(self, reader):
+        if self.reader is reader:
+            return
+        self.reader = reader
+        if self.workers:
+            self.workers[0].setReader(reader)
+
+    def setWriter(self, writer):
+        if self.writer is writer:
+            return
+        self.writer = writer
+        if self.workers:
+            self.workers[-1].setWriter(writer)
 
     def stop(self):
         for w in self.workers:
             w.stop()
-        if self.reader is not None:
-            self.reader.stop()
-            self.reader = None
-
-    def setInput(self, buffer: Buffer):
-        if self.input == buffer:
-            return
-        self.input = buffer
-        if self.workers:
-            firstWorker = self.workers[0]
-            if isinstance(firstWorker, Chain):
-                firstWorker.setInput(buffer)
-            else:
-                firstWorker.setReader(buffer.getReader())
-        else:
-            self.output = self.input
-
-    def setWriter(self, writer: Writer):
-        if self.output == writer:
-            return
-        self.output = writer
-        if self.workers:
-            lastWorker = self.workers[-1]
-            lastWorker.setWriter(self.output)
-        else:
-            raise BufferError("setOutput on empty chain")
+        if self.clientReader is not None:
+            # TODO should be covered by finalize
+            self.clientReader.stop()
+            self.clientReader = None
 
     def getOutputFormat(self):
         if self.workers:
@@ -69,41 +51,34 @@ class Chain:
         self.workers[index] = newWorker
 
         if index == 0:
-            writer = self.input
+            if self.reader is not None:
+                newWorker.setReader(self.reader)
         else:
             previousWorker = self.workers[index - 1]
-            writer = Buffer(previousWorker.getOutputFormat())
-            previousWorker.setWriter(writer)
+            buffer = Buffer(previousWorker.getOutputFormat())
+            previousWorker.setWriter(buffer)
+            newWorker.setReader(buffer.getReader())
 
-        if writer is not None:
-            if isinstance(newWorker, Chain):
-                newWorker.setInput(writer)
-            else:
-                newWorker.setReader(writer.getReader())
-
-        if index < len(self.workers) - 1:
-            nextWorker = self.workers[index + 1]
-            writer = Buffer(newWorker.getOutputFormat())
-            newWorker.setWriter(writer)
-            if isinstance(nextWorker, Chain):
-                nextWorker.setInput(writer)
-            else:
-                nextWorker.setReader(writer.getReader())
+        if index == len(self.workers) - 1:
+            if self.writer is not None:
+                newWorker.setWriter(self.writer)
         else:
-            if self.output is not None:
-                newWorker.setWriter(self.output)
+            nextWorker = self.workers[index + 1]
+            buffer = Buffer(newWorker.getOutputFormat())
+            newWorker.setWriter(buffer)
+            nextWorker.setReader(buffer.getReader())
 
     def pump(self, write):
-        if self.output is None:
+        if self.writer is None:
             self.setWriter(Buffer(self.getOutputFormat()))
-        self.reader = self.output.getReader()
+        self.clientReader = self.writer.getReader()
 
         def copy():
             run = True
             while run:
                 data = None
                 try:
-                    data = self.reader.read()
+                    data = self.clientReader.read()
                 except ValueError:
                     pass
                 if data is None:

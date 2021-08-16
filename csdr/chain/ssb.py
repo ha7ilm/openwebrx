@@ -7,11 +7,6 @@ class Ssb(Chain):
     def __init__(self):
         workers = [
             RealPart(),
-            # empty chain as placeholder for the "last decimation"
-            Chain(),
             Agc(Format.FLOAT),
         ]
         super().__init__(*workers)
-
-    def setLastDecimation(self, decimation: Chain):
-        self.replace(1, decimation)

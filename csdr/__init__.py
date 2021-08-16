@@ -117,7 +117,7 @@ class Dsp(DirewolfConfigSubscriber):
     def setBuffer(self, buffer):
         self.buffer = buffer
         if self.pycsdr_chain is not None:
-            self.pycsdr_chain.setInput(buffer)
+            self.pycsdr_chain.setReader(buffer.getReader())
 
     def set_service(self, flag=True):
         self.is_service = flag
@@ -754,14 +754,14 @@ class Dsp(DirewolfConfigSubscriber):
                 self.set_bpf(self.low_cut, self.high_cut)
                 self.set_offset_freq(self.offset_freq)
 
-                chain.setInput(self.buffer)
+                chain.setReader(self.buffer.getReader())
 
                 output_rate = self.get_hd_output_rate() if self.isHdAudio() else self.get_output_rate()
                 audio_rate = 8000 if self.isDigitalVoice() else self.get_audio_rate()
                 self.pycsdr_client_chain = ClientAudioChain(chain.getOutputFormat(), audio_rate, output_rate, self.audio_compression)
                 buffer = Buffer(chain.getOutputFormat())
                 chain.setWriter(buffer)
-                self.pycsdr_client_chain.setInput(buffer)
+                self.pycsdr_client_chain.setReader(buffer.getReader())
 
                 outputBuffer = Buffer(self.pycsdr_client_chain.getOutputFormat())
                 self.pycsdr_client_chain.setWriter(outputBuffer)

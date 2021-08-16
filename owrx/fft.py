@@ -56,7 +56,7 @@ class SpectrumThread(SdrSourceEventClient):
         threading.Thread(target=self.dsp.pump(self.sdrSource.writeSpectrumData)).start()
 
         if self.sdrSource.isAvailable():
-            self.dsp.setInput(self.sdrSource.getBuffer())
+            self.dsp.setReader(self.sdrSource.getBuffer().getReader())
 
     def stop(self):
         if self.dsp is None:
@@ -81,7 +81,7 @@ class SpectrumThread(SdrSourceEventClient):
             if self.dsp is None:
                 self.start()
             else:
-                self.dsp.setInput(self.sdrSource.getBuffer())
+                self.dsp.setReader(self.sdrSource.getBuffer().getReader())
 
     def onFail(self):
         self.dsp.stop()
