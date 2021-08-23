@@ -1,12 +1,13 @@
-from pycsdr.modules import Buffer, Writer
+from pycsdr.modules import Buffer
+from typing import Union, Callable
 
 
 class Chain:
-    def __init__(self, *workers):
+    def __init__(self, workers):
         self.reader = None
         self.writer = None
         self.clientReader = None
-        self.workers = list(workers)
+        self.workers = workers
         for i in range(1, len(self.workers)):
             self._connect(self.workers[i - 1], self.workers[i])
 
@@ -29,19 +30,17 @@ class Chain:
         if self.workers:
             self.workers[-1].setWriter(writer)
 
-    def stop(self):
-        for w in self.workers:
-            w.stop()
-        if self.clientReader is not None:
-            # TODO should be covered by finalize
-            self.clientReader.stop()
-            self.clientReader = None
+    def indexOf(self, search: Union[Callable, object]) -> int:
+        def searchFn(x):
+            if callable(search):
+                return search(x)
+            else:
+                return x is search
 
-    def getOutputFormat(self):
-        if self.workers:
-            return self.workers[-1].getOutputFormat()
-        else:
-            raise BufferError("getOutputFormat on empty chain")
+        try:
+            return next(i for i, v in enumerate(self.workers) if searchFn(v))
+        except StopIteration:
+            return -1
 
     def replace(self, index, newWorker):
         if index >= len(self.workers):
@@ -55,18 +54,59 @@ class Chain:
                 newWorker.setReader(self.reader)
         else:
             previousWorker = self.workers[index - 1]
-            buffer = Buffer(previousWorker.getOutputFormat())
-            previousWorker.setWriter(buffer)
-            newWorker.setReader(buffer.getReader())
+            self._connect(previousWorker, newWorker)
 
         if index == len(self.workers) - 1:
             if self.writer is not None:
                 newWorker.setWriter(self.writer)
         else:
             nextWorker = self.workers[index + 1]
-            buffer = Buffer(newWorker.getOutputFormat())
-            newWorker.setWriter(buffer)
-            nextWorker.setReader(buffer.getReader())
+            self._connect(newWorker, nextWorker)
+
+    def append(self, newWorker):
+        previousWorker = None
+        if self.workers:
+            previousWorker = self.workers[-1]
+
+        self.workers.append(newWorker)
+
+        if previousWorker:
+            self._connect(previousWorker, newWorker)
+        elif self.reader is not None:
+            newWorker.setReader(self.reader)
+
+        if self.writer is not None:
+            newWorker.setWriter(self.writer)
+
+    def remove(self, index):
+        removedWorker = self.workers[index]
+        self.workers.remove(removedWorker)
+        removedWorker.stop()
+
+        if index == 0:
+            if self.reader is not None:
+                self.workers[0].setReader(self.reader)
+        elif index == len(self.workers):
+            if self.writer is not None:
+                self.workers[-1].setWriter(self.writer)
+        else:
+            previousWorker = self.workers[index - 1]
+            nextWorker = self.workers[index]
+            self._connect(previousWorker, nextWorker)
+
+    def stop(self):
+        for w in self.workers:
+            w.stop()
+        if self.clientReader is not None:
+            # TODO should be covered by finalize
+            self.clientReader.stop()
+            self.clientReader = None
+
+    def getOutputFormat(self):
+        if self.workers:
+            return self.workers[-1].getOutputFormat()
+        else:
+            raise BufferError("getOutputFormat on empty chain")
 
     def pump(self, write):
         if self.writer is None:
@@ -87,4 +127,3 @@ class Chain:
                     write(data)
 
         return copy
-

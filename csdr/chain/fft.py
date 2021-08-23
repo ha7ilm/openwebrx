@@ -7,7 +7,7 @@ class FftAverager(Chain):
         self.fftSize = fft_size
         self.fftAverages = fft_averages
         workers = [self._getWorker()]
-        super().__init__(*workers)
+        super().__init__(workers)
 
     def setFftAverages(self, fft_averages):
         if self.fftAverages == fft_averages:
@@ -46,7 +46,7 @@ class FftChain(Chain):
 
         self._updateParameters()
 
-        super().__init__(*workers)
+        super().__init__(workers)
 
     def _setBlockSize(self, fft_block_size):
         if self.blockSize == int(fft_block_size):

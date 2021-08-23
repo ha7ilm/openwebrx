@@ -37,10 +37,8 @@ from csdr.pipe import Pipe
 
 from pycsdr.modules import Buffer
 from pycsdr.types import Format
-from csdr.chain.demodulator import DemodulatorChain
-from csdr.chain.fm import NFm, WFm
-from csdr.chain.am import Am
-from csdr.chain.ssb import Ssb
+from csdr.chain.selector import Selector
+from csdr.chain.analog import Am, NFm, WFm, Ssb
 from csdr.chain.digiham import Dstar, Nxdn, Dmr, Ysf
 from csdr.chain.clientaudio import ClientAudioChain
 

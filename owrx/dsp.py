@@ -9,13 +9,97 @@ from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from owrx.config.core import CoreConfig
 from csdr.output import Output
-from csdr import Dsp
+from csdr.chain import Chain
+from csdr.chain.demodulator import BaseDemodulatorChain
+from csdr.chain.selector import Selector
+from csdr.chain.clientaudio import ClientAudioChain
+from csdr.chain.analog import NFm, WFm, Am, Ssb
+from csdr.chain.digiham import Dmr, Dstar, Nxdn, Ysf
+from pycsdr.modules import Buffer, Writer
+from pycsdr.types import Format
+from typing import Union
 import threading
 import re
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ClientDemodulatorChain(Chain):
+    def __init__(self, demod: BaseDemodulatorChain, sampleRate: int, outputRate: int, audioCompression: str):
+        self.sampleRate = sampleRate
+        self.outputRate = outputRate
+        self.selector = Selector(sampleRate, outputRate, 0.0)
+        self.selector.setBandpass(-4000, 4000)
+        self.demodulator = demod
+        self.clientAudioChain = ClientAudioChain(Format.FLOAT, outputRate, outputRate, audioCompression)
+        super().__init__([self.selector, self.demodulator, self.clientAudioChain])
+
+    def setDemodulator(self, demodulator: BaseDemodulatorChain):
+        self.replace(1, demodulator)
+
+        if self.demodulator is not None:
+            self.demodulator.stop()
+
+        self.demodulator = demodulator
+
+        ifRate = self.demodulator.getFixedIfSampleRate()
+        if ifRate is not None:
+            self.selector.setOutputRate(ifRate)
+        else:
+            self.selector.setOutputRate(self.outputRate)
+
+        audioRate = self.demodulator.getFixedAudioRate()
+        if audioRate is not None:
+            self.clientAudioChain.setInputRate(audioRate)
+        else:
+            self.clientAudioChain.setInputRate(self.outputRate)
+
+        if not demodulator.supportsSquelch():
+            self.selector.setSquelchLevel(-150)
+
+        self.clientAudioChain.setFormat(demodulator.getOutputFormat())
+
+    def setLowCut(self, lowCut):
+        self.selector.setLowCut(lowCut)
+
+    def setHighCut(self, highCut):
+        self.selector.setHighCut(highCut)
+
+    def setBandpass(self, lowCut, highCut):
+        self.selector.setBandpass(lowCut, highCut)
+
+    def setFrequencyOffset(self, offset: int) -> None:
+        shift = -offset / self.sampleRate
+        self.selector.setShiftRate(shift)
+
+    def setAudioCompression(self, compression: str) -> None:
+        self.clientAudioChain.setAudioCompression(compression)
+
+    def setSquelchLevel(self, level: float) -> None:
+        if not self.demodulator.supportsSquelch():
+            return
+        self.selector.setSquelchLevel(level)
+
+    def setOutputRate(self, outputRate) -> None:
+        if outputRate == self.outputRate:
+            return
+
+        self.outputRate = outputRate
+        if self.demodulator.getFixedIfSampleRate() is None:
+            self.selector.setOutputRate(outputRate)
+        if self.demodulator.getFixedAudioRate() is None:
+            self.clientAudioChain.setClientRate(outputRate)
+
+    def setPowerWriter(self, writer: Writer) -> None:
+        self.selector.setPowerWriter(writer)
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.selector.setInputRate(sampleRate)
 
 
 class ModulationValidator(OrValidator):
@@ -75,18 +159,28 @@ class DspManager(Output, SdrSourceEventClient):
             ),
         )
 
-        self.dsp = Dsp(self)
-        self.dsp.nc_port = self.sdrSource.getPort()
+        # TODO wait for the rate to come from the client
+        if "output_rate" not in self.props:
+            self.props["output_rate"] = 12000
 
-        def set_low_cut(cut):
-            bpf = self.dsp.get_bpf()
-            bpf[0] = cut
-            self.dsp.set_bpf(*bpf)
+        self.chain = ClientDemodulatorChain(
+            self._getDemodulator("nfm"),
+            self.props["samp_rate"],
+            self.props["output_rate"],
+            self.props["audio_compression"]
+        )
 
-        def set_high_cut(cut):
-            bpf = self.dsp.get_bpf()
-            bpf[1] = cut
-            self.dsp.set_bpf(*bpf)
+        # wire audio output
+        buffer = Buffer(self.chain.getOutputFormat())
+        self.chain.setWriter(buffer)
+        reader = buffer.getReader()
+        self.send_output("audio", reader.read)
+
+        # wire power level output
+        buffer = Buffer(Format.FLOAT)
+        self.chain.setPowerWriter(buffer)
+        reader = buffer.getReader()
+        self.send_output("smeter", reader.read)
 
         def set_dial_freq(changes):
             if (
@@ -101,39 +195,46 @@ class DspManager(Output, SdrSourceEventClient):
                 parser.setDialFrequency(freq)
 
         if "start_mod" in self.props:
-            self.dsp.set_demodulator(self.props["start_mod"])
+            self.setDemodulator(self.props["start_mod"])
             mode = Modes.findByModulation(self.props["start_mod"])
 
             if mode and mode.bandpass:
-                self.dsp.set_bpf(mode.bandpass.low_cut, mode.bandpass.high_cut)
-            else:
-                self.dsp.set_bpf(-4000, 4000)
+                bpf = [mode.bandpass.low_cut, mode.bandpass.high_cut]
+                self.chain.setBandpass(*bpf)
 
         if "start_freq" in self.props and "center_freq" in self.props:
-            self.dsp.set_offset_freq(self.props["start_freq"] - self.props["center_freq"])
+            self.chain.setFrequencyOffset(self.props["start_freq"] - self.props["center_freq"])
         else:
-            self.dsp.set_offset_freq(0)
+            self.chain.setFrequencyOffset(0)
 
         self.subscriptions = [
-            self.props.wireProperty("audio_compression", self.dsp.set_audio_compression),
-            self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
-            self.props.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
-            self.props.wireProperty("samp_rate", self.dsp.set_samp_rate),
-            self.props.wireProperty("output_rate", self.dsp.set_output_rate),
-            self.props.wireProperty("hd_output_rate", self.dsp.set_hd_output_rate),
-            self.props.wireProperty("offset_freq", self.dsp.set_offset_freq),
-            self.props.wireProperty("center_freq", self.dsp.set_center_freq),
-            self.props.wireProperty("squelch_level", self.dsp.set_squelch_level),
-            self.props.wireProperty("low_cut", set_low_cut),
-            self.props.wireProperty("high_cut", set_high_cut),
-            self.props.wireProperty("mod", self.dsp.set_demodulator),
-            self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
-            self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
-            self.props.wireProperty("digital_voice_codecserver", self.dsp.set_codecserver),
+            self.props.wireProperty("audio_compression", self.chain.setAudioCompression),
+            # probably unused:
+            # self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
+            # TODO
+            # self.props.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
+            self.props.wireProperty("samp_rate", self.chain.setSampleRate),
+            self.props.wireProperty("output_rate", self.chain.setOutputRate),
+            # TODO
+            # self.props.wireProperty("hd_output_rate", self.dsp.set_hd_output_rate),
+            self.props.wireProperty("offset_freq", self.chain.setFrequencyOffset),
+            # TODO check, this was used for wsjt-x
+            # self.props.wireProperty("center_freq", self.dsp.set_center_freq),
+            self.props.wireProperty("squelch_level", self.chain.setSquelchLevel),
+            self.props.wireProperty("low_cut", self.chain.setLowCut),
+            self.props.wireProperty("high_cut", self.chain.setHighCut),
+            self.props.wireProperty("mod", self.setDemodulator),
+            # TODO
+            # self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
+            # TODO
+            # self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
+            # TODO
+            # self.props.wireProperty("digital_voice_codecserver", self.dsp.set_codecserver),
             self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
-        self.dsp.set_temporary_directory(CoreConfig().get_temporary_directory())
+        # TODO
+        # sp.set_temporary_directory(CoreConfig().get_temporary_directory())
 
         def send_secondary_config(*args):
             self.handler.write_secondary_dsp_config(
@@ -152,9 +253,10 @@ class DspManager(Output, SdrSourceEventClient):
                 send_secondary_config()
 
         self.subscriptions += [
-            self.props.wireProperty("secondary_mod", set_secondary_mod),
-            self.props.wireProperty("digimodes_fft_size", send_secondary_config),
-            self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
+            # TODO
+            # self.props.wireProperty("secondary_mod", set_secondary_mod),
+            # self.props.wireProperty("digimodes_fft_size", send_secondary_config),
+            # self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
         ]
 
         self.startOnAvailable = False
@@ -163,10 +265,39 @@ class DspManager(Output, SdrSourceEventClient):
 
         super().__init__()
 
+    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]):
+        if isinstance(demod, BaseDemodulatorChain):
+            return demod
+        # TODO: move this to Modes
+        demodChain = None
+        if demod == "nfm":
+            demodChain = NFm(self.props["output_rate"])
+        elif demod == "wfm":
+            demodChain = WFm(self.props["output_rate"], self.props["wfm_deemphasis_tau"])
+        elif demod == "am":
+            demodChain = Am()
+        elif demod in ["usb", "lsb", "cw"]:
+            demodChain = Ssb()
+        elif demod == "dmr":
+            demodChain = Dmr(self.props["digital_voice_codecserver"])
+        elif demod == "dstar":
+            demodChain = Dstar(self.props["digital_voice_codecserver"])
+        elif demod == "ysf":
+            demodChain = Ysf(self.props["digital_voice_codecserver"])
+        elif demod == "nxdn":
+            demodChain = Nxdn(self.props["digital_voice_codecserver"])
+
+        return demodChain
+
+    def setDemodulator(self, mod):
+        demodulator = self._getDemodulator(mod)
+        if demodulator is None:
+            raise ValueError("unsupported demodulator: {}".format(mod))
+        self.chain.setDemodulator(demodulator)
+
     def start(self):
         if self.sdrSource.isAvailable():
-            self.dsp.setBuffer(self.sdrSource.getBuffer())
-            self.dsp.start()
+            self.chain.setReader(self.sdrSource.getBuffer().getReader())
         else:
             self.startOnAvailable = True
 
@@ -187,7 +318,9 @@ class DspManager(Output, SdrSourceEventClient):
         threading.Thread(target=self.pump(read_fn, write), name="dsp_pump_{}".format(t)).start()
 
     def stop(self):
-        self.dsp.stop()
+        self.chain.stop()
+        self.chain = None
+
         self.startOnAvailable = False
         self.sdrSource.removeClient(self)
         for sub in self.subscriptions:
@@ -208,16 +341,15 @@ class DspManager(Output, SdrSourceEventClient):
         if state is SdrSourceState.RUNNING:
             logger.debug("received STATE_RUNNING, attempting DspSource restart")
             if self.startOnAvailable:
-                self.dsp.setBuffer(self.sdrSource.getBuffer())
-                self.dsp.start()
+                self.chain.setReader(self.sdrSource.getBuffer().getReader())
                 self.startOnAvailable = False
         elif state is SdrSourceState.STOPPING:
             logger.debug("received STATE_STOPPING, shutting down DspSource")
-            self.dsp.stop()
+            self.stop()
 
     def onFail(self):
         logger.debug("received onFail(), shutting down DspSource")
-        self.dsp.stop()
+        self.stop()
 
     def onShutdown(self):
-        self.dsp.stop()
+        self.stop()

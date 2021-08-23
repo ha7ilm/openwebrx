@@ -378,7 +378,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
 
     def write_s_meter_level(self, level):
         if isinstance(level, memoryview):
-            level, = struct.unpack('f', level)
+            # may contain more than one sample, so only take the last 4 bytes = 1 float
+            level, = struct.unpack('f', level[-4:])
         if not isinstance(level, float):
             logger.warning("s-meter value has unexpected type")
             return
