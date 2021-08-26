@@ -14,7 +14,7 @@ from csdr.chain.demodulator import BaseDemodulatorChain
 from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
-from csdr.chain.digiham import Dmr, Dstar, Nxdn, Ysf
+from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union
@@ -34,9 +34,18 @@ class ClientDemodulatorChain(Chain):
         self.selector.setBandpass(-4000, 4000)
         self.demodulator = demod
         self.clientAudioChain = ClientAudioChain(Format.FLOAT, outputRate, outputRate, audioCompression)
+        self.metaWriter = None
+        self.squelchLevel = -150
         super().__init__([self.selector, self.demodulator, self.clientAudioChain])
 
     def setDemodulator(self, demodulator: BaseDemodulatorChain):
+        try:
+            self.clientAudioChain.setFormat(demodulator.getOutputFormat())
+        except ValueError:
+            # this will happen if the new format does not match the current demodulator.
+            # it's expected and should be mended when swapping out the demodulator in the next step
+            pass
+
         self.replace(1, demodulator)
 
         if self.demodulator is not None:
@@ -58,8 +67,11 @@ class ClientDemodulatorChain(Chain):
 
         if not demodulator.supportsSquelch():
             self.selector.setSquelchLevel(-150)
+        else:
+            self.selector.setSquelchLevel(self.squelchLevel)
 
-        self.clientAudioChain.setFormat(demodulator.getOutputFormat())
+        if self.metaWriter is not None and isinstance(demodulator, DigihamChain):
+            demodulator.setMetaWriter(self.metaWriter)
 
     def setLowCut(self, lowCut):
         self.selector.setLowCut(lowCut)
@@ -78,6 +90,9 @@ class ClientDemodulatorChain(Chain):
         self.clientAudioChain.setAudioCompression(compression)
 
     def setSquelchLevel(self, level: float) -> None:
+        if level == self.squelchLevel:
+            return
+        self.squelchLevel = level
         if not self.demodulator.supportsSquelch():
             return
         self.selector.setSquelchLevel(level)
@@ -94,6 +109,13 @@ class ClientDemodulatorChain(Chain):
 
     def setPowerWriter(self, writer: Writer) -> None:
         self.selector.setPowerWriter(writer)
+
+    def setMetaWriter(self, writer: Writer) -> None:
+        if writer is self.metaWriter:
+            return
+        self.metaWriter = writer
+        if isinstance(self.demodulator, DigihamChain):
+            self.demodulator.setMetaWriter(self.metaWriter)
 
     def setSampleRate(self, sampleRate: int) -> None:
         if sampleRate == self.sampleRate:
@@ -181,6 +203,12 @@ class DspManager(Output, SdrSourceEventClient):
         self.chain.setPowerWriter(buffer)
         reader = buffer.getReader()
         self.send_output("smeter", reader.read)
+
+        # wire meta output
+        buffer = Buffer(Format.CHAR)
+        self.chain.setMetaWriter(buffer)
+        reader = buffer.getReader()
+        self.send_output("meta", reader.read)
 
         def set_dial_freq(changes):
             if (

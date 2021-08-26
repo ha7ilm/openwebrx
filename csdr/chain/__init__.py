@@ -49,19 +49,31 @@ class Chain:
         self.workers[index].stop()
         self.workers[index] = newWorker
 
+        error = None
+
         if index == 0:
             if self.reader is not None:
                 newWorker.setReader(self.reader)
         else:
-            previousWorker = self.workers[index - 1]
-            self._connect(previousWorker, newWorker)
+            try:
+                previousWorker = self.workers[index - 1]
+                self._connect(previousWorker, newWorker)
+            except ValueError as e:
+                # store error for later raising, but still attempt the second connection
+                error = e
 
         if index == len(self.workers) - 1:
             if self.writer is not None:
                 newWorker.setWriter(self.writer)
         else:
-            nextWorker = self.workers[index + 1]
-            self._connect(newWorker, nextWorker)
+            try:
+                nextWorker = self.workers[index + 1]
+                self._connect(newWorker, nextWorker)
+            except ValueError as e:
+                error = e
+
+        if error is not None:
+            raise e
 
     def append(self, newWorker):
         previousWorker = None

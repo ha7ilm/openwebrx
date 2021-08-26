@@ -171,7 +171,9 @@ class MetaParser(Parser):
         }
         self.currentMetaData = None
 
-    def parse(self, raw: str):
+    def parse(self, raw: memoryview):
+        raw = raw.tobytes().decode("utf-8").rstrip("\n")
+
         for meta in raw.split("\n"):
             fields = meta.split(";")
             meta = {v[0]: ":".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
