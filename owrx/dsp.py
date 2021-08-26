@@ -192,23 +192,22 @@ class DspManager(Output, SdrSourceEventClient):
             self.props["audio_compression"]
         )
 
+        self.readers = []
+
         # wire audio output
         buffer = Buffer(self.chain.getOutputFormat())
         self.chain.setWriter(buffer)
-        reader = buffer.getReader()
-        self.send_output("audio", reader.read)
+        self.wireOutput("audio", buffer)
 
         # wire power level output
         buffer = Buffer(Format.FLOAT)
         self.chain.setPowerWriter(buffer)
-        reader = buffer.getReader()
-        self.send_output("smeter", reader.read)
+        self.wireOutput("smeter", buffer)
 
         # wire meta output
         buffer = Buffer(Format.CHAR)
         self.chain.setMetaWriter(buffer)
-        reader = buffer.getReader()
-        self.send_output("meta", reader.read)
+        self.wireOutput("meta", buffer)
 
         def set_dial_freq(changes):
             if (
@@ -329,8 +328,8 @@ class DspManager(Output, SdrSourceEventClient):
         else:
             self.startOnAvailable = True
 
-    def receive_output(self, t, read_fn):
-        logger.debug("adding new output of type %s", t)
+    def wireOutput(self, t: str, buffer: Buffer):
+        logger.debug("wiring new output of type %s", t)
         writers = {
             "audio": self.handler.write_dsp_data,
             "hd_audio": self.handler.write_hd_audio,
@@ -343,11 +342,15 @@ class DspManager(Output, SdrSourceEventClient):
 
         write = writers[t]
 
-        threading.Thread(target=self.pump(read_fn, write), name="dsp_pump_{}".format(t)).start()
+        reader = buffer.getReader()
+        self.readers.append(reader)
+        threading.Thread(target=self.pump(reader.read, write), name="dsp_pump_{}".format(t)).start()
 
     def stop(self):
         self.chain.stop()
         self.chain = None
+        while self.readers:
+            self.readers.pop().stop()
 
         self.startOnAvailable = False
         self.sdrSource.removeClient(self)
