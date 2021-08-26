@@ -84,7 +84,11 @@ class SpectrumThread(SdrSourceEventClient):
                 self.dsp.setReader(self.sdrSource.getBuffer().getReader())
 
     def onFail(self):
+        if self.dsp is None:
+            return
         self.dsp.stop()
 
     def onShutdown(self):
+        if self.dsp is None:
+            return
         self.dsp.stop()
