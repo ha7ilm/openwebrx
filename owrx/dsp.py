@@ -14,6 +14,7 @@ from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
 from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
+from csdr.chain.fft import FftChain
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union
@@ -32,13 +33,21 @@ class ClientDemodulatorChain(Chain):
         self.hdOutputRate = hdOutputRate
         self.selector = Selector(sampleRate, outputRate, 0.0)
         self.selector.setBandpass(-4000, 4000)
+        self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT)
         self.demodulator = demod
         inputRate = demod.getFixedAudioRate() if isinstance(demod, FixedAudioRateChain) else outputRate
         oRate = hdOutputRate if isinstance(demod, HdAudio) else outputRate
         self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), inputRate, oRate, audioCompression)
+        self.secondaryFftChain = None
         self.metaWriter = None
         self.squelchLevel = -150
         super().__init__([self.selector, self.demodulator, self.clientAudioChain])
+
+    def _connect(self, w1, w2, buffer: Union[Buffer, None] = None) -> None:
+        if w1 is self.selector:
+            super()._connect(w1, w2, self.selectorBuffer)
+        else:
+            super()._connect(w1, w2)
 
     def setDemodulator(self, demodulator: BaseDemodulatorChain):
         try:
@@ -127,6 +136,13 @@ class ClientDemodulatorChain(Chain):
         if not isinstance(self.demodulator, FixedAudioRateChain):
             self.clientAudioChain.setClientRate(outputRate)
 
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.selector.setInputRate(sampleRate)
+        # TODO update secondary FFT
+
     def setPowerWriter(self, writer: Writer) -> None:
         self.selector.setPowerWriter(writer)
 
@@ -137,11 +153,22 @@ class ClientDemodulatorChain(Chain):
         if isinstance(self.demodulator, DigihamChain):
             self.demodulator.setMetaWriter(self.metaWriter)
 
-    def setSampleRate(self, sampleRate: int) -> None:
-        if sampleRate == self.sampleRate:
-            return
-        self.sampleRate = sampleRate
-        self.selector.setInputRate(sampleRate)
+    def setSecondaryFftWriter(self, writer: Union[Writer, None]) -> None:
+        if writer is None:
+            if self.secondaryFftChain is not None:
+                self.secondaryFftChain.stop()
+                self.secondaryFftChain = None
+        else:
+            if self.secondaryFftChain is None:
+                # TODO eliminate constants
+                self.secondaryFftChain = FftChain(self.outputRate, 2048, 0.3, 9, "adpcm")
+                self.secondaryFftChain.setReader(self.selectorBuffer.getReader())
+
+            self.secondaryFftChain.setWriter(writer)
+
+    def setSecondaryFftSize(self, size: int) -> None:
+        # TODO
+        pass
 
 
 class ModulationValidator(OrValidator):
@@ -262,8 +289,7 @@ class DspManager(Output, SdrSourceEventClient):
             self.props.wireProperty("audio_compression", self.setAudioCompression),
             # probably unused:
             # self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
-            # TODO
-            # self.props.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
+            self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
             self.props.wireProperty("samp_rate", self.chain.setSampleRate),
             self.props.wireProperty("output_rate", self.chain.setOutputRate),
             self.props.wireProperty("hd_output_rate", self.chain.setHdOutputRate),
@@ -286,26 +312,17 @@ class DspManager(Output, SdrSourceEventClient):
         # TODO
         # sp.set_temporary_directory(CoreConfig().get_temporary_directory())
 
-        def send_secondary_config(*args):
-            self.handler.write_secondary_dsp_config(
-                {
-                    "secondary_fft_size": self.props["digimodes_fft_size"],
-                    "if_samp_rate": self.dsp.if_samp_rate(),
-                    "secondary_bw": self.dsp.secondary_bw(),
-                }
-            )
-
         def set_secondary_mod(mod):
             if mod == False:
                 mod = None
             self.dsp.set_secondary_demodulator(mod)
-            if mod is not None:
-                send_secondary_config()
+            #if mod is not None:
+                #send_secondary_config()
 
         self.subscriptions += [
+            self.props.wireProperty("secondary_mod", self.setSecondaryDemodulator),
+            self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
             # TODO
-            # self.props.wireProperty("secondary_mod", set_secondary_mod),
-            # self.props.wireProperty("digimodes_fft_size", send_secondary_config),
             # self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
         ]
 
@@ -352,6 +369,27 @@ class DspManager(Output, SdrSourceEventClient):
             self.wireOutput("hd_audio", buffer)
         else:
             self.wireOutput("audio", buffer)
+
+    def sendSecondaryConfig(self):
+        self.handler.write_secondary_dsp_config(
+            {
+                "secondary_fft_size": self.props["digimodes_fft_size"],
+                "if_samp_rate": self.props["output_rate"],
+                # TODO
+                "secondary_bw": 31.25
+            }
+        )
+
+    def setSecondaryDemodulator(self, mod):
+        if not mod:
+            self.chain.setSecondaryFftWriter(None)
+        else:
+            buffer = Buffer(Format.CHAR)
+            self.chain.setSecondaryFftWriter(buffer)
+            self.wireOutput("secondary_fft", buffer)
+
+            self.sendSecondaryConfig()
+            #self.chain.setSecondaryDemodulator(mod)
 
     def setAudioCompression(self, comp):
         try:

@@ -14,10 +14,11 @@ class Chain:
     def empty(self):
         return not self.workers
 
-    def _connect(self, w1, w2):
-        writer = Buffer(w1.getOutputFormat())
-        w1.setWriter(writer)
-        w2.setReader(writer.getReader())
+    def _connect(self, w1, w2, buffer: Union[Buffer, None] = None) -> None:
+        if buffer is None:
+            buffer = Buffer(w1.getOutputFormat())
+        w1.setWriter(buffer)
+        w2.setReader(buffer.getReader())
 
     def setReader(self, reader):
         if self.reader is reader:
