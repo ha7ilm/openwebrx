@@ -1,11 +1,11 @@
-from csdr.chain.demodulator import BaseDemodulatorChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain
 from pycsdr.modules import FmDemod, Agc, Writer
 from pycsdr.types import Format
 from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder
 from digiham.ambe import Modes
 
 
-class DigihamChain(BaseDemodulatorChain):
+class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
     def __init__(self, fskDemodulator, decoder, mbeMode, filter=None, codecserver: str = ""):
         self.decoder = decoder
         if codecserver is None:

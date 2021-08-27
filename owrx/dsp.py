@@ -7,10 +7,9 @@ from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
-from owrx.config.core import CoreConfig
 from csdr.output import Output
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain
 from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
@@ -53,15 +52,13 @@ class ClientDemodulatorChain(Chain):
 
         self.demodulator = demodulator
 
-        ifRate = self.demodulator.getFixedIfSampleRate()
-        if ifRate is not None:
-            self.selector.setOutputRate(ifRate)
+        if isinstance(self.demodulator, FixedIfSampleRateChain):
+            self.selector.setOutputRate(self.demodulator.getFixedIfSampleRate())
         else:
             self.selector.setOutputRate(self.outputRate)
 
-        audioRate = self.demodulator.getFixedAudioRate()
-        if audioRate is not None:
-            self.clientAudioChain.setInputRate(audioRate)
+        if isinstance(self.demodulator, FixedAudioRateChain):
+            self.clientAudioChain.setInputRate(self.demodulator.getFixedAudioRate())
         else:
             self.clientAudioChain.setInputRate(self.outputRate)
 
@@ -102,9 +99,9 @@ class ClientDemodulatorChain(Chain):
             return
 
         self.outputRate = outputRate
-        if self.demodulator.getFixedIfSampleRate() is None:
+        if not isinstance(self.demodulator, FixedIfSampleRateChain):
             self.selector.setOutputRate(outputRate)
-        if self.demodulator.getFixedAudioRate() is None:
+        if not isinstance(self.demodulator, FixedAudioRateChain):
             self.clientAudioChain.setClientRate(outputRate)
 
     def setPowerWriter(self, writer: Writer) -> None:

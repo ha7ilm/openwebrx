@@ -1,4 +1,4 @@
-from csdr.chain.demodulator import BaseDemodulatorChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio
 from pycsdr.modules import AmDemod, DcBlock, FmDemod, Limit, NfmDeemphasis, Agc, WfmDeemphasis, FractionalDecimator, RealPart
 from pycsdr.types import Format, AgcProfile
 
@@ -31,7 +31,7 @@ class NFm(BaseDemodulatorChain):
         super().__init__(workers)
 
 
-class WFm(BaseDemodulatorChain):
+class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio):
     def __init__(self, sampleRate: int, tau: float):
         workers = [
             FmDemod(),
