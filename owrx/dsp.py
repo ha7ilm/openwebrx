@@ -33,7 +33,7 @@ class ClientDemodulatorChain(Chain):
         self.selector = Selector(sampleRate, outputRate, 0.0)
         self.selector.setBandpass(-4000, 4000)
         self.demodulator = demod
-        self.clientAudioChain = ClientAudioChain(Format.FLOAT, outputRate, outputRate, audioCompression)
+        self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), outputRate, outputRate, audioCompression)
         self.metaWriter = None
         self.squelchLevel = -150
         super().__init__([self.selector, self.demodulator, self.clientAudioChain])
@@ -192,7 +192,7 @@ class DspManager(Output, SdrSourceEventClient):
             self.props["audio_compression"]
         )
 
-        self.readers = []
+        self.readers = {}
 
         # wire audio output
         buffer = Buffer(self.chain.getOutputFormat())
@@ -235,7 +235,7 @@ class DspManager(Output, SdrSourceEventClient):
             self.chain.setFrequencyOffset(0)
 
         self.subscriptions = [
-            self.props.wireProperty("audio_compression", self.chain.setAudioCompression),
+            self.props.wireProperty("audio_compression", self.setAudioCompression),
             # probably unused:
             # self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
             # TODO
@@ -322,6 +322,15 @@ class DspManager(Output, SdrSourceEventClient):
             raise ValueError("unsupported demodulator: {}".format(mod))
         self.chain.setDemodulator(demodulator)
 
+    def setAudioCompression(self, comp):
+        try:
+            self.chain.setAudioCompression(comp)
+        except ValueError:
+            # wrong output format... need to re-wire
+            buffer = Buffer(self.chain.getOutputFormat())
+            self.chain.setWriter(buffer)
+            self.wireOutput("audio", buffer)
+
     def start(self):
         if self.sdrSource.isAvailable():
             self.chain.setReader(self.sdrSource.getBuffer().getReader())
@@ -342,15 +351,19 @@ class DspManager(Output, SdrSourceEventClient):
 
         write = writers[t]
 
+        if t in self.readers:
+            self.readers[t].stop()
+
         reader = buffer.getReader()
-        self.readers.append(reader)
+        self.readers[t] = reader
         threading.Thread(target=self.pump(reader.read, write), name="dsp_pump_{}".format(t)).start()
 
     def stop(self):
         self.chain.stop()
         self.chain = None
-        while self.readers:
-            self.readers.pop().stop()
+        for reader in self.readers.values():
+            reader.stop()
+        self.readers = {}
 
         self.startOnAvailable = False
         self.sdrSource.removeClient(self)

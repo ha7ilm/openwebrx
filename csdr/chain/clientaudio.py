@@ -21,7 +21,10 @@ class ClientAudioChain(Chain):
         self.format = format
         self.inputRate = inputRate
         self.clientRate = clientRate
-        workers = [self._buildConverter()]
+        workers = []
+        converter = self._buildConverter()
+        if not converter.empty():
+            workers += [converter]
         if compression == "adpcm":
             workers += [AdpcmEncoder(sync=True)]
         super().__init__(workers)
@@ -29,23 +32,35 @@ class ClientAudioChain(Chain):
     def _buildConverter(self):
         return Converter(self.format, self.inputRate, self.clientRate)
 
+    def _updateConverter(self):
+        converter = self._buildConverter()
+        index = self.indexOf(lambda x: isinstance(x, Converter))
+        if converter.empty():
+            if index >= 0:
+                self.remove(index)
+        else:
+            if index >= 0:
+                self.replace(index, converter)
+            else:
+                self.insert(converter)
+
     def setFormat(self, format: Format) -> None:
         if format == self.format:
             return
         self.format = format
-        self.replace(0, self._buildConverter())
+        self._updateConverter()
 
     def setInputRate(self, inputRate: int) -> None:
         if inputRate == self.inputRate:
             return
         self.inputRate = inputRate
-        self.replace(0, self._buildConverter())
+        self._updateConverter()
 
     def setClientRate(self, clientRate: int) -> None:
         if clientRate == self.clientRate:
             return
         self.clientRate = clientRate
-        self.replace(0, self._buildConverter())
+        self._updateConverter()
 
     def setAudioCompression(self, compression: str) -> None:
         index = self.indexOf(lambda x: isinstance(x, AdpcmEncoder))

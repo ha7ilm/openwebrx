@@ -11,6 +11,9 @@ class Chain:
         for i in range(1, len(self.workers)):
             self._connect(self.workers[i - 1], self.workers[i])
 
+    def empty(self):
+        return not self.workers
+
     def _connect(self, w1, w2):
         writer = Buffer(w1.getOutputFormat())
         w1.setWriter(writer)
@@ -73,7 +76,7 @@ class Chain:
                 error = e
 
         if error is not None:
-            raise e
+            raise error
 
     def append(self, newWorker):
         previousWorker = None
@@ -89,6 +92,21 @@ class Chain:
 
         if self.writer is not None:
             newWorker.setWriter(self.writer)
+
+    def insert(self, newWorker):
+        nextWorker = None
+        if self.workers:
+            nextWorker = self.workers[0]
+
+        self.workers.insert(0, newWorker)
+
+        if nextWorker:
+            self._connect(newWorker, nextWorker)
+        elif self.writer is not None:
+            newWorker.setWriter(self.writer)
+
+        if self.reader is not None:
+            newWorker.setReader(self.reader)
 
     def remove(self, index):
         removedWorker = self.workers[index]
