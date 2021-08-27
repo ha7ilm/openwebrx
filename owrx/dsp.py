@@ -9,7 +9,7 @@ from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from csdr.output import Output
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio
 from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
@@ -26,13 +26,16 @@ logger = logging.getLogger(__name__)
 
 
 class ClientDemodulatorChain(Chain):
-    def __init__(self, demod: BaseDemodulatorChain, sampleRate: int, outputRate: int, audioCompression: str):
+    def __init__(self, demod: BaseDemodulatorChain, sampleRate: int, outputRate: int, hdOutputRate: int, audioCompression: str):
         self.sampleRate = sampleRate
         self.outputRate = outputRate
+        self.hdOutputRate = hdOutputRate
         self.selector = Selector(sampleRate, outputRate, 0.0)
         self.selector.setBandpass(-4000, 4000)
         self.demodulator = demod
-        self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), outputRate, outputRate, audioCompression)
+        inputRate = demod.getFixedAudioRate() if isinstance(demod, FixedAudioRateChain) else outputRate
+        oRate = hdOutputRate if isinstance(demod, HdAudio) else outputRate
+        self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), inputRate, oRate, audioCompression)
         self.metaWriter = None
         self.squelchLevel = -150
         super().__init__([self.selector, self.demodulator, self.clientAudioChain])
@@ -52,20 +55,24 @@ class ClientDemodulatorChain(Chain):
 
         self.demodulator = demodulator
 
+        outputRate = self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
+
         if isinstance(self.demodulator, FixedIfSampleRateChain):
             self.selector.setOutputRate(self.demodulator.getFixedIfSampleRate())
         else:
-            self.selector.setOutputRate(self.outputRate)
+            self.selector.setOutputRate(outputRate)
 
         if isinstance(self.demodulator, FixedAudioRateChain):
             self.clientAudioChain.setInputRate(self.demodulator.getFixedAudioRate())
         else:
-            self.clientAudioChain.setInputRate(self.outputRate)
+            self.clientAudioChain.setInputRate(outputRate)
 
         if not demodulator.supportsSquelch():
             self.selector.setSquelchLevel(-150)
         else:
             self.selector.setSquelchLevel(self.squelchLevel)
+
+        self.clientAudioChain.setClientRate(outputRate)
 
         if self.metaWriter is not None and isinstance(demodulator, DigihamChain):
             demodulator.setMetaWriter(self.metaWriter)
@@ -99,6 +106,22 @@ class ClientDemodulatorChain(Chain):
             return
 
         self.outputRate = outputRate
+
+        if isinstance(self.demodulator, HdAudio):
+            return
+        if not isinstance(self.demodulator, FixedIfSampleRateChain):
+            self.selector.setOutputRate(outputRate)
+        if not isinstance(self.demodulator, FixedAudioRateChain):
+            self.clientAudioChain.setClientRate(outputRate)
+
+    def setHdOutputRate(self, outputRate) -> None:
+        if outputRate == self.hdOutputRate:
+            return
+
+        self.hdOutputRate = outputRate
+
+        if not isinstance(self.demodulator, HdAudio):
+            return
         if not isinstance(self.demodulator, FixedIfSampleRateChain):
             self.selector.setOutputRate(outputRate)
         if not isinstance(self.demodulator, FixedAudioRateChain):
@@ -181,11 +204,14 @@ class DspManager(Output, SdrSourceEventClient):
         # TODO wait for the rate to come from the client
         if "output_rate" not in self.props:
             self.props["output_rate"] = 12000
+        if "hd_output_rate" not in self.props:
+            self.props["hd_output_rate"] = 48000
 
         self.chain = ClientDemodulatorChain(
             self._getDemodulator("nfm"),
             self.props["samp_rate"],
             self.props["output_rate"],
+            self.props["hd_output_rate"],
             self.props["audio_compression"]
         )
 
@@ -194,6 +220,7 @@ class DspManager(Output, SdrSourceEventClient):
         # wire audio output
         buffer = Buffer(self.chain.getOutputFormat())
         self.chain.setWriter(buffer)
+        # TODO check for hd audio
         self.wireOutput("audio", buffer)
 
         # wire power level output
@@ -239,8 +266,7 @@ class DspManager(Output, SdrSourceEventClient):
             # self.props.wireProperty("digimodes_fft_size", self.dsp.set_secondary_fft_size),
             self.props.wireProperty("samp_rate", self.chain.setSampleRate),
             self.props.wireProperty("output_rate", self.chain.setOutputRate),
-            # TODO
-            # self.props.wireProperty("hd_output_rate", self.dsp.set_hd_output_rate),
+            self.props.wireProperty("hd_output_rate", self.chain.setHdOutputRate),
             self.props.wireProperty("offset_freq", self.chain.setFrequencyOffset),
             # TODO check, this was used for wsjt-x
             # self.props.wireProperty("center_freq", self.dsp.set_center_freq),
@@ -297,7 +323,7 @@ class DspManager(Output, SdrSourceEventClient):
         if demod == "nfm":
             demodChain = NFm(self.props["output_rate"])
         elif demod == "wfm":
-            demodChain = WFm(self.props["output_rate"], self.props["wfm_deemphasis_tau"])
+            demodChain = WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"])
         elif demod == "am":
             demodChain = Am()
         elif demod in ["usb", "lsb", "cw"]:
@@ -319,6 +345,14 @@ class DspManager(Output, SdrSourceEventClient):
             raise ValueError("unsupported demodulator: {}".format(mod))
         self.chain.setDemodulator(demodulator)
 
+        # re-wire the audio to the correct client API
+        buffer = Buffer(self.chain.getOutputFormat())
+        self.chain.setWriter(buffer)
+        if isinstance(demodulator, HdAudio):
+            self.wireOutput("hd_audio", buffer)
+        else:
+            self.wireOutput("audio", buffer)
+
     def setAudioCompression(self, comp):
         try:
             self.chain.setAudioCompression(comp)
@@ -326,6 +360,7 @@ class DspManager(Output, SdrSourceEventClient):
             # wrong output format... need to re-wire
             buffer = Buffer(self.chain.getOutputFormat())
             self.chain.setWriter(buffer)
+            # TODO check if this is hd audio
             self.wireOutput("audio", buffer)
 
     def start(self):
@@ -333,6 +368,11 @@ class DspManager(Output, SdrSourceEventClient):
             self.chain.setReader(self.sdrSource.getBuffer().getReader())
         else:
             self.startOnAvailable = True
+
+    def unwireOutput(self, t: str):
+        if t in self.readers:
+            self.readers[t].stop()
+            del self.readers[t]
 
     def wireOutput(self, t: str, buffer: Buffer):
         logger.debug("wiring new output of type %s", t)
@@ -348,8 +388,7 @@ class DspManager(Output, SdrSourceEventClient):
 
         write = writers[t]
 
-        if t in self.readers:
-            self.readers[t].stop()
+        self.unwireOutput(t)
 
         reader = buffer.getReader()
         self.readers[t] = reader
