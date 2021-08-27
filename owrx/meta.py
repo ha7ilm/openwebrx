@@ -172,7 +172,11 @@ class MetaParser(Parser):
         self.currentMetaData = None
 
     def parse(self, raw: memoryview):
-        raw = raw.tobytes().decode("utf-8").rstrip("\n")
+        try:
+            raw = raw.tobytes().decode("utf-8").rstrip("\n")
+        except UnicodeError:
+            logger.warning("unable to decode meta binary: %s", str(raw.tobytes()))
+            return
 
         for meta in raw.split("\n"):
             fields = meta.split(";")
