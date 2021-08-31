@@ -13,11 +13,10 @@ logger.setLevel(logging.INFO)
 
 
 class QueueJob(object):
-    def __init__(self, profile, writer, file, freq):
+    def __init__(self, profile, writer, file):
         self.profile = profile
         self.writer = writer
         self.file = file
-        self.freq = freq
 
     def run(self):
         logger.debug("processing file %s", self.file)
@@ -30,7 +29,7 @@ class QueueJob(object):
             )
         try:
             for line in decoder.stdout:
-                self.writer.send((self.profile, self.freq, line))
+                self.writer.send(self.profile, line)
         except (OSError, AttributeError):
             decoder.stdout.flush()
             # TODO uncouple parsing from the output so that decodes can still go to the map and the spotters

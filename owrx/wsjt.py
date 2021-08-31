@@ -1,15 +1,14 @@
 from datetime import datetime, timezone
 from typing import List
-
 from owrx.map import Map, LocatorLocation
-import re
 from owrx.metrics import Metrics, CounterMetric
 from owrx.reporting import ReportingEngine
-from owrx.parser import Parser
 from owrx.audio import AudioChopperProfile, StaticProfileSource, ConfigWiredProfileSource
 from abc import ABC, ABCMeta, abstractmethod
 from owrx.config import Config
 from enum import Enum
+from owrx.bands import Bandplan
+import re
 
 import logging
 
@@ -245,11 +244,13 @@ class Q65Profile(WsjtProfile):
         return ["jt9", "--q65", "-p", str(self.interval), "-b", self.mode.name, "-d", str(self.decoding_depth()), file]
 
 
-class WsjtParser(Parser):
-    def parse(self, data):
+class WsjtParser:
+    def parse(self, profile, raw_msg):
         try:
-            profile, freq, raw_msg = data
-            self.setDialFrequency(freq)
+            # TODO get the frequency back from somewhere
+            freq = 14074000
+            band = Bandplan.getSharedInstance().findBand(freq)
+
             msg = raw_msg.decode().rstrip()
             # known debug messages we know to skip
             if msg.startswith("<DecodeFinished>"):
@@ -273,29 +274,27 @@ class WsjtParser(Parser):
             out["mode"] = mode
             out["interval"] = profile.getInterval()
 
-            self.pushDecode(mode)
+            self.pushDecode(mode, band)
             if "callsign" in out and "locator" in out:
                 Map.getSharedInstance().updateLocation(
-                    out["callsign"], LocatorLocation(out["locator"]), mode, self.band
+                    out["callsign"], LocatorLocation(out["locator"]), mode, band
                 )
                 ReportingEngine.getSharedInstance().spot(out)
 
-            self.handler.write_wsjt_message(out)
+            return out
         except Exception:
             logger.exception("Exception while parsing wsjt message")
 
-    def pushDecode(self, mode):
+    def pushDecode(self, mode, band):
         metrics = Metrics.getSharedInstance()
-        band = "unknown"
-        if self.band is not None:
-            band = self.band.getName()
-        if band is None:
-            band = "unknown"
+        bandName = "unknown"
+        if band is not None:
+            bandName = band.getName()
 
         if mode is None:
             mode = "unknown"
 
-        name = "wsjt.decodes.{band}.{mode}".format(band=band, mode=mode)
+        name = "wsjt.decodes.{band}.{mode}".format(band=bandName, mode=mode)
         metric = metrics.getMetric(name)
         if metric is None:
             metric = CounterMetric()

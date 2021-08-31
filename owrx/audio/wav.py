@@ -47,8 +47,7 @@ class WaveFile(object):
 
 
 class AudioWriter(object):
-    def __init__(self, active_dsp, outputWriter, interval, profiles: List[AudioChopperProfile]):
-        self.dsp = active_dsp
+    def __init__(self, outputWriter, interval, profiles: List[AudioChopperProfile]):
         self.outputWriter = outputWriter
         self.interval = interval
         self.profiles = profiles
@@ -102,7 +101,7 @@ class AudioWriter(object):
                 logger.exception("Error while linking job files")
                 continue
 
-            job = QueueJob(profile, self.outputWriter, filename, self.dsp.get_operating_freq())
+            job = QueueJob(profile, self.outputWriter, filename)
             try:
                 DecoderQueue.getSharedInstance().put(job)
             except Full:

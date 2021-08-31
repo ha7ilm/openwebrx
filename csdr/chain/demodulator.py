@@ -1,3 +1,4 @@
+from pycsdr.modules import Reader
 from csdr.chain import Chain
 from abc import ABC, abstractmethod
 
@@ -8,6 +9,10 @@ class BaseDemodulatorChain(Chain):
 
     def supportsSquelch(self):
         return True
+
+
+class SecondaryDemodulator(Chain):
+    pass
 
 
 class FixedAudioRateChain(ABC):

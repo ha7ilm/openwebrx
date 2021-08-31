@@ -17,9 +17,11 @@ from owrx.websocket import Handler
 from queue import Queue, Full, Empty
 from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
+from io import BytesIO
 import json
 import threading
 import struct
+import pickle
 
 import logging
 
@@ -417,7 +419,12 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send({"type": "metadata", "value": metadata})
 
     def write_wsjt_message(self, message):
-        self.send({"type": "wsjt_message", "value": message})
+        io = BytesIO(message.tobytes())
+        try:
+            while True:
+                self.send({"type": "wsjt_message", "value": pickle.load(io)})
+        except EOFError:
+            pass
 
     def write_dial_frequencies(self, frequencies):
         self.send({"type": "dial_frequencies", "value": frequencies})
