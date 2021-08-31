@@ -245,11 +245,11 @@ class Q65Profile(WsjtProfile):
 
 
 class WsjtParser:
-    def parse(self, profile, raw_msg):
+    def parse(self, profile, freq, raw_msg):
         try:
-            # TODO get the frequency back from somewhere
-            freq = 14074000
-            band = Bandplan.getSharedInstance().findBand(freq)
+            band = None
+            if freq is not None:
+                band = Bandplan.getSharedInstance().findBand(freq)
 
             msg = raw_msg.decode().rstrip()
             # known debug messages we know to skip

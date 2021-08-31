@@ -3,6 +3,7 @@ from itertools import groupby
 import threading
 from owrx.audio import ProfileSourceSubscriber
 from owrx.audio.wav import AudioWriter
+from owrx.audio.queue import QueueJob
 from csdr.chain import Chain
 import pickle
 
@@ -16,6 +17,7 @@ class AudioChopper(threading.Thread, Chain, ProfileSourceSubscriber):
     # TODO parser typing
     def __init__(self, mode_str: str, parser):
         self.parser = parser
+        self.dialFrequency = None
         self.doRun = True
         self.writers = []
         mode = Modes.findByModulation(mode_str)
@@ -72,7 +74,14 @@ class AudioChopper(threading.Thread, Chain, ProfileSourceSubscriber):
         logger.debug("profile change received, resetting writers...")
         self.setup_writers()
 
-    def send(self, profile, line):
-        data = self.parser.parse(profile, line)
-        if data is not None and self.writer is not None:
-            self.writer.write(pickle.dumps(data))
+    def setDialFrequency(self, frequency: int) -> None:
+        self.dialFrequency = frequency
+
+    def createJob(self, profile, filename):
+        return QueueJob(profile, self.dialFrequency, self, filename)
+
+    def sendResult(self, result):
+        for line in result.lines:
+            data = self.parser.parse(result.profile, result.frequency, line)
+            if data is not None and self.writer is not None:
+                self.writer.write(pickle.dumps(data))

@@ -9,7 +9,7 @@ from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from csdr.output import Output
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver
 from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
@@ -38,6 +38,8 @@ class ClientDemodulatorChain(Chain):
         self.audioBuffer = None
         self.demodulator = demod
         self.secondaryDemodulator = None
+        self.centerFrequency = None
+        self.frequencyOffset = None
         inputRate = demod.getFixedAudioRate() if isinstance(demod, FixedAudioRateChain) else outputRate
         oRate = hdOutputRate if isinstance(demod, HdAudio) else outputRate
         self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), inputRate, oRate, audioCompression)
@@ -132,6 +134,7 @@ class ClientDemodulatorChain(Chain):
             rate = self.outputRate
         self.selector.setOutputRate(rate)
         self.clientAudioChain.setInputRate(rate)
+        self._updateDialFrequency()
 
         if self.secondaryDemodulator is not None:
             self.secondaryDemodulator.setReader(self.audioBuffer.getReader())
@@ -157,8 +160,27 @@ class ClientDemodulatorChain(Chain):
         self.selector.setBandpass(lowCut, highCut)
 
     def setFrequencyOffset(self, offset: int) -> None:
+        if offset == self.frequencyOffset:
+            return
+        self.frequencyOffset = offset
+
         shift = -offset / self.sampleRate
         self.selector.setShiftRate(shift)
+
+        self._updateDialFrequency()
+
+    def setCenterFrequency(self, frequency: int) -> None:
+        if frequency == self.centerFrequency:
+            return
+        self.centerFrequency = frequency
+        self._updateDialFrequency()
+
+    def _updateDialFrequency(self):
+        if self.centerFrequency is None or self.frequencyOffset is None:
+            return
+        dialFrequency = self.centerFrequency + self.frequencyOffset
+        if isinstance(self.secondaryDemodulator, DialFrequencyReceiver):
+            self.secondaryDemodulator.setDialFrequency(dialFrequency)
 
     def setAudioCompression(self, compression: str) -> None:
         self.clientAudioChain.setAudioCompression(compression)
@@ -368,8 +390,7 @@ class DspManager(Output, SdrSourceEventClient):
             self.props.wireProperty("output_rate", self.chain.setOutputRate),
             self.props.wireProperty("hd_output_rate", self.chain.setHdOutputRate),
             self.props.wireProperty("offset_freq", self.chain.setFrequencyOffset),
-            # TODO check, this was used for wsjt-x
-            # self.props.wireProperty("center_freq", self.dsp.set_center_freq),
+            self.props.wireProperty("center_freq", self.chain.setCenterFrequency),
             self.props.wireProperty("squelch_level", self.chain.setSquelchLevel),
             self.props.wireProperty("low_cut", self.chain.setLowCut),
             self.props.wireProperty("high_cut", self.chain.setHighCut),

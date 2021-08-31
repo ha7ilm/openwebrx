@@ -12,9 +12,17 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class QueueJob(object):
-    def __init__(self, profile, writer, file):
+class QueueJobResult:
+    def __init__(self, profile, frequency, lines):
         self.profile = profile
+        self.frequency = frequency
+        self.lines = lines
+
+
+class QueueJob(object):
+    def __init__(self, profile, frequency, writer, file):
+        self.profile = profile
+        self.frequency = frequency
         self.writer = writer
         self.file = file
 
@@ -27,13 +35,18 @@ class QueueJob(object):
             cwd=tmp_dir,
             close_fds=True,
             )
+        lines = None
         try:
-            for line in decoder.stdout:
-                self.writer.send(self.profile, line)
-        except (OSError, AttributeError):
+            lines = [l for l in decoder.stdout]
+        except OSError:
             decoder.stdout.flush()
             # TODO uncouple parsing from the output so that decodes can still go to the map and the spotters
             logger.debug("output has gone away while decoding job.")
+
+        # keep this out of the try/except
+        if lines is not None:
+            self.writer.sendResult(QueueJobResult(self.profile, self.frequency, lines))
+
         try:
             rc = decoder.wait(timeout=10)
             if rc != 0:

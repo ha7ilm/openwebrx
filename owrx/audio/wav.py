@@ -1,6 +1,6 @@
 from owrx.config.core import CoreConfig
 from owrx.audio import AudioChopperProfile
-from owrx.audio.queue import QueueJob, DecoderQueue
+from owrx.audio.queue import DecoderQueue
 import threading
 import wave
 import os
@@ -47,8 +47,8 @@ class WaveFile(object):
 
 
 class AudioWriter(object):
-    def __init__(self, outputWriter, interval, profiles: List[AudioChopperProfile]):
-        self.outputWriter = outputWriter
+    def __init__(self, chopper, interval, profiles: List[AudioChopperProfile]):
+        self.chopper = chopper
         self.interval = interval
         self.profiles = profiles
         self.wavefile = None
@@ -101,7 +101,7 @@ class AudioWriter(object):
                 logger.exception("Error while linking job files")
                 continue
 
-            job = QueueJob(profile, self.outputWriter, filename)
+            job = self.chopper.createJob(profile, filename)
             try:
                 DecoderQueue.getSharedInstance().put(job)
             except Full:
