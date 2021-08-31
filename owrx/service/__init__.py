@@ -3,7 +3,6 @@ from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
 from csdr.output import Output
-from csdr import Dsp
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.js8 import Js8Parser
@@ -14,7 +13,12 @@ from owrx.property import PropertyLayer, PropertyDeleted
 from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
 from owrx.service.schedule import ServiceScheduler
-from owrx.modes import Modes
+from owrx.service.chain import ServiceDemodulatorChain
+from owrx.modes import Modes, DigitalMode
+from typing import Union
+from csdr.chain.demodulator import BaseDemodulatorChain, SecondaryDemodulator, FixedAudioRateChain
+from csdr.chain.analog import NFm, Ssb
+from csdr.chain.digimodes import AudioChopperDemodulator
 
 import logging
 
@@ -294,21 +298,46 @@ class ServiceHandler(SdrSourceEventClient):
             output = Js8ServiceOutput(frequency)
         else:
             output = WsjtServiceOutput(frequency)
-        d = Dsp(output)
-        d.nc_port = source.getPort()
-        center_freq = source.getProps()["center_freq"]
-        d.set_offset_freq(frequency - center_freq)
-        d.set_center_freq(center_freq)
+
         modeObject = Modes.findByModulation(mode)
-        d.set_demodulator(modeObject.get_modulation())
-        d.set_bandpass(modeObject.get_bandpass())
-        d.set_secondary_demodulator(mode)
-        d.set_audio_compression("none")
-        d.set_samp_rate(source.getProps()["samp_rate"])
-        d.set_temporary_directory(CoreConfig().get_temporary_directory())
-        d.set_service()
-        d.start()
-        return d
+        if not isinstance(modeObject, DigitalMode):
+            logger.warning("mode is not a digimode: %s", mode)
+            return None
+
+        demod = self._getDemodulator(modeObject.get_modulation(), source.getProps())
+        secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
+        center_freq = source.getProps()["center_freq"]
+        sampleRate = source.getProps()["samp_rate"]
+        shift = (center_freq - frequency) / sampleRate
+        bandpass = modeObject.get_bandpass()
+
+        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, shift)
+        chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
+        chain.setReader(source.getBuffer().getReader())
+        return chain
+
+    # TODO move this elsewhere
+    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain], props):
+        if isinstance(demod, BaseDemodulatorChain):
+            return demod
+        # TODO: move this to Modes
+        demodChain = None
+        if demod == "nfm":
+            demodChain = NFm(props["output_rate"])
+        elif demod in ["usb", "lsb", "cw"]:
+            demodChain = Ssb()
+
+        return demodChain
+
+    # TODO move this elsewhere
+    def _getSecondaryDemodulator(self, mod):
+        if isinstance(mod, SecondaryDemodulator):
+            return mod
+        # TODO add remaining modes
+        if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
+            return AudioChopperDemodulator(mod, WsjtParser())
+        return None
+
 
 
 class WsjtHandler(object):

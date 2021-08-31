@@ -1,0 +1,21 @@
+from csdr.chain import Chain
+from csdr.chain.selector import Selector
+from csdr.chain.demodulator import BaseDemodulatorChain, SecondaryDemodulator, FixedAudioRateChain
+
+
+class ServiceDemodulatorChain(Chain):
+    def __init__(self, demod: BaseDemodulatorChain, secondaryDemod: SecondaryDemodulator, sampleRate: int, shiftRate: float):
+        # TODO magic number... check if this edge case even exsists and change the api if possible
+        rate = secondaryDemod.getFixedAudioRate() if isinstance(secondaryDemod, FixedAudioRateChain) else 1200
+
+        self.selector = Selector(sampleRate, rate, shiftRate)
+
+        workers = [
+            self.selector,
+            demod,
+            secondaryDemod
+        ]
+        super().__init__(workers)
+
+    def setBandPass(self, lowCut, highCut):
+        self.selector.setBandpass(lowCut, highCut)

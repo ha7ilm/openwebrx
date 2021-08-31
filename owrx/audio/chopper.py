@@ -74,5 +74,5 @@ class AudioChopper(threading.Thread, Chain, ProfileSourceSubscriber):
 
     def send(self, profile, line):
         data = self.parser.parse(profile, line)
-        if data is not None:
+        if data is not None and self.writer is not None:
             self.writer.write(pickle.dumps(data))

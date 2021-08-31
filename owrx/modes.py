@@ -10,8 +10,8 @@ class Bandpass(object):
         self.high_cut = high_cut
 
 
-class Mode(object):
-    def __init__(self, modulation, name, bandpass: Bandpass = None, requirements=None, service=False, squelch=True):
+class Mode:
+    def __init__(self, modulation: str, name: str, bandpass: Bandpass = None, requirements=None, service=False, squelch=True):
         self.modulation = modulation
         self.name = name
         self.requirements = requirements if requirements is not None else []
@@ -44,13 +44,16 @@ class DigitalMode(Mode):
         super().__init__(modulation, name, bandpass, requirements, service, squelch)
         self.underlying = underlying
 
+    def get_underlying_mode(self):
+        return Modes.findByModulation(self.underlying[0])
+
     def get_bandpass(self):
         if self.bandpass is not None:
             return self.bandpass
-        return Modes.findByModulation(self.underlying[0]).get_bandpass()
+        return self.get_underlying_mode().get_bandpass()
 
     def get_modulation(self):
-        return Modes.findByModulation(self.underlying[0]).get_modulation()
+        return self.get_underlying_mode().get_modulation()
 
 
 class AudioChopperMode(DigitalMode, metaclass=ABCMeta):
