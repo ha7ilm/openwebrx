@@ -458,7 +458,7 @@ class DspManager(Output, SdrSourceEventClient):
         if isinstance(mod, SecondaryDemodulator):
             return mod
         # TODO add remaining modes
-        if mod in ["ft8"]:
+        if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             return AudioChopperDemodulator(mod, WsjtParser())
         return None
 
