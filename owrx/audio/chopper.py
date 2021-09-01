@@ -4,7 +4,7 @@ import threading
 from owrx.audio import ProfileSourceSubscriber
 from owrx.audio.wav import AudioWriter
 from owrx.audio.queue import QueueJob
-from csdr.chain import Chain
+from csdr.module import Module
 import pickle
 
 import logging
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class AudioChopper(threading.Thread, Chain, ProfileSourceSubscriber):
+class AudioChopper(threading.Thread, Module, ProfileSourceSubscriber):
     # TODO parser typing
     def __init__(self, mode_str: str, parser):
         self.parser = parser
@@ -25,7 +25,7 @@ class AudioChopper(threading.Thread, Chain, ProfileSourceSubscriber):
             raise ValueError("Mode {} is not an audio chopper mode".format(mode_str))
         self.profile_source = mode.get_profile_source()
         super().__init__()
-        Chain.__init__(self, [])
+        Module.__init__(self)
 
     def stop_writers(self):
         while self.writers:

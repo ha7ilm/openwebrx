@@ -1,11 +1,11 @@
+from csdr.module import Module
 from pycsdr.modules import Buffer
 from typing import Union, Callable
 
 
-class Chain:
+class Chain(Module):
     def __init__(self, workers):
-        self.reader = None
-        self.writer = None
+        super().__init__()
         self.clientReader = None
         self.workers = workers
         for i in range(1, len(self.workers)):
@@ -23,14 +23,14 @@ class Chain:
     def setReader(self, reader):
         if self.reader is reader:
             return
-        self.reader = reader
+        super().setReader(reader)
         if self.workers:
             self.workers[0].setReader(reader)
 
     def setWriter(self, writer):
         if self.writer is writer:
             return
-        self.writer = writer
+        super().setWriter(writer)
         if self.workers:
             self.workers[-1].setWriter(writer)
 
