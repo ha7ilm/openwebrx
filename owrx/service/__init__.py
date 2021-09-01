@@ -6,7 +6,6 @@ from csdr.output import Output
 from owrx.wsjt import WsjtParser
 from owrx.aprs import AprsParser
 from owrx.js8 import Js8Parser
-from owrx.config.core import CoreConfig
 from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.property import PropertyLayer, PropertyDeleted
@@ -200,12 +199,9 @@ class ServiceHandler(SdrSourceEventClient):
                     if len(group) > 1:
                         cf = self.get_center_frequency(group)
                         bw = self.get_bandwidth(group)
-                        logger.debug("group center frequency: {0}, bandwidth: {1}".format(cf, bw))
-                        resampler_props = PropertyLayer()
-                        resampler_props["center_freq"] = cf
-                        resampler_props["samp_rate"] = bw
+                        logger.debug("setting up resampler on center frequency: {0}, bandwidth: {1}".format(cf, bw))
+                        resampler_props = PropertyLayer(center_freq=cf, samp_rate=bw)
                         resampler = Resampler(resampler_props, self.source)
-                        resampler.start()
 
                         for dial in group:
                             self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))

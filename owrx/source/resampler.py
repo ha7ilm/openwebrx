@@ -1,33 +1,39 @@
-from .direct import DirectSource
+from owrx.source import SdrSource
+from pycsdr.modules import Buffer, FirDecimate, Shift
+from pycsdr.types import Format
+from csdr.chain import Chain
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Resampler(DirectSource):
+class Resampler(SdrSource):
     def onPropertyChange(self, changes):
         logger.warning("Resampler is unable to handle property changes: {0}".format(changes))
 
     def __init__(self, props, sdr):
         sdrProps = sdr.getProps()
-        self.shift = (sdrProps["center_freq"] - props["center_freq"]) / sdrProps["samp_rate"]
-        self.decimation = int(float(sdrProps["samp_rate"]) / props["samp_rate"])
-        if_samp_rate = sdrProps["samp_rate"] / self.decimation
-        self.transition_bw = 0.15 * (if_samp_rate / float(sdrProps["samp_rate"]))
+        shift = (sdrProps["center_freq"] - props["center_freq"]) / sdrProps["samp_rate"]
+        decimation = int(float(sdrProps["samp_rate"]) / props["samp_rate"])
+        if_samp_rate = sdrProps["samp_rate"] / decimation
+        transition_bw = 0.15 * (if_samp_rate / float(sdrProps["samp_rate"]))
         props["samp_rate"] = if_samp_rate
 
-        self.sdr = sdr
+        self.chain = Chain([
+            Shift(shift),
+            FirDecimate(decimation, transition_bw)
+        ])
+
+        self.chain.setReader(sdr.getBuffer().getReader())
+
         super().__init__(None, props)
 
-    def getCommand(self):
-        return [
-            "nc -v 127.0.0.1 {nc_port}".format(nc_port=self.sdr.getPort()),
-            "csdr shift_addfast_cc {shift}".format(shift=self.shift),
-            "csdr fir_decimate_cc {decimation} {ddc_transition_bw} HAMMING".format(
-                decimation=self.decimation, ddc_transition_bw=self.transition_bw
-            ),
-        ] + self.getNmuxCommand()
+    def getBuffer(self):
+        if self.buffer is None:
+            self.buffer = Buffer(Format.COMPLEX_FLOAT)
+            self.chain.setWriter(self.buffer)
+        return self.buffer
 
     def activateProfile(self, profile_id=None):
         logger.warning("Resampler does not support setting profiles")
