@@ -35,6 +35,11 @@ class Resampler(SdrSource):
             self.chain.setWriter(self.buffer)
         return self.buffer
 
+    def stop(self):
+        self.chain.stop()
+        self.chain = None
+        super().stop()
+
     def activateProfile(self, profile_id=None):
         logger.warning("Resampler does not support setting profiles")
         pass
