@@ -1,6 +1,5 @@
-from owrx.kiss import KissDeframer
+from owrx.aprs.kiss import KissDeframer
 from owrx.map import Map, LatLngLocation
-from owrx.bands import Bandplan
 from owrx.metrics import Metrics, CounterMetric
 from owrx.parser import Parser
 from datetime import datetime, timezone

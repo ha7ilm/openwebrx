@@ -26,6 +26,7 @@ setup(
             "owrx.reporting",
             "owrx.audio",
             "owrx.admin",
+            "owrx.aprs",
             "csdr",
             "htdocs",
         ]
