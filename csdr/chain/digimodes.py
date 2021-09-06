@@ -5,6 +5,8 @@ from owrx.aprs import Ax25Parser, AprsParser
 from pycsdr.modules import Convert, FmDemod
 from pycsdr.types import Format
 from owrx.aprs.module import DirewolfModule
+from digiham.modules import FskDemodulator, PocsagDecoder
+from owrx.pocsag import PocsagParser
 
 
 class AudioChopperDemodulator(SecondaryDemodulator, FixedAudioRateChain, DialFrequencyReceiver):
@@ -42,3 +44,20 @@ class PacketDemodulator(SecondaryDemodulator, FixedAudioRateChain, DialFrequency
 
     def setDialFrequency(self, frequency: int) -> None:
         self.parser.setDialFrequency(frequency)
+
+
+class PocsagDemodulator(SecondaryDemodulator, FixedAudioRateChain):
+    def __init__(self):
+        workers = [
+            FmDemod(),
+            FskDemodulator(samplesPerSymbol=40, invert=True),
+            PocsagDecoder(),
+            PocsagParser(),
+        ]
+        super().__init__(workers)
+
+    def supportsSquelch(self) -> bool:
+        return False
+
+    def getFixedAudioRate(self) -> int:
+        return 48000

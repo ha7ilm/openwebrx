@@ -1,8 +1,6 @@
 from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
 from owrx.js8 import Js8Parser
-from owrx.aprs import AprsParser
-from owrx.pocsag import PocsagParser
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
@@ -15,7 +13,7 @@ from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
 from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
 from csdr.chain.fft import FftChain
-from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator
+from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, PocsagDemodulator
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union
@@ -283,7 +281,6 @@ class DspManager(Output, SdrSourceEventClient):
         self.sdrSource = sdrSource
         self.parsers = {
             "meta": MetaParser(self.handler),
-            "pocsag_demod": PocsagParser(self.handler),
             "js8_demod": Js8Parser(self.handler),
         }
 
@@ -494,6 +491,8 @@ class DspManager(Output, SdrSourceEventClient):
             return AudioChopperDemodulator(mod, WsjtParser())
         elif mod == "packet":
             return PacketDemodulator()
+        elif mod == "pocsag":
+            return PocsagDemodulator()
         return None
 
     def setSecondaryDemodulator(self, mod):

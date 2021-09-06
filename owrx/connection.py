@@ -434,9 +434,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_sdr_error(self, message):
         self.send({"type": "sdr_error", "value": message})
 
-    def write_pocsag_data(self, data):
-        self.send({"type": "pocsag_data", "value": data})
-
     def write_backoff_message(self, reason):
         self.send({"type": "backoff", "reason": reason})
 

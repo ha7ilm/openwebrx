@@ -221,7 +221,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
 $.fn.packetMessagePanel = function() {
     if (!this.data('panel')) {
         this.data('panel', new PacketMessagePanel(this));
-    };
+    }
     return this.data('panel');
 };
 
@@ -231,6 +231,10 @@ PocsagMessagePanel = function(el) {
 }
 
 PocsagMessagePanel.prototype = new MessagePanel();
+
+PocsagMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'Pocsag';
+};
 
 PocsagMessagePanel.prototype.render = function() {
     $(this.el).append($(

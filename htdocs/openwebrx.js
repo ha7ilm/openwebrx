@@ -848,7 +848,8 @@ function on_ws_recv(evt) {
                         var value = json['value'];
                         var panels = [
                             $("#openwebrx-panel-wsjt-message").wsjtMessagePanel(),
-                            $('#openwebrx-panel-packet-message').packetMessagePanel()
+                            $('#openwebrx-panel-packet-message').packetMessagePanel(),
+                            $('#openwebrx-panel-pocsag-message').pocsagMessagePanel()
                         ];
                         if (!panels.some(function(panel) {
                             if (!panel.supportsMessage(value)) return false;
@@ -860,9 +861,6 @@ function on_ws_recv(evt) {
                         break;
                     case 'log_message':
                         divlog(json['value'], true);
-                        break;
-                    case 'pocsag_data':
-                        $('#openwebrx-panel-pocsag-message').pocsagMessagePanel().pushMessage(json['value']);
                         break;
                     case 'backoff':
                         divlog("Server is currently busy: " + json['reason'], true);

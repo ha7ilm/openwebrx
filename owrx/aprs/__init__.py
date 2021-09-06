@@ -2,14 +2,9 @@ from owrx.map import Map, LatLngLocation
 from owrx.metrics import Metrics, CounterMetric
 from owrx.bands import Bandplan
 from datetime import datetime, timezone
-from csdr.module import Module
-from pycsdr.modules import Reader
-from pycsdr.types import Format
-from threading import Thread
-from io import BytesIO
+from csdr.module import PickleModule
 import re
 import logging
-import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -50,41 +45,8 @@ def getSymbolData(symbol, table):
     return {"symbol": symbol, "table": table, "index": ord(symbol) - 33, "tableindex": ord(table) - 33}
 
 
-class Ax25Parser(Module, Thread):
-    def __init__(self):
-        self.doRun = True
-        super().__init__()
-
-    def getInputFormat(self) -> Format:
-        return Format.CHAR
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-    def setReader(self, reader: Reader) -> None:
-        super().setReader(reader)
-        self.start()
-
-    def stop(self):
-        self.doRun = False
-        self.reader.stop()
-
-    def run(self):
-        while self.doRun:
-            data = self.reader.read()
-            if data is None:
-                self.doRun = False
-                break
-            io = BytesIO(data.tobytes())
-            try:
-                while True:
-                    frame = self.parse(pickle.load(io))
-                    if frame is not None:
-                        self.writer.write(pickle.dumps(frame))
-            except EOFError:
-                pass
-
-    def parse(self, ax25frame):
+class Ax25Parser(PickleModule):
+    def process(self, ax25frame):
         control_pid = ax25frame.find(bytes([0x03, 0xF0]))
         if control_pid % 7 > 0:
             logger.warning("aprs packet framing error: control/pid position not aligned with 7-octet callsign data")
@@ -189,44 +151,14 @@ class AprsLocation(LatLngLocation):
         return res
 
 
-class AprsParser(Module, Thread):
+class AprsParser(PickleModule):
     def __init__(self):
         super().__init__()
         self.metrics = {}
-        self.doRun = True
         self.band = None
 
     def setDialFrequency(self, freq):
         self.band = Bandplan.getSharedInstance().findBand(freq)
-
-    def setReader(self, reader: Reader) -> None:
-        super().setReader(reader)
-        self.start()
-
-    def getInputFormat(self) -> Format:
-        return Format.CHAR
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-    def run(self):
-        while self.doRun:
-            data = self.reader.read()
-            if data is None:
-                self.doRun = False
-                break
-            io = BytesIO(data.tobytes())
-            try:
-                while True:
-                    frame = self.parse(pickle.load(io))
-                    if frame is not None:
-                        self.writer.write(pickle.dumps(frame))
-            except EOFError:
-                pass
-
-    def stop(self):
-        self.doRun = False
-        self.reader.stop()
 
     def getMetric(self, category):
         if category not in self.metrics:
@@ -250,7 +182,7 @@ class AprsParser(Module, Thread):
             return False
         return True
 
-    def parse(self, data):
+    def process(self, data):
         try:
             # TODO how can we tell if this is an APRS frame at all?
             aprsData = self.parseAprsData(data)

@@ -1,9 +1,6 @@
 from pycsdr.modules import Reader
 from pycsdr.types import Format
-from csdr.module import Module
-from threading import Thread
-import socket
-import time
+from csdr.module import ThreadModule
 import pickle
 
 import logging
@@ -16,11 +13,10 @@ TFEND = 0xDC
 TFESC = 0xDD
 
 
-class KissDeframer(Module, Thread):
+class KissDeframer(ThreadModule):
     def __init__(self):
         self.escaped = False
         self.buf = bytearray()
-        self.doRun = True
         super().__init__()
 
     def getInputFormat(self) -> Format:
@@ -28,10 +24,6 @@ class KissDeframer(Module, Thread):
 
     def getOutputFormat(self) -> Format:
         return Format.CHAR
-
-    def setReader(self, reader: Reader) -> None:
-        super().setReader(reader)
-        self.start()
 
     def run(self):
         while self.doRun:
@@ -41,10 +33,6 @@ class KissDeframer(Module, Thread):
             else:
                 for frame in self.parse(data):
                     self.writer.write(pickle.dumps(frame))
-
-    def stop(self):
-        self.doRun = False
-        self.reader.stop()
 
     def parse(self, input):
         for b in input:
