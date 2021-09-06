@@ -1,5 +1,10 @@
+from pycsdr.modules import Reader
+from pycsdr.types import Format
+from csdr.module import Module
+from threading import Thread
 import socket
 import time
+import pickle
 
 import logging
 
@@ -11,33 +16,37 @@ TFEND = 0xDC
 TFESC = 0xDD
 
 
-class KissClient(object):
-    def __init__(self, port):
-        delay = 0.5
-        retries = 0
-        while True:
-            try:
-                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.socket.connect(("localhost", port))
-                break
-            except ConnectionError:
-                if retries > 20:
-                    logger.error("maximum number of connection attempts reached. did direwolf start up correctly?")
-                    raise
-                retries += 1
-            time.sleep(delay)
-
-    def read(self):
-        return self.socket.recv(1)
-
-
-class KissDeframer(object):
+class KissDeframer(Module, Thread):
     def __init__(self):
         self.escaped = False
         self.buf = bytearray()
+        self.doRun = True
+        super().__init__()
+
+    def getInputFormat(self) -> Format:
+        return Format.CHAR
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def setReader(self, reader: Reader) -> None:
+        super().setReader(reader)
+        self.start()
+
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+            else:
+                for frame in self.parse(data):
+                    self.writer.write(pickle.dumps(frame))
+
+    def stop(self):
+        self.doRun = False
+        self.reader.stop()
 
     def parse(self, input):
-        frames = []
         for b in input:
             if b == FESC:
                 self.escaped = True
@@ -49,11 +58,10 @@ class KissDeframer(object):
                 else:
                     logger.warning("invalid escape char: %s", str(input[0]))
                 self.escaped = False
-            elif input[0] == FEND:
+            elif b == FEND:
                 # data frames start with 0x00
                 if len(self.buf) > 1 and self.buf[0] == 0x00:
-                    frames += [self.buf[1:]]
+                    yield self.buf[1:]
                 self.buf = bytearray()
             else:
                 self.buf.append(b)
-        return frames

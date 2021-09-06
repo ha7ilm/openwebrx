@@ -1,10 +1,15 @@
-from owrx.aprs.kiss import KissDeframer
 from owrx.map import Map, LatLngLocation
 from owrx.metrics import Metrics, CounterMetric
-from owrx.parser import Parser
+from owrx.bands import Bandplan
 from datetime import datetime, timezone
+from csdr.module import Module
+from pycsdr.modules import Reader
+from pycsdr.types import Format
+from threading import Thread
+from io import BytesIO
 import re
 import logging
+import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +50,40 @@ def getSymbolData(symbol, table):
     return {"symbol": symbol, "table": table, "index": ord(symbol) - 33, "tableindex": ord(table) - 33}
 
 
-class Ax25Parser(object):
+class Ax25Parser(Module, Thread):
+    def __init__(self):
+        self.doRun = True
+        super().__init__()
+
+    def getInputFormat(self) -> Format:
+        return Format.CHAR
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def setReader(self, reader: Reader) -> None:
+        super().setReader(reader)
+        self.start()
+
+    def stop(self):
+        self.doRun = False
+        self.reader.stop()
+
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+                break
+            io = BytesIO(data.tobytes())
+            try:
+                while True:
+                    frame = self.parse(pickle.load(io))
+                    if frame is not None:
+                        self.writer.write(pickle.dumps(frame))
+            except EOFError:
+                pass
+
     def parse(self, ax25frame):
         control_pid = ax25frame.find(bytes([0x03, 0xF0]))
         if control_pid % 7 > 0:
@@ -54,7 +92,7 @@ class Ax25Parser(object):
         def chunks(l, n):
             """Yield successive n-sized chunks from l."""
             for i in range(0, len(l), n):
-                yield l[i : i + n]
+                yield l[i:i + n]
 
         return {
             "destination": self.extractCallsign(ax25frame[0:7]),
@@ -117,9 +155,9 @@ class WeatherParser(object):
         WeatherMapping("s", "snowfall", 3, lambda x: x * 25.4),
     ]
 
-    def __init__(self, data, weather={}):
+    def __init__(self, data, weather=None):
         self.data = data
-        self.weather = weather
+        self.weather = {} if weather is None else weather
 
     def getWeather(self):
         doWork = True
@@ -151,16 +189,44 @@ class AprsLocation(LatLngLocation):
         return res
 
 
-class AprsParser(Parser):
-    def __init__(self, handler):
-        super().__init__(handler)
-        self.ax25parser = Ax25Parser()
-        self.deframer = KissDeframer()
+class AprsParser(Module, Thread):
+    def __init__(self):
+        super().__init__()
         self.metrics = {}
+        self.doRun = True
+        self.band = None
 
     def setDialFrequency(self, freq):
-        super().setDialFrequency(freq)
-        self.metrics = {}
+        self.band = Bandplan.getSharedInstance().findBand(freq)
+
+    def setReader(self, reader: Reader) -> None:
+        super().setReader(reader)
+        self.start()
+
+    def getInputFormat(self) -> Format:
+        return Format.CHAR
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+                break
+            io = BytesIO(data.tobytes())
+            try:
+                while True:
+                    frame = self.parse(pickle.load(io))
+                    if frame is not None:
+                        self.writer.write(pickle.dumps(frame))
+            except EOFError:
+                pass
+
+    def stop(self):
+        self.doRun = False
+        self.reader.stop()
 
     def getMetric(self, category):
         if category not in self.metrics:
@@ -184,22 +250,22 @@ class AprsParser(Parser):
             return False
         return True
 
-    def parse(self, raw):
-        for frame in self.deframer.parse(raw):
-            try:
-                data = self.ax25parser.parse(frame)
+    def parse(self, data):
+        try:
+            # TODO how can we tell if this is an APRS frame at all?
+            aprsData = self.parseAprsData(data)
 
-                # TODO how can we tell if this is an APRS frame at all?
-                aprsData = self.parseAprsData(data)
+            logger.debug("decoded APRS data: %s", aprsData)
+            self.updateMap(aprsData)
+            self.getMetric("total").inc()
+            if self.isDirect(aprsData):
+                self.getMetric("direct").inc()
 
-                logger.debug("decoded APRS data: %s", aprsData)
-                self.updateMap(aprsData)
-                self.getMetric("total").inc()
-                if self.isDirect(aprsData):
-                    self.getMetric("direct").inc()
-                self.handler.write_aprs_data(aprsData)
-            except Exception:
-                logger.exception("exception while parsing aprs data")
+            # the frontend uses this to distinguis hessages from the different parsers
+            aprsData["mode"] = "APRS"
+            return aprsData
+        except Exception:
+            logger.exception("exception while parsing aprs data")
 
     def updateMap(self, mapData):
         if "type" in mapData and mapData["type"] == "thirdparty" and "data" in mapData:

@@ -30,7 +30,6 @@ from functools import partial
 
 from csdr.output import Output
 
-from owrx.aprs.kiss import KissClient
 from owrx.aprs.direwolf import DirewolfConfig, DirewolfConfigSubscriber
 from owrx.audio.chopper import AudioChopper
 

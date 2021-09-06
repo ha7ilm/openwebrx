@@ -4,6 +4,10 @@ function MessagePanel(el) {
     this.initClearButton();
 }
 
+MessagePanel.prototype.supportsMessage = function(message) {
+    return false;
+};
+
 MessagePanel.prototype.render = function() {
 };
 
@@ -46,9 +50,16 @@ MessagePanel.prototype.initClearButton = function() {
 function WsjtMessagePanel(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
+    this.qsoModes = ['FT8', 'JT65', 'JT9', 'FT4', 'FST4', 'Q65'];
+    this.beaconModes = ['WSPR', 'FST4W'];
+    this.modes = [].concat(this.qsoModes, this.beaconModes);
 }
 
 WsjtMessagePanel.prototype = new MessagePanel();
+
+WsjtMessagePanel.prototype.supportsMessage = function(message) {
+    return this.modes.indexOf(message['mode']) >= 0;
+};
 
 WsjtMessagePanel.prototype.render = function() {
     $(this.el).append($(
@@ -78,14 +89,14 @@ WsjtMessagePanel.prototype.pushMessage = function(msg) {
         return $('<div/>').text(input).html()
     };
 
-    if (['FT8', 'JT65', 'JT9', 'FT4', 'FST4', 'Q65'].indexOf(msg['mode']) >= 0) {
+    if (this.qsoModes.indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] !== 'RR73') {
             linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>';
         } else {
             linkedmsg = html_escape(linkedmsg);
         }
-    } else if (['WSPR', 'FST4W'].indexOf(msg['mode']) >= 0) {
+    } else if (this.beaconModes.indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
         if (matches) {
             linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>' + html_escape(matches[3]);
@@ -108,7 +119,7 @@ WsjtMessagePanel.prototype.pushMessage = function(msg) {
 $.fn.wsjtMessagePanel = function(){
     if (!this.data('panel')) {
         this.data('panel', new WsjtMessagePanel(this));
-    };
+    }
     return this.data('panel');
 };
 
@@ -118,6 +129,10 @@ function PacketMessagePanel(el) {
 }
 
 PacketMessagePanel.prototype = new MessagePanel();
+
+PacketMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'APRS';
+};
 
 PacketMessagePanel.prototype.render = function() {
     $(this.el).append($(
@@ -243,6 +258,6 @@ PocsagMessagePanel.prototype.pushMessage = function(msg) {
 $.fn.pocsagMessagePanel = function() {
     if (!this.data('panel')) {
         this.data('panel', new PocsagMessagePanel(this));
-    };
+    }
     return this.data('panel');
 };

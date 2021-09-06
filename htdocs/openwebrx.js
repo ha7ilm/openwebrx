@@ -824,9 +824,6 @@ function on_ws_recv(evt) {
                     case "js8_message":
                         $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
                         break;
-                    case "wsjt_message":
-                        $("#openwebrx-panel-wsjt-message").wsjtMessagePanel().pushMessage(json['value']);
-                        break;
                     case "dial_frequencies":
                         var as_bookmarks = json['value'].map(function (d) {
                             return {
@@ -836,9 +833,6 @@ function on_ws_recv(evt) {
                             };
                         });
                         bookmarks.replace_bookmarks(as_bookmarks, 'dial_frequencies');
-                        break;
-                    case "aprs_data":
-                        $('#openwebrx-panel-packet-message').packetMessagePanel().pushMessage(json['value']);
                         break;
                     case "bookmarks":
                         bookmarks.replace_bookmarks(json['value'], "server");
@@ -851,7 +845,18 @@ function on_ws_recv(evt) {
                         $("#openwebrx-panel-receiver").demodulatorPanel().stopDemodulator();
                         break;
                     case 'secondary_demod':
-                        secondary_demod_push_data(json['value']);
+                        var value = json['value'];
+                        var panels = [
+                            $("#openwebrx-panel-wsjt-message").wsjtMessagePanel(),
+                            $('#openwebrx-panel-packet-message').packetMessagePanel()
+                        ];
+                        if (!panels.some(function(panel) {
+                            if (!panel.supportsMessage(value)) return false;
+                            panel.pushMessage(value);
+                            return true;
+                        })) {
+                            secondary_demod_push_data(value);
+                        }
                         break;
                     case 'log_message':
                         divlog(json['value'], true);

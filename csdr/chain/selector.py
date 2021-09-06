@@ -62,7 +62,7 @@ class Decimator(Chain):
 
 
 class Selector(Chain):
-    def __init__(self, inputRate: int, outputRate: int, shiftRate: float):
+    def __init__(self, inputRate: int, outputRate: int, shiftRate: float, withSquelch: bool = True):
         self.outputRate = outputRate
 
         self.shift = Shift(shiftRate)
@@ -73,12 +73,14 @@ class Selector(Chain):
         self.bandpassCutoffs = None
         self.setBandpass(-4000, 4000)
 
-        self.readings_per_second = 4
-        # s-meter readings are available every 1024 samples
-        # the reporting interval is measured in those 1024-sample blocks
-        self.squelch = Squelch(5, int(outputRate / (self.readings_per_second * 1024)))
+        workers = [self.shift, self.decimation, self.bandpass]
 
-        workers = [self.shift, self.decimation, self.bandpass, self.squelch]
+        if withSquelch:
+            self.readings_per_second = 4
+            # s-meter readings are available every 1024 samples
+            # the reporting interval is measured in those 1024-sample blocks
+            self.squelch = Squelch(5, int(outputRate / (self.readings_per_second * 1024)))
+            workers += [self.squelch]
 
         super().__init__(workers)
 

@@ -6,9 +6,13 @@ class BaseDemodulatorChain(Chain):
     def supportsSquelch(self) -> bool:
         return True
 
+    def setSampleRate(self, sampleRate: int) -> None:
+        pass
+
 
 class SecondaryDemodulator(Chain):
-    pass
+    def supportsSquelch(self) -> bool:
+        return True
 
 
 class FixedAudioRateChain(ABC):

@@ -1,5 +1,6 @@
 from csdr.module import Module
 from pycsdr.modules import Buffer
+from pycsdr.types import Format
 from typing import Union, Callable
 
 
@@ -133,7 +134,13 @@ class Chain(Module):
             self.clientReader.stop()
             self.clientReader = None
 
-    def getOutputFormat(self):
+    def getInputFormat(self) -> Format:
+        if self.workers:
+            return self.workers[0].getInputFormat()
+        else:
+            raise BufferError("getInputFormat on empty chain")
+
+    def getOutputFormat(self) -> Format:
         if self.workers:
             return self.workers[-1].getOutputFormat()
         else:

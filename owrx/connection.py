@@ -399,9 +399,13 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_secondary_fft(self, data):
         self.send(bytes([0x03]) + data)
 
-    def write_secondary_demod(self, data):
-        message = data.decode("ascii", "replace")
-        self.send({"type": "secondary_demod", "value": message})
+    def write_secondary_demod(self, message):
+        io = BytesIO(message.tobytes())
+        try:
+            while True:
+                self.send({"type": "secondary_demod", "value": pickle.load(io)})
+        except EOFError:
+            pass
 
     def write_secondary_dsp_config(self, cfg):
         self.send({"type": "secondary_config", "value": cfg})
@@ -418,22 +422,11 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_metadata(self, metadata):
         self.send({"type": "metadata", "value": metadata})
 
-    def write_wsjt_message(self, message):
-        io = BytesIO(message.tobytes())
-        try:
-            while True:
-                self.send({"type": "wsjt_message", "value": pickle.load(io)})
-        except EOFError:
-            pass
-
     def write_dial_frequencies(self, frequencies):
         self.send({"type": "dial_frequencies", "value": frequencies})
 
     def write_bookmarks(self, bookmarks):
         self.send({"type": "bookmarks", "value": bookmarks})
-
-    def write_aprs_data(self, data):
-        self.send({"type": "aprs_data", "value": data})
 
     def write_log_message(self, message):
         self.send({"type": "log_message", "value": message})

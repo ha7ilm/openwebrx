@@ -140,8 +140,7 @@ class DStarEnricher(Enricher):
             try:
                 # we can send the DPRS stuff through our APRS parser to extract the information
                 # TODO: only third-party parsing accepts this format right now
-                # TODO: we also need to pass a handler, which is not needed
-                parser = AprsParser(None)
+                parser = AprsParser()
                 dprsData = parser.parseThirdpartyAprsData(meta["dprs"])
                 if "data" in dprsData:
                     data = dprsData["data"]

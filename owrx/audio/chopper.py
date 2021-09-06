@@ -5,6 +5,7 @@ from owrx.audio import ProfileSourceSubscriber
 from owrx.audio.wav import AudioWriter
 from owrx.audio.queue import QueueJob
 from csdr.module import Module
+from pycsdr.types import Format
 import pickle
 
 import logging
@@ -26,6 +27,12 @@ class AudioChopper(threading.Thread, Module, ProfileSourceSubscriber):
         self.profile_source = mode.get_profile_source()
         super().__init__()
         Module.__init__(self)
+
+    def getInputFormat(self) -> Format:
+        return Format.SHORT
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
 
     def stop_writers(self):
         while self.writers:

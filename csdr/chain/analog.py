@@ -19,6 +19,7 @@ class Am(BaseDemodulatorChain):
 
 class NFm(BaseDemodulatorChain):
     def __init__(self, sampleRate: int):
+        self.sampleRate = sampleRate
         agc = Agc(Format.FLOAT)
         agc.setProfile(AgcProfile.SLOW)
         agc.setMaxGain(3)
@@ -29,6 +30,12 @@ class NFm(BaseDemodulatorChain):
             agc,
         ]
         super().__init__(workers)
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.replace(2, NfmDeemphasis(sampleRate))
 
 
 class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio):

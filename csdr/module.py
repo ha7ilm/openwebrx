@@ -1,14 +1,25 @@
-import pycsdr.modules
+from pycsdr.modules import Module as BaseModule
+from pycsdr.modules import Reader, Writer
+from pycsdr.types import Format
+from abc import ABCMeta, abstractmethod
 
 
-class Module(pycsdr.modules.Module):
+class Module(BaseModule, metaclass=ABCMeta):
     def __init__(self):
         self.reader = None
         self.writer = None
         super().__init__()
 
-    def setReader(self, reader: pycsdr.modules.Reader) -> None:
+    def setReader(self, reader: Reader) -> None:
         self.reader = reader
 
-    def setWriter(self, writer: pycsdr.modules.Writer) -> None:
+    def setWriter(self, writer: Writer) -> None:
         self.writer = writer
+
+    @abstractmethod
+    def getInputFormat(self) -> Format:
+        pass
+
+    @abstractmethod
+    def getOutputFormat(self) -> Format:
+        pass

@@ -2,66 +2,23 @@ import threading
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
-from csdr.output import Output
 from owrx.wsjt import WsjtParser
-from owrx.aprs import AprsParser
-from owrx.js8 import Js8Parser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.property import PropertyLayer, PropertyDeleted
 from js8py import Js8Frame
-from abc import ABCMeta, abstractmethod
 from owrx.service.schedule import ServiceScheduler
 from owrx.service.chain import ServiceDemodulatorChain
 from owrx.modes import Modes, DigitalMode
 from typing import Union
 from csdr.chain.demodulator import BaseDemodulatorChain, SecondaryDemodulator, DialFrequencyReceiver
 from csdr.chain.analog import NFm, Ssb
-from csdr.chain.digimodes import AudioChopperDemodulator
+from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator
+from pycsdr.modules import Buffer
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class ServiceOutput(Output, metaclass=ABCMeta):
-    def __init__(self, frequency):
-        self.frequency = frequency
-
-    @abstractmethod
-    def getParser(self):
-        # abstract method; implement in subclasses
-        pass
-
-    def receive_output(self, t, read_fn):
-        parser = self.getParser()
-        parser.setDialFrequency(self.frequency)
-        target = self.pump(read_fn, parser.parse)
-        threading.Thread(target=target, name="service_output_receive").start()
-
-
-class WsjtServiceOutput(ServiceOutput):
-    def getParser(self):
-        return WsjtParser(WsjtHandler())
-
-    def supports_type(self, t):
-        return t == "wsjt_demod"
-
-
-class AprsServiceOutput(ServiceOutput):
-    def getParser(self):
-        return AprsParser(AprsHandler())
-
-    def supports_type(self, t):
-        return t == "packet_demod"
-
-
-class Js8ServiceOutput(ServiceOutput):
-    def getParser(self):
-        return Js8Parser(Js8Handler())
-
-    def supports_type(self, t):
-        return t == "js8_demod"
 
 
 class ServiceHandler(SdrSourceEventClient):
@@ -287,13 +244,6 @@ class ServiceHandler(SdrSourceEventClient):
 
     def setupService(self, mode, frequency, source):
         logger.debug("setting up service {0} on frequency {1}".format(mode, frequency))
-        # TODO selecting outputs will need some more intelligence here
-        if mode == "packet":
-            output = AprsServiceOutput(frequency)
-        elif mode == "js8":
-            output = Js8ServiceOutput(frequency)
-        else:
-            output = WsjtServiceOutput(frequency)
 
         modeObject = Modes.findByModulation(mode)
         if not isinstance(modeObject, DigitalMode):
@@ -312,6 +262,10 @@ class ServiceHandler(SdrSourceEventClient):
         chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, shift)
         chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
         chain.setReader(source.getBuffer().getReader())
+
+        # dummy buffer, we don't use the output right now
+        buffer = Buffer(chain.getOutputFormat())
+        chain.setWriter(buffer)
         return chain
 
     # TODO move this elsewhere
@@ -321,7 +275,7 @@ class ServiceHandler(SdrSourceEventClient):
         # TODO: move this to Modes
         demodChain = None
         if demod == "nfm":
-            demodChain = NFm(props["output_rate"])
+            demodChain = NFm(48000)
         elif demod in ["usb", "lsb", "cw"]:
             demodChain = Ssb()
 
@@ -334,22 +288,9 @@ class ServiceHandler(SdrSourceEventClient):
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             return AudioChopperDemodulator(mod, WsjtParser())
+        elif mod == "packet":
+            return PacketDemodulator(service=True)
         return None
-
-
-class WsjtHandler(object):
-    def write_wsjt_message(self, msg):
-        pass
-
-
-class AprsHandler(object):
-    def write_aprs_data(self, data):
-        pass
-
-
-class Js8Handler(object):
-    def write_js8_message(self, frame: Js8Frame, freq: int):
-        pass
 
 
 class Services(object):
