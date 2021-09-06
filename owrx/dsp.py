@@ -281,7 +281,6 @@ class DspManager(Output, SdrSourceEventClient):
         self.sdrSource = sdrSource
         self.parsers = {
             "meta": MetaParser(self.handler),
-            "js8_demod": Js8Parser(self.handler),
         }
 
         self.props = PropertyStack()
@@ -364,18 +363,6 @@ class DspManager(Output, SdrSourceEventClient):
         # TODO there's multiple outputs depending on the modulation right now
         self.wireOutput("secondary_demod", buffer)
 
-        def set_dial_freq(changes):
-            if (
-                "center_freq" not in self.props
-                or self.props["center_freq"] is None
-                or "offset_freq" not in self.props
-                or self.props["offset_freq"] is None
-            ):
-                return
-            freq = self.props["center_freq"] + self.props["offset_freq"]
-            for parser in self.parsers.values():
-                parser.setDialFrequency(freq)
-
         if "start_mod" in self.props:
             self.setDemodulator(self.props["start_mod"])
             mode = Modes.findByModulation(self.props["start_mod"])
@@ -409,7 +396,6 @@ class DspManager(Output, SdrSourceEventClient):
             # self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
             # TODO
             # self.props.wireProperty("digital_voice_codecserver", self.dsp.set_codecserver),
-            self.props.filter("center_freq", "offset_freq").wire(set_dial_freq),
         ]
 
         # TODO
@@ -489,6 +475,8 @@ class DspManager(Output, SdrSourceEventClient):
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             return AudioChopperDemodulator(mod, WsjtParser())
+        elif mod == "js8":
+            return AudioChopperDemodulator(mod, Js8Parser())
         elif mod == "packet":
             return PacketDemodulator()
         elif mod == "pocsag":

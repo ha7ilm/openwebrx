@@ -70,7 +70,7 @@ Js8Thread.prototype.getMessageDuration = function() {
 Js8Thread.prototype.getMode = function() {
     // we filter messages by mode, so the first one is as good as any
     if (!this.messages.length) return;
-    return this.messages[0].mode;
+    return this.messages[0].js8mode;
 };
 
 Js8Thread.prototype.acceptsMode = function(mode) {
@@ -117,6 +117,10 @@ Js8Threader = function(el){
 
 Js8Threader.prototype = new MessagePanel();
 
+Js8Threader.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'JS8';
+};
+
 Js8Threader.prototype.render = function() {
     $(this.el).append($(
         '<table>' +
@@ -158,7 +162,7 @@ Js8Threader.prototype.pushMessage = function(message) {
     var thread;
     // only look for exising threads if the message is not a starting message
     if ((message.thread_type & 1) === 0) {
-        thread = this.findThread(message.freq, message.mode);
+        thread = this.findThread(message.freq, message.js8mode);
     }
     if (!thread) {
         var line = $("<tr></tr>");

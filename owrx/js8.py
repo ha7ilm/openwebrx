@@ -1,5 +1,4 @@
 from owrx.audio import AudioChopperProfile, ConfigWiredProfileSource
-from owrx.parser import Parser
 import re
 from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
@@ -8,6 +7,7 @@ from owrx.metrics import Metrics, CounterMetric
 from owrx.config import Config
 from abc import ABCMeta, abstractmethod
 from owrx.reporting import ReportingEngine
+from owrx.bands import Bandplan
 from typing import List
 
 import logging
@@ -81,13 +81,15 @@ class Js8TurboProfile(Js8Profile):
         return "C"
 
 
-class Js8Parser(Parser):
+class Js8Parser:
     decoderRegex = re.compile(" ?<Decode(Started|Debug|Finished)>")
 
-    def parse(self, raw):
+    def parse(self, profile, freq, raw_msg):
         try:
-            profile, freq, raw_msg = raw
-            self.setDialFrequency(freq)
+            band = None
+            if freq is not None:
+                band = Bandplan.getSharedInstance().findBand(freq)
+
             msg = raw_msg.decode().rstrip()
             if Js8Parser.decoderRegex.match(msg):
                 return
@@ -95,38 +97,48 @@ class Js8Parser(Parser):
                 return
 
             frame = Js8().parse_message(msg)
-            self.handler.write_js8_message(frame, self.dial_freq)
 
-            self.pushDecode()
+            self.pushDecode(band)
 
             if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
                 Map.getSharedInstance().updateLocation(
-                    frame.callsign, LocatorLocation(frame.grid), "JS8", self.band
+                    frame.callsign, LocatorLocation(frame.grid), "JS8", band
                 )
                 ReportingEngine.getSharedInstance().spot(
                     {
                         "callsign": frame.callsign,
                         "mode": "JS8",
                         "locator": frame.grid,
-                        "freq": self.dial_freq + frame.freq,
+                        "freq": freq + frame.freq,
                         "db": frame.db,
                         "timestamp": frame.timestamp,
                         "msg": str(frame),
                     }
                 )
 
+            out = {
+                "mode": "JS8",
+                "msg": str(frame),
+                "timestamp": frame.timestamp,
+                "db": frame.db,
+                "dt": frame.dt,
+                "freq": freq + frame.freq,
+                "thread_type": frame.thread_type,
+                "js8mode": frame.mode,
+            }
+
+            return out
+
         except Exception:
             logger.exception("error while parsing js8 message")
 
-    def pushDecode(self):
+    def pushDecode(self, band):
         metrics = Metrics.getSharedInstance()
-        band = "unknown"
-        if self.band is not None:
-            band = self.band.getName()
-        if band is None:
-            band = "unknown"
+        bandName = "unknown"
+        if band is not None:
+            bandName = band.getName()
 
-        name = "js8call.decodes.{band}.JS8".format(band=band)
+        name = "js8call.decodes.{band}.JS8".format(band=bandName)
         metric = metrics.getMetric(name)
         if metric is None:
             metric = CounterMetric()

@@ -437,22 +437,6 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_backoff_message(self, reason):
         self.send({"type": "backoff", "reason": reason})
 
-    def write_js8_message(self, frame: Js8Frame, freq: int):
-        self.send(
-            {
-                "type": "js8_message",
-                "value": {
-                    "msg": str(frame),
-                    "timestamp": frame.timestamp,
-                    "db": frame.db,
-                    "dt": frame.dt,
-                    "freq": freq + frame.freq,
-                    "thread_type": frame.thread_type,
-                    "mode": frame.mode,
-                },
-            }
-        )
-
     def write_modes(self, modes):
         def to_json(m):
             res = {

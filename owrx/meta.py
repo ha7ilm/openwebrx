@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import logging
 import threading
 from owrx.map import Map, LatLngLocation
-from owrx.parser import Parser
 from owrx.aprs import AprsParser, AprsLocation
 from abc import ABC, abstractmethod
 
@@ -159,9 +158,9 @@ class DStarEnricher(Enricher):
         return meta
 
 
-class MetaParser(Parser):
+class MetaParser:
     def __init__(self, handler):
-        super().__init__(handler)
+        self.handler = handler
         self.enrichers = {
             "DMR": RadioIDEnricher("dmr", self),
             "YSF": YsfMetaEnricher(self),

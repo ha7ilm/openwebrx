@@ -3,10 +3,10 @@ from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
 from owrx.wsjt import WsjtParser
+from owrx.js8 import Js8Parser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.property import PropertyLayer, PropertyDeleted
-from js8py import Js8Frame
 from owrx.service.schedule import ServiceScheduler
 from owrx.service.chain import ServiceDemodulatorChain
 from owrx.modes import Modes, DigitalMode
@@ -250,7 +250,7 @@ class ServiceHandler(SdrSourceEventClient):
             logger.warning("mode is not a digimode: %s", mode)
             return None
 
-        demod = self._getDemodulator(modeObject.get_modulation(), source.getProps())
+        demod = self._getDemodulator(modeObject.get_modulation())
         secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
         center_freq = source.getProps()["center_freq"]
         sampleRate = source.getProps()["samp_rate"]
@@ -269,7 +269,7 @@ class ServiceHandler(SdrSourceEventClient):
         return chain
 
     # TODO move this elsewhere
-    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain], props):
+    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]):
         if isinstance(demod, BaseDemodulatorChain):
             return demod
         # TODO: move this to Modes
@@ -288,6 +288,8 @@ class ServiceHandler(SdrSourceEventClient):
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             return AudioChopperDemodulator(mod, WsjtParser())
+        elif mod == "js8":
+            return AudioChopperDemodulator(mod, Js8Parser())
         elif mod == "packet":
             return PacketDemodulator(service=True)
         return None

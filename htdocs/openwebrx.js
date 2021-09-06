@@ -821,9 +821,6 @@ function on_ws_recv(evt) {
                             this.update(json['value']);
                         });
                         break;
-                    case "js8_message":
-                        $("#openwebrx-panel-js8-message").js8().pushMessage(json['value']);
-                        break;
                     case "dial_frequencies":
                         var as_bookmarks = json['value'].map(function (d) {
                             return {
@@ -849,7 +846,8 @@ function on_ws_recv(evt) {
                         var panels = [
                             $("#openwebrx-panel-wsjt-message").wsjtMessagePanel(),
                             $('#openwebrx-panel-packet-message').packetMessagePanel(),
-                            $('#openwebrx-panel-pocsag-message').pocsagMessagePanel()
+                            $('#openwebrx-panel-pocsag-message').pocsagMessagePanel(),
+                            $("#openwebrx-panel-js8-message").js8()
                         ];
                         if (!panels.some(function(panel) {
                             if (!panel.supportsMessage(value)) return false;
