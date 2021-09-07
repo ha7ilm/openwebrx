@@ -1,4 +1,4 @@
-from csdr.module import Module
+from csdr.module import AutoStartModule
 from pycsdr.types import Format
 from pycsdr.modules import Reader, Writer, TcpSource
 from subprocess import Popen, PIPE
@@ -12,17 +12,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DirewolfModule(Module):
+class DirewolfModule(AutoStartModule):
     def __init__(self, service: bool = False):
         self.process = None
         self.inputReader = None
         self.tcpSource = None
         self.service = service
         super().__init__()
-
-    def setReader(self, reader: Reader) -> None:
-        super().setReader(reader)
-        self.start()
 
     def setWriter(self, writer: Writer) -> None:
         super().setWriter(writer)

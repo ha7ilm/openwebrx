@@ -28,12 +28,7 @@ class Module(BaseModule, metaclass=ABCMeta):
         pass
 
 
-class ThreadModule(Module, Thread, metaclass=ABCMeta):
-    def __init__(self):
-        self.doRun = True
-        super().__init__()
-        Thread.__init__(self)
-
+class AutoStartModule(Module, metaclass=ABCMeta):
     def _checkStart(self) -> None:
         if self.reader is not None and self.writer is not None:
             self.start()
@@ -47,12 +42,26 @@ class ThreadModule(Module, Thread, metaclass=ABCMeta):
         self._checkStart()
 
     @abstractmethod
+    def start(self):
+        pass
+
+
+class ThreadModule(AutoStartModule, Thread, metaclass=ABCMeta):
+    def __init__(self):
+        self.doRun = True
+        super().__init__()
+        Thread.__init__(self)
+
+    @abstractmethod
     def run(self):
         pass
 
     def stop(self):
         self.doRun = False
         self.reader.stop()
+
+    def start(self):
+        Thread.start(self)
 
 
 class PickleModule(ThreadModule):

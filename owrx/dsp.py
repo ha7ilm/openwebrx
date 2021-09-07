@@ -12,6 +12,7 @@ from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
 from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
+from csdr.chain.m17 import M17Chain
 from csdr.chain.fft import FftChain
 from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, PocsagDemodulator
 from pycsdr.modules import Buffer, Writer
@@ -425,25 +426,24 @@ class DspManager(Output, SdrSourceEventClient):
         if isinstance(demod, BaseDemodulatorChain):
             return demod
         # TODO: move this to Modes
-        demodChain = None
         if demod == "nfm":
-            demodChain = NFm(self.props["output_rate"])
+            return NFm(self.props["output_rate"])
         elif demod == "wfm":
-            demodChain = WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"])
+            return WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"])
         elif demod == "am":
-            demodChain = Am()
+            return Am()
         elif demod in ["usb", "lsb", "cw"]:
-            demodChain = Ssb()
+            return Ssb()
         elif demod == "dmr":
-            demodChain = Dmr(self.props["digital_voice_codecserver"])
+            return Dmr(self.props["digital_voice_codecserver"])
         elif demod == "dstar":
-            demodChain = Dstar(self.props["digital_voice_codecserver"])
+            return Dstar(self.props["digital_voice_codecserver"])
         elif demod == "ysf":
-            demodChain = Ysf(self.props["digital_voice_codecserver"])
+            return Ysf(self.props["digital_voice_codecserver"])
         elif demod == "nxdn":
-            demodChain = Nxdn(self.props["digital_voice_codecserver"])
-
-        return demodChain
+            return Nxdn(self.props["digital_voice_codecserver"])
+        elif demod == "m17":
+            return M17Chain()
 
     def setDemodulator(self, mod):
         demodulator = self._getDemodulator(mod)

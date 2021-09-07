@@ -273,13 +273,10 @@ class ServiceHandler(SdrSourceEventClient):
         if isinstance(demod, BaseDemodulatorChain):
             return demod
         # TODO: move this to Modes
-        demodChain = None
         if demod == "nfm":
-            demodChain = NFm(48000)
+            return NFm(48000)
         elif demod in ["usb", "lsb", "cw"]:
-            demodChain = Ssb()
-
-        return demodChain
+            return Ssb()
 
     # TODO move this elsewhere
     def _getSecondaryDemodulator(self, mod):
