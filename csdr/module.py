@@ -4,6 +4,7 @@ from pycsdr.types import Format
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from io import BytesIO
+from subprocess import Popen, PIPE
 import pickle
 
 
@@ -89,3 +90,39 @@ class PickleModule(ThreadModule):
     @abstractmethod
     def process(self, input):
         pass
+
+
+class PopenModule(AutoStartModule, metaclass=ABCMeta):
+    def __init__(self):
+        self.process = None
+        super().__init__()
+
+    @abstractmethod
+    def getCommand(self):
+        pass
+
+    def start(self):
+        self.process = Popen(self.getCommand(), stdin=PIPE, stdout=PIPE)
+        Thread(target=self.pump(self.reader.read, self.process.stdin.write)).start()
+        Thread(target=self.pump(self.process.stdout.read, self.writer.write)).start()
+
+    def stop(self):
+        if self.process is not None:
+            self.process.terminate()
+            self.process.wait()
+            self.process = None
+        self.reader.stop()
+
+    def pump(self, read, write):
+        def copy():
+            while True:
+                data = None
+                try:
+                    data = read()
+                except ValueError:
+                    pass
+                if data is None or isinstance(data, bytes) and len(data) == 0:
+                    break
+                write(data)
+
+        return copy

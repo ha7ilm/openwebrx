@@ -13,6 +13,7 @@ from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
 from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
 from csdr.chain.m17 import M17Chain
+from csdr.chain.drm import Drm
 from csdr.chain.fft import FftChain
 from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, PocsagDemodulator
 from pycsdr.modules import Buffer, Writer
@@ -444,6 +445,8 @@ class DspManager(Output, SdrSourceEventClient):
             return Nxdn(self.props["digital_voice_codecserver"])
         elif demod == "m17":
             return M17Chain()
+        elif demod == "drm":
+            return Drm()
 
     def setDemodulator(self, mod):
         demodulator = self._getDemodulator(mod)
