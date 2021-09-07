@@ -263,6 +263,11 @@ class ClientDemodulatorChain(Chain):
         if self.secondaryDemodulator is not None:
             self.secondaryDemodulator.setWriter(writer)
 
+    def setDmrFilter(self, filter: int) -> None:
+        if not isinstance(self.demodulator, Dmr):
+            return
+        self.demodulator.setSlotFilter(filter)
+
     def setSecondaryFftSize(self, size: int) -> None:
         # TODO
         pass
@@ -392,8 +397,7 @@ class DspManager(Output, SdrSourceEventClient):
             self.props.wireProperty("low_cut", self.chain.setLowCut),
             self.props.wireProperty("high_cut", self.chain.setHighCut),
             self.props.wireProperty("mod", self.setDemodulator),
-            # TODO
-            # self.props.wireProperty("dmr_filter", self.dsp.set_dmr_filter),
+            self.props.wireProperty("dmr_filter", self.chain.setDmrFilter),
             # TODO
             # self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
             # TODO
