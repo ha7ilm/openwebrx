@@ -5,6 +5,7 @@ from abc import ABCMeta, abstractmethod
 from threading import Thread
 from io import BytesIO
 from subprocess import Popen, PIPE
+from functools import partial
 import pickle
 
 
@@ -104,7 +105,7 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
     def start(self):
         self.process = Popen(self.getCommand(), stdin=PIPE, stdout=PIPE)
         Thread(target=self.pump(self.reader.read, self.process.stdin.write)).start()
-        Thread(target=self.pump(self.process.stdout.read, self.writer.write)).start()
+        Thread(target=self.pump(partial(self.process.stdout.read, 1024), self.writer.write)).start()
 
     def stop(self):
         if self.process is not None:
