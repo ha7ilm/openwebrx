@@ -25,6 +25,7 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
             agc
         ]
         self.metaParser = None
+        self.dialFrequency = None
         super().__init__(workers)
 
     def getFixedIfSampleRate(self):
@@ -39,12 +40,15 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
             buffer = Buffer(Format.CHAR)
             self.decoder.setMetaWriter(buffer)
             self.metaParser.setReader(buffer.getReader())
+            if self.dialFrequency is not None:
+                self.metaParser.setDialFrequency(self.dialFrequency)
         self.metaParser.setWriter(writer)
 
     def supportsSquelch(self):
         return False
 
     def setDialFrequency(self, frequency: int) -> None:
+        self.dialFrequency = frequency
         if self.metaParser is None:
             return
         self.metaParser.setDialFrequency(frequency)

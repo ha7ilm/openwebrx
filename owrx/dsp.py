@@ -106,6 +106,7 @@ class ClientDemodulatorChain(Chain):
         else:
             self.clientAudioChain.setInputRate(outputRate)
 
+        self._updateDialFrequency()
         self._syncSquelch()
 
         self.clientAudioChain.setClientRate(outputRate)
