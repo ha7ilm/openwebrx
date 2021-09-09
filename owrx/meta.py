@@ -8,7 +8,7 @@ from urllib import request
 
 from pycsdr.types import Format
 
-from csdr.module import ThreadModule
+from csdr.module import PickleModule
 from owrx.aprs import AprsParser, AprsLocation
 from owrx.config import Config
 from owrx.map import Map, LatLngLocation
@@ -164,7 +164,7 @@ class DStarEnricher(Enricher):
         return meta
 
 
-class MetaParser(ThreadModule):
+class MetaParser(PickleModule):
     def __init__(self):
         self.enrichers = {
             "DMR": RadioIDEnricher("dmr", self),
@@ -176,38 +176,13 @@ class MetaParser(ThreadModule):
         self.band = None
         super().__init__()
 
-    def getInputFormat(self) -> Format:
-        return Format.CHAR
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-    def run(self):
-        while self.doRun:
-            data = self.reader.read()
-            if data is None:
-                self.doRun = False
-            else:
-                for result in self.parse(data):
-                    self.writer.write(pickle.dumps(result))
-
-    def parse(self, raw: memoryview):
-        try:
-            raw = raw.tobytes().decode("utf-8").rstrip("\n")
-        except UnicodeError:
-            logger.warning("unable to decode meta binary: %s", str(raw.tobytes()))
-            return
-
-        for meta in raw.split("\n"):
-            fields = meta.split(";")
-            meta = {v[0]: ":".join(v[1:]) for v in map(lambda x: x.split(":"), fields) if v[0] != ""}
-
-            self.currentMetaData = None
-            if "protocol" in meta:
-                protocol = meta["protocol"]
-                if protocol in self.enrichers:
-                    self.currentMetaData = meta = self.enrichers[protocol].enrich(meta, self.receive)
-            yield meta
+    def process(self, meta):
+        self.currentMetaData = None
+        if "protocol" in meta:
+            protocol = meta["protocol"]
+            if protocol in self.enrichers:
+                self.currentMetaData = meta = self.enrichers[protocol].enrich(meta, self.receive)
+        return meta
 
     def receive(self, meta):
         # we may have moved on in the meantime
