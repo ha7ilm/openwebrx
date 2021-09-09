@@ -1,12 +1,18 @@
-from owrx.config import Config
-from urllib import request
 import json
-from datetime import datetime, timedelta
 import logging
 import threading
-from owrx.map import Map, LatLngLocation
-from owrx.aprs import AprsParser, AprsLocation
+import pickle
 from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
+from urllib import request
+
+from pycsdr.types import Format
+
+from csdr.module import ThreadModule
+from owrx.aprs import AprsParser, AprsLocation
+from owrx.config import Config
+from owrx.map import Map, LatLngLocation
+from owrx.bands import Bandplan
 
 logger = logging.getLogger(__name__)
 
@@ -158,9 +164,8 @@ class DStarEnricher(Enricher):
         return meta
 
 
-class MetaParser:
-    def __init__(self, handler):
-        self.handler = handler
+class MetaParser(ThreadModule):
+    def __init__(self):
         self.enrichers = {
             "DMR": RadioIDEnricher("dmr", self),
             "YSF": YsfMetaEnricher(self),
@@ -168,6 +173,23 @@ class MetaParser:
             "NXDN": RadioIDEnricher("nxdn", self),
         }
         self.currentMetaData = None
+        self.band = None
+        super().__init__()
+
+    def getInputFormat(self) -> Format:
+        return Format.CHAR
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+            else:
+                for result in self.parse(data):
+                    self.writer.write(pickle.dumps(result))
 
     def parse(self, raw: memoryview):
         try:
@@ -185,10 +207,16 @@ class MetaParser:
                 protocol = meta["protocol"]
                 if protocol in self.enrichers:
                     self.currentMetaData = meta = self.enrichers[protocol].enrich(meta, self.receive)
-            self.handler.write_metadata(meta)
+            yield meta
 
     def receive(self, meta):
         # we may have moved on in the meantime
         if meta is not self.currentMetaData:
             return
-        self.handler.write_metadata(meta)
+        self.writer.write(pickle.dumps(meta))
+
+    def setDialFrequency(self, freq):
+        self.band = Bandplan.getSharedInstance().findBand(freq)
+
+    def getBand(self):
+        return self.band

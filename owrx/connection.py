@@ -420,7 +420,12 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send({"type": "features", "value": features})
 
     def write_metadata(self, metadata):
-        self.send({"type": "metadata", "value": metadata})
+        io = BytesIO(metadata.tobytes())
+        try:
+            while True:
+                self.send({"type": "metadata", "value": pickle.load(io)})
+        except EOFError:
+            pass
 
     def write_dial_frequencies(self, frequencies):
         self.send({"type": "dial_frequencies", "value": frequencies})

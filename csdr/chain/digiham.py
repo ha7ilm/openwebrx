@@ -1,11 +1,12 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain
-from pycsdr.modules import FmDemod, Agc, Writer
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver
+from pycsdr.modules import FmDemod, Agc, Writer, Buffer
 from pycsdr.types import Format
 from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder
 from digiham.ambe import Modes
+from owrx.meta import MetaParser
 
 
-class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
+class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, DialFrequencyReceiver):
     def __init__(self, fskDemodulator, decoder, mbeMode, filter=None, codecserver: str = ""):
         self.decoder = decoder
         if codecserver is None:
@@ -23,6 +24,7 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
             DigitalVoiceFilter(),
             agc
         ]
+        self.metaParser = None
         super().__init__(workers)
 
     def getFixedIfSampleRate(self):
@@ -32,10 +34,25 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
         return 8000
 
     def setMetaWriter(self, writer: Writer):
-        self.decoder.setMetaWriter(writer)
+        if self.metaParser is None:
+            self.metaParser = MetaParser()
+            buffer = Buffer(Format.CHAR)
+            self.decoder.setMetaWriter(buffer)
+            self.metaParser.setReader(buffer.getReader())
+        self.metaParser.setWriter(writer)
 
     def supportsSquelch(self):
         return False
+
+    def setDialFrequency(self, frequency: int) -> None:
+        if self.metaParser is None:
+            return
+        self.metaParser.setDialFrequency(frequency)
+
+    def stop(self):
+        if self.metaParser is not None:
+            self.metaParser.stop()
+        super().stop()
 
 
 class Dstar(DigihamChain):

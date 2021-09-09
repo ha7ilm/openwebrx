@@ -1,4 +1,3 @@
-from owrx.meta import MetaParser
 from owrx.wsjt import WsjtParser
 from owrx.js8 import Js8Parser
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
@@ -192,6 +191,8 @@ class ClientDemodulatorChain(Chain):
         if self.centerFrequency is None or self.frequencyOffset is None:
             return
         dialFrequency = self.centerFrequency + self.frequencyOffset
+        if isinstance(self.demodulator, DialFrequencyReceiver):
+            self.demodulator.setDialFrequency(dialFrequency)
         if isinstance(self.secondaryDemodulator, DialFrequencyReceiver):
             self.secondaryDemodulator.setDialFrequency(dialFrequency)
 
@@ -286,9 +287,6 @@ class DspManager(Output, SdrSourceEventClient):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
-        self.parsers = {
-            "meta": MetaParser(self.handler),
-        }
 
         self.props = PropertyStack()
 
@@ -527,9 +525,8 @@ class DspManager(Output, SdrSourceEventClient):
             "smeter": self.handler.write_s_meter_level,
             "secondary_fft": self.handler.write_secondary_fft,
             "secondary_demod": self.handler.write_secondary_demod,
+            "meta": self.handler.write_metadata,
         }
-        for demod, parser in self.parsers.items():
-            writers[demod] = parser.parse
 
         write = writers[t]
 
