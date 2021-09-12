@@ -5,8 +5,7 @@ import pickle
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from urllib import request
-
-from pycsdr.types import Format
+from urllib.error import HTTPError
 
 from csdr.module import PickleModule
 from owrx.aprs import AprsParser, AprsLocation
@@ -88,6 +87,8 @@ class RadioIDEnricher(Enricher):
                         return item
         except json.JSONDecodeError:
             logger.warning("unable to parse radioid response JSON")
+        except HTTPError as e:
+            logger.warning("radioid responded with error: %s", str(e))
 
         return None
 
