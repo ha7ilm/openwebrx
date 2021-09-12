@@ -15,13 +15,10 @@ from owrx.config import Config
 from owrx.waterfall import WaterfallOptions
 from owrx.websocket import Handler
 from queue import Queue, Full, Empty
-from js8py import Js8Frame
 from abc import ABCMeta, abstractmethod
-from io import BytesIO
 import json
 import threading
 import struct
-import pickle
 
 import logging
 
@@ -379,12 +376,8 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send(bytes([0x04]) + data)
 
     def write_s_meter_level(self, level):
-        if isinstance(level, memoryview):
-            # may contain more than one sample, so only take the last 4 bytes = 1 float
-            level, = struct.unpack('f', level[-4:])
-        if not isinstance(level, float):
-            logger.warning("s-meter value has unexpected type")
-            return
+        # may contain more than one sample, so only take the last 4 bytes = 1 float
+        level, = struct.unpack('f', level[-4:])
         try:
             self.send({"type": "smeter", "value": level})
         except ValueError:
@@ -400,12 +393,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send(bytes([0x03]) + data)
 
     def write_secondary_demod(self, message):
-        io = BytesIO(message.tobytes())
-        try:
-            while True:
-                self.send({"type": "secondary_demod", "value": pickle.load(io)})
-        except EOFError:
-            pass
+        self.send({"type": "secondary_demod", "value": message})
 
     def write_secondary_dsp_config(self, cfg):
         self.send({"type": "secondary_config", "value": cfg})
@@ -420,12 +408,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         self.send({"type": "features", "value": features})
 
     def write_metadata(self, metadata):
-        io = BytesIO(metadata.tobytes())
-        try:
-            while True:
-                self.send({"type": "metadata", "value": pickle.load(io)})
-        except EOFError:
-            pass
+        self.send({"type": "metadata", "value": metadata})
 
     def write_dial_frequencies(self, frequencies):
         self.send({"type": "dial_frequencies", "value": frequencies})

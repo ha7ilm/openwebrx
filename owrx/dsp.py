@@ -18,8 +18,10 @@ from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, Poc
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union
+from io import BytesIO
 import threading
 import re
+import pickle
 
 import logging
 
@@ -525,8 +527,8 @@ class DspManager(Output, SdrSourceEventClient):
             "hd_audio": self.handler.write_hd_audio,
             "smeter": self.handler.write_s_meter_level,
             "secondary_fft": self.handler.write_secondary_fft,
-            "secondary_demod": self.handler.write_secondary_demod,
-            "meta": self.handler.write_metadata,
+            "secondary_demod": self._unpickle(self.handler.write_secondary_demod),
+            "meta": self._unpickle(self.handler.write_metadata),
         }
 
         write = writers[t]
@@ -536,6 +538,17 @@ class DspManager(Output, SdrSourceEventClient):
         reader = buffer.getReader()
         self.readers[t] = reader
         threading.Thread(target=self.pump(reader.read, write), name="dsp_pump_{}".format(t)).start()
+
+    def _unpickle(self, callback):
+        def unpickler(data):
+            io = BytesIO(data.tobytes())
+            try:
+                while True:
+                    callback(pickle.load(io))
+            except EOFError:
+                pass
+
+        return unpickler
 
     def stop(self):
         self.chain.stop()
