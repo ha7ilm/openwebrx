@@ -12,6 +12,7 @@ from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
 from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
 from csdr.chain.m17 import M17Chain
+from csdr.chain.freedv import FreeDV
 from csdr.chain.drm import Drm
 from csdr.chain.fft import FftChain
 from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, PocsagDemodulator
@@ -452,6 +453,8 @@ class DspManager(Output, SdrSourceEventClient):
             return M17Chain()
         elif demod == "drm":
             return Drm()
+        elif demod == "freedv":
+            return FreeDV()
 
     def setDemodulator(self, mod):
         demodulator = self._getDemodulator(mod)
