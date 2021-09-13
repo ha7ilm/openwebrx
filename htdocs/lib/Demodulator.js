@@ -13,6 +13,8 @@ Filter.prototype.getLimits = function() {
         max_bw = 100000;
     } else if (this.demodulator.get_modulation() === 'drm') {
         max_bw = 50000;
+    } else if (this.demodulator.get_modulation() === "freedv") {
+        max_bw = 4000;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
     }
