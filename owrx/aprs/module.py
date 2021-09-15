@@ -1,11 +1,12 @@
 from csdr.module import AutoStartModule
 from pycsdr.types import Format
-from pycsdr.modules import Reader, Writer, TcpSource
+from pycsdr.modules import Writer, TcpSource
 from subprocess import Popen, PIPE
 from owrx.aprs.direwolf import DirewolfConfig
 from owrx.config.core import CoreConfig
 import threading
 import time
+import os
 
 import logging
 
@@ -18,6 +19,7 @@ class DirewolfModule(AutoStartModule):
         self.inputReader = None
         self.tcpSource = None
         self.service = service
+        self.direwolfConfigPath = None
         super().__init__()
 
     def setWriter(self, writer: Writer) -> None:
@@ -33,20 +35,20 @@ class DirewolfModule(AutoStartModule):
 
     def start(self):
         temporary_directory = CoreConfig().get_temporary_directory()
-        direwolf_config_path = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
+        self.direwolfConfigPath = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
             tmp_dir=temporary_directory, myid=id(self)
         )
         direwolf_config = DirewolfConfig()
         # TODO
         # direwolf_config.wire(self)
 
-        file = open(direwolf_config_path, "w")
+        file = open(self.direwolfConfigPath, "w")
         file.write(direwolf_config.getConfig(self.service))
         file.close()
 
         # direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h 1>&2
         self.process = Popen(
-            ["direwolf", "-c", direwolf_config_path, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"],
+            ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"],
             start_new_session=True,
             stdin=PIPE,
         )
@@ -73,4 +75,5 @@ class DirewolfModule(AutoStartModule):
             self.process.terminate()
             self.process.wait()
             self.process = None
+        os.unlink(self.direwolfConfigPath)
         self.reader.stop()
