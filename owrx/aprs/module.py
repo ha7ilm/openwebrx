@@ -74,17 +74,3 @@ class DirewolfModule(AutoStartModule):
             self.process.wait()
             self.process = None
         self.reader.stop()
-
-    def pump(self, read, write):
-        def copy():
-            while True:
-                data = None
-                try:
-                    data = read()
-                except ValueError:
-                    pass
-                if data is None or isinstance(data, bytes) and len(data) == 0:
-                    break
-                write(data)
-
-        return copy

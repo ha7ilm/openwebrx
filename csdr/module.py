@@ -47,6 +47,20 @@ class AutoStartModule(Module, metaclass=ABCMeta):
     def start(self):
         pass
 
+    def pump(self, read, write):
+        def copy():
+            while True:
+                data = None
+                try:
+                    data = read()
+                except ValueError:
+                    pass
+                if data is None or isinstance(data, bytes) and len(data) == 0:
+                    break
+                write(data)
+
+        return copy
+
 
 class ThreadModule(AutoStartModule, Thread, metaclass=ABCMeta):
     def __init__(self):
@@ -113,17 +127,3 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
             self.process.wait()
             self.process = None
         self.reader.stop()
-
-    def pump(self, read, write):
-        def copy():
-            while True:
-                data = None
-                try:
-                    data = read()
-                except ValueError:
-                    pass
-                if data is None or isinstance(data, bytes) and len(data) == 0:
-                    break
-                write(data)
-
-        return copy
