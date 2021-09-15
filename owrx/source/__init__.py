@@ -322,6 +322,7 @@ class SdrSource(ABC):
                 if self.monitor is None:
                     break
                 testsock = socket.socket()
+                testsock.settimeout(1)
                 try:
                     testsock.connect(("127.0.0.1", self.getPort()))
                     testsock.close()
@@ -365,6 +366,13 @@ class SdrSource(ABC):
                 self.setState(SdrSourceState.STOPPING)
                 try:
                     os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+                    if self.monitor:
+                        # wait 10 seconds for a regular shutdown
+                        self.monitor.join(10)
+                        # if the monitor is still running, the process still hasn't ended, so kill it
+                    if self.monitor:
+                        logger.warning("source has not shut down normally within 10 seconds, sending SIGKILL")
+                        os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
                 except ProcessLookupError:
                     # been killed by something else, ignore
                     pass

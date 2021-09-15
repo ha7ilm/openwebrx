@@ -259,3 +259,8 @@ class SdrService(object):
         if SdrService.availableProfiles is None:
             SdrService.availableProfiles = AvailableProfiles(SdrService.getActiveSources())
         return SdrService.availableProfiles
+
+    @staticmethod
+    def stopAllSources():
+        for source in SdrService.getAllSources().values():
+            source.stop()

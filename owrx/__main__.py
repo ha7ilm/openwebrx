@@ -111,5 +111,6 @@ Support and info:       https://groups.io/g/openwebrx
 
     WebSocketConnection.closeAll()
     Services.stop()
+    SdrService.stopAllSources()
     ReportingEngine.stopAll()
     DecoderQueue.stopAll()
