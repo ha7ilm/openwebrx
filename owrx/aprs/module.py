@@ -2,7 +2,7 @@ from csdr.module import AutoStartModule
 from pycsdr.types import Format
 from pycsdr.modules import Writer, TcpSource
 from subprocess import Popen, PIPE
-from owrx.aprs.direwolf import DirewolfConfig
+from owrx.aprs.direwolf import DirewolfConfig, DirewolfConfigSubscriber
 from owrx.config.core import CoreConfig
 import threading
 import time
@@ -13,13 +13,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DirewolfModule(AutoStartModule):
+class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
     def __init__(self, service: bool = False):
         self.process = None
-        self.inputReader = None
         self.tcpSource = None
         self.service = service
-        self.direwolfConfigPath = None
+        self.direwolfConfigPath = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
+            tmp_dir=CoreConfig().get_temporary_directory(), myid=id(self)
+        )
+        self.direwolfConfig = None
         super().__init__()
 
     def setWriter(self, writer: Writer) -> None:
@@ -34,16 +36,10 @@ class DirewolfModule(AutoStartModule):
         return Format.CHAR
 
     def start(self):
-        temporary_directory = CoreConfig().get_temporary_directory()
-        self.direwolfConfigPath = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
-            tmp_dir=temporary_directory, myid=id(self)
-        )
-        direwolf_config = DirewolfConfig()
-        # TODO
-        # direwolf_config.wire(self)
-
+        self.direwolfConfig = DirewolfConfig()
+        self.direwolfConfig.wire(self)
         file = open(self.direwolfConfigPath, "w")
-        file.write(direwolf_config.getConfig(self.service))
+        file.write(self.direwolfConfig.getConfig(self.service))
         file.close()
 
         # direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h 1>&2
@@ -59,7 +55,7 @@ class DirewolfModule(AutoStartModule):
         retries = 0
         while True:
             try:
-                self.tcpSource = TcpSource(direwolf_config.getPort(), Format.CHAR)
+                self.tcpSource = TcpSource(self.direwolfConfig.getPort(), Format.CHAR)
                 if self.writer:
                     self.tcpSource.setWriter(self.writer)
                 break
@@ -76,4 +72,10 @@ class DirewolfModule(AutoStartModule):
             self.process.wait()
             self.process = None
         os.unlink(self.direwolfConfigPath)
+        self.direwolfConfig.unwire(self)
+        self.direwolfConfig = None
         self.reader.stop()
+
+    def onConfigChanged(self):
+        self.stop()
+        self.start()
