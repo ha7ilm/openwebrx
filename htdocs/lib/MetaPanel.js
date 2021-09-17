@@ -26,16 +26,27 @@ DmrMetaSlot.prototype.update = function(data) {
         this.setName(data['additional'] && data['additional']['fname']);
         this.setMode(['group', 'direct'].includes(data['type']) ? data['type'] : undefined);
         this.setTarget(data['target']);
+        this.setLocation(data['lat'], data['lon'], this.getCallsign(data));
         this.el.addClass("active");
     } else {
         this.clear();
     }
 };
 
+DmrMetaSlot.prototype.getCallsign = function(data) {
+    if ('additional' in data) {
+        return data['additional']['callsign'];
+    }
+    if ('talkeralias' in data) {
+        var matches = /^([A-Z0-9]+)(\s.*)?$/.exec(data['talkeralias']);
+        if (matches) return matches[1];
+    }
+};
+
 DmrMetaSlot.prototype.setId = function(id) {
     if (this.id === id) return;
     this.id = id;
-    this.el.find('.openwebrx-dmr-id').text(id || '');
+    this.el.find('.openwebrx-dmr-id .dmr-id').text(id || '');
 }
 
 DmrMetaSlot.prototype.setName = function(name) {
@@ -59,11 +70,23 @@ DmrMetaSlot.prototype.setTarget = function(target) {
     this.el.find('.openwebrx-dmr-target').text(target || '');
 }
 
+DmrMetaSlot.prototype.setLocation = function(lat, lon, callsign) {
+    var hasLocation = lat && lon && callsign && callsign != '';
+    if (hasLocation === this.hasLocation && this.callsign === callsign) return;
+    this.hasLocation = hasLocation; this.callsign = callsign;
+    var html = '';
+    if (hasLocation) {
+        html = '<a class="openwebrx-maps-pin" href="map?callsign=' + encodeURIComponent(callsign) + '" target="_blank"><svg viewBox="0 0 20 35"><use xlink:href="static/gfx/svg-defs.svg#maps-pin"></use></svg></a>';
+    }
+    this.el.find('.openwebrx-dmr-id .location').html(html);
+}
+
 DmrMetaSlot.prototype.clear = function() {
     this.setId();
     this.setName();
     this.setMode();
     this.setTarget();
+    this.setLocation();
     this.el.removeClass("active");
 };
 
@@ -250,7 +273,7 @@ NxdnMetaPanel.prototype = new MetaPanel();
 NxdnMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
 
-    if (data['sync'] && data['sync'] == 'voice') {
+    if (data['sync'] && data['sync'] === 'voice') {
         this.el.find(".openwebrx-meta-slot").addClass("active");
         this.setSource(data['additional'] && data['additional']['callsign'] || data['source']);
         this.setName(data['additional'] && data['additional']['fname']);

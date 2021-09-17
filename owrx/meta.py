@@ -2,7 +2,8 @@ import json
 import logging
 import threading
 import pickle
-from abc import ABC, abstractmethod
+import re
+from abc import ABC, ABCMeta, abstractmethod
 from datetime import datetime, timedelta
 from urllib import request
 from urllib.error import HTTPError
@@ -120,28 +121,71 @@ class RadioIDEnricher(Enricher):
         return meta
 
 
-class YsfMetaEnricher(Enricher):
-    def enrich(self, meta, callback):
-        for key in ["source", "up", "down", "target"]:
-            if key in meta:
-                meta[key] = meta[key].strip()
+class DigihamEnricher(Enricher, metaclass=ABCMeta):
+    def parseCoordinate(self, meta, mode):
         for key in ["lat", "lon"]:
             if key in meta:
                 meta[key] = float(meta[key])
-        if "source" in meta and "lat" in meta and "lon" in meta:
+        callsign = self.getCallsign(meta)
+        if callsign is not None and "lat" in meta and "lon" in meta:
             loc = LatLngLocation(meta["lat"], meta["lon"])
-            Map.getSharedInstance().updateLocation(meta["source"], loc, "YSF", self.parser.getBand())
+            Map.getSharedInstance().updateLocation(callsign, loc, mode, self.parser.getBand())
+        return meta
+
+    @abstractmethod
+    def getCallsign(self, meta):
+        pass
+
+
+class DmrEnricher(DigihamEnricher, RadioIDEnricher):
+    # callsign must be uppercase alphanumeric and at the beginning
+    # if there's anything after the callsign, it must be separated by a whitespace
+    talkerAliasRegex = re.compile("^([A-Z0-9]+)(\\s.*)?$")
+
+    def __init__(self, parser):
+        super().__init__("dmr", parser)
+
+    def getCallsign(self, meta):
+        # there's no explicit callsign data in dmr, so we can only rely on one of the following:
+        # a) a callsign provided by a radioid lookup
+        if "additional" in meta and "callsign" in meta["additional"]:
+            return meta["additional"]["callsign"]
+        # b) a callsign in the talker alias
+        if "talkeralias" in meta:
+            matches = DmrEnricher.talkerAliasRegex.match(meta["talkeralias"])
+            if matches:
+                return matches.group(1)
+
+    def enrich(self, meta, callback):
+        def asyncParse(meta):
+            self.parseCoordinate(meta, "DMR")
+            callback(meta)
+        meta = super().enrich(meta, asyncParse)
+        meta = self.parseCoordinate(meta, "DMR")
         return meta
 
 
-class DStarEnricher(Enricher):
+class YsfMetaEnricher(DigihamEnricher):
+    def getCallsign(self, meta):
+        if "source" in meta:
+            return meta["source"]
+
     def enrich(self, meta, callback):
-        for key in ["lat", "lon"]:
-            if key in meta:
-                meta[key] = float(meta[key])
-        if "ourcall" in meta and "lat" in meta and "lon" in meta:
-            loc = LatLngLocation(meta["lat"], meta["lon"])
-            Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "D-Star", self.parser.getBand())
+        meta = self.parseCoordinate(meta, "YSF")
+        return meta
+
+
+class DStarEnricher(DigihamEnricher):
+    def getCallsign(self, meta):
+        if "ourcall" in meta:
+            return meta["ourcall"]
+
+    def enrich(self, meta, callback):
+        meta = self.parseCoordinate(meta, "D-Star")
+        meta = self.parseDprs(meta)
+        return meta
+
+    def parseDprs(self, meta):
         if "dprs" in meta:
             try:
                 # we can send the DPRS stuff through our APRS parser to extract the information
@@ -168,7 +212,7 @@ class DStarEnricher(Enricher):
 class MetaParser(PickleModule):
     def __init__(self):
         self.enrichers = {
-            "DMR": RadioIDEnricher("dmr", self),
+            "DMR": DmrEnricher(self),
             "YSF": YsfMetaEnricher(self),
             "DSTAR": DStarEnricher(self),
             "NXDN": RadioIDEnricher("nxdn", self),

@@ -1266,6 +1266,9 @@ function digimodes_init() {
     $('.openwebrx-dmr-timeslot-panel').click(function (e) {
         $(e.currentTarget).toggleClass("muted");
         update_dmr_timeslot_filtering();
+    // don't mute when the location icon is clicked
+    }).find('.location').click(function(e) {
+        e.stopPropagation();
     });
 
     $('.openwebrx-meta-panel').metaPanel();
