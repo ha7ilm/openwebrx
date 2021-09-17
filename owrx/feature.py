@@ -51,18 +51,18 @@ class FeatureCache(object):
 class FeatureDetector(object):
     features = {
         # core features; we won't start without these
-        "core": ["csdr", "nmux", "nc"],
+        "core": ["csdr", "pycsdr"],
         # different types of sdrs and their requirements
         "rtl_sdr": ["rtl_connector"],
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
         "rtl_tcp": ["rtl_tcp_connector"],
         "sdrplay": ["soapy_connector", "soapy_sdrplay"],
         "hackrf": ["soapy_connector", "soapy_hackrf"],
-        "perseussdr": ["perseustest"],
+        "perseussdr": ["perseustest", "nmux"],
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
-        "fifi_sdr": ["alsa", "rockprog"],
+        "fifi_sdr": ["alsa", "rockprog", "nmux"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
         "soapy_remote": ["soapy_connector", "soapy_remote"],
         "uhd": ["soapy_connector", "soapy_uhd"],
@@ -72,16 +72,16 @@ class FeatureDetector(object):
         "hpsdr": ["hpsdr_connector"],
         "runds": ["runds_connector"],
         # optional features and their requirements
-        "digital_voice_digiham": ["digiham", "sox", "codecserver_ambe"],
-        "digital_voice_freedv": ["freedv_rx", "sox"],
-        "digital_voice_m17": ["m17_demod", "sox", "digiham"],
-        "wsjt-x": ["wsjtx", "sox"],
-        "wsjt-x-2-3": ["wsjtx_2_3", "sox"],
-        "wsjt-x-2-4": ["wsjtx_2_4", "sox"],
-        "packet": ["direwolf", "sox"],
-        "pocsag": ["digiham", "sox"],
-        "js8call": ["js8", "sox"],
-        "drm": ["dream", "sox"],
+        "digital_voice_digiham": ["digiham", "codecserver_ambe"],
+        "digital_voice_freedv": ["freedv_rx"],
+        "digital_voice_m17": ["m17_demod", "digiham"],
+        "wsjt-x": ["wsjtx"],
+        "wsjt-x-2-3": ["wsjtx_2_3"],
+        "wsjt-x-2-4": ["wsjtx_2_4"],
+        "packet": ["direwolf"],
+        "pocsag": ["digiham"],
+        "js8call": ["js8"],
+        "drm": ["dream"],
     }
 
     def feature_availability(self):
@@ -167,24 +167,28 @@ class FeatureDetector(object):
         except FileNotFoundError:
             return False
 
+    _required_csdr_version = LooseVersion("0.18.0")
+
     def has_csdr(self):
         """
         OpenWebRX uses the demodulator and pipeline tools provided by the csdr project. Please check out [the project
         page on github](https://github.com/jketterl/csdr) for further details and installation instructions.
         """
-        required_version = LooseVersion("0.17.0")
-
-        csdr_version_regex = re.compile("^csdr version (.*)$")
-
         try:
-            process = subprocess.Popen(["csdr", "version"], stderr=subprocess.PIPE)
-            matches = csdr_version_regex.match(process.stderr.readline().decode())
-            if matches is None:
-                return False
-            version = LooseVersion(matches.group(1))
-            process.wait(1)
-            return version >= required_version
-        except FileNotFoundError:
+            from pycsdr.modules import csdr_version
+            return LooseVersion(csdr_version) >= FeatureDetector._required_csdr_version
+        except ImportError:
+            return False
+
+    def has_pycsdr(self):
+        """
+        OpenWebRX uses the csdr python bindings from the pycsdr package to build its demodulator pipelines.
+        Please visit [the project page](https://github.com/jketterl/pycsdr) for further details.
+        """
+        try:
+            from pycsdr.modules import version as pycsdr_version
+            return LooseVersion(pycsdr_version) >= FeatureDetector._required_csdr_version
+        except ImportError:
             return False
 
     def has_nmux(self):
@@ -193,13 +197,6 @@ class FeatureDetector(object):
         If you're missing nmux even though you have csdr installed, please update your csdr version.
         """
         return self.command_is_runnable("nmux --help")
-
-    def has_nc(self):
-        """
-        Nc is the client used to connect to the nmux multiplexer. It is provided by either the BSD netcat (recommended
-        for better performance) or GNU netcat packages. Please check your distribution package manager for options.
-        """
-        return self.command_is_runnable("nc --help")
 
     def has_perseustest(self):
         """
@@ -231,40 +228,11 @@ class FeatureDetector(object):
         """
         required_version = LooseVersion("0.5")
 
-        digiham_version_regex = re.compile("^(.*) version (.*)$")
-
-        def check_digiham_version(command):
-            try:
-                process = subprocess.Popen([command, "--version"], stdout=subprocess.PIPE)
-                matches = digiham_version_regex.match(process.stdout.readline().decode())
-                if matches is None:
-                    return False
-                version = LooseVersion(matches.group(2))
-                process.wait(1)
-                return matches.group(1) in [command, "digiham"] and version >= required_version
-            except FileNotFoundError:
-                return False
-
-        return reduce(
-            and_,
-            map(
-                check_digiham_version,
-                [
-                    "rrc_filter",
-                    "ysf_decoder",
-                    "dmr_decoder",
-                    "mbe_synthesizer",
-                    "gfsk_demodulator",
-                    "digitalvoice_filter",
-                    "fsk_demodulator",
-                    "pocsag_decoder",
-                    "dstar_decoder",
-                    "nxdn_decoder",
-                    "dc_block",
-                ],
-            ),
-            True,
-        )
+        try:
+            from digiham.modules import version as digiham_version
+            return LooseVersion(digiham_version) >= required_version
+        except ImportError:
+            return False
 
     def _check_connector(self, command, required_version):
         owrx_connector_version_regex = re.compile("^{} version (.*)$".format(re.escape(command)))
@@ -422,15 +390,6 @@ class FeatureDetector(object):
         You can find more information [here](https://github.com/mobilinkd/m17-cxx-demod)
         """
         return self.command_is_runnable("m17-demod")
-
-    def has_sox(self):
-        """
-        The sox audio library is used to convert between the typical 8 kHz audio sampling rate used by digital modes and
-        the audio sampling rate requested by the client.
-
-        It is available for most distributions through the respective package manager.
-        """
-        return self.command_is_runnable("sox")
 
     def has_direwolf(self):
         """
