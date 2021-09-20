@@ -89,7 +89,7 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation) {
         return;
     }
     if (!mode.isAvailable()) {
-        divlog('Modulation "' + mode.name + '" not supported. Please check requirements', true);
+        divlog('Modulation "' + mode.name + '" not supported. Please check the feature report', true);
         return;
     }
 
