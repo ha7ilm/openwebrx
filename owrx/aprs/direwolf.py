@@ -16,7 +16,7 @@ class DirewolfConfigSubscriber(ABC):
         pass
 
 
-class DirewolfConfig(object):
+class DirewolfConfig:
     config_keys = [
         "aprs_callsign",
         "aprs_igate_enabled",

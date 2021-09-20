@@ -1,11 +1,11 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain
-from owrx.m17 import M17Module
+from csdr.module.m17 import M17Module
 from pycsdr.modules import FmDemod, Limit, Convert
 from pycsdr.types import Format
 from digiham.modules import DcBlock
 
 
-class M17Chain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
+class M17(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
     def __init__(self):
         workers = [
             FmDemod(),

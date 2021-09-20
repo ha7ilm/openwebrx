@@ -10,7 +10,7 @@ from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.analog import NFm, WFm, Am, Ssb
 from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
-from csdr.chain.m17 import M17Chain
+from csdr.chain.m17 import M17
 from csdr.chain.freedv import FreeDV
 from csdr.chain.drm import Drm
 from csdr.chain.fft import FftChain
@@ -449,7 +449,7 @@ class DspManager(SdrSourceEventClient):
         elif demod == "nxdn":
             return Nxdn(self.props["digital_voice_codecserver"])
         elif demod == "m17":
-            return M17Chain()
+            return M17()
         elif demod == "drm":
             return Drm()
         elif demod == "freedv":

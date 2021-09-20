@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain
-from owrx.freedv import FreeDVModule
+from csdr.module.freedv import FreeDVModule
 from pycsdr.modules import RealPart, Agc, Convert
 from pycsdr.types import Format
 
