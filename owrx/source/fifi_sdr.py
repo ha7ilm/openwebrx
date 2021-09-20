@@ -1,6 +1,9 @@
 from owrx.command import Option
 from owrx.source.direct import DirectSource, DirectSourceDeviceDescription
 from subprocess import Popen
+from csdr.chain import Chain
+from pycsdr.modules import Convert, Gain
+from pycsdr.types import Format
 
 import logging
 
@@ -20,8 +23,8 @@ class FifiSdrSource(DirectSource):
     def getEventNames(self):
         return super().getEventNames() + ["device"]
 
-    def getFormatConversion(self):
-        return ["csdr convert_s16_f", "csdr gain_ff 5"]
+    def getFormatConversion(self) -> Chain:
+        return Chain([Convert(Format.COMPLEX_SHORT, Format.COMPLEX_FLOAT), Gain(Format.COMPLEX_FLOAT, 5.0)])
 
     def sendRockProgFrequency(self, frequency):
         process = Popen(["rockprog", "--vco", "-w", "--freq={}".format(frequency / 1e6)])

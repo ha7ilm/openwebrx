@@ -1,5 +1,9 @@
 from abc import ABCMeta
 from owrx.source import SdrSource, SdrDeviceDescription
+from csdr.chain import Chain
+from typing import Optional
+from pycsdr.modules import Buffer
+from pycsdr.types import Format
 
 import logging
 
@@ -38,15 +42,29 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
         ]
 
     def getCommand(self):
-        return super().getCommand() + self.getFormatConversion() + self.getNmuxCommand()
+        return super().getCommand() + self.getNmuxCommand()
 
     # override this in subclasses, if necessary
-    def getFormatConversion(self):
-        return []
+    def getFormatConversion(self) -> Optional[Chain]:
+        return None
 
     # override this in subclasses, if necessary
     def sleepOnRestart(self):
         pass
+
+    def getBuffer(self):
+        if self.buffer is None:
+            source = self._getTcpSource()
+            buffer = Buffer(source.getOutputFormat())
+            source.setWriter(buffer)
+            conversion = self.getFormatConversion()
+            if conversion is not None:
+                conversion.setReader(buffer.getReader())
+                # this one must be COMPLEX_FLOAT
+                buffer = Buffer(Format.COMPLEX_FLOAT)
+                conversion.setWriter(buffer)
+            self.buffer = buffer
+        return self.buffer
 
 
 class DirectSourceDeviceDescription(SdrDeviceDescription):
