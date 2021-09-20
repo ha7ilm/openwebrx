@@ -1,5 +1,3 @@
-from owrx.wsjt import WsjtParser
-from owrx.js8 import Js8Parser
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
@@ -9,7 +7,6 @@ from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain,
 from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
-from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, PocsagDemodulator
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union
@@ -490,12 +487,18 @@ class DspManager(SdrSourceEventClient):
             return mod
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
+            from csdr.chain.digimodes import AudioChopperDemodulator
+            from owrx.wsjt import WsjtParser
             return AudioChopperDemodulator(mod, WsjtParser())
         elif mod == "js8":
+            from csdr.chain.digimodes import AudioChopperDemodulator
+            from owrx.js8 import Js8Parser
             return AudioChopperDemodulator(mod, Js8Parser())
         elif mod == "packet":
+            from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator()
         elif mod == "pocsag":
+            from csdr.chain.digimodes import PocsagDemodulator
             return PocsagDemodulator()
         return None
 
