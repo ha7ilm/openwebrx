@@ -2,8 +2,6 @@ import threading
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.sdr import SdrService
 from owrx.bands import Bandplan
-from owrx.wsjt import WsjtParser
-from owrx.js8 import Js8Parser
 from owrx.config import Config
 from owrx.source.resampler import Resampler
 from owrx.property import PropertyLayer, PropertyDeleted
@@ -285,9 +283,11 @@ class ServiceHandler(SdrSourceEventClient):
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             from csdr.chain.digimodes import AudioChopperDemodulator
+            from owrx.wsjt import WsjtParser
             return AudioChopperDemodulator(mod, WsjtParser())
         elif mod == "js8":
             from csdr.chain.digimodes import AudioChopperDemodulator
+            from owrx.js8 import Js8Parser
             return AudioChopperDemodulator(mod, Js8Parser())
         elif mod == "packet":
             from csdr.chain.digimodes import PacketDemodulator
