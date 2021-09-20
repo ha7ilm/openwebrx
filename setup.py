@@ -28,6 +28,8 @@ setup(
             "owrx.admin",
             "owrx.aprs",
             "csdr",
+            "csdr.chain",
+            "csdr.module",
             "htdocs",
         ]
     ),

@@ -1,4 +1,3 @@
-from pycsdr.modules import Reader
 from pycsdr.types import Format
 from csdr.module import ThreadModule
 import pickle
