@@ -4,7 +4,6 @@ from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
-from csdr.output import Output
 from csdr.chain import Chain
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver
 from csdr.chain.selector import Selector
@@ -287,7 +286,7 @@ class ModulationValidator(OrValidator):
         super().__init__(BoolValidator(), RegexValidator(re.compile("^[a-z0-9]+$")))
 
 
-class DspManager(Output, SdrSourceEventClient):
+class DspManager(SdrSourceEventClient):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
@@ -540,7 +539,7 @@ class DspManager(Output, SdrSourceEventClient):
 
         reader = buffer.getReader()
         self.readers[t] = reader
-        threading.Thread(target=self.pump(reader.read, write), name="dsp_pump_{}".format(t)).start()
+        threading.Thread(target=self.chain.pump(reader.read, write), name="dsp_pump_{}".format(t)).start()
 
     def _unpickle(self, callback):
         def unpickler(data):
@@ -554,8 +553,9 @@ class DspManager(Output, SdrSourceEventClient):
         return unpickler
 
     def stop(self):
-        self.chain.stop()
-        self.chain = None
+        if self.chain:
+            self.chain.stop()
+            self.chain = None
         for reader in self.readers.values():
             reader.stop()
         self.readers = {}

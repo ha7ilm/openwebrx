@@ -28,8 +28,6 @@ import threading
 import math
 from functools import partial
 
-from csdr.output import Output
-
 from owrx.aprs.direwolf import DirewolfConfig, DirewolfConfigSubscriber
 from owrx.audio.chopper import AudioChopper
 
@@ -48,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class Dsp(DirewolfConfigSubscriber):
-    def __init__(self, output: Output):
+    def __init__(self, output):
         self.pycsdr_enabled = True
         self.pycsdr_chain = None
         self.pycsdr_client_chain = None

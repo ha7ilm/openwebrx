@@ -29,6 +29,20 @@ class Module(BaseModule, metaclass=ABCMeta):
     def getOutputFormat(self) -> Format:
         pass
 
+    def pump(self, read, write):
+        def copy():
+            while True:
+                data = None
+                try:
+                    data = read()
+                except ValueError:
+                    pass
+                if data is None or isinstance(data, bytes) and len(data) == 0:
+                    break
+                write(data)
+
+        return copy
+
 
 class AutoStartModule(Module, metaclass=ABCMeta):
     def _checkStart(self) -> None:
@@ -46,20 +60,6 @@ class AutoStartModule(Module, metaclass=ABCMeta):
     @abstractmethod
     def start(self):
         pass
-
-    def pump(self, read, write):
-        def copy():
-            while True:
-                data = None
-                try:
-                    data = read()
-                except ValueError:
-                    pass
-                if data is None or isinstance(data, bytes) and len(data) == 0:
-                    break
-                write(data)
-
-        return copy
 
 
 class ThreadModule(AutoStartModule, Thread, metaclass=ABCMeta):

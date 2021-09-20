@@ -1,9 +1,9 @@
-from owrx.config.core import CoreConfig
 from owrx.config import Config
 from csdr.chain.fft import FftChain
-import threading
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack
+from pycsdr.modules import Buffer
+import threading
 
 import logging
 
@@ -27,6 +27,7 @@ class SpectrumThread(SdrSourceEventClient):
         )
 
         self.dsp = None
+        self.reader = None
 
         self.subscriptions = []
 
@@ -53,7 +54,10 @@ class SpectrumThread(SdrSourceEventClient):
             self.props.wireProperty("fft_voverlap_factor", self.dsp.setVOverlapFactor),
         ]
 
-        threading.Thread(target=self.dsp.pump(self.sdrSource.writeSpectrumData)).start()
+        buffer = Buffer(self.dsp.getOutputFormat())
+        self.dsp.setWriter(buffer)
+        self.reader = buffer.getReader()
+        threading.Thread(target=self.dsp.pump(self.reader.read, self.sdrSource.writeSpectrumData)).start()
 
         if self.sdrSource.isAvailable():
             self.dsp.setReader(self.sdrSource.getBuffer().getReader())
@@ -63,6 +67,8 @@ class SpectrumThread(SdrSourceEventClient):
             return
         self.dsp.stop()
         self.dsp = None
+        self.reader.stop()
+        self.reader = None
         self.sdrSource.removeClient(self)
         while self.subscriptions:
             self.subscriptions.pop().cancel()

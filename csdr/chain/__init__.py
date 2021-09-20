@@ -145,23 +145,3 @@ class Chain(Module):
             return self.workers[-1].getOutputFormat()
         else:
             raise BufferError("getOutputFormat on empty chain")
-
-    def pump(self, write):
-        if self.writer is None:
-            self.setWriter(Buffer(self.getOutputFormat()))
-        self.clientReader = self.writer.getReader()
-
-        def copy():
-            run = True
-            while run:
-                data = None
-                try:
-                    data = self.clientReader.read()
-                except ValueError:
-                    pass
-                if data is None:
-                    run = False
-                else:
-                    write(data)
-
-        return copy
