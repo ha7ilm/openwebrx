@@ -1,7 +1,7 @@
 from csdr.module import Module
 from pycsdr.modules import Buffer
 from pycsdr.types import Format
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 
 
 class Chain(Module):
@@ -15,7 +15,7 @@ class Chain(Module):
     def empty(self):
         return not self.workers
 
-    def _connect(self, w1, w2, buffer: Union[Buffer, None] = None) -> None:
+    def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
         if buffer is None:
             buffer = Buffer(w1.getOutputFormat())
         w1.setWriter(buffer)

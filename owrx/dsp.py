@@ -9,7 +9,7 @@ from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
-from typing import Union
+from typing import Union, Optional
 from io import BytesIO
 import threading
 import re
@@ -52,7 +52,7 @@ class ClientDemodulatorChain(Chain):
             self.secondaryDemodulator.stop()
             self.secondaryDemodulator = None
 
-    def _connect(self, w1, w2, buffer: Union[Buffer, None] = None) -> None:
+    def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
         if w1 is self.selector:
             super()._connect(w1, w2, self.selectorBuffer)
         elif w2 is self.clientAudioChain:
@@ -115,7 +115,7 @@ class ClientDemodulatorChain(Chain):
             return self.secondaryDemodulator.getFixedAudioRate()
         return self.outputRate
 
-    def setSecondaryDemodulator(self, demod: Union[SecondaryDemodulator, None]):
+    def setSecondaryDemodulator(self, demod: Optional[SecondaryDemodulator]):
         if demod is self.secondaryDemodulator:
             return
 
