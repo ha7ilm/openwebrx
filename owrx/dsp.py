@@ -5,14 +5,9 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain
 from csdr.chain.selector import Selector
 from csdr.chain.clientaudio import ClientAudioChain
-from csdr.chain.analog import NFm, WFm, Am, Ssb
-from csdr.chain.digiham import DigihamChain, Dmr, Dstar, Nxdn, Ysf
-from csdr.chain.m17 import M17
-from csdr.chain.freedv import FreeDV
-from csdr.chain.drm import Drm
 from csdr.chain.fft import FftChain
 from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator, PocsagDemodulator
 from pycsdr.modules import Buffer, Writer
@@ -113,7 +108,7 @@ class ClientDemodulatorChain(Chain):
 
         self.clientAudioChain.setClientRate(outputRate)
 
-        if self.metaWriter is not None and isinstance(demodulator, DigihamChain):
+        if self.metaWriter is not None and isinstance(demodulator, MetaProvider):
             demodulator.setMetaWriter(self.metaWriter)
 
     def _getSelectorOutputRate(self):
@@ -249,7 +244,7 @@ class ClientDemodulatorChain(Chain):
         if writer is self.metaWriter:
             return
         self.metaWriter = writer
-        if isinstance(self.demodulator, DigihamChain):
+        if isinstance(self.demodulator, MetaProvider):
             self.demodulator.setMetaWriter(self.metaWriter)
 
     def setSecondaryFftWriter(self, writer: Writer) -> None:
@@ -267,8 +262,8 @@ class ClientDemodulatorChain(Chain):
         if self.secondaryDemodulator is not None:
             self.secondaryDemodulator.setWriter(writer)
 
-    def setDmrFilter(self, filter: int) -> None:
-        if not isinstance(self.demodulator, Dmr):
+    def setSlotFilter(self, filter: int) -> None:
+        if not isinstance(self.demodulator, SlotFilterChain):
             return
         self.demodulator.setSlotFilter(filter)
 
@@ -398,7 +393,7 @@ class DspManager(SdrSourceEventClient):
             self.props.wireProperty("low_cut", self.chain.setLowCut),
             self.props.wireProperty("high_cut", self.chain.setHighCut),
             self.props.wireProperty("mod", self.setDemodulator),
-            self.props.wireProperty("dmr_filter", self.chain.setDmrFilter),
+            self.props.wireProperty("dmr_filter", self.chain.setSlotFilter),
             # TODO
             # self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
             # TODO
@@ -433,26 +428,37 @@ class DspManager(SdrSourceEventClient):
             return demod
         # TODO: move this to Modes
         if demod == "nfm":
+            from csdr.chain.analog import NFm
             return NFm(self.props["output_rate"])
         elif demod == "wfm":
+            from csdr.chain.analog import WFm
             return WFm(self.props["hd_output_rate"], self.props["wfm_deemphasis_tau"])
         elif demod == "am":
+            from csdr.chain.analog import Am
             return Am()
         elif demod in ["usb", "lsb", "cw"]:
+            from csdr.chain.analog import Ssb
             return Ssb()
         elif demod == "dmr":
+            from csdr.chain.digiham import Dmr
             return Dmr(self.props["digital_voice_codecserver"])
         elif demod == "dstar":
+            from csdr.chain.digiham import Dstar
             return Dstar(self.props["digital_voice_codecserver"])
         elif demod == "ysf":
+            from csdr.chain.digiham import Ysf
             return Ysf(self.props["digital_voice_codecserver"])
         elif demod == "nxdn":
+            from csdr.chain.digiham import Nxdn
             return Nxdn(self.props["digital_voice_codecserver"])
         elif demod == "m17":
+            from csdr.chain.m17 import M17
             return M17()
         elif demod == "drm":
+            from csdr.chain.drm import Drm
             return Drm()
         elif demod == "freedv":
+            from csdr.chain.freedv import FreeDV
             return FreeDV()
 
     def setDemodulator(self, mod):

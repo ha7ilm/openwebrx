@@ -671,7 +671,7 @@ class Dsp(DirewolfConfigSubscriber):
         if self.has_pipe("dmr_control_pipe"):
             self.pipes["dmr_control_pipe"].write("{0}\n".format(filter))
         if self.pycsdr_enabled and self.pycsdr_chain is not None and isinstance(self.pycsdr_chain, DemodulatorChain):
-            self.pycsdr_chain.setDmrFilter(filter)
+            self.pycsdr_chain.setSlotFilter(filter)
 
     def set_wfm_deemphasis_tau(self, tau):
         if self.wfm_deemphasis_tau == tau:

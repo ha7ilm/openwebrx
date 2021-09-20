@@ -12,8 +12,6 @@ from owrx.service.chain import ServiceDemodulatorChain
 from owrx.modes import Modes, DigitalMode
 from typing import Union
 from csdr.chain.demodulator import BaseDemodulatorChain, SecondaryDemodulator, DialFrequencyReceiver
-from csdr.chain.analog import NFm, Ssb
-from csdr.chain.digimodes import AudioChopperDemodulator, PacketDemodulator
 from pycsdr.modules import Buffer
 
 import logging
@@ -274,8 +272,10 @@ class ServiceHandler(SdrSourceEventClient):
             return demod
         # TODO: move this to Modes
         if demod == "nfm":
+            from csdr.chain.analog import NFm
             return NFm(48000)
         elif demod in ["usb", "lsb", "cw"]:
+            from csdr.chain.analog import Ssb
             return Ssb()
 
     # TODO move this elsewhere
@@ -284,10 +284,13 @@ class ServiceHandler(SdrSourceEventClient):
             return mod
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
+            from csdr.chain.digimodes import AudioChopperDemodulator
             return AudioChopperDemodulator(mod, WsjtParser())
         elif mod == "js8":
+            from csdr.chain.digimodes import AudioChopperDemodulator
             return AudioChopperDemodulator(mod, Js8Parser())
         elif mod == "packet":
+            from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator(service=True)
         return None
 

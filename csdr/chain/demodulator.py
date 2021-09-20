@@ -1,5 +1,6 @@
 from csdr.chain import Chain
 from abc import ABC, abstractmethod
+from pycsdr.modules import Writer
 
 
 class BaseDemodulatorChain(Chain):
@@ -36,3 +37,15 @@ class DialFrequencyReceiver(ABC):
 # marker interface
 class HdAudio:
     pass
+
+
+class MetaProvider(ABC):
+    @abstractmethod
+    def setMetaWriter(self, writer: Writer) -> None:
+        pass
+
+
+class SlotFilterChain(ABC):
+    @abstractmethod
+    def setSlotFilter(self, filter: int) -> None:
+        pass

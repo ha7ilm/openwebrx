@@ -1,4 +1,4 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain
 from pycsdr.modules import FmDemod, Agc, Writer, Buffer
 from pycsdr.types import Format
 from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder
@@ -6,7 +6,7 @@ from digiham.ambe import Modes
 from owrx.meta import MetaParser
 
 
-class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, DialFrequencyReceiver):
+class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, DialFrequencyReceiver, MetaProvider):
     def __init__(self, fskDemodulator, decoder, mbeMode, filter=None, codecserver: str = ""):
         self.decoder = decoder
         if codecserver is None:
@@ -34,7 +34,7 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
     def getFixedAudioRate(self):
         return 8000
 
-    def setMetaWriter(self, writer: Writer):
+    def setMetaWriter(self, writer: Writer) -> None:
         if self.metaParser is None:
             self.metaParser = MetaParser()
             buffer = Buffer(Format.CHAR)
@@ -80,7 +80,7 @@ class Nxdn(DigihamChain):
         )
 
 
-class Dmr(DigihamChain):
+class Dmr(DigihamChain, SlotFilterChain):
     def __init__(self, codecserver: str = ""):
         super().__init__(
             fskDemodulator=GfskDemodulator(samplesPerSymbol=10),
