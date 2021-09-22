@@ -2,7 +2,7 @@ import subprocess
 from functools import reduce
 from operator import and_
 import re
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion, StrictVersion
 import inspect
 from owrx.config.core import CoreConfig
 from owrx.config import Config
@@ -80,7 +80,7 @@ class FeatureDetector(object):
         "wsjt-x-2-4": ["wsjtx_2_4"],
         "packet": ["direwolf"],
         "pocsag": ["digiham"],
-        "js8call": ["js8"],
+        "js8call": ["js8", "js8py"],
         "drm": ["dream"],
     }
 
@@ -448,6 +448,18 @@ class FeatureDetector(object):
         $PATH.
         """
         return self.command_is_runnable("js8")
+
+    def has_js8py(self):
+        """
+        The js8py library is used to decode binary JS8 messages into readable text. More information is available on
+        [its github page](https://github.com/jketterl/js8py).
+        """
+        required_version = StrictVersion("0.1")
+        try:
+            from js8py.version import strictversion
+            return strictversion >= required_version
+        except ImportError:
+            return False
 
     def has_alsa(self):
         """
