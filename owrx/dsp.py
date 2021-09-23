@@ -319,11 +319,15 @@ class DspManager(SdrSourceEventClient):
             ),
         )
 
-        # TODO wait for the rate to come from the client
-        if "output_rate" not in self.props:
-            self.props["output_rate"] = 12000
-        if "hd_output_rate" not in self.props:
-            self.props["hd_output_rate"] = 48000
+        # defaults for values that may not be set
+        self.props.addLayer(
+            2,
+            PropertyLayer(
+                output_rate=12000,
+                hd_output_rate=48000,
+                digital_voice_codecserver="",
+            ).readonly()
+        )
 
         self.chain = ClientDemodulatorChain(
             self._getDemodulator("nfm"),
