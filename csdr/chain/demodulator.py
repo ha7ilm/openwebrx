@@ -1,19 +1,6 @@
 from csdr.chain import Chain
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from pycsdr.modules import Writer
-
-
-class BaseDemodulatorChain(Chain):
-    def supportsSquelch(self) -> bool:
-        return True
-
-    def setSampleRate(self, sampleRate: int) -> None:
-        pass
-
-
-class SecondaryDemodulator(Chain):
-    def supportsSquelch(self) -> bool:
-        return True
 
 
 class FixedAudioRateChain(ABC):
@@ -49,3 +36,28 @@ class SlotFilterChain(ABC):
     @abstractmethod
     def setSlotFilter(self, filter: int) -> None:
         pass
+
+
+class SecondarySelectorChain(ABC):
+    def getBandwidth(self) -> float:
+        pass
+
+
+class BaseDemodulatorChain(Chain):
+    def supportsSquelch(self) -> bool:
+        return True
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        pass
+
+
+class SecondaryDemodulator(Chain):
+    def supportsSquelch(self) -> bool:
+        return True
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        pass
+
+
+class ServiceDemodulator(SecondaryDemodulator, FixedAudioRateChain, metaclass=ABCMeta):
+    pass

@@ -3,8 +3,8 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain
-from csdr.chain.selector import Selector
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain
+from csdr.chain.selector import Selector, SecondarySelector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
 from pycsdr.modules import Buffer, Writer
@@ -25,7 +25,7 @@ class ClientDemodulatorChain(Chain):
         self.sampleRate = sampleRate
         self.outputRate = outputRate
         self.hdOutputRate = hdOutputRate
-        self.selector = Selector(sampleRate, outputRate, 0.0)
+        self.selector = Selector(sampleRate, outputRate)
         self.selector.setBandpass(-4000, 4000)
         self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT)
         self.audioBuffer = None
@@ -41,6 +41,8 @@ class ClientDemodulatorChain(Chain):
         self.secondaryFftWriter = None
         self.secondaryWriter = None
         self.squelchLevel = -150
+        self.secondarySelector = None
+        self.secondaryFrequencyOffset = None
         super().__init__([self.selector, self.demodulator, self.clientAudioChain])
 
     def stop(self):
@@ -131,8 +133,20 @@ class ClientDemodulatorChain(Chain):
         self._updateDialFrequency()
         self._syncSquelch()
 
+        if isinstance(self.secondaryDemodulator, SecondarySelectorChain):
+            self.secondarySelector = SecondarySelector(rate, self.secondaryDemodulator.getBandwidth())
+            self.secondarySelector.setReader(self.selectorBuffer.getReader())
+            self.secondarySelector.setFrequencyOffset(self.secondaryFrequencyOffset)
+        else:
+            self.secondarySelector = None
+
         if self.secondaryDemodulator is not None:
-            if self.secondaryDemodulator.getInputFormat() is Format.COMPLEX_FLOAT:
+            self.secondaryDemodulator.setSampleRate(rate)
+            if self.secondarySelector is not None:
+                buffer = Buffer(Format.COMPLEX_FLOAT)
+                self.secondarySelector.setWriter(buffer)
+                self.secondaryDemodulator.setReader(buffer.getReader())
+            elif self.secondaryDemodulator.getInputFormat() is Format.COMPLEX_FLOAT:
                 self.secondaryDemodulator.setReader(self.selectorBuffer.getReader())
             else:
                 self.secondaryDemodulator.setReader(self.audioBuffer.getReader())
@@ -170,10 +184,7 @@ class ClientDemodulatorChain(Chain):
         if offset == self.frequencyOffset:
             return
         self.frequencyOffset = offset
-
-        shift = -offset / self.sampleRate
-        self.selector.setShiftRate(shift)
-
+        self.selector.setFrequencyOffset(offset)
         self._updateDialFrequency()
 
     def setCenterFrequency(self, frequency: int) -> None:
@@ -211,6 +222,8 @@ class ClientDemodulatorChain(Chain):
         if not isinstance(self.demodulator, FixedIfSampleRateChain):
             self.selector.setOutputRate(outputRate)
             self.demodulator.setSampleRate(outputRate)
+            if self.secondaryDemodulator is not None:
+                self.secondaryDemodulator.setSampleRate(outputRate)
         if not isinstance(self.demodulator, FixedAudioRateChain):
             self.clientAudioChain.setClientRate(outputRate)
 
@@ -267,6 +280,15 @@ class ClientDemodulatorChain(Chain):
     def setSecondaryFftSize(self, size: int) -> None:
         # TODO
         pass
+
+    def setSecondaryFrequencyOffset(self, freq: int) -> None:
+        if self.secondaryFrequencyOffset == freq:
+            return
+        self.secondaryFrequencyOffset = freq
+
+        if self.secondarySelector is None:
+            return
+        self.secondarySelector.setFrequencyOffset(self.secondaryFrequencyOffset)
 
 
 class ModulationValidator(OrValidator):
@@ -397,8 +419,6 @@ class DspManager(SdrSourceEventClient):
             self.props.wireProperty("dmr_filter", self.chain.setSlotFilter),
             # TODO
             # self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
-            # TODO
-            # self.props.wireProperty("digital_voice_codecserver", self.dsp.set_codecserver),
         ]
 
         # TODO
@@ -414,8 +434,7 @@ class DspManager(SdrSourceEventClient):
         self.subscriptions += [
             self.props.wireProperty("secondary_mod", self.setSecondaryDemodulator),
             self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
-            # TODO
-            # self.props.wireProperty("secondary_offset_freq", self.dsp.set_secondary_offset_freq),
+            self.props.wireProperty("secondary_offset_freq", self.chain.setSecondaryFrequencyOffset),
         ]
 
         self.startOnAvailable = False
@@ -424,7 +443,7 @@ class DspManager(SdrSourceEventClient):
 
         super().__init__()
 
-    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]):
+    def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]) -> Optional[BaseDemodulatorChain]:
         if isinstance(demod, BaseDemodulatorChain):
             return demod
         # TODO: move this to Modes
@@ -486,7 +505,7 @@ class DspManager(SdrSourceEventClient):
             }
         )
 
-    def _getSecondaryDemodulator(self, mod):
+    def _getSecondaryDemodulator(self, mod) -> Optional[SecondaryDemodulator]:
         if isinstance(mod, SecondaryDemodulator):
             return mod
         # TODO add remaining modes
@@ -504,7 +523,12 @@ class DspManager(SdrSourceEventClient):
         elif mod == "pocsag":
             from csdr.chain.digimodes import PocsagDemodulator
             return PocsagDemodulator()
-        return None
+        elif mod == "bpsk31":
+            from csdr.chain.digimodes import PskDemodulator
+            return PskDemodulator(31.25)
+        elif mod == "bpsk63":
+            from csdr.chain.digimodes import PskDemodulator
+            return PskDemodulator(62.5)
 
     def setSecondaryDemodulator(self, mod):
         demodulator = self._getSecondaryDemodulator(mod)
@@ -556,12 +580,16 @@ class DspManager(SdrSourceEventClient):
 
     def _unpickle(self, callback):
         def unpickler(data):
-            io = BytesIO(data.tobytes())
+            b = data.tobytes()
+            io = BytesIO(b)
             try:
                 while True:
                     callback(pickle.load(io))
             except EOFError:
                 pass
+            # TODO: this is not ideal. is there a way to know beforehand if the data will be pickled?
+            except pickle.UnpicklingError:
+                callback(b.decode("ascii"))
 
         return unpickler
 

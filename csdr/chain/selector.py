@@ -62,10 +62,12 @@ class Decimator(Chain):
 
 
 class Selector(Chain):
-    def __init__(self, inputRate: int, outputRate: int, shiftRate: float, withSquelch: bool = True):
+    def __init__(self, inputRate: int, outputRate: int, withSquelch: bool = True):
+        self.inputRate = inputRate
         self.outputRate = outputRate
+        self.frequencyOffset = 0
 
-        self.shift = Shift(shiftRate)
+        self.shift = Shift(0.0)
 
         self.decimation = Decimator(inputRate, outputRate)
 
@@ -88,8 +90,15 @@ class Selector(Chain):
         bp_transition = 320.0 / self.outputRate
         return Bandpass(transition=bp_transition, use_fft=True)
 
-    def setShiftRate(self, rate: float) -> None:
-        self.shift.setRate(rate)
+    def setFrequencyOffset(self, offset: int) -> None:
+        if offset == self.frequencyOffset:
+            return
+        self.frequencyOffset = offset
+        self._updateShift()
+
+    def _updateShift(self):
+        shift = -self.frequencyOffset / self.inputRate
+        self.shift.setRate(shift)
 
     def _convertToLinear(self, db: float) -> float:
         return float(math.pow(10, db / 10))
@@ -125,4 +134,27 @@ class Selector(Chain):
         self.replace(2, self.bandpass)
 
     def setInputRate(self, inputRate: int) -> None:
+        if inputRate == self.inputRate:
+            return
+        self.inputRate = inputRate
         self.decimation.setInputRate(inputRate)
+        self._updateShift()
+
+
+class SecondarySelector(Chain):
+    def __init__(self, sampleRate: int, bandwidth: float):
+        self.sampleRate = sampleRate
+        self.frequencyOffset = 0
+        self.shift = Shift(0.0)
+        cutoffRate = bandwidth / sampleRate
+        self.bandpass = Bandpass(-cutoffRate, cutoffRate, cutoffRate, use_fft=True)
+        workers = [self.shift, self.bandpass]
+        super().__init__(workers)
+
+    def setFrequencyOffset(self, offset: int) -> None:
+        if offset == self.frequencyOffset:
+            return
+        self.frequencyOffset = offset
+        if self.frequencyOffset is None:
+            return
+        self.shift.setRate(-offset / self.sampleRate)

@@ -8,8 +8,8 @@ from owrx.property import PropertyLayer, PropertyDeleted
 from owrx.service.schedule import ServiceScheduler
 from owrx.service.chain import ServiceDemodulatorChain
 from owrx.modes import Modes, DigitalMode
-from typing import Union
-from csdr.chain.demodulator import BaseDemodulatorChain, SecondaryDemodulator, DialFrequencyReceiver
+from typing import Union, Optional
+from csdr.chain.demodulator import BaseDemodulatorChain, ServiceDemodulator, DialFrequencyReceiver
 from pycsdr.modules import Buffer
 
 import logging
@@ -250,12 +250,11 @@ class ServiceHandler(SdrSourceEventClient):
         secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
         center_freq = source.getProps()["center_freq"]
         sampleRate = source.getProps()["samp_rate"]
-        shift = (center_freq - frequency) / sampleRate
         bandpass = modeObject.get_bandpass()
         if isinstance(secondaryDemod, DialFrequencyReceiver):
             secondaryDemod.setDialFrequency(frequency)
 
-        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, shift)
+        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, frequency - center_freq)
         chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
         chain.setReader(source.getBuffer().getReader())
 
@@ -277,8 +276,8 @@ class ServiceHandler(SdrSourceEventClient):
             return Ssb()
 
     # TODO move this elsewhere
-    def _getSecondaryDemodulator(self, mod):
-        if isinstance(mod, SecondaryDemodulator):
+    def _getSecondaryDemodulator(self, mod) -> Optional[ServiceDemodulator]:
+        if isinstance(mod, ServiceDemodulatorChain):
             return mod
         # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
