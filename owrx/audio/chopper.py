@@ -1,10 +1,12 @@
 from owrx.modes import Modes, AudioChopperMode
+from owrx.audio import AudioChopperProfile
 from itertools import groupby
 from owrx.audio import ProfileSourceSubscriber
 from owrx.audio.wav import AudioWriter
 from owrx.audio.queue import QueueJob
 from csdr.module import ThreadModule
 from pycsdr.types import Format
+from abc import ABC, abstractmethod
 import pickle
 
 import logging
@@ -13,9 +15,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+class AudioChopperParser(ABC):
+    @abstractmethod
+    def parse(self, profile: AudioChopperProfile, frequency: int, line: bytes):
+        pass
+
+
 class AudioChopper(ThreadModule, ProfileSourceSubscriber):
-    # TODO parser typing
-    def __init__(self, mode_str: str, parser):
+    def __init__(self, mode_str: str, parser: AudioChopperParser):
         self.parser = parser
         self.dialFrequency = None
         self.doRun = True

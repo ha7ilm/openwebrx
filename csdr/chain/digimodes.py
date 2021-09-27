@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import ServiceDemodulator, SecondaryDemodulator, DialFrequencyReceiver, SecondarySelectorChain
-from owrx.audio.chopper import AudioChopper
+from owrx.audio.chopper import AudioChopper, AudioChopperParser
 from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
 from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder
@@ -10,8 +10,7 @@ from owrx.pocsag import PocsagParser
 
 
 class AudioChopperDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    # TODO parser typing
-    def __init__(self, mode: str, parser):
+    def __init__(self, mode: str, parser: AudioChopperParser):
         self.chopper = AudioChopper(mode, parser)
         workers = [Convert(Format.FLOAT, Format.SHORT), self.chopper]
         super().__init__(workers)

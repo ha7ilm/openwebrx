@@ -4,6 +4,7 @@ from owrx.map import Map, LocatorLocation
 from owrx.metrics import Metrics, CounterMetric
 from owrx.reporting import ReportingEngine
 from owrx.audio import AudioChopperProfile, StaticProfileSource, ConfigWiredProfileSource
+from owrx.audio.chopper import AudioChopperParser
 from abc import ABC, ABCMeta, abstractmethod
 from owrx.config import Config
 from enum import Enum
@@ -244,8 +245,8 @@ class Q65Profile(WsjtProfile):
         return ["jt9", "--q65", "-p", str(self.interval), "-b", self.mode.name, "-d", str(self.decoding_depth()), file]
 
 
-class WsjtParser:
-    def parse(self, profile, freq, raw_msg):
+class WsjtParser(AudioChopperParser):
+    def parse(self, profile: WsjtProfile, freq: int, raw_msg: bytes):
         try:
             band = None
             if freq is not None:
@@ -310,9 +311,9 @@ class Decoder(ABC):
 
     def parse_timestamp(self, instring):
         dateformat = self.profile.getTimestampFormat()
-        remain = instring[len(dateformat) + 1 :]
+        remain = instring[len(dateformat) + 1:]
         try:
-            ts = datetime.strptime(instring[0 : len(dateformat)], dateformat)
+            ts = datetime.strptime(instring[0: len(dateformat)], dateformat)
             return remain, int(
                 datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
             )

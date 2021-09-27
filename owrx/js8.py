@@ -1,4 +1,5 @@
 from owrx.audio import AudioChopperProfile, ConfigWiredProfileSource
+from owrx.audio.chopper import AudioChopperParser
 import re
 from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
@@ -81,10 +82,10 @@ class Js8TurboProfile(Js8Profile):
         return "C"
 
 
-class Js8Parser:
+class Js8Parser(AudioChopperParser):
     decoderRegex = re.compile(" ?<Decode(Started|Debug|Finished)>")
 
-    def parse(self, profile, freq, raw_msg):
+    def parse(self, profile: AudioChopperProfile, freq: int, raw_msg: bytes):
         try:
             band = None
             if freq is not None:
