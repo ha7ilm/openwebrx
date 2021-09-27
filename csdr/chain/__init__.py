@@ -7,7 +7,6 @@ from typing import Union, Callable, Optional
 class Chain(Module):
     def __init__(self, workers):
         super().__init__()
-        self.clientReader = None
         self.workers = workers
         for i in range(1, len(self.workers)):
             self._connect(self.workers[i - 1], self.workers[i])
@@ -129,10 +128,6 @@ class Chain(Module):
     def stop(self):
         for w in self.workers:
             w.stop()
-        if self.clientReader is not None:
-            # TODO should be covered by finalize
-            self.clientReader.stop()
-            self.clientReader = None
 
     def getInputFormat(self) -> Format:
         if self.workers:
