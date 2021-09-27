@@ -1,4 +1,4 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, DeemphasisTauChain
 from pycsdr.modules import AmDemod, DcBlock, FmDemod, Limit, NfmDeemphasis, Agc, WfmDeemphasis, FractionalDecimator, RealPart
 from pycsdr.types import Format, AgcProfile
 
@@ -38,18 +38,33 @@ class NFm(BaseDemodulatorChain):
         self.replace(2, NfmDeemphasis(sampleRate))
 
 
-class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio):
+class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAudio):
     def __init__(self, sampleRate: int, tau: float):
+        self.sampleRate = sampleRate
+        self.tau = tau
         workers = [
             FmDemod(),
             Limit(),
-            FractionalDecimator(Format.FLOAT, 200000.0 / sampleRate, prefilter=True),
-            WfmDeemphasis(sampleRate, tau),
+            FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True),
+            WfmDeemphasis(self.sampleRate, self.tau),
         ]
         super().__init__(workers)
 
     def getFixedIfSampleRate(self):
         return 200000
+
+    def setDeemphasisTau(self, tau: float) -> None:
+        if tau == self.tau:
+            return
+        self.tau = tau
+        self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        self.replace(2, FractionalDecimator(Format.FLOAT, 200000.0 / self.sampleRate, prefilter=True))
+        self.replace(3, WfmDeemphasis(self.sampleRate, self.tau))
 
 
 class Ssb(BaseDemodulatorChain):

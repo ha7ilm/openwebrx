@@ -43,6 +43,12 @@ class SecondarySelectorChain(ABC):
         pass
 
 
+class DeemphasisTauChain(ABC):
+    @abstractmethod
+    def setDeemphasisTau(self, tau: float) -> None:
+        pass
+
+
 class BaseDemodulatorChain(Chain):
     def supportsSquelch(self) -> bool:
         return True

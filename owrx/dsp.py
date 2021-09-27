@@ -3,7 +3,7 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, DeemphasisTauChain
 from csdr.chain.selector import Selector, SecondarySelector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
@@ -33,6 +33,7 @@ class ClientDemodulatorChain(Chain):
         self.secondaryDemodulator = None
         self.centerFrequency = None
         self.frequencyOffset = None
+        self.wfmDeemphasisTau = 50e-6
         inputRate = demod.getFixedAudioRate() if isinstance(demod, FixedAudioRateChain) else outputRate
         oRate = hdOutputRate if isinstance(demod, HdAudio) else outputRate
         self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), inputRate, oRate, audioCompression)
@@ -105,6 +106,9 @@ class ClientDemodulatorChain(Chain):
             self.clientAudioChain.setInputRate(self.secondaryDemodulator.getFixedAudioRate())
         else:
             self.clientAudioChain.setInputRate(outputRate)
+
+        if isinstance(self.demodulator, DeemphasisTauChain):
+            self.demodulator.setDeemphasisTau(self.wfmDeemphasisTau)
 
         self._updateDialFrequency()
         self._syncSquelch()
@@ -227,13 +231,7 @@ class ClientDemodulatorChain(Chain):
 
         if isinstance(self.demodulator, HdAudio):
             return
-        if not isinstance(self.demodulator, FixedIfSampleRateChain):
-            self.selector.setOutputRate(outputRate)
-            self.demodulator.setSampleRate(outputRate)
-            if self.secondaryDemodulator is not None:
-                self.secondaryDemodulator.setSampleRate(outputRate)
-        if not isinstance(self.demodulator, FixedAudioRateChain):
-            self.clientAudioChain.setClientRate(outputRate)
+        self._updateDemodulatorOutputRate(outputRate)
 
     def setHdOutputRate(self, outputRate) -> None:
         if outputRate == self.hdOutputRate:
@@ -243,8 +241,14 @@ class ClientDemodulatorChain(Chain):
 
         if not isinstance(self.demodulator, HdAudio):
             return
+        self._updateDemodulatorOutputRate(outputRate)
+
+    def _updateDemodulatorOutputRate(self, outputRate):
         if not isinstance(self.demodulator, FixedIfSampleRateChain):
             self.selector.setOutputRate(outputRate)
+            self.demodulator.setSampleRate(outputRate)
+            if self.secondaryDemodulator is not None:
+                self.secondaryDemodulator.setSampleRate(outputRate)
         if not isinstance(self.demodulator, FixedAudioRateChain):
             self.clientAudioChain.setClientRate(outputRate)
 
@@ -329,6 +333,13 @@ class ClientDemodulatorChain(Chain):
         if self.secondaryFftCompression == "adpcm":
             return Format.CHAR
         return Format.SHORT
+
+    def setWfmDeemphasisTau(self, tau: float) -> None:
+        if tau == self.wfmDeemphasisTau:
+            return
+        self.wfmDeemphasisTau = tau
+        if isinstance(self.demodulator, DeemphasisTauChain):
+            self.demodulator.setDeemphasisTau(self.wfmDeemphasisTau)
 
 
 class ModulationValidator(OrValidator):
@@ -433,12 +444,8 @@ class DspManager(SdrSourceEventClient):
             self.props.wireProperty("high_cut", self.chain.setHighCut),
             self.props.wireProperty("mod", self.setDemodulator),
             self.props.wireProperty("dmr_filter", self.chain.setSlotFilter),
-            # TODO
-            # self.props.wireProperty("wfm_deemphasis_tau", self.dsp.set_wfm_deemphasis_tau),
+            self.props.wireProperty("wfm_deemphasis_tau", self.chain.setWfmDeemphasisTau),
         ]
-
-        # TODO
-        # sp.set_temporary_directory(CoreConfig().get_temporary_directory())
 
         def set_secondary_mod(mod):
             if mod == False:
