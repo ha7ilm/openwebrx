@@ -779,13 +779,10 @@ function on_ws_recv(evt) {
                         break;
                     case "secondary_config":
                         var s = json['value'];
-                        if ('secondary_fft_size' in s)
-                            window.secondary_fft_size = s['secondary_fft_size'];
-                        if ('secondary_bw' in s)
-                            window.secondary_bw = s['secondary_bw'];
-                        if ('if_samp_rate' in s)
-                            window.if_samp_rate = s['if_samp_rate'];
-                        secondary_demod_init_canvases();
+                        secondary_fft_size = s['secondary_fft_size'] || secondary_fft_size;
+                        secondary_bw = s['secondary_bw'] || secondary_bw;
+                        if_samp_rate = s['if_samp_rate'] || if_samp_rate;
+                        if (if_samp_rate) secondary_demod_init_canvases();
                         break;
                     case "receiver_details":
                         $('.webrx-top-container').header().setDetails(json['value']);
@@ -1391,6 +1388,8 @@ var secondary_demod_current_canvas_actual_line;
 var secondary_demod_current_canvas_context;
 var secondary_demod_current_canvas_index;
 var secondary_demod_canvases;
+var secondary_bw = 31.25;
+var if_samp_rate;
 
 function secondary_demod_create_canvas() {
     var new_canvas = document.createElement("canvas");

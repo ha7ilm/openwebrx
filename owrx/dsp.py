@@ -11,6 +11,7 @@ from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union, Optional
 from io import BytesIO
+from abc import ABC, abstractmethod
 import threading
 import re
 import pickle
@@ -20,11 +21,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# now that's a name. help, i've reached enterprise level OOP here
+class ClientDemodulatorSecondaryDspEventClient(ABC):
+    @abstractmethod
+    def onSecondaryDspRateChange(self, rate):
+        pass
+
+    @abstractmethod
+    def onSecondaryDspBandwidthChange(self, bw):
+        pass
+
+
 class ClientDemodulatorChain(Chain):
-    def __init__(self, demod: BaseDemodulatorChain, sampleRate: int, outputRate: int, hdOutputRate: int, audioCompression: str):
+    def __init__(self, demod: BaseDemodulatorChain, sampleRate: int, outputRate: int, hdOutputRate: int, audioCompression: str, secondaryDspEventReceiver: ClientDemodulatorSecondaryDspEventClient):
         self.sampleRate = sampleRate
         self.outputRate = outputRate
         self.hdOutputRate = hdOutputRate
+        self.secondaryDspEventReceiver = secondaryDspEventReceiver
         self.selector = Selector(sampleRate, outputRate)
         self.selector.setBandpass(-4000, 4000)
         self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT)
@@ -142,9 +155,11 @@ class ClientDemodulatorChain(Chain):
         self._syncSquelch()
 
         if isinstance(self.secondaryDemodulator, SecondarySelectorChain):
-            self.secondarySelector = SecondarySelector(rate, self.secondaryDemodulator.getBandwidth())
+            bandwidth = self.secondaryDemodulator.getBandwidth()
+            self.secondarySelector = SecondarySelector(rate, bandwidth)
             self.secondarySelector.setReader(self.selectorBuffer.getReader())
             self.secondarySelector.setFrequencyOffset(self.secondaryFrequencyOffset)
+            self.secondaryDspEventReceiver.onSecondaryDspBandwidthChange(bandwidth)
         else:
             self.secondarySelector = None
 
@@ -169,6 +184,7 @@ class ClientDemodulatorChain(Chain):
 
         if self.secondaryFftChain is not None:
             self.secondaryFftChain.setSampleRate(rate)
+            self.secondaryDspEventReceiver.onSecondaryDspRateChange(rate)
 
     def _createSecondaryFftChain(self):
         if self.secondaryFftChain is not None:
@@ -351,7 +367,7 @@ class ModulationValidator(OrValidator):
         super().__init__(BoolValidator(), RegexValidator(re.compile("^[a-z0-9]+$")))
 
 
-class DspManager(SdrSourceEventClient):
+class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient):
     def __init__(self, handler, sdrSource):
         self.handler = handler
         self.sdrSource = sdrSource
@@ -410,7 +426,8 @@ class DspManager(SdrSourceEventClient):
             self.props["samp_rate"],
             self.props["output_rate"],
             self.props["hd_output_rate"],
-            self.props["audio_compression"]
+            self.props["audio_compression"],
+            self
         )
 
         self.readers = {}
@@ -433,7 +450,7 @@ class DspManager(SdrSourceEventClient):
             self.props.wireProperty("fft_compression", self.chain.setSecondaryFftCompression),
             self.props.wireProperty("fft_voverlap_factor", self.chain.setSecondaryFftOverlapFactor),
             self.props.wireProperty("fft_fps", self.chain.setSecondaryFftFps),
-            self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
+            self.props.wireProperty("digimodes_fft_size", self.setSecondaryFftSize),
             self.props.wireProperty("samp_rate", self.chain.setSampleRate),
             self.props.wireProperty("output_rate", self.chain.setOutputRate),
             self.props.wireProperty("hd_output_rate", self.chain.setHdOutputRate),
@@ -445,18 +462,7 @@ class DspManager(SdrSourceEventClient):
             self.props.wireProperty("mod", self.setDemodulator),
             self.props.wireProperty("dmr_filter", self.chain.setSlotFilter),
             self.props.wireProperty("wfm_deemphasis_tau", self.chain.setWfmDeemphasisTau),
-        ]
-
-        def set_secondary_mod(mod):
-            if mod == False:
-                mod = None
-            self.dsp.set_secondary_demodulator(mod)
-            #if mod is not None:
-                #send_secondary_config()
-
-        self.subscriptions += [
             self.props.wireProperty("secondary_mod", self.setSecondaryDemodulator),
-            self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
             self.props.wireProperty("secondary_offset_freq", self.chain.setSecondaryFrequencyOffset),
         ]
 
@@ -485,6 +491,10 @@ class DspManager(SdrSourceEventClient):
         self.sdrSource.addClient(self)
 
         super().__init__()
+
+    def setSecondaryFftSize(self, size):
+        self.chain.setSecondaryFftSize(size)
+        self.handler.write_secondary_dsp_config({"secondary_fft_size": size})
 
     def _getDemodulator(self, demod: Union[str, BaseDemodulatorChain]) -> Optional[BaseDemodulatorChain]:
         if isinstance(demod, BaseDemodulatorChain):
@@ -539,20 +549,9 @@ class DspManager(SdrSourceEventClient):
             self.chain.setWriter(buffer)
             self.wireOutput(self.audioOutput, buffer)
 
-    def sendSecondaryConfig(self):
-        self.handler.write_secondary_dsp_config(
-            {
-                "secondary_fft_size": self.props["digimodes_fft_size"],
-                "if_samp_rate": self.props["output_rate"],
-                # TODO
-                "secondary_bw": 31.25
-            }
-        )
-
     def _getSecondaryDemodulator(self, mod) -> Optional[SecondaryDemodulator]:
         if isinstance(mod, SecondaryDemodulator):
             return mod
-        # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             from csdr.chain.digimodes import AudioChopperDemodulator
             from owrx.wsjt import WsjtParser
@@ -579,7 +578,6 @@ class DspManager(SdrSourceEventClient):
         if not demodulator:
             self.chain.setSecondaryDemodulator(None)
         else:
-            self.sendSecondaryConfig()
             self.chain.setSecondaryDemodulator(demodulator)
 
     def setAudioCompression(self, comp):
@@ -589,8 +587,7 @@ class DspManager(SdrSourceEventClient):
             # wrong output format... need to re-wire
             buffer = Buffer(self.chain.getOutputFormat())
             self.chain.setWriter(buffer)
-            # TODO check if this is hd audio
-            self.wireOutput("audio", buffer)
+            self.wireOutput(self.audioOutput, buffer)
 
     def start(self):
         if self.sdrSource.isAvailable():
@@ -677,3 +674,9 @@ class DspManager(SdrSourceEventClient):
 
     def onShutdown(self):
         self.stop()
+
+    def onSecondaryDspBandwidthChange(self, bw):
+        self.handler.write_secondary_dsp_config({"secondary_bw": bw})
+
+    def onSecondaryDspRateChange(self, rate):
+        self.handler.write_secondary_dsp_config({"if_samp_rate": rate})
