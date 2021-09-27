@@ -83,3 +83,14 @@ class FftChain(Chain):
             self._setBlockSize(self.sampleRate / self.fps)
         else:
             self._setBlockSize(self.sampleRate / self.fps / fftAverages)
+
+    def setCompression(self, compression: str) -> None:
+        if compression == "adpcm" and not self.compressFftAdpcm:
+            self.compressFftAdpcm = FftAdpcm(self.size)
+            # should always be at the end
+            self.append(self.compressFftAdpcm)
+        elif compression == "none" and self.compressFftAdpcm:
+            self.compressFftAdpcm.stop()
+            self.compressFftAdpcm = None
+            # should always be at that position (right?)
+            self.remove(3)

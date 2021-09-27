@@ -47,11 +47,12 @@ class SpectrumThread(SdrSourceEventClient):
         self.sdrSource.addClient(self)
 
         self.subscriptions += [
-            self.props.filter("fft_size", "fft_compression").wire(self.restart),
+            self.props.filter("fft_size").wire(self.restart),
             # these props can be set on the fly
             self.props.wireProperty("samp_rate", self.dsp.setSampleRate),
             self.props.wireProperty("fft_fps", self.dsp.setFps),
             self.props.wireProperty("fft_voverlap_factor", self.dsp.setVOverlapFactor),
+            self.props.wireProperty("fft_compression", self.dsp.setCompression),
         ]
 
         buffer = Buffer(self.dsp.getOutputFormat())

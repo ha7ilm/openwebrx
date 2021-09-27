@@ -36,6 +36,10 @@ class ClientDemodulatorChain(Chain):
         inputRate = demod.getFixedAudioRate() if isinstance(demod, FixedAudioRateChain) else outputRate
         oRate = hdOutputRate if isinstance(demod, HdAudio) else outputRate
         self.clientAudioChain = ClientAudioChain(demod.getOutputFormat(), inputRate, oRate, audioCompression)
+        self.secondaryFftSize = 2048
+        self.secondaryFftOverlapFactor = 0.3
+        self.secondaryFftFps = 9
+        self.secondaryFftCompression = "adpcm"
         self.secondaryFftChain = None
         self.metaWriter = None
         self.secondaryFftWriter = None
@@ -157,13 +161,17 @@ class ClientDemodulatorChain(Chain):
             self.secondaryFftChain = None
 
         if self.secondaryDemodulator is not None and self.secondaryFftChain is None:
-            # TODO eliminate constants
-            self.secondaryFftChain = FftChain(self._getSelectorOutputRate(), 2048, 0.3, 9, "adpcm")
-            self.secondaryFftChain.setReader(self.selectorBuffer.getReader())
-            self.secondaryFftChain.setWriter(self.secondaryFftWriter)
+            self._createSecondaryFftChain()
 
         if self.secondaryFftChain is not None:
             self.secondaryFftChain.setSampleRate(rate)
+
+    def _createSecondaryFftChain(self):
+        if self.secondaryFftChain is not None:
+            self.secondaryFftChain.stop()
+        self.secondaryFftChain = FftChain(self._getSelectorOutputRate(), self.secondaryFftSize, self.secondaryFftOverlapFactor, self.secondaryFftFps, self.secondaryFftCompression)
+        self.secondaryFftChain.setReader(self.selectorBuffer.getReader())
+        self.secondaryFftChain.setWriter(self.secondaryFftWriter)
 
     def _syncSquelch(self):
         if not self.demodulator.supportsSquelch() or (self.secondaryDemodulator is not None and not self.secondaryDemodulator.supportsSquelch()):
@@ -245,7 +253,6 @@ class ClientDemodulatorChain(Chain):
             return
         self.sampleRate = sampleRate
         self.selector.setInputRate(sampleRate)
-        # TODO update secondary FFT
 
     def setPowerWriter(self, writer: Writer) -> None:
         self.selector.setPowerWriter(writer)
@@ -278,8 +285,12 @@ class ClientDemodulatorChain(Chain):
         self.demodulator.setSlotFilter(filter)
 
     def setSecondaryFftSize(self, size: int) -> None:
-        # TODO
-        pass
+        if size == self.secondaryFftSize:
+            return
+        self.secondaryFftSize = size
+        if not self.secondaryFftChain:
+            return
+        self._createSecondaryFftChain()
 
     def setSecondaryFrequencyOffset(self, freq: int) -> None:
         if self.secondaryFrequencyOffset == freq:
@@ -289,6 +300,35 @@ class ClientDemodulatorChain(Chain):
         if self.secondarySelector is None:
             return
         self.secondarySelector.setFrequencyOffset(self.secondaryFrequencyOffset)
+
+    def setSecondaryFftCompression(self, compression: str) -> None:
+        if compression == self.secondaryFftCompression:
+            return
+        self.secondaryFftCompression = compression
+        if not self.secondaryFftChain:
+            return
+        self.secondaryFftChain.setCompression(self.secondaryFftCompression)
+
+    def setSecondaryFftOverlapFactor(self, overlap: float) -> None:
+        if overlap == self.secondaryFftOverlapFactor:
+            return
+        self.secondaryFftOverlapFactor = overlap
+        if not self.secondaryFftChain:
+            return
+        self.secondaryFftChain.setVOverlapFactor(self.secondaryFftOverlapFactor)
+
+    def setSecondaryFftFps(self, fps: int) -> None:
+        if fps == self.secondaryFftFps:
+            return
+        self.secondaryFftFps = fps
+        if not self.secondaryFftChain:
+            return
+        self.secondaryFftChain.setFps(self.secondaryFftFps)
+
+    def getSecondaryFftOutputFormat(self) -> Format:
+        if self.secondaryFftCompression == "adpcm":
+            return Format.CHAR
+        return Format.SHORT
 
 
 class ModulationValidator(OrValidator):
@@ -306,6 +346,9 @@ class DspManager(SdrSourceEventClient):
         self.sdrSource = sdrSource
 
         self.props = PropertyStack()
+
+        # current audio mode. should be "audio" or "hd_audio" depending on what demodulatur is in use.
+        self.audioOutput = None
 
         # local demodulator properties not forwarded to the sdr
         # ensure strict validation since these can be set from the client
@@ -361,34 +404,6 @@ class DspManager(SdrSourceEventClient):
 
         self.readers = {}
 
-        # wire audio output
-        buffer = Buffer(self.chain.getOutputFormat())
-        self.chain.setWriter(buffer)
-        # TODO check for hd audio
-        self.wireOutput("audio", buffer)
-
-        # wire power level output
-        buffer = Buffer(Format.FLOAT)
-        self.chain.setPowerWriter(buffer)
-        self.wireOutput("smeter", buffer)
-
-        # wire meta output
-        buffer = Buffer(Format.CHAR)
-        self.chain.setMetaWriter(buffer)
-        self.wireOutput("meta", buffer)
-
-        # wire secondary FFT
-        # TODO format is different depending on compression
-        buffer = Buffer(Format.CHAR)
-        self.chain.setSecondaryFftWriter(buffer)
-        self.wireOutput("secondary_fft", buffer)
-
-        # wire secondary demodulator
-        buffer = Buffer(Format.CHAR)
-        self.chain.setSecondaryWriter(buffer)
-        # TODO there's multiple outputs depending on the modulation right now
-        self.wireOutput("secondary_demod", buffer)
-
         if "start_mod" in self.props:
             self.setDemodulator(self.props["start_mod"])
             mode = Modes.findByModulation(self.props["start_mod"])
@@ -404,8 +419,9 @@ class DspManager(SdrSourceEventClient):
 
         self.subscriptions = [
             self.props.wireProperty("audio_compression", self.setAudioCompression),
-            # probably unused:
-            # self.props.wireProperty("fft_compression", self.dsp.set_fft_compression),
+            self.props.wireProperty("fft_compression", self.chain.setSecondaryFftCompression),
+            self.props.wireProperty("fft_voverlap_factor", self.chain.setSecondaryFftOverlapFactor),
+            self.props.wireProperty("fft_fps", self.chain.setSecondaryFftFps),
             self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
             self.props.wireProperty("samp_rate", self.chain.setSampleRate),
             self.props.wireProperty("output_rate", self.chain.setOutputRate),
@@ -436,6 +452,26 @@ class DspManager(SdrSourceEventClient):
             self.props.wireProperty("digimodes_fft_size", self.chain.setSecondaryFftSize),
             self.props.wireProperty("secondary_offset_freq", self.chain.setSecondaryFrequencyOffset),
         ]
+
+        # wire power level output
+        buffer = Buffer(Format.FLOAT)
+        self.chain.setPowerWriter(buffer)
+        self.wireOutput("smeter", buffer)
+
+        # wire meta output
+        buffer = Buffer(Format.CHAR)
+        self.chain.setMetaWriter(buffer)
+        self.wireOutput("meta", buffer)
+
+        # wire secondary FFT
+        buffer = Buffer(self.chain.getSecondaryFftOutputFormat())
+        self.chain.setSecondaryFftWriter(buffer)
+        self.wireOutput("secondary_fft", buffer)
+
+        # wire secondary demodulator
+        buffer = Buffer(Format.CHAR)
+        self.chain.setSecondaryWriter(buffer)
+        self.wireOutput("secondary_demod", buffer)
 
         self.startOnAvailable = False
 
@@ -487,13 +523,14 @@ class DspManager(SdrSourceEventClient):
             raise ValueError("unsupported demodulator: {}".format(mod))
         self.chain.setDemodulator(demodulator)
 
-        # re-wire the audio to the correct client API
-        buffer = Buffer(self.chain.getOutputFormat())
-        self.chain.setWriter(buffer)
-        if isinstance(demodulator, HdAudio):
-            self.wireOutput("hd_audio", buffer)
-        else:
-            self.wireOutput("audio", buffer)
+        output = "hd_audio" if isinstance(demodulator, HdAudio) else "audio"
+
+        if output != self.audioOutput:
+            self.audioOutput = output
+            # re-wire the audio to the correct client API
+            buffer = Buffer(self.chain.getOutputFormat())
+            self.chain.setWriter(buffer)
+            self.wireOutput(self.audioOutput, buffer)
 
     def sendSecondaryConfig(self):
         self.handler.write_secondary_dsp_config(
