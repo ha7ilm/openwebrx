@@ -52,16 +52,25 @@ class SpectrumThread(SdrSourceEventClient):
             self.props.wireProperty("samp_rate", self.dsp.setSampleRate),
             self.props.wireProperty("fft_fps", self.dsp.setFps),
             self.props.wireProperty("fft_voverlap_factor", self.dsp.setVOverlapFactor),
-            self.props.wireProperty("fft_compression", self.dsp.setCompression),
+            self.props.wireProperty("fft_compression", self._setCompression),
         ]
+
+        if self.sdrSource.isAvailable():
+            self.dsp.setReader(self.sdrSource.getBuffer().getReader())
+
+    def _setCompression(self, compression):
+        if self.reader:
+            self.reader.stop()
+        try:
+            self.dsp.setCompression(compression)
+        except ValueError:
+            # expected since the compressions have different formats
+            pass
 
         buffer = Buffer(self.dsp.getOutputFormat())
         self.dsp.setWriter(buffer)
         self.reader = buffer.getReader()
         threading.Thread(target=self.dsp.pump(self.reader.read, self.sdrSource.writeSpectrumData)).start()
-
-        if self.sdrSource.isAvailable():
-            self.dsp.setReader(self.sdrSource.getBuffer().getReader())
 
     def stop(self):
         if self.dsp is None:
