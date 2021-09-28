@@ -115,7 +115,7 @@ class Chain(Module):
         removedWorker.stop()
 
         if index == 0:
-            if self.reader is not None:
+            if self.reader is not None and len(self.workers):
                 self.workers[0].setReader(self.reader)
         elif index == len(self.workers):
             if self.writer is not None:
