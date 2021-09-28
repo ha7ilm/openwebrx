@@ -1,15 +1,6 @@
-diff -ur wsjtx-orig/CMake/Modules/Findhamlib.cmake wsjtx/CMake/Modules/Findhamlib.cmake
---- wsjtx-orig/CMake/Modules/Findhamlib.cmake	2021-05-31 18:56:20.657682124 +0200
-+++ wsjtx/CMake/Modules/Findhamlib.cmake	2021-05-31 18:57:03.963994898 +0200
-@@ -85,4 +85,4 @@
- # Handle the  QUIETLY and REQUIRED  arguments and set  HAMLIB_FOUND to
- # TRUE if all listed variables are TRUE
- include (FindPackageHandleStandardArgs)
--find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES hamlib_LIBRARY_DIRS)
-+find_package_handle_standard_args (hamlib DEFAULT_MSG hamlib_INCLUDE_DIRS hamlib_LIBRARIES)
 diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
---- wsjtx-orig/CMakeLists.txt	2021-05-31 18:56:20.657682124 +0200
-+++ wsjtx/CMakeLists.txt	2021-05-31 19:08:02.768474060 +0200
+--- wsjtx-orig/CMakeLists.txt	2021-09-28 14:36:01.731488130 +0200
++++ wsjtx/CMakeLists.txt	2021-09-28 15:51:30.136197625 +0200
 @@ -122,7 +122,7 @@
  option (WSJT_QDEBUG_TO_FILE "Redirect Qt debuging messages to a trace file.")
  option (WSJT_SOFT_KEYING "Apply a ramp to CW keying envelope to reduce transients." ON)
@@ -19,10 +10,11 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  option (WSJT_RIG_NONE_CAN_SPLIT "Allow split operation with \"None\" as rig.")
  option (WSJT_TRACE_UDP "Debugging option that turns on UDP message protocol diagnostics.")
  option (WSJT_BUILD_UTILS "Build simulators and code demonstrators." ON)
-@@ -169,74 +169,7 @@
+@@ -169,76 +169,7 @@
    )
  
  set (wsjt_qt_CXXSRCS
+-  helper_functions.cpp
 -  qt_helpers.cpp
 -  widgets/MessageBox.cpp
 -  MetaDataRegistry.cpp
@@ -91,19 +83,20 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -  Network/NetworkAccessManager.cpp
 -  widgets/LazyFillComboBox.cpp
 -  widgets/CheckableItemComboBox.cpp
+-  widgets/BandComboBox.cpp
    )
  
  set (wsjt_qtmm_CXXSRCS
-@@ -857,7 +790,7 @@
+@@ -884,8 +815,6 @@
+ check_type_size (CACHE_ALL HAMLIB_OLD_CACHING)
+ check_symbol_exists (rig_set_cache_timeout_ms "hamlib/rig.h" HAVE_HAMLIB_CACHING)
+ 
+-find_package (Portaudio REQUIRED)
+-
+ find_package (Usb REQUIRED)
+ 
  #
- # libhamlib setup
- #
--set (hamlib_STATIC 1)
-+set (hamlib_STATIC 0)
- find_package (hamlib 3 REQUIRED)
- find_program (RIGCTL_EXE rigctl)
- find_program (RIGCTLD_EXE rigctld)
-@@ -895,9 +828,6 @@
+@@ -1081,9 +1010,6 @@
  if (WSJT_GENERATE_DOCS)
    add_subdirectory (doc)
  endif (WSJT_GENERATE_DOCS)
@@ -111,11 +104,23 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -  add_subdirectory (tests)
 -endif ()
  
- #
- # Library building setup
-@@ -1380,60 +1310,6 @@
-   target_link_libraries (jt9 wsjt_fort wsjt_cxx fort_qt)
- endif (${OPENMP_FOUND} OR APPLE)
+ # build a library of package functionality (without and optionally with OpenMP support)
+ add_library (wsjt_cxx STATIC ${wsjt_CSRCS} ${wsjt_CXXSRCS})
+@@ -1341,10 +1267,7 @@
+ add_library (wsjt_qt STATIC ${wsjt_qt_CXXSRCS} ${wsjt_qt_GENUISRCS} ${GENAXSRCS})
+ # set wsjtx_udp exports to static variants
+ target_compile_definitions (wsjt_qt PUBLIC UDP_STATIC_DEFINE)
+-target_link_libraries (wsjt_qt Hamlib::Hamlib Boost::log qcp Qt5::Widgets Qt5::Network Qt5::Sql)
+-if (WIN32)
+-  target_link_libraries (wsjt_qt Qt5::AxContainer Qt5::AxBase)
+-endif (WIN32)
++target_link_libraries (wsjt_qt Qt5::Core)
+ 
+ # build a library of package Qt functionality used in Fortran utilities
+ add_library (fort_qt STATIC ${fort_qt_CXXSRCS})
+@@ -1408,60 +1331,6 @@
+   add_subdirectory (map65)
+ endif ()
  
 -# build the main application
 -generate_version_info (wsjtx_VERSION_RESOURCES
@@ -169,12 +174,12 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -      )
 -  endif ()
 -endif ()
--target_link_libraries (wsjtx Qt5::SerialPort wsjt_cxx wsjt_qt wsjt_qtmm ${hamlib_LIBRARIES} ${FFTW3_LIBRARIES} ${LIBM_LIBRARIES})
+-target_link_libraries (wsjtx Qt5::SerialPort wsjt_cxx wsjt_qt wsjt_qtmm ${FFTW3_LIBRARIES} ${LIBM_LIBRARIES})
 -
  # make a library for WSJT-X UDP servers
  # add_library (wsjtx_udp SHARED ${UDP_library_CXXSRCS})
  add_library (wsjtx_udp-static STATIC ${UDP_library_CXXSRCS})
-@@ -1473,47 +1349,9 @@
+@@ -1501,47 +1370,9 @@
  add_executable (wsjtx_app_version AppVersion/AppVersion.cpp ${wsjtx_app_version_VERSION_RESOURCES})
  target_link_libraries (wsjtx_app_version wsjt_qt)
  
@@ -222,7 +227,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  
  # install (TARGETS wsjtx_udp EXPORT udp
  #   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-@@ -1532,12 +1370,7 @@
+@@ -1560,12 +1391,7 @@
  #   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wsjtx
  #   )
  
@@ -236,7 +241,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    )
-@@ -1549,38 +1382,6 @@
+@@ -1578,38 +1404,6 @@
    )
  endif(WSJT_BUILD_UTILS)  
  
@@ -275,7 +280,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  install (FILES
    cty.dat
    cty.dat_copyright.txt
-@@ -1589,13 +1390,6 @@
+@@ -1618,13 +1412,6 @@
    #COMPONENT runtime
    )
  
@@ -289,10 +294,11 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  #
  # Mac installer files
  #
-@@ -1648,22 +1442,6 @@
+@@ -1676,22 +1463,6 @@
+   "${CMAKE_CURRENT_BINARY_DIR}/wsjtx_config.h"
    )
  
- 
+-
 -if (NOT WIN32 AND NOT APPLE)
 -  # install a desktop file so wsjtx appears in the application start
 -  # menu with an icon
@@ -308,9 +314,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -    )
 -endif (NOT WIN32 AND NOT APPLE)
 -
--
- #
- # bundle fixup only done in non-Debug configurations
- #
-Only in wsjtx/: CMakeLists.txt.orig
-Only in wsjtx/: .idea
+ if (APPLE)
+   set (CMAKE_POSTFLIGHT_SCRIPT
+     "${wsjtx_BINARY_DIR}/postflight.sh")
+Only in wsjtx: .idea
