@@ -31,13 +31,13 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2021-09-22 (template fixes)
-cmakebuild csdr 536f3b9eb7cfe5434e9a9f1e807c96115dc9ac10
+# latest develop as of 2021-09-30 (nmux split)
+cmakebuild csdr d6d1821691e0b9c0670879d36d12415cf6acbb41
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
-# latest develop as of 2021-09-22 (first version)
-git checkout 52da48a87ef97eb7d337f1b146db66ca453801e4
+# latest develop as of 2021-09-30 (fft overflow fix)
+git checkout 7389af13c87f17844ec67cefa18b922bdc93b14f
 ./setup.py install install_headers
 cd ..
 rm -rf pycsdr
@@ -45,17 +45,17 @@ rm -rf pycsdr
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
-# latest develop as of 2021-09-24 (new parsing)
-cmakebuild codecserver c51254323b32db5b169cdfc39e043eed6d613a77
+# latest develop as of 2021-09-30 (logging fix)
+cmakebuild codecserver aa9b1d6057c4461c7f65ec1bbf698a69336bf6df
 
 git clone https://github.com/jketterl/digiham.git
-# latest develop as of 2021-09-22 (post-merge)
-cmakebuild digiham 62d2b4581025568263ae8c90d2450b65561b7ce8
+# latest develop as of 2021-09-30 (codecserver check api)
+cmakebuild digiham 9085301846d30bd344b2b796fd316aabbd13cf98
 
 git clone https://github.com/jketterl/pydigiham.git
 cd pydigiham
-# latest develop as of 2021-09-22 (split from digiham)
-git checkout b0cc0c35d5ef2ae84c9bb1a02d56161d5bd5bf2f
+# latest develop as of 2021-09-30 (codecserver check api)
+git checkout c753f3fffb87f358afea60e6084a034d12e7ee3f
 ./setup.py install
 cd ..
 rm -rf pydigiham
