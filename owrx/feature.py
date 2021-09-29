@@ -526,19 +526,15 @@ class FeatureDetector(object):
 
         You can find more information [here](https://github.com/jketterl/codecserver).
         """
-        tmp_dir = CoreConfig().get_temporary_directory()
-        cmd = ["mbe_synthesizer", "--test"]
+
         config = Config.get()
+        server = ""
         if "digital_voice_codecserver" in config:
-            cmd += ["--server", config["digital_voice_codecserver"]]
+            server = config["digital_voice_codecserver"]
         try:
-            process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                cwd=tmp_dir,
-            )
-            return process.wait() == 0
-        except FileNotFoundError:
+            from digiham.modules import MbeSynthesizer
+            return MbeSynthesizer.hasAmbe(server)
+        except ImportError:
+            return False
+        except ConnectionError:
             return False
