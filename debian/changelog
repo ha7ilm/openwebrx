@@ -1,5 +1,8 @@
 openwebrx (1.2.0) UNRELEASED; urgency=low
 
+  * Major rewrite of all demodulation components to make use of the new
+    csdr/pycsdr and digiham/pydigiham demodulator modules
+
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 03 Aug 2021 13:54:00 +0000
 
 openwebrx (1.1.0) buster hirsute; urgency=low
