@@ -4,12 +4,12 @@ from owrx.form.error import ValidationError
 
 class Validator(ABC):
     @abstractmethod
-    def validate(self, key, value):
+    def validate(self, key, value) -> None:
         pass
 
 
 class RequiredValidator(Validator):
-    def validate(self, key, value):
+    def validate(self, key, value) -> None:
         if value is None or value == "":
             raise ValidationError(key, "Field is required")
 
@@ -19,7 +19,7 @@ class RangeValidator(Validator):
         self.minValue = minValue
         self.maxValue = maxValue
 
-    def validate(self, key, value):
+    def validate(self, key, value) -> None:
         if value is None or value == "":
             return  # Ignore empty values
         n = float(value)

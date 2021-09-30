@@ -5,7 +5,6 @@ from owrx.form.input import (
     TextInput,
     NumberInput,
     FloatInput,
-    LocationInput,
     TextAreaInput,
     DropdownInput,
     Option,
@@ -14,6 +13,7 @@ from owrx.form.input.converter import WaterfallColorsConverter, IntConverter
 from owrx.form.input.receiverid import ReceiverKeysConverter
 from owrx.form.input.gfx import AvatarInput, TopPhotoInput
 from owrx.form.input.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
+from owrx.form.input.location import LocationInput
 from owrx.waterfall import WaterfallOptions
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 from owrx.controllers.settings import SettingsBreadcrumb

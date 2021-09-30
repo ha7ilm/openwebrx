@@ -1,6 +1,5 @@
 from abc import ABC
 from owrx.modes import Modes
-from owrx.config import Config
 from owrx.form.input.validator import Validator
 from owrx.form.input.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter
 from enum import Enum
@@ -156,45 +155,6 @@ class FloatInput(NumberInput):
 
     def defaultConverter(self):
         return FloatConverter()
-
-
-class LocationInput(Input):
-    def render_input_group(self, value, errors):
-        return """
-            <div class="row {rowclass}">
-                {inputs}
-            </div>
-            {errors}
-            <div class="row">
-                <div class="col map-input" data-key="{key}" for="{id}"></div>
-            </div>
-        """.format(
-            id=self.id,
-            rowclass="is-invalid" if errors else "",
-            inputs=self.render_input(value, errors),
-            errors=self.render_errors(errors),
-            key=Config.get()["google_maps_api_key"],
-        )
-
-    def render_input(self, value, errors):
-        return "".join(self.render_sub_input(value, id, errors) for id in ["lat", "lon"])
-
-    def render_sub_input(self, value, id, errors):
-        return """
-            <div class="col">
-                <input type="number" class="{classes}" id="{id}" name="{id}" placeholder="{label}" value="{value}"
-                step="any" {disabled}>
-            </div>
-        """.format(
-            id="{0}-{1}".format(self.id, id),
-            label=self.label,
-            classes=self.input_classes(errors),
-            value=value[id],
-            disabled="disabled" if self.disabled else "",
-        )
-
-    def parse(self, data):
-        return {self.id: {k: float(data["{0}-{1}".format(self.id, k)][0]) for k in ["lat", "lon"]}}
 
 
 class TextAreaInput(Input):
