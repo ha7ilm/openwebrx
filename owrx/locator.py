@@ -5,6 +5,11 @@ class Locator(object):
         lat = coordinates["lat"]
         lon = coordinates["lon"]
 
+        if not -90 < lat < 90:
+            raise ValueError("invalid latitude: {}".format(lat))
+        if not -180 < lon < 180:
+            raise ValueError("invalid longitude: {}".format(lon))
+
         lon = lon + 180
         lat = lat + 90
 
