@@ -45,13 +45,14 @@ class PacketDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.parser.setDialFrequency(frequency)
 
 
-class PocsagDemodulator(ServiceDemodulator):
+class PocsagDemodulator(ServiceDemodulator, DialFrequencyReceiver):
     def __init__(self):
+        self.parser = PocsagParser()
         workers = [
             FmDemod(),
             FskDemodulator(samplesPerSymbol=40, invert=True),
             PocsagDecoder(),
-            PocsagParser(),
+            self.parser,
         ]
         super().__init__(workers)
 
@@ -60,6 +61,9 @@ class PocsagDemodulator(ServiceDemodulator):
 
     def getFixedAudioRate(self) -> int:
         return 48000
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)
 
 
 class PskDemodulator(SecondaryDemodulator, SecondarySelectorChain):
