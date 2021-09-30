@@ -15,10 +15,21 @@ logger = logging.getLogger(__name__)
 
 
 class PskReporter(Reporter):
+    """
+    This class implements the reporting interface to send received signals to pskreporter.info.
+
+    It interfaces with pskreporter as documented here: https://pskreporter.info/pskdev.html
+    """
     interval = 300
 
     def getSupportedModes(self):
-        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8", "Q65"]
+        """
+        Supports all valid MODE and SUBMODE values from the ADIF standard.
+
+        Current version at the time of the last change:
+        https://www.adif.org/312/ADIF_312.htm#Mode_Enumeration
+        """
+        return ["FT8", "FT4", "JT9", "JT65", "FST4", "JS8", "Q65", "WSPR", "FST4W"]
 
     def stop(self):
         self.cancelTimer()
