@@ -37,6 +37,8 @@ class Module(BaseModule, metaclass=ABCMeta):
                     data = read()
                 except ValueError:
                     pass
+                except BrokenPipeError:
+                    break
                 if data is None or isinstance(data, bytes) and len(data) == 0:
                     break
                 write(data)
