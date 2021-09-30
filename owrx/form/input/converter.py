@@ -61,7 +61,14 @@ class EnumConverter(Converter):
         self.enumCls = enumCls
 
     def convert_to_form(self, value):
-        return None if value is None else self.enumCls(value).name
+        if value is None:
+            return None
+        try:
+            return self.enumCls(value).name
+        # if the current value is not part of the enum, this will happen:
+        except ValueError:
+            # and this will restore the default
+            return None
 
     def convert_from_form(self, value):
         return self.enumCls[value].value
