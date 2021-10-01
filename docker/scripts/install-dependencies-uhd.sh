@@ -18,17 +18,16 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb-1.0.0 libboost-chrono1.67.0 libboost-date-time1.67.0 libboost-filesystem1.67.0 libboost-program-options1.67.0 libboost-regex1.67.0 libboost-test1.67.0 libboost-serialization1.67.0 libboost-thread1.67.0 libboost-system1.67.0 python3-numpy python3-mako"
+STATIC_PACKAGES="libusb-1.0.0 libboost-chrono1.74.0 libboost-date-time1.74.0 libboost-filesystem1.74.0 libboost-program-options1.74.0 libboost-regex1.74.0 libboost-test1.74.0 libboost-serialization1.74.0 libboost-thread1.74.0 libboost-system1.74.0 python3-numpy python3-mako"
 BUILD_PACKAGES="git cmake make gcc g++ libusb-1.0-0-dev libboost-dev libboost-chrono-dev libboost-date-time-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev libboost-test-dev libboost-serialization-dev libboost-thread-dev libboost-system-dev"
 
 apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/EttusResearch/uhd.git
-# 3.15.0.0 Release
 mkdir -p uhd/host/build
 cd uhd/host/build
-git checkout v3.15.0.0
+git checkout v4.1.0.4
 # see https://github.com/EttusResearch/uhd/issues/350
 case `uname -m` in
   arm*)
