@@ -1,6 +1,8 @@
 from . import Controller
 from owrx.metrics import CounterMetric, DirectMetric, Metrics
 import json
+import re
+
 
 
 class MetricsController(Controller):
