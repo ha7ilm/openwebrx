@@ -1,6 +1,8 @@
 from . import Controller
 from owrx.metrics import CounterMetric, DirectMetric, Metrics
 import json
+import re
+
 
 
 class MetricsController(Controller):
@@ -21,7 +23,7 @@ class MetricsController(Controller):
             else:
                 raise ValueError("Unexpected metric type for metric {}".format(repr(metric)))
 
-            return "{key} {value}".format(key=key.replace(".", "_"), value=value)
+            return "{key} {value}".format(key=re.sub('[^a-zA-Z0-9:_]', '_', key), value=value)
 
         data = ["# https://prometheus.io/docs/instrumenting/exposition_formats/"] + [
             prometheusFormat(k, v) for k, v in metrics.items()
