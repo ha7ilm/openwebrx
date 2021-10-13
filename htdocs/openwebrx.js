@@ -1458,11 +1458,8 @@ function secondary_demod_push_data(x) {
         if (y === "<") return "&lt;";
         if (y === ">") return "&gt;";
         if (y === " ") return "&nbsp;";
+        if (y === "\n") return "<br />";
         return y;
-    }).map(function (y) {
-        if (y === "\n")
-            return "<br />";
-        return "<span class=\"part\">" + y + "</span>";
     }).join("");
     $("#openwebrx-cursor-blink").before(x);
 }
