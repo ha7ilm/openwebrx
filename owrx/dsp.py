@@ -1,7 +1,7 @@
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
 from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
-from owrx.modes import Modes
+from owrx.modes import Modes, DigitalMode
 from csdr.chain import Chain
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, DeemphasisTauChain
 from csdr.chain.selector import Selector, SecondarySelector
@@ -433,12 +433,17 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         self.readers = {}
 
         if "start_mod" in self.props:
-            self.setDemodulator(self.props["start_mod"])
             mode = Modes.findByModulation(self.props["start_mod"])
-
-            if mode and mode.bandpass:
-                bpf = [mode.bandpass.low_cut, mode.bandpass.high_cut]
-                self.chain.setBandpass(*bpf)
+            if mode:
+                self.setDemodulator(mode.get_modulation())
+                if isinstance(mode, DigitalMode):
+                    self.setSecondaryDemodulator(mode.modulation)
+                if mode.bandpass:
+                    bpf = [mode.bandpass.low_cut, mode.bandpass.high_cut]
+                    self.chain.setBandpass(*bpf)
+            else:
+                # TODO modes should be mandatory
+                self.setDemodulator(self.props["start_mod"])
 
         if "start_freq" in self.props and "center_freq" in self.props:
             self.chain.setFrequencyOffset(self.props["start_freq"] - self.props["center_freq"])
