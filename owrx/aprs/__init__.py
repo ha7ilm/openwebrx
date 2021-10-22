@@ -56,12 +56,15 @@ class Ax25Parser(PickleModule):
             for i in range(0, len(l), n):
                 yield l[i:i + n]
 
-        return {
-            "destination": self.extractCallsign(ax25frame[0:7]),
-            "source": self.extractCallsign(ax25frame[7:14]),
-            "path": [self.extractCallsign(c) for c in chunks(ax25frame[14:control_pid], 7)],
-            "data": ax25frame[control_pid + 2 :],
-        }
+        try:
+            return {
+                "destination": self.extractCallsign(ax25frame[0:7]),
+                "source": self.extractCallsign(ax25frame[7:14]),
+                "path": [self.extractCallsign(c) for c in chunks(ax25frame[14:control_pid], 7)],
+                "data": ax25frame[control_pid + 2 :],
+            }
+        except (ValueError, IndexError):
+            logger.exception("error parsing ax25 frame")
 
     def extractCallsign(self, input):
         cs = bytes([b >> 1 for b in input[0:6]]).decode(encoding, "replace").strip()
