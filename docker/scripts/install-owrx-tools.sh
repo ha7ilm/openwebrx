@@ -31,8 +31,8 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2021-09-30 (nmux split)
-cmakebuild csdr d6d1821691e0b9c0670879d36d12415cf6acbb41
+# latest develop as of 2021-10-25 (deemphasis fix)
+cmakebuild csdr b9d65951e0a112677939290a83ee2706cdbeb064
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
