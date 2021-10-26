@@ -49,6 +49,8 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
             stdin=PIPE,
         )
 
+        # resume in case the reader has been stop()ed before
+        self.reader.resume()
         threading.Thread(target=self.pump(self.reader.read, self.process.stdin.write)).start()
 
         delay = 0.5

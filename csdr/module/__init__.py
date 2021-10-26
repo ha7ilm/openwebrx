@@ -120,6 +120,8 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
 
     def start(self):
         self.process = Popen(self.getCommand(), stdin=PIPE, stdout=PIPE)
+        # resume in case the reader has been stop()ed before
+        self.reader.resume()
         Thread(target=self.pump(self.reader.read, self.process.stdin.write)).start()
         Thread(target=self.pump(partial(self.process.stdout.read, 1024), self.writer.write)).start()
 
