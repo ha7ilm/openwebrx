@@ -484,7 +484,7 @@ class SdrDeviceDescription(object):
             module = __import__("owrx.source.{0}".format(sdr_type), fromlist=[className])
             cls = getattr(module, className)
             return cls()
-        except (ModuleNotFoundError, AttributeError):
+        except (ImportError, AttributeError):
             raise SdrDeviceDescriptionMissing("Device description for type {} not available".format(sdr_type))
 
     @staticmethod
