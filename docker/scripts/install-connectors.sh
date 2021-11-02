@@ -18,13 +18,14 @@ function cmakebuild() {
 
 cd /tmp
 
-BUILD_PACKAGES="git cmake make gcc g++"
+BUILD_PACKAGES="git cmake make gcc g++ libsamplerate-dev libfftw3-dev"
 
 apt-get update
 apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
-cmakebuild owrx_connector 0.5.0
+# latest develop as of 2021-11-02 (switch to csdr ringbuffers)
+cmakebuild owrx_connector 0676fee1a191f2620e7dcaeae8e7425432a929cc
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
