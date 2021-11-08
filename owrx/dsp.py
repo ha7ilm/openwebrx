@@ -103,22 +103,11 @@ class ClientDemodulatorChain(Chain):
 
         self.demodulator = demodulator
 
-        outputRate = self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
+        self.selector.setOutputRate(self._getSelectorOutputRate())
 
-        if isinstance(self.demodulator, FixedIfSampleRateChain):
-            self.selector.setOutputRate(self.demodulator.getFixedIfSampleRate())
-        elif isinstance(self.secondaryDemodulator, FixedAudioRateChain):
-            self.selector.setOutputRate(self.secondaryDemodulator.getFixedAudioRate())
-        else:
-            self.selector.setOutputRate(outputRate)
-        self.demodulator.setSampleRate(outputRate)
-
-        if isinstance(self.demodulator, FixedAudioRateChain):
-            self.clientAudioChain.setInputRate(self.demodulator.getFixedAudioRate())
-        elif isinstance(self.secondaryDemodulator, FixedAudioRateChain):
-            self.clientAudioChain.setInputRate(self.secondaryDemodulator.getFixedAudioRate())
-        else:
-            self.clientAudioChain.setInputRate(outputRate)
+        clientRate = self._getClientAudioInputRate()
+        self.clientAudioChain.setInputRate(clientRate)
+        self.demodulator.setSampleRate(clientRate)
 
         if isinstance(self.demodulator, DeemphasisTauChain):
             self.demodulator.setDeemphasisTau(self.wfmDeemphasisTau)
@@ -126,17 +115,29 @@ class ClientDemodulatorChain(Chain):
         self._updateDialFrequency()
         self._syncSquelch()
 
+        outputRate = self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
         self.clientAudioChain.setClientRate(outputRate)
 
         if self.metaWriter is not None and isinstance(demodulator, MetaProvider):
             demodulator.setMetaWriter(self.metaWriter)
 
     def _getSelectorOutputRate(self):
-        if isinstance(self.secondaryDemodulator, FixedAudioRateChain):
+        if isinstance(self.demodulator, FixedIfSampleRateChain):
+            return self.demodulator.getFixedIfSampleRate()
+        elif isinstance(self.secondaryDemodulator, FixedAudioRateChain):
             if isinstance(self.demodulator, FixedAudioRateChain) and self.demodulator.getFixedAudioRate() != self.secondaryDemodulator.getFixedAudioRate():
                 raise ValueError("secondary and primary demodulator chain audio rates do not match!")
             return self.secondaryDemodulator.getFixedAudioRate()
-        return self.outputRate
+        else:
+            return self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
+
+    def _getClientAudioInputRate(self):
+        if isinstance(self.demodulator, FixedAudioRateChain):
+            return self.demodulator.getFixedAudioRate()
+        elif isinstance(self.secondaryDemodulator, FixedAudioRateChain):
+            return self.secondaryDemodulator.getFixedAudioRate()
+        else:
+            return self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
 
     def setSecondaryDemodulator(self, demod: Optional[SecondaryDemodulator]):
         if demod is self.secondaryDemodulator:
@@ -149,8 +150,11 @@ class ClientDemodulatorChain(Chain):
 
         rate = self._getSelectorOutputRate()
         self.selector.setOutputRate(rate)
-        self.clientAudioChain.setInputRate(rate)
-        self.demodulator.setSampleRate(rate)
+
+        clientRate = self._getClientAudioInputRate()
+        self.clientAudioChain.setInputRate(clientRate)
+        self.demodulator.setSampleRate(clientRate)
+
         self._updateDialFrequency()
         self._syncSquelch()
 
