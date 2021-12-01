@@ -131,12 +131,14 @@ class FeatureDetector(object):
         if cache.has(requirement):
             return cache.get(requirement)
 
+        logger.debug("performing feature check for %s", requirement)
         method = self._get_requirement_method(requirement)
         result = False
         if method is not None:
             result = method()
         else:
             logger.error("detection of requirement {0} not implement. please fix in code!".format(requirement))
+        logger.debug("feature check for %s complete. result: %s", requirement, result)
 
         cache.set(requirement, result)
         return result
