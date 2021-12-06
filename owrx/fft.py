@@ -77,8 +77,9 @@ class SpectrumThread(SdrSourceEventClient):
             return
         self.dsp.stop()
         self.dsp = None
-        self.reader.stop()
-        self.reader = None
+        if self.reader:
+            self.reader.stop()
+            self.reader = None
         self.sdrSource.removeClient(self)
         while self.subscriptions:
             self.subscriptions.pop().cancel()
@@ -92,7 +93,8 @@ class SpectrumThread(SdrSourceEventClient):
 
     def onStateChange(self, state: SdrSourceState):
         if state is SdrSourceState.STOPPING:
-            self.dsp.stop()
+            if self.dsp:
+                self.dsp.stop()
         elif state == SdrSourceState.RUNNING:
             if self.dsp is None:
                 self.start()
