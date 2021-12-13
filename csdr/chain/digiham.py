@@ -1,8 +1,8 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError
 from pycsdr.modules import FmDemod, Agc, Writer, Buffer
 from pycsdr.types import Format
 from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder
-from digiham.ambe import Modes
+from digiham.ambe import Modes, ServerError
 from owrx.meta import MetaParser
 
 
@@ -17,10 +17,16 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
         workers = [FmDemod(), DcBlock()]
         if filter is not None:
             workers += [filter]
+        try:
+            mbeSynthesizer = MbeSynthesizer(mbeMode, codecserver)
+        except ConnectionError as ce:
+            raise DemodulatorError("Connection to codecserver failed: {}".format(ce))
+        except ServerError as se:
+            raise DemodulatorError("Codecserver error: {}".format(se))
         workers += [
             fskDemodulator,
             decoder,
-            MbeSynthesizer(mbeMode, codecserver),
+            mbeSynthesizer,
             DigitalVoiceFilter(),
             agc
         ]

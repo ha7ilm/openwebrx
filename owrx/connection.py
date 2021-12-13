@@ -422,6 +422,9 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def write_sdr_error(self, message):
         self.send({"type": "sdr_error", "value": message})
 
+    def write_demodulator_error(self, message):
+        self.send({"type": "demodulator_error", "value": message})
+
     def write_backoff_message(self, reason):
         self.send({"type": "backoff", "reason": reason})
 

@@ -67,3 +67,7 @@ class SecondaryDemodulator(Chain):
 
 class ServiceDemodulator(SecondaryDemodulator, FixedAudioRateChain, metaclass=ABCMeta):
     pass
+
+
+class DemodulatorError(Exception):
+    pass

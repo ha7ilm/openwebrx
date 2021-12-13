@@ -838,6 +838,9 @@ function on_ws_recv(evt) {
                         $overlay.show();
                         $("#openwebrx-panel-receiver").demodulatorPanel().stopDemodulator();
                         break;
+                    case "demodulator_error":
+                        divlog(json['value'], true);
+                        break;
                     case 'secondary_demod':
                         var value = json['value'];
                         var panels = [

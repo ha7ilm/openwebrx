@@ -3,7 +3,7 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes, DigitalMode
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, DeemphasisTauChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, DeemphasisTauChain, DemodulatorError
 from csdr.chain.selector import Selector, SecondarySelector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
@@ -544,19 +544,22 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             return FreeDV()
 
     def setDemodulator(self, mod):
-        demodulator = self._getDemodulator(mod)
-        if demodulator is None:
-            raise ValueError("unsupported demodulator: {}".format(mod))
-        self.chain.setDemodulator(demodulator)
+        try:
+            demodulator = self._getDemodulator(mod)
+            if demodulator is None:
+                raise ValueError("unsupported demodulator: {}".format(mod))
+            self.chain.setDemodulator(demodulator)
 
-        output = "hd_audio" if isinstance(demodulator, HdAudio) else "audio"
+            output = "hd_audio" if isinstance(demodulator, HdAudio) else "audio"
 
-        if output != self.audioOutput:
-            self.audioOutput = output
-            # re-wire the audio to the correct client API
-            buffer = Buffer(self.chain.getOutputFormat())
-            self.chain.setWriter(buffer)
-            self.wireOutput(self.audioOutput, buffer)
+            if output != self.audioOutput:
+                self.audioOutput = output
+                # re-wire the audio to the correct client API
+                buffer = Buffer(self.chain.getOutputFormat())
+                self.chain.setWriter(buffer)
+                self.wireOutput(self.audioOutput, buffer)
+        except DemodulatorError as de:
+            self.handler.write_demodulator_error(str(de))
 
     def _getSecondaryDemodulator(self, mod) -> Optional[SecondaryDemodulator]:
         if isinstance(mod, SecondaryDemodulator):
