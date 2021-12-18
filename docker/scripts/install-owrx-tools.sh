@@ -49,13 +49,13 @@ cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
 cmakebuild codecserver aa9b1d6057c4461c7f65ec1bbf698a69336bf6df
 
 git clone https://github.com/jketterl/digiham.git
-# latest develop as of 2021-09-30 (codecserver check api)
-cmakebuild digiham 9085301846d30bd344b2b796fd316aabbd13cf98
+# latest develop as of 2021-12-18 (error handling fixes)
+cmakebuild digiham 9dfa1f823e9071f2b048d96121e7f52e9aa9dbac
 
 git clone https://github.com/jketterl/pydigiham.git
 cd pydigiham
-# latest develop as of 2021-09-30 (codecserver check api)
-git checkout c753f3fffb87f358afea60e6084a034d12e7ee3f
+# latest develop as of 2021-12-18 (error handling fixes)
+git checkout 387e7c1591d50aba23801d6a49306fee7d4ebef9
 ./setup.py install
 cd ..
 rm -rf pydigiham
