@@ -1025,7 +1025,8 @@ img.openwebrx-mirror-img
 .openwebrx-meta-slot.active.direct .openwebrx-meta-user-image .directcall,
 .openwebrx-meta-slot.active.individual .openwebrx-meta-user-image .directcall,
 #openwebrx-panel-metadata-ysf .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall,
-#openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
+#openwebrx-panel-metadata-dstar .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall,
+#openwebrx-panel-metadata-m17 .openwebrx-meta-slot.active .openwebrx-meta-user-image .directcall {
     display: initial;
 }
 
@@ -1057,6 +1058,14 @@ img.openwebrx-mirror-img
 
 .openwebrx-ysf-down:not(:empty):before {
     content: "Down: ";
+}
+
+.openwebrx-m17-source:not(:empty):before {
+	content: "SRC: ";
+}
+
+.openwebrx-m17-destination:not(:empty):before {
+	content: "DEST: ";
 }
 
 .openwebrx-dstar-yourcall:not(:empty):before {

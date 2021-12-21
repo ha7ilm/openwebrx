@@ -1,18 +1,19 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider
 from csdr.module.m17 import M17Module
-from pycsdr.modules import FmDemod, Limit, Convert
+from pycsdr.modules import FmDemod, Limit, Convert, Writer
 from pycsdr.types import Format
 from digiham.modules import DcBlock
 
 
-class M17(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
+class M17(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider):
     def __init__(self):
+        self.module = M17Module()
         workers = [
             FmDemod(),
             DcBlock(),
             Limit(),
             Convert(Format.FLOAT, Format.SHORT),
-            M17Module(),
+            self.module,
         ]
         super().__init__(workers)
 
@@ -24,3 +25,6 @@ class M17(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
 
     def supportsSquelch(self) -> bool:
         return False
+
+    def setMetaWriter(self, writer: Writer) -> None:
+        self.module.setMetaWriter(writer)

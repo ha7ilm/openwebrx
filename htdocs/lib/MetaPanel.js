@@ -321,18 +321,57 @@ NxdnMetaPanel.prototype.clear = function() {
     this.setDestination();
 };
 
+function M17MetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['M17'];
+    this.clear();
+}
+
+M17MetaPanel.prototype = new MetaPanel();
+
+M17MetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if (data['sync'] && data['sync'] === 'voice') {
+        this.el.find(".openwebrx-meta-slot").addClass("active");
+        this.setSource(data['source']);
+        this.setDestination(data['destination']);
+    } else {
+        this.clear();
+    }
+};
+
+M17MetaPanel.prototype.setSource = function(source) {
+    if (this.source === source) return;
+    this.source = source;
+    this.el.find('.openwebrx-m17-source').text(source || '');
+};
+
+M17MetaPanel.prototype.setDestination = function(destination) {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.el.find('.openwebrx-m17-destination').text(destination || '');
+};
+
+M17MetaPanel.prototype.clear = function() {
+    MetaPanel.prototype.clear.call(this);
+    this.setSource();
+    this.setDestination();
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
     dstar: DStarMetaPanel,
     nxdn: NxdnMetaPanel,
+    m17: M17MetaPanel,
 };
 
 $.fn.metaPanel = function() {
     return this.map(function() {
         var $self = $(this);
         if (!$self.data('metapanel')) {
-            var matches = /^openwebrx-panel-metadata-([a-z]+)$/.exec($self.prop('id'));
+            var matches = /^openwebrx-panel-metadata-([a-z0-9]+)$/.exec($self.prop('id'));
             var constructor = matches && MetaPanel.types[matches[1]] || MetaPanel;
             $self.data('metapanel', new constructor($self));
         }
