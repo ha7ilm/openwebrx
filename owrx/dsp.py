@@ -7,6 +7,7 @@ from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain,
 from csdr.chain.selector import Selector, SecondarySelector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
+from csdr.chain.dummy import DummyDemodulator
 from pycsdr.modules import Buffer, Writer
 from pycsdr.types import Format
 from typing import Union, Optional
@@ -120,6 +121,19 @@ class ClientDemodulatorChain(Chain):
 
         if self.metaWriter is not None and isinstance(demodulator, MetaProvider):
             demodulator.setMetaWriter(self.metaWriter)
+
+    def stopDemodulator(self):
+        if self.demodulator is None:
+            return
+
+        # we need to get the currrent demodulator out of the chain so that it can be deallocated properly
+        # so we just replace it with a dummy here
+        # in order to avoid any client audio chain hassle, the dummy simply imitates the output format of the current
+        # demodulator
+        self.replace(1, DummyDemodulator(self.demodulator.getOutputFormat()))
+
+        self.demodulator.stop()
+        self.demodulator = None
 
     def _getSelectorOutputRate(self):
         if isinstance(self.demodulator, FixedIfSampleRateChain):
@@ -544,6 +558,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             return FreeDV()
 
     def setDemodulator(self, mod):
+        self.chain.stopDemodulator()
         try:
             demodulator = self._getDemodulator(mod)
             if demodulator is None:
