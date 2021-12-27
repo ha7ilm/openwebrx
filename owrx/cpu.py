@@ -22,6 +22,7 @@ class CpuUsageThread(threading.Thread):
         self.last_worktime = 0
         self.last_idletime = 0
         self.endEvent = threading.Event()
+        self.startLock = threading.Lock()
         super().__init__()
 
     def run(self):
@@ -59,8 +60,9 @@ class CpuUsageThread(threading.Thread):
 
     def add_client(self, c):
         self.clients.append(c)
-        if not self.is_alive():
-            self.start()
+        with self.startLock:
+            if not self.is_alive():
+                self.start()
 
     def remove_client(self, c):
         try:
