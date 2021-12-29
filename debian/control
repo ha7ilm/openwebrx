@@ -11,6 +11,6 @@ Vcs-Git: https://github.com/jketterl/openwebrx.git
 Package: openwebrx
 Architecture: all
 Depends: adduser, python3 (>= 3.5), python3-pkg-resources, owrx-connector (>= 0.5), soapysdr-tools, python3-csdr (>= 0.18), ${python3:Depends}, ${misc:Depends}
-Recommends: python3-digiham (>= 0.6), direwolf (>= 1.4), wsjtx, runds-connector (>= 0.2), hpsdrconnector, aprs-symbols, m17-demod, js8call, python3-js8py (>= 0.1), nmux (>= 0.18)
+Recommends: python3-digiham (>= 0.6), direwolf (>= 1.4), wsjtx, runds-connector (>= 0.2), hpsdrconnector, aprs-symbols, m17-demod, js8call, python3-js8py (>= 0.1), nmux (>= 0.18), codecserver (>= 0.1)
 Description: multi-user web sdr
  Open source, multi-user SDR receiver with a web interface
