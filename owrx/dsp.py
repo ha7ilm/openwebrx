@@ -513,8 +513,6 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
 
         self.sdrSource.addClient(self)
 
-        super().__init__()
-
     def setSecondaryFftSize(self, size):
         self.chain.setSecondaryFftSize(size)
         self.handler.write_secondary_dsp_config({"secondary_fft_size": size})

@@ -30,10 +30,6 @@ class Drained(WebSocketException):
     pass
 
 
-class WebSocketClosed(WebSocketException):
-    pass
-
-
 class Handler(ABC):
     @abstractmethod
     def handleTextMessage(self, connection, message: str):
@@ -118,8 +114,6 @@ class WebSocketConnection(object):
             return bytes([ws_first_byte, size])
 
     def send(self, data):
-        if not self.open:
-            raise WebSocketClosed()
         # convenience
         if type(data) == dict:
             # allow_nan = False disallows NaN and Infinty to be encoded. Browser JSON will not parse them anyway.
@@ -144,18 +138,21 @@ class WebSocketConnection(object):
 
         try:
             with self.sendLock:
-                for chunk in chunks(data_to_send, 1024):
-                    (_, write, _) = select.select([], [self.handler.wfile], [], 10)
-                    if self.handler.wfile in write:
-                        written = self.handler.wfile.write(chunk)
-                        if written != len(chunk):
-                            logger.error("incomplete write! closing socket!")
+                if not self.open:
+                    logger.warning("_sendBytes() after connection was closed, ignoring")
+                else:
+                    for chunk in chunks(data_to_send, 1024):
+                        (_, write, _) = select.select([], [self.handler.wfile], [], 10)
+                        if self.handler.wfile in write:
+                            written = self.handler.wfile.write(chunk)
+                            if written != len(chunk):
+                                logger.error("incomplete write! closing socket!")
+                                self.close()
+                                break
+                        else:
+                            logger.debug("socket not returned from select; closing")
                             self.close()
                             break
-                    else:
-                        logger.debug("socket not returned from select; closing")
-                        self.close()
-                        break
         # these exception happen when the socket is closed
         except OSError:
             logger.exception("OSError while writing data")
@@ -270,7 +267,9 @@ class WebSocketConnection(object):
 
     def cancelPing(self):
         if self.pingTimer:
-            self.pingTimer.cancel()
+            old = self.pingTimer
+            self.pingTimer = None
+            old.cancel()
 
     def resetPing(self):
         self.cancelPing()
