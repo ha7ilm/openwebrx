@@ -62,6 +62,7 @@ class WebSocketConnection(object):
         self.setMessageHandler(messageHandler)
         (self.interruptPipeRecv, self.interruptPipeSend) = Pipe(duplex=False)
         self.open = True
+        self.socketError = False
         self.sendLock = threading.Lock()
 
         headers = {key.lower(): value for key, value in self.handler.headers.items()}
@@ -136,30 +137,30 @@ class WebSocketConnection(object):
             for i in range(0, len(input), n):
                 yield input[i: i + n]
 
-        try:
-            with self.sendLock:
-                if not self.open:
-                    logger.warning("_sendBytes() after connection was closed, ignoring")
-                else:
+        with self.sendLock:
+            if self.socketError:
+                logger.warning("_sendBytes() after socket error, ignoring")
+            else:
+                try:
                     for chunk in chunks(data_to_send, 1024):
                         (_, write, _) = select.select([], [self.handler.wfile], [], 10)
                         if self.handler.wfile in write:
                             written = self.handler.wfile.write(chunk)
                             if written != len(chunk):
                                 logger.error("incomplete write! closing socket!")
-                                self.close()
+                                self.close(socketError=True)
                                 break
                         else:
                             logger.debug("socket not returned from select; closing")
-                            self.close()
+                            self.close(socketError=True)
                             break
-        # these exception happen when the socket is closed
-        except OSError:
-            logger.exception("OSError while writing data")
-            self.close()
-        except ValueError:
-            logger.exception("ValueError while writing data")
-            self.close()
+                # these exception happen when the socket is closed
+                except OSError:
+                    logger.exception("OSError while writing data")
+                    self.close(socketError=True)
+                except ValueError:
+                    logger.exception("ValueError while writing data")
+                    self.close(socketError=True)
 
     def interrupt(self):
         if self.interruptPipeSend is None:
@@ -177,10 +178,13 @@ class WebSocketConnection(object):
             self.messageHandler.handleClose()
             self.cancelPing()
 
-            logger.debug("websocket loop ended; sending close frame")
+            if self.socketError:
+                logger.debug("websocket closed in error, skipping close frame")
+            else:
+                logger.debug("websocket loop ended; sending close frame")
 
-            header = self.get_header(0, OPCODE_CLOSE)
-            self._sendBytes(header)
+                header = self.get_header(0, OPCODE_CLOSE)
+                self._sendBytes(header)
 
             try:
                 WebSocketConnection.connections.remove(self)
@@ -242,9 +246,11 @@ class WebSocketConnection(object):
                         available = False
                     except IncompleteRead:
                         logger.warning("incomplete read on websocket; closing connection")
+                        self.socketError = True
                         self.open = False
                     except OSError:
                         logger.exception("OSError while reading data; closing connection")
+                        self.socketError = True
                         self.open = False
 
         self.interruptPipeSend.close()
@@ -259,7 +265,10 @@ class WebSocketConnection(object):
         self.interruptPipeRecv.close()
         self.interruptPipeRecv = None
 
-    def close(self):
+    def close(self, socketError: bool = False):
+        # only set flag if it is True
+        if socketError:
+            self.socketError = True
         if not self.open:
             return
         self.open = False

@@ -56,9 +56,10 @@ class Client(Handler, metaclass=ABCMeta):
         try:
             self.conn.send(data)
         except IOError:
-            self.close()
+            logger.exception("error in Client::send()")
+            self.close(error=True)
 
-    def close(self):
+    def close(self, error: bool = False):
         if self.multithreadingQueue is not None:
             while True:
                 try:
@@ -70,7 +71,7 @@ class Client(Handler, metaclass=ABCMeta):
             except Full:
                 # this shouldn't happen, we just emptied the queue, but it's not worth risking the exception
                 logger.exception("impossible queue state: Full after Empty")
-        self.conn.close()
+        self.conn.close(socketError=error)
 
     def mp_send(self, data):
         if self.multithreadingQueue is None:
@@ -78,7 +79,7 @@ class Client(Handler, metaclass=ABCMeta):
         try:
             self.multithreadingQueue.put(data, block=False)
         except Full:
-            self.close()
+            self.close(error=True)
 
     @abstractmethod
     def handleTextMessage(self, conn, message):
@@ -107,9 +108,9 @@ class OpenWebRxClient(Client, metaclass=ABCMeta):
     def write_receiver_details(self, details):
         self.send({"type": "receiver_details", "value": details})
 
-    def close(self):
+    def close(self, error: bool = False):
         self._detailsSubscription.cancel()
-        super().close()
+        super().close(error)
 
 
 class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
@@ -339,7 +340,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
     def handleNoSdrsAvailable(self):
         self.write_sdr_error("No SDR Devices available")
 
-    def close(self):
+    def close(self, error: bool = False):
         if self.sdr is not None:
             self.sdr.removeClient(self)
         self.stopDsp()
@@ -350,7 +351,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         if self.bookmarkSub is not None:
             self.bookmarkSub.cancel()
             self.bookmarkSub = None
-        super().close()
+        super().close(error)
 
     def stopDsp(self):
         with self.dspLock:
@@ -466,9 +467,9 @@ class MapConnection(OpenWebRxClient):
     def handleTextMessage(self, conn, message):
         pass
 
-    def close(self):
+    def close(self, error: bool = False):
         Map.getSharedInstance().removeClient(self)
-        super().close()
+        super().close(error)
 
     def write_config(self, cfg):
         self.send({"type": "config", "value": cfg})
