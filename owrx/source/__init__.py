@@ -376,6 +376,9 @@ class SdrSource(ABC):
                 except ProcessLookupError:
                     # been killed by something else, ignore
                     pass
+                except AttributeError:
+                    # self.process has been overwritten by the monitor since we checked it, which is fine
+                    pass
             if self.monitor:
                 self.monitor.join()
             if self.tcpSource is not None:
