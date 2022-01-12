@@ -51,7 +51,7 @@ rm /js8call-hamlib.patch
 cmakebuild ${JS8CALL_DIR}
 rm ${JS8CALL_TGZ}
 
-WSJT_DIR=wsjtx-2.5.2
+WSJT_DIR=wsjtx-2.5.4
 WSJT_TGZ=${WSJT_DIR}.tgz
 wget http://physics.princeton.edu/pulsar/k1jt/${WSJT_TGZ}
 tar xfz ${WSJT_TGZ}
