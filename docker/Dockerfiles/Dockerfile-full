@@ -19,6 +19,7 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-radioberry.sh &&\
     /install-dependencies-uhd.sh &&\
     /install-dependencies-hpsdr.sh &&\
+    /install-dependencies-bladerf.sh &&\
     /install-connectors.sh &&\
     /install-dependencies-runds.sh &&\
     rm /install-dependencies-*.sh &&\
