@@ -1,6 +1,8 @@
 **unreleased**
 - Major rewrite of all demodulation components to make use of the new csdr/pycsdr and digiham/pydigiham demodulator
   modules
+- New devices supported:
+  - Blade RF
 
 **1.1.0**
 - Reworked most graphical elements as SVGs for faster loadtimes and crispier display on hi-dpi displays

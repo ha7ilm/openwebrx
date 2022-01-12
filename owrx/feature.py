@@ -68,6 +68,7 @@ class FeatureDetector(object):
         "uhd": ["soapy_connector", "soapy_uhd"],
         "radioberry": ["soapy_connector", "soapy_radioberry"],
         "fcdpp": ["soapy_connector", "soapy_fcdpp"],
+        "bladerf": ["soapy_connector", "soapy_bladerf"],
         "sddc": ["sddc_connector"],
         "hpsdr": ["hpsdr_connector"],
         "runds": ["runds_connector"],
@@ -384,6 +385,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyFCDPP).
         """
         return self._has_soapy_driver("fcdpp")
+
+    def has_soapy_bladerf(self):
+        """
+        The SoapyBladeRF module allows the use of Blade RF devices.
+
+        You can get it [here](https://github.com/pothosware/SoapyBladeRF).
+        """
+        return self._has_soapy_driver("bladerf")
 
     def has_m17_demod(self):
         """
