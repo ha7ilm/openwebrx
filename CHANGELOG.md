@@ -1,6 +1,7 @@
 **unreleased**
 - Major rewrite of all demodulation components to make use of the new csdr/pycsdr and digiham/pydigiham demodulator
   modules
+- Preliminary display of M17 callsign information
 - New devices supported:
   - Blade RF
 
