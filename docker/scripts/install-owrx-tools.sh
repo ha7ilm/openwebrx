@@ -31,13 +31,13 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2021-10-25 (deemphasis fix)
-cmakebuild csdr b9d65951e0a112677939290a83ee2706cdbeb064
+# latest develop as of 2022-01-24 (additional ring buffer types)
+cmakebuild csdr 0e74db2e3b021b192bdf9b8afbbf20102c1c57fe
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
-# latest develop as of 2021-09-30 (fft overflow fix)
-git checkout 7389af13c87f17844ec67cefa18b922bdc93b14f
+# latest develop as of 2022-01-24 (added buffer resume())
+git checkout e8213fe257467ef7bfe91d1e09b6a2173e55c804
 ./setup.py install install_headers
 cd ..
 rm -rf pycsdr
@@ -45,8 +45,8 @@ rm -rf pycsdr
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
-# latest develop as of 2021-09-30 (logging fix)
-cmakebuild codecserver aa9b1d6057c4461c7f65ec1bbf698a69336bf6df
+# latest develop as of 2022-01-24 (udev)
+cmakebuild codecserver 3d9b9a5e1a22407b375bcf8bba316d691d290175
 
 git clone https://github.com/jketterl/digiham.git
 # latest develop as of 2021-12-18 (error handling fixes)
