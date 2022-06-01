@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class UnknownFeatureException(Exception):
