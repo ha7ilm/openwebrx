@@ -89,12 +89,17 @@ Support and info:       https://groups.io/g/openwebrx
     coreConfig = CoreConfig()
 
     featureDetector = FeatureDetector()
-    if not featureDetector.is_available("core"):
+    failed = featureDetector.get_failed_requirements("core")
+    if failed:
         logger.error(
             "you are missing required dependencies to run openwebrx. "
-            "please check that the following core requirements are installed and up to date:"
+            "please check that the following core requirements are installed and up to date: %s",
+            ", ".join(failed)
         )
-        logger.error(", ".join(featureDetector.get_requirements("core")))
+        for f in failed:
+            description = featureDetector.get_requirement_description(f)
+            if description:
+                logger.error("description for %s:\n%s", f, description)
         return
 
     # Get error messages about unknown / unavailable features as soon as possible

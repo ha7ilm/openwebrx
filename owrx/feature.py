@@ -110,6 +110,9 @@ class FeatureDetector(object):
     def is_available(self, feature):
         return self.has_requirements(self.get_requirements(feature))
 
+    def get_failed_requirements(self, feature):
+        return [req for req in self.get_requirements(feature) if not self.has_requirement(req)]
+
     def get_requirements(self, feature):
         try:
             return FeatureDetector.features[feature]
