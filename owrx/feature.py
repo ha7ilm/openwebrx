@@ -52,7 +52,7 @@ class FeatureCache(object):
 class FeatureDetector(object):
     features = {
         # core features; we won't start without these
-        "core": ["csdr", "pycsdr"],
+        "core": ["csdr"],
         # different types of sdrs and their requirements
         "rtl_sdr": ["rtl_connector"],
         "rtl_sdr_soapy": ["soapy_connector", "soapy_rtl_sdr"],
@@ -171,27 +171,24 @@ class FeatureDetector(object):
         except FileNotFoundError:
             return False
 
-    _required_csdr_version = LooseVersion("0.18.0")
-
     def has_csdr(self):
         """
         OpenWebRX uses the demodulator and pipeline tools provided by the csdr project. Please check out [the project
         page on github](https://github.com/jketterl/csdr) for further details and installation instructions.
+
+        In addition, the [pycsdr](https://github.com/jketterl/pycsdr) package must be installed to provide
+        python bindings for the csdr library.
         """
+        required_version = LooseVersion("0.18.0")
+
         try:
             from pycsdr.modules import csdr_version
-            return LooseVersion(csdr_version) >= FeatureDetector._required_csdr_version
-        except ImportError:
-            return False
-
-    def has_pycsdr(self):
-        """
-        OpenWebRX uses the csdr python bindings from the pycsdr package to build its demodulator pipelines.
-        Please visit [the project page](https://github.com/jketterl/pycsdr) for further details.
-        """
-        try:
             from pycsdr.modules import version as pycsdr_version
-            return LooseVersion(pycsdr_version) >= FeatureDetector._required_csdr_version
+
+            return (
+                LooseVersion(csdr_version) >= required_version and
+                LooseVersion(pycsdr_version) >= required_version
+            )
         except ImportError:
             return False
 
@@ -226,15 +223,23 @@ class FeatureDetector(object):
         To use digital voice modes, the digiham package is required. You can find the package and installation
         instructions [here](https://github.com/jketterl/digiham).
 
+        In addition, the [pydigiham](https://github.com/jketterl/pydigiham) package must be installed to provide
+        python bindings for the digiham library.
+
         Please note: there is close interaction between digiham and openwebrx, so older versions will probably not work.
         If you have an older verison of digiham installed, please update it along with openwebrx.
-        As of now, we require version 0.3 of digiham.
+        As of now, we require version 0.6 of digiham.
         """
-        required_version = LooseVersion("0.5")
+        required_version = LooseVersion("0.6")
 
         try:
-            from digiham.modules import version as digiham_version
-            return LooseVersion(digiham_version) >= required_version
+            from digiham.modules import digiham_version as digiham_version
+            from digiham.modules import version as pydigiham_version
+
+            return (
+                LooseVersion(digiham_version) >= required_version
+                and LooseVersion(pydigiham_version) >= required_version
+            )
         except ImportError:
             return False
 
@@ -469,6 +474,7 @@ class FeatureDetector(object):
         required_version = StrictVersion("0.1")
         try:
             from js8py.version import strictversion
+
             return strictversion >= required_version
         except ImportError:
             return False
@@ -545,6 +551,7 @@ class FeatureDetector(object):
             server = config["digital_voice_codecserver"]
         try:
             from digiham.modules import MbeSynthesizer
+
             return MbeSynthesizer.hasAmbe(server)
         except ImportError:
             return False
