@@ -30,8 +30,7 @@ class UserCommand(Command, metaclass=ABCMeta):
             password = getpass("Please enter the new password for {username}: ".format(username=username))
             confirm = getpass("Please confirm the new password: ")
             if password != confirm:
-                print("ERROR: Password mismatch.")
-                sys.exit(1)
+                raise ValueError("Password mismatch")
             generated = False
         return password, generated
 
@@ -108,8 +107,9 @@ class HasUser(Command):
         if args.user in userList:
             if not args.silent:
                 print('User "{name}" exists.'.format(name=args.user))
+            return 0
         else:
             if not args.silent:
                 print('User "{name}" does not exist.'.format(name=args.user))
             # in bash, a return code > 0 is interpreted as "false"
-            sys.exit(1)
+            return 1

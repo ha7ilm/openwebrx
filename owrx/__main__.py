@@ -57,12 +57,15 @@ def main():
 
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
-    elif args.module == "admin":
-        run_admin_action(adminparser, args)
-    elif args.module == "config":
-        run_admin_action(configparser, args)
-    else:
-        start_receiver()
+        return 0
+
+    if args.module == "admin":
+        return run_admin_action(adminparser, args)
+
+    if args.module == "config":
+        return run_admin_action(configparser, args)
+
+    return start_receiver()
 
 
 def start_receiver():
@@ -100,7 +103,7 @@ Support and info:       https://groups.io/g/openwebrx
             description = featureDetector.get_requirement_description(f)
             if description:
                 logger.error("description for %s:\n%s", f, description)
-        return
+        return 1
 
     # Get error messages about unknown / unavailable features as soon as possible
     # start up "always-on" sources right away
@@ -119,3 +122,5 @@ Support and info:       https://groups.io/g/openwebrx
     SdrService.stopAllSources()
     ReportingEngine.stopAll()
     DecoderQueue.stopAll()
+
+    return 0
