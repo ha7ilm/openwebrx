@@ -514,6 +514,14 @@ class SdrDeviceDescription(object):
         """
         return None
 
+    def supportsPpm(self):
+        """
+        can be overridden if the device does not support configuring PPM correction
+
+        :return: bool
+        """
+        return True
+
     def getDeviceInputs(self) -> List[Input]:
         keys = self.getDeviceMandatoryKeys() + self.getDeviceOptionalKeys()
         return [TextInput("name", "Device name", validator=RequiredValidator())] + [
@@ -568,8 +576,7 @@ class SdrDeviceDescription(object):
         return ["name", "enabled"]
 
     def getDeviceOptionalKeys(self):
-        return [
-            "ppm",
+        keys = [
             "always-on",
             "services",
             "rf_gain",
@@ -577,6 +584,9 @@ class SdrDeviceDescription(object):
             "waterfall_levels",
             "scheduler",
         ]
+        if self.supportsPpm():
+            keys += ["ppm"]
+        return keys
 
     def getProfileMandatoryKeys(self):
         return ["name", "center_freq", "samp_rate", "start_freq", "start_mod"]

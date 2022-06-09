@@ -23,6 +23,12 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
     def getName(self):
         return "Airspy R2 or Mini"
 
+    def supportsPpm(self):
+        # not supported by the device API
+        # frequency calibration can be done with separate tools and will be persisted on the device.
+        # see discussion here: https://groups.io/g/openwebrx/topic/79360293
+        return False
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             BiasTeeInput(),

@@ -45,3 +45,7 @@ class FifiSdrSource(DirectSource):
 class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
     def getName(self):
         return "FiFi SDR"
+
+    def supportsPpm(self):
+        # not currently mapped, and it's unclear how this should be sent to the device
+        return False

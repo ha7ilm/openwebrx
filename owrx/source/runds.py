@@ -40,6 +40,10 @@ class RundsDeviceDescription(ConnectorDeviceDescription):
     def getName(self):
         return "R&S device using EB200 or Ammos protocol"
 
+    def supportsPpm(self):
+        # currently not implemented in the connector
+        return False
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             RemoteInput(),

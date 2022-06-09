@@ -18,6 +18,11 @@ class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
     def getName(self):
         return "HackRF"
 
+    def supportsPpm(self):
+        # not implemented by the SoapySDR module.
+        # see discussion here: https://groups.io/g/openwebrx/topic/78339109
+        return False
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [BiasTeeInput()]
 

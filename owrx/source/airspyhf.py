@@ -9,3 +9,7 @@ class AirspyhfSource(SoapyConnectorSource):
 class AirspyhfDeviceDescription(SoapyConnectorDeviceDescription):
     def getName(self):
         return "Airspy HF+ or Discovery"
+
+    def supportsPpm(self):
+        # not currently supported by the SoapySDR module.
+        return False

@@ -53,6 +53,10 @@ class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
     def getName(self):
         return "Perseus SDR"
 
+    def supportsPpm(self):
+        # not currently mapped, and not available as an option to "perseustest"
+        return False
+
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             DropdownInput("attenuator", "Attenuator", options=AttenuatorOptions),
