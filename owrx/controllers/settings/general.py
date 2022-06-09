@@ -48,7 +48,7 @@ class GeneralSettingsController(SettingsFormController):
                 TextInput("receiver_admin", "Receiver admin"),
                 LocationInput("receiver_gps", "Receiver coordinates"),
                 TextInput("photo_title", "Photo title"),
-                TextAreaInput("photo_desc", "Photo description"),
+                TextAreaInput("photo_desc", "Photo description", infotext="HTML supported "),
             ),
             Section(
                 "Receiver images",
