@@ -14,7 +14,26 @@ class Converter(ABC):
 
 
 class NullConverter(Converter):
+    """
+    The default converter class
+    Does not change the value in any way, just passes them through
+    """
     def convert_to_form(self, value):
+        return value
+
+    def convert_from_form(self, value):
+        return value
+
+
+class TextConverter(Converter):
+    """
+    Converter class for text inputs
+    Does nothing more than to prevent the special python value "None" from appearing in the form
+    The string "None" should pass
+    """
+    def convert_to_form(self, value):
+        if value is None:
+            return ""
         return value
 
     def convert_from_form(self, value):
@@ -24,7 +43,7 @@ class NullConverter(Converter):
 class OptionalConverter(Converter):
     """
     Transforms a special form value to None
-    The default is look for an empty string, but this can be used to adopt to other types.
+    The default is to look for an empty string, but this can be used to adopt to other types.
     If the default is not found, the actual value is passed to the sub_converter for further transformation.
     useful for optional fields since None is not stored in the configuration
     """

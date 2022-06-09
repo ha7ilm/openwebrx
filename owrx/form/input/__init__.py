@@ -1,7 +1,7 @@
 from abc import ABC
 from owrx.modes import Modes
 from owrx.form.input.validator import Validator
-from owrx.form.input.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter
+from owrx.form.input.converter import Converter, NullConverter, IntConverter, FloatConverter, EnumConverter, TextConverter
 from enum import Enum
 
 
@@ -105,6 +105,9 @@ class TextInput(Input):
         props = super().input_properties(value, errors)
         props["type"] = "text"
         return props
+
+    def defaultConverter(self):
+        return TextConverter()
 
 
 class NumberInput(Input):
