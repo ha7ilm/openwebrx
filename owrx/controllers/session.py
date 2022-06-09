@@ -72,8 +72,8 @@ class SessionController(WebpageController):
                     self.set_response_cookies(cookie)
                     self.send_redirect(target)
                     return
-        target = "?{}".format(urlencode({"ref": self.request.query["ref"][0]})) if "ref" in self.request.query else ""
-        self.send_redirect(self.request.path + target)
+        target = "{}login?{}".format(self.get_document_root(), urlencode({"ref": self.request.query["ref"][0]}))
+        self.send_redirect(target)
 
     def logoutAction(self):
         self.send_redirect("logout happening here")
