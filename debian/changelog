@@ -1,4 +1,4 @@
-openwebrx (1.2.0) UNRELEASED; urgency=low
+openwebrx (1.2.0) bullseye jammy; urgency=low
 
   * Major rewrite of all demodulation components to make use of the new
     csdr/pycsdr and digiham/pydigiham demodulator modules
@@ -6,7 +6,7 @@ openwebrx (1.2.0) UNRELEASED; urgency=low
   * New devices supported:
     - Blade RF
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 03 Aug 2021 13:54:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Wed, 15 Jun 2022 16:20:00 +0000
 
 openwebrx (1.1.0) buster hirsute; urgency=low
 
