@@ -614,10 +614,25 @@ function get_relative_x(evt) {
     return relativeX - zoom_offset_px;
 }
 
+var wheel_delta_remainder = 0;
+
 function canvas_mousewheel(evt) {
+    var dir = (evt.deltaY / Math.abs(evt.deltaY)) > 0;
+    // deltaMode 0 means pixels instead of lines
+    if ('deltaMode' in evt && evt.deltaMode === 0) {
+        wheel_delta_remainder += evt.deltaY / 50;
+        console.info(wheel_delta_remainder);
+        if (wheel_delta_remainder >= 1) {
+            dir = true;
+            wheel_delta_remainder -= 1;
+        } else if (wheel_delta_remainder < 0) {
+            dir = false;
+            wheel_delta_remainder += 1;
+        } else return;
+        wheel_delta_remainder %= 1;
+    }
     if (!waterfall_setup_done) return;
     var relativeX = get_relative_x(evt);
-    var dir = (evt.deltaY / Math.abs(evt.deltaY)) > 0;
     zoom_step(dir, relativeX, zoom_center_where_calc(evt.pageX));
     evt.preventDefault();
 }
