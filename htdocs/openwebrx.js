@@ -60,7 +60,7 @@ function zoomOutOneStep() {
 }
 
 function zoomInTotal() {
-    zoom_set(zoom_levels.length - 1);
+    zoom_set(zoom_levels_count);
 }
 
 function zoomOutTotal() {
@@ -317,7 +317,7 @@ function scale_px_from_freq(f, range) {
 function get_visible_freq_range() {
     if (!bandwidth) return false;
     var fcalc = function (x) {
-        var canvasWidth = waterfallWidth() * zoom_levels[zoom_level];
+        var canvasWidth = waterfallWidth() * get_zoom(zoom_level);
         return Math.round(((-zoom_offset_px + x) / canvasWidth) * bandwidth) + (center_freq - bandwidth / 2);
     };
     var out = {
@@ -565,7 +565,7 @@ function canvas_mousemove(evt) {
             ) {
                 zoom_center_rel += dpx;
             }
-            resize_canvases(false);
+            resize_canvases();
             canvas_drag_last_x = evt.pageX;
             canvas_drag_last_y = evt.pageY;
             mkscale();
@@ -614,26 +614,16 @@ function get_relative_x(evt) {
     return relativeX - zoom_offset_px;
 }
 
-var wheel_delta_remainder = 0;
-
 function canvas_mousewheel(evt) {
-    var dir = (evt.deltaY / Math.abs(evt.deltaY)) > 0;
+    if (!waterfall_setup_done) return;
+
+    var delta = -evt.deltaY;
     // deltaMode 0 means pixels instead of lines
     if ('deltaMode' in evt && evt.deltaMode === 0) {
-        wheel_delta_remainder += evt.deltaY / 50;
-        console.info(wheel_delta_remainder);
-        if (wheel_delta_remainder >= 1) {
-            dir = true;
-            wheel_delta_remainder -= 1;
-        } else if (wheel_delta_remainder < 0) {
-            dir = false;
-            wheel_delta_remainder += 1;
-        } else return;
-        wheel_delta_remainder %= 1;
+        delta /= 50;
     }
-    if (!waterfall_setup_done) return;
     var relativeX = get_relative_x(evt);
-    zoom_step(dir, relativeX, zoom_center_where_calc(evt.pageX));
+    zoom_step(delta, relativeX, zoom_center_where_calc(evt.pageX));
     evt.preventDefault();
 }
 
@@ -646,7 +636,6 @@ function get_zoom_coeff_from_hps(hps) {
     return bandwidth / shown_bw;
 }
 
-var zoom_levels = [1];
 var zoom_level = 0;
 var zoom_offset_px = 0;
 var zoom_center_rel = 0;
@@ -654,45 +643,48 @@ var zoom_center_where = 0;
 
 var smeter_level = 0;
 
-function mkzoomlevels() {
-    zoom_levels = [1];
+function get_zoom(level) {
     var maxc = get_zoom_coeff_from_hps(zoom_max_level_hps);
     if (maxc < 1) return;
     // logarithmic interpolation
     var zoom_ratio = Math.pow(maxc, 1 / zoom_levels_count);
-    for (var i = 1; i < zoom_levels_count; i++)
-        zoom_levels.push(Math.pow(zoom_ratio, i));
+    return Math.pow(zoom_ratio, level);
 }
 
-function zoom_step(out, where, onscreen) {
-    if ((out && zoom_level === 0) || (!out && zoom_level >= zoom_levels_count - 1)) return;
-    if (out) --zoom_level;
-    else ++zoom_level;
+function zoom_step(delta, where, onscreen) {
+    zoom_level += delta;
+    if (zoom_level < 0) {
+        zoom_level = 0;
+    } else if (zoom_level > zoom_levels_count) {
+        zoom_level = zoom_levels_count;
+    }
 
     zoom_center_rel = canvas_get_freq_offset(where);
-    //console.log("zoom_step || zlevel: "+zoom_level.toString()+" zlevel_val: "+zoom_levels[zoom_level].toString()+" zoom_center_rel: "+zoom_center_rel.toString());
     zoom_center_where = onscreen;
-    //console.log(zoom_center_where, zoom_center_rel, where);
-    resize_canvases(true);
+    resize_canvases();
     mkscale();
     bookmarks.position();
 }
 
 function zoom_set(level) {
-    if (!(level >= 0 && level <= zoom_levels.length - 1)) return;
-    level = parseInt(level);
-    zoom_level = level;
+    if (level < 0) {
+        zoom_level = 0;
+    } else if (level > zoom_levels_count) {
+        zoom_level = zoom_levels_count;
+    } else {
+        zoom_level = parseFloat(level);
+    }
     //zoom_center_rel=canvas_get_freq_offset(-canvases[0].offsetLeft+waterfallWidth()/2); //zoom to screen center instead of demod envelope
     zoom_center_rel = $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().get_offset_frequency();
     zoom_center_where = 0.5 + (zoom_center_rel / bandwidth); //this is a kind of hack
-    resize_canvases(true);
+    resize_canvases();
     mkscale();
     bookmarks.position();
 }
 
 function zoom_calc() {
     var winsize = waterfallWidth();
-    var canvases_new_width = winsize * zoom_levels[zoom_level];
+    var canvases_new_width = winsize * get_zoom(zoom_level);
     zoom_offset_px = -((canvases_new_width * (0.5 + zoom_center_rel / bandwidth)) - (winsize * zoom_center_where));
     if (zoom_offset_px > 0) zoom_offset_px = 0;
     if (zoom_offset_px < winsize - canvases_new_width)
@@ -1137,12 +1129,10 @@ function shift_canvases() {
     canvas_maxshift++;
 }
 
-function resize_canvases(zoom) {
-    if (typeof zoom === "undefined") zoom = false;
-    if (!zoom) mkzoomlevels();
+function resize_canvases() {
     zoom_calc();
     $('#webrx-canvas-container').css({
-        width: waterfallWidth() * zoom_levels[zoom_level] + 'px',
+        width: waterfallWidth() * get_zoom(zoom_level) + 'px',
         left: zoom_offset_px + "px"
     });
 }
@@ -1151,7 +1141,6 @@ function waterfall_init() {
     init_canvas_container();
     resize_canvases();
     scale_setup();
-    mkzoomlevels();
     waterfall_setup_done = 1;
 }
 
