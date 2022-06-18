@@ -70,7 +70,7 @@ AprsMarker.prototype.onAdd = function() {
     div.appendChild(overlay);
 
 	var self = this;
-    google.maps.event.addDomListener(div, "click", function(event) {
+    div.addEventListener("click", function(event) {
         event.stopPropagation();
         google.maps.event.trigger(self, "click", event);
     });
