@@ -1116,8 +1116,9 @@ function init_canvas_container() {
     canvas_container.addEventListener("mouseup", canvas_mouseup, false);
     canvas_container.addEventListener("mousedown", canvas_mousedown, false);
     canvas_container.addEventListener("wheel", canvas_mousewheel, false);
-    var frequency_container = $("#openwebrx-frequency-container");
-    frequency_container.on("wheel", canvas_mousewheel, false);
+    $("#openwebrx-frequency-container").each(function(){
+        this.addEventListener("wheel", canvas_mousewheel, false);
+    });
 }
 
 canvas_maxshift = 0;
