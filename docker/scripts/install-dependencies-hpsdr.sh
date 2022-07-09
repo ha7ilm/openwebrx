@@ -29,7 +29,7 @@ tar xfz $PACKAGE
 
 git clone https://github.com/jancona/hpsdrconnector.git
 pushd hpsdrconnector
-git checkout v0.6.0
+git checkout v0.6.1
 /tmp/go/bin/go build
 install -m 0755 hpsdrconnector /usr/local/bin
 
