@@ -382,7 +382,7 @@ $(function(){
             return b.lastseen - a.lastseen;
         });
         var distance = receiverMarker?
-            " (at " + distanceKm(receiverMarker.position, pos) + "km)" : "";
+            " at " + distanceKm(receiverMarker.position, pos) + " km" : "";
         infowindow.setContent(
             '<h3>Locator: ' + locator + distance + '</h3>' +
             '<div>Active Callsigns:</div>' +
