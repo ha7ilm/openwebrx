@@ -1,4 +1,6 @@
 **unreleased**
+- FifiSDR support fixed (pipeline formats now line up correctly)
+- Added "Device" input for FifiSDR devices for sound card selection
 
 **1.2.0**
 - Major rewrite of all demodulation components to make use of the new csdr/pycsdr and digiham/pydigiham demodulator

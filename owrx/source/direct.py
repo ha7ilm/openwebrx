@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class DirectSource(SdrSource, metaclass=ABCMeta):
+    def __init__(self, id, props):
+        self._conversion = None
+        super().__init__(id, props)
+
     def onPropertyChange(self, changes):
         logger.debug("restarting sdr source due to property changes: {0}".format(changes))
         self.stop()
@@ -48,6 +52,10 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
     def getFormatConversion(self) -> Optional[Chain]:
         return None
 
+    def _getTcpSourceFormat(self):
+        conversion = self.getFormatConversion()
+        return Format.COMPLEX_FLOAT if conversion is None else conversion.getInputFormat()
+
     # override this in subclasses, if necessary
     def sleepOnRestart(self):
         pass
@@ -57,12 +65,12 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
             source = self._getTcpSource()
             buffer = Buffer(source.getOutputFormat())
             source.setWriter(buffer)
-            conversion = self.getFormatConversion()
-            if conversion is not None:
-                conversion.setReader(buffer.getReader())
+            self._conversion = self.getFormatConversion()
+            if self._conversion is not None:
+                self._conversion.setReader(buffer.getReader())
                 # this one must be COMPLEX_FLOAT
                 buffer = Buffer(Format.COMPLEX_FLOAT)
-                conversion.setWriter(buffer)
+                self._conversion.setWriter(buffer)
             self.buffer = buffer
         return self.buffer
 
