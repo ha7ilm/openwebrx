@@ -249,10 +249,13 @@ class SdrSource(ABC):
     def getPort(self):
         return self.port
 
+    def _getTcpSourceFormat(self):
+        return Format.COMPLEX_FLOAT
+
     def _getTcpSource(self):
         with self.modificationLock:
             if self.tcpSource is None:
-                self.tcpSource = TcpSource(self.port, Format.COMPLEX_FLOAT)
+                self.tcpSource = TcpSource(self.port, self._getTcpSourceFormat())
         return self.tcpSource
 
     def getBuffer(self):

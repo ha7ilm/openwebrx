@@ -4,6 +4,8 @@ from subprocess import Popen
 from csdr.chain import Chain
 from pycsdr.modules import Convert, Gain
 from pycsdr.types import Format
+from typing import List
+from owrx.form.input import Input, TextInput
 
 import logging
 
@@ -49,3 +51,15 @@ class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
     def supportsPpm(self):
         # not currently mapped, and it's unclear how this should be sent to the device
         return False
+
+    def getInputs(self) -> List[Input]:
+        return super().getInputs() + [
+            TextInput(
+                "device",
+                "Device identifier",
+                infotext="Alsa audio device identifier",
+            ),
+        ]
+
+    def getDeviceOptionalKeys(self):
+        return super().getDeviceOptionalKeys() + ["device"]
