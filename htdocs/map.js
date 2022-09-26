@@ -342,14 +342,14 @@ $(function(){
         delete infowindow.locator;
         delete infowindow.callsign;
         return infowindow;
-    }
+    };
 
     var linkifyCallsign = function(callsign) {
         if ((callsign_url == null) || (callsign_url == ''))
             return callsign;
         else
             return '<a target="callsign_info" href="' +
-                callsign_url.replaceAll('{}', callsign) +
+                callsign_url.replaceAll('{}', callsign.replace(new RegExp('-.*$'), '')) +
                 '">' + callsign + '</a>';
     };
 
@@ -368,7 +368,7 @@ $(function(){
             Math.cos(rlat1) * Math.cos(rlat2) * Math.sin(difflon/2) * Math.sin(difflon/2)
         ));
         return Math.round(d);
-    }
+    };
 
     var infowindow;
     var showLocatorInfoWindow = function(locator, pos) {
@@ -406,16 +406,20 @@ $(function(){
         var marker = markers[callsign];
         var timestring = moment(marker.lastseen).fromNow();
         var commentString = "";
+        var distance = "";
         if (marker.comment) {
             commentString = '<div>' + marker.comment + '</div>';
         }
+        if (receiverMarker) {
+            distance = " at " + distanceKm(receiverMarker.position, marker.position) + " km";
+        }
         infowindow.setContent(
-            '<h3>' + linkifyCallsign(callsign) + '</h3>' +
+            '<h3>' + linkifyCallsign(callsign) + distance + '</h3>' +
             '<div>' + timestring + ' using ' + marker.mode + ( marker.band ? ' on ' + marker.band : '' ) + '</div>' +
             commentString
         );
         infowindow.open(map, marker);
-    }
+    };
 
     var showReceiverInfoWindow = function(marker) {
         var infowindow = getInfoWindow()
@@ -424,7 +428,7 @@ $(function(){
             '<div>Receiver location</div>'
         );
         infowindow.open(map, marker);
-    }
+    };
 
     var getScale = function(lastseen) {
         var age = new Date().getTime() - lastseen;
