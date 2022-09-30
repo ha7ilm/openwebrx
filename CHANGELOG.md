@@ -1,4 +1,6 @@
 **unreleased**
+
+**1.2.1**
 - FifiSDR support fixed (pipeline formats now line up correctly)
 - Added "Device" input for FifiSDR devices for sound card selection
 

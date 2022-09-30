@@ -1,9 +1,13 @@
 openwebrx (1.3.0) UNRELEASED; urgency=low
 
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Fri, 30 Sep 2022 16:47:00 +0000
+
+openwebrx (1.2.1) bullseye jammy; urgency=low
+
   * FifiSDR support fixed (pipeline formats now line up correctly)
   * Added "Device" input for FifiSDR devices for sound card selection
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Thu, 16 Jun 2022 21:47:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Tue, 20 Sep 2022 16:01:00 +0000
 
 openwebrx (1.2.0) bullseye jammy; urgency=low
 
