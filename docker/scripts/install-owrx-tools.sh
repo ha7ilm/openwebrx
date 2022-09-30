@@ -46,11 +46,11 @@ cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
 cmakebuild codecserver 0.2.0
 
 git clone https://github.com/jketterl/digiham.git
-cmakebuild digiham 0.6.0
+cmakebuild digiham 0.6.1
 
 git clone https://github.com/jketterl/pydigiham.git
 cd pydigiham
-git checkout 0.6.0
+git checkout 0.6.1
 ./setup.py install
 cd ..
 rm -rf pydigiham
