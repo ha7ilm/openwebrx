@@ -342,15 +342,32 @@ $(function(){
         delete infowindow.locator;
         delete infowindow.callsign;
         return infowindow;
-    }
+    };
 
     var linkifyCallsign = function(callsign) {
         if ((callsign_url == null) || (callsign_url == ''))
             return callsign;
         else
             return '<a target="callsign_info" href="' +
-                callsign_url.replaceAll('{}', callsign) +
+                callsign_url.replaceAll('{}', callsign.replace(new RegExp('-.*$'), '')) +
                 '">' + callsign + '</a>';
+    };
+
+    var distanceKm = function(p1, p2) {
+        // Earth radius in km
+        var R = 6371.0;
+        // Convert degrees to radians
+        var rlat1 = p1.lat() * (Math.PI/180);
+        var rlat2 = p2.lat() * (Math.PI/180);
+        // Compute difference in radians
+        var difflat = rlat2-rlat1;
+        var difflon = (p2.lng()-p1.lng()) * (Math.PI/180);
+        // Compute distance
+        d = 2 * R * Math.asin(Math.sqrt(
+            Math.sin(difflat/2) * Math.sin(difflat/2) +
+            Math.cos(rlat1) * Math.cos(rlat2) * Math.sin(difflon/2) * Math.sin(difflon/2)
+        ));
+        return Math.round(d);
     };
 
     var infowindow;
@@ -364,8 +381,10 @@ $(function(){
         }).sort(function(a, b){
             return b.lastseen - a.lastseen;
         });
+        var distance = receiverMarker?
+            " at " + distanceKm(receiverMarker.position, pos) + " km" : "";
         infowindow.setContent(
-            '<h3>Locator: ' + locator + '</h3>' +
+            '<h3>Locator: ' + locator + distance + '</h3>' +
             '<div>Active Callsigns:</div>' +
             '<ul>' +
                 inLocator.map(function(i){
@@ -387,16 +406,20 @@ $(function(){
         var marker = markers[callsign];
         var timestring = moment(marker.lastseen).fromNow();
         var commentString = "";
+        var distance = "";
         if (marker.comment) {
             commentString = '<div>' + marker.comment + '</div>';
         }
+        if (receiverMarker) {
+            distance = " at " + distanceKm(receiverMarker.position, marker.position) + " km";
+        }
         infowindow.setContent(
-            '<h3>' + linkifyCallsign(callsign) + '</h3>' +
+            '<h3>' + linkifyCallsign(callsign) + distance + '</h3>' +
             '<div>' + timestring + ' using ' + marker.mode + ( marker.band ? ' on ' + marker.band : '' ) + '</div>' +
             commentString
         );
         infowindow.open(map, marker);
-    }
+    };
 
     var showReceiverInfoWindow = function(marker) {
         var infowindow = getInfoWindow()
@@ -405,7 +428,7 @@ $(function(){
             '<div>Receiver location</div>'
         );
         infowindow.open(map, marker);
-    }
+    };
 
     var getScale = function(lastseen) {
         var age = new Date().getTime() - lastseen;
