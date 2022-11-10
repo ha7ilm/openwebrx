@@ -1,9 +1,10 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError, ServiceDemodulator
 from pycsdr.modules import FmDemod, Agc, Writer, Buffer
 from pycsdr.types import Format
-from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder
+from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, PocsagDecoder
 from digiham.ambe import Modes, ServerError
 from owrx.meta import MetaParser
+from owrx.pocsag import PocsagParser
 
 
 class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, DialFrequencyReceiver, MetaProvider):
@@ -109,3 +110,24 @@ class Ysf(DigihamChain):
             filter=WideRrcFilter(),
             codecserver=codecserver
         )
+
+
+class PocsagDemodulator(ServiceDemodulator, DialFrequencyReceiver):
+    def __init__(self):
+        self.parser = PocsagParser()
+        workers = [
+            FmDemod(),
+            FskDemodulator(samplesPerSymbol=40, invert=True),
+            PocsagDecoder(),
+            self.parser,
+        ]
+        super().__init__(workers)
+
+    def supportsSquelch(self) -> bool:
+        return False
+
+    def getFixedAudioRate(self) -> int:
+        return 48000
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.parser.setDialFrequency(frequency)

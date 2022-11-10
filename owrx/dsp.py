@@ -589,7 +589,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator()
         elif mod == "pocsag":
-            from csdr.chain.digimodes import PocsagDemodulator
+            from csdr.chain.digiham import PocsagDemodulator
             return PocsagDemodulator()
         elif mod == "bpsk31":
             from csdr.chain.digimodes import PskDemodulator

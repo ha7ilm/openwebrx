@@ -5,8 +5,6 @@ from owrx.aprs import Ax25Parser, AprsParser
 from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder
 from pycsdr.types import Format
 from owrx.aprs.module import DirewolfModule
-from digiham.modules import FskDemodulator, PocsagDecoder
-from owrx.pocsag import PocsagParser
 
 
 class AudioChopperDemodulator(ServiceDemodulator, DialFrequencyReceiver):
@@ -31,27 +29,6 @@ class PacketDemodulator(ServiceDemodulator, DialFrequencyReceiver):
             DirewolfModule(service=service),
             KissDeframer(),
             Ax25Parser(),
-            self.parser,
-        ]
-        super().__init__(workers)
-
-    def supportsSquelch(self) -> bool:
-        return False
-
-    def getFixedAudioRate(self) -> int:
-        return 48000
-
-    def setDialFrequency(self, frequency: int) -> None:
-        self.parser.setDialFrequency(frequency)
-
-
-class PocsagDemodulator(ServiceDemodulator, DialFrequencyReceiver):
-    def __init__(self):
-        self.parser = PocsagParser()
-        workers = [
-            FmDemod(),
-            FskDemodulator(samplesPerSymbol=40, invert=True),
-            PocsagDecoder(),
             self.parser,
         ]
         super().__init__(workers)
