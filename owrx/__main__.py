@@ -1,7 +1,8 @@
 import logging
 
 # the linter will complain about this, but the logging must be configured before importing all the other modules
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# loglevel will be adjusted later, INFO is just for the startup
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 from http.server import HTTPServer
@@ -51,10 +52,6 @@ def main():
 
     args = parser.parse_args()
 
-    # set loglevel to info for CLI commands
-    if args.module is not None and not args.debug:
-        logging.getLogger().setLevel(logging.INFO)
-
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
         return 0
@@ -65,10 +62,10 @@ def main():
     if args.module == "config":
         return run_admin_action(configparser, args)
 
-    return start_receiver()
+    return start_receiver(loglevel=logging.DEBUG if args.debug else None)
 
 
-def start_receiver():
+def start_receiver(loglevel=None):
     print(
         """
 
@@ -90,6 +87,9 @@ Support and info:       https://groups.io/g/openwebrx
     # config warmup
     Config.validateConfig()
     coreConfig = CoreConfig()
+
+    # passed loglevel takes priority (used for the --debug argument)
+    logging.getLogger().setLevel(coreConfig.get_log_level() if loglevel is None else loglevel)
 
     featureDetector = FeatureDetector()
     failed = featureDetector.get_failed_requirements("core")
