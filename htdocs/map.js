@@ -32,7 +32,7 @@ $(function(){
     var retention_time = 2 * 60 * 60 * 1000;
     var strokeOpacity = 0.8;
     var fillOpacity = 0.35;
-    var callsign_url = null;
+    var callsign_service;
 
     var colorKeys = {};
     var colorScale = chroma.scale(['red', 'blue', 'green']).mode('hsl');
@@ -289,8 +289,8 @@ $(function(){
                         if ('map_position_retention_time' in config) {
                             retention_time = config.map_position_retention_time * 1000;
                         }
-                        if ('callsign_url' in config) {
-                            callsign_url = config['callsign_url'];
+                        if ('callsign_service' in config) {
+                            callsign_service = config['callsign_service'];
                         }
                     break;
                     case "update":
@@ -361,12 +361,17 @@ $(function(){
 
     var linkifySource = function(source) {
         var callsignString = sourceToString(source);
-        if (callsign_url == null || callsign_url === '')
-            return callsignString;
-        else
-            return '<a target="callsign_info" href="' +
-                callsign_url.replaceAll('{}', source.callsign) +
-                '">' + callsignString + '</a>';
+        switch (callsign_service) {
+            case "qrzcq":
+                return '<a target="callsign_info" href="https://www.qrzcq.com/call/' + source.callsign + '">' + callsignString + '</a>';
+            case "qrz":
+                return '<a target="callsign_info" href="https://www.qrz.com/db/' + source.callsign + '">' + callsignString + '</a>';
+            case 'aprsfi':
+                var callWithSsid = sourceToKey(source);
+                return '<a target="callsign_info" href="https://aprs.fi/info/a/' + callWithSsid + '">' + callsignString + '</a>';
+            default:
+                return callsignString;
+        }
     };
 
     var distanceKm = function(p1, p2) {

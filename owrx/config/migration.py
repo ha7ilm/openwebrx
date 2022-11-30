@@ -111,8 +111,21 @@ class ConfigMigratorVersion6(ConfigMigrator):
         config["version"] = 7
 
 
+class ConfigMigratorVersion7(ConfigMigrator):
+    def migrate(self, config):
+        if "callsign_url" in config:
+            if "qrzcq.com" in config["callsign_url"]:
+                config["callsign_service"] = "qrzcq"
+            elif "qrz.com" in config["callsign_url"]:
+                config["callsign_service"] = "qrz"
+            else:
+                logger.warning("unable to migrate callsign_url! please check settings!")
+            del config["callsign_url"]
+        config["version"] = 8
+
+
 class Migrator(object):
-    currentVersion = 7
+    currentVersion = 8
     migrators = {
         1: ConfigMigratorVersion1(),
         2: ConfigMigratorVersion2(),
@@ -120,6 +133,7 @@ class Migrator(object):
         4: ConfigMigratorVersion4(),
         5: ConfigMigratorVersion5(),
         6: ConfigMigratorVersion6(),
+        7: ConfigMigratorVersion7(),
     }
 
     @staticmethod
