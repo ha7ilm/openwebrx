@@ -25,7 +25,8 @@ apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/js8py.git
 pushd js8py
-git checkout 0.1.2
+# latest develop as of 2022-11-30 (structured callsign data)
+git checkout f7e394b7892d26cbdcce5d43c0b4081a2a6a48f6
 python3 setup.py install
 popd
 rm -rf js8py
