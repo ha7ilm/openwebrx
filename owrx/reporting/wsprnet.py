@@ -56,7 +56,7 @@ class Worker(threading.Thread):
                 # FST4W does not have drift
                 "drift": spot["drift"] if "drift" in spot else 0,
                 "tqrg": spot["freq"] / 1e6,
-                "tcall": spot["callsign"],
+                "tcall": spot["source"]["callsign"],
                 "tgrid": spot["locator"],
                 "dbm": spot["dbm"],
                 "version": openwebrx_version,

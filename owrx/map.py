@@ -61,13 +61,13 @@ class Map(object):
         client.write_update(
             [
                 {
-                    "callsign": callsign,
+                    "source": record["source"],
                     "location": record["location"].__dict__(),
                     "lastseen": record["updated"].timestamp() * 1000,
                     "mode": record["mode"],
                     "band": record["band"].getName() if record["band"] is not None else None,
                 }
-                for (callsign, record) in self.positions.items()
+                for record in self.positions.values()
             ]
         )
 
@@ -77,14 +77,20 @@ class Map(object):
         except ValueError:
             pass
 
-    def updateLocation(self, callsign, loc: Location, mode: str, band: Band = None):
+    def _sourceToKey(self, source):
+        if "ssid" in source:
+            return "{callsign}-{ssid}".format(**source)
+        return source["callsign"]
+
+    def updateLocation(self, source, loc: Location, mode: str, band: Band = None):
         ts = datetime.now()
+        key = self._sourceToKey(source)
         with self.positionsLock:
-            self.positions[callsign] = {"location": loc, "updated": ts, "mode": mode, "band": band}
+            self.positions[key] = {"source": source, "location": loc, "updated": ts, "mode": mode, "band": band}
         self.broadcast(
             [
                 {
-                    "callsign": callsign,
+                    "source": source,
                     "location": loc.__dict__(),
                     "lastseen": ts.timestamp() * 1000,
                     "mode": mode,
@@ -93,17 +99,18 @@ class Map(object):
             ]
         )
 
-    def touchLocation(self, callsign):
+    def touchLocation(self, source):
         # not implemented on the client side yet, so do not use!
         ts = datetime.now()
+        key = self._sourceToKey(source)
         with self.positionsLock:
-            if callsign in self.positions:
-                self.positions[callsign]["updated"] = ts
-        self.broadcast([{"callsign": callsign, "lastseen": ts.timestamp() * 1000}])
+            if key in self.positions:
+                self.positions[key]["updated"] = ts
+        self.broadcast([{"source": source, "lastseen": ts.timestamp() * 1000}])
 
-    def removeLocation(self, callsign):
+    def removeLocation(self, key):
         with self.positionsLock:
-            del self.positions[callsign]
+            del self.positions[key]
             # TODO broadcast removal to clients
 
     def removeOldPositions(self):
@@ -111,9 +118,9 @@ class Map(object):
         retention = timedelta(seconds=pm["map_position_retention_time"])
         cutoff = datetime.now() - retention
 
-        to_be_removed = [callsign for (callsign, pos) in self.positions.items() if pos["updated"] < cutoff]
-        for callsign in to_be_removed:
-            self.removeLocation(callsign)
+        to_be_removed = [key for (key, pos) in self.positions.items() if pos["updated"] < cutoff]
+        for key in to_be_removed:
+            self.removeLocation(key)
 
     def rebuildPositions(self):
         logger.debug("rebuilding map storage; size before: %i", sys.getsizeof(self.positions))

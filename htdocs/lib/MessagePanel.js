@@ -157,13 +157,17 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     if (msg.type && msg.type === 'thirdparty' && msg.data) {
         msg = msg.data;
     }
+
     var source = msg.source;
-    if (msg.type) {
-        if (msg.type === 'item') {
-            source = msg.item;
-        }
-        if (msg.type === 'object') {
-            source = msg.object;
+    var callsign;
+    if ('object' in source) {
+        callsign = source.object;
+    } else if ('item' in source) {
+        callsign = source.item;
+    } else {
+        callsign = source.callsign;
+        if ('ssid' in source) {
+            callsign += '-' + source.ssid;
         }
     }
 
@@ -202,7 +206,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         'style="' + stylesToString(styles) + '"'
     ].join(' ');
     if (msg.lat && msg.lon) {
-        link = '<a ' + attrs + ' href="map?callsign=' + encodeURIComponent(source) + '" target="openwebrx-map">' + overlay + '</a>';
+        link = '<a ' + attrs + ' href="map?' + new URLSearchParams(source).toString() + '" target="openwebrx-map">' + overlay + '</a>';
     } else {
         link = '<div ' + attrs + '>' + overlay + '</div>'
     }
@@ -210,7 +214,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
     $b.append($(
         '<tr>' +
         '<td>' + timestamp + '</td>' +
-        '<td class="callsign">' + source + '</td>' +
+        '<td class="callsign">' + callsign + '</td>' +
         '<td class="coord">' + link + '</td>' +
         '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
         '</tr>'

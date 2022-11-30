@@ -1,17 +1,12 @@
 $(function(){
-    var query = window.location.search.replace(/^\?/, '').split('&').map(function(v){
-        var s = v.split('=');
-        var r = {};
-        r[s[0]] = s.slice(1).join('=');
-        return r;
-    }).reduce(function(a, b){
-        return a.assign(b);
-    });
+    var query = new URLSearchParams(window.location.search);
 
     var expectedCallsign;
-    if (query.callsign) expectedCallsign = decodeURIComponent(query.callsign);
+    if (query.has('callsign')) {
+        expectedCallsign = Object.fromEntries(query.entries());
+    }
     var expectedLocator;
-    if (query.locator) expectedLocator = query.locator;
+    if (query.has('locator')) expectedLocator = query.get('locator');
 
     var protocol = window.location.protocol.match(/https/) ? 'wss' : 'ws';
 
@@ -102,6 +97,11 @@ $(function(){
             return '<li class="square' + disabled + '" data-selector="' + key + '"><span class="illustration" style="background-color:' + chroma(value).alpha(fillOpacity) + ';border-color:' + chroma(value).alpha(strokeOpacity) + ';"></span>' + key + '</li>';
         });
         $(".openwebrx-map-legend .content").html('<ul>' + lis.join('') + '</ul>');
+    };
+
+    var shallowEquals = function(obj1, obj2) {
+        // basic shallow object comparison
+        return Object.entries(obj1).sort().toString() === Object.entries(obj2).sort().toString();
     }
 
     var processUpdates = function(updates) {
@@ -110,6 +110,7 @@ $(function(){
             return;
         }
         updates.forEach(function(update){
+            var key = sourceToKey(update.source);
 
             switch (update.location.type) {
                 case 'latlon':
@@ -123,33 +124,33 @@ $(function(){
                         aprsOptions.course = update.location.course;
                         aprsOptions.speed = update.location.speed;
                     }
-                    if (markers[update.callsign]) {
-                        marker = markers[update.callsign];
+                    if (markers[key]) {
+                        marker = markers[key];
                     } else {
                         marker = new markerClass();
                         marker.addListener('click', function(){
-                            showMarkerInfoWindow(update.callsign, pos);
+                            showMarkerInfoWindow(update.source, pos);
                         });
-                        markers[update.callsign] = marker;
+                        markers[key] = marker;
                     }
                     marker.setOptions($.extend({
                         position: pos,
                         map: map,
-                        title: update.callsign
+                        title: sourceToString(update.source)
                     }, aprsOptions, getMarkerOpacityOptions(update.lastseen) ));
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
                     marker.band = update.band;
                     marker.comment = update.location.comment;
 
-                    if (expectedCallsign && expectedCallsign == update.callsign) {
+                    if (expectedCallsign && shallowEquals(expectedCallsign, update.source))  {
                         map.panTo(pos);
-                        showMarkerInfoWindow(update.callsign, pos);
+                        showMarkerInfoWindow(update.source, pos);
                         expectedCallsign = false;
                     }
 
-                    if (infowindow && infowindow.callsign && infowindow.callsign == update.callsign) {
-                        showMarkerInfoWindow(infowindow.callsign, pos);
+                    if (infowindow && infowindow.source && shallowEquals(infowindow.source, update.source)) {
+                        showMarkerInfoWindow(infowindow.source, pos);
                     }
                 break;
                 case 'locator':
@@ -160,15 +161,16 @@ $(function(){
                     var rectangle;
                     // the accessor is designed to work on the rectangle... but it should work on the update object, too
                     var color = getColor(colorAccessor(update));
-                    if (rectangles[update.callsign]) {
-                        rectangle = rectangles[update.callsign];
+                    if (rectangles[key]) {
+                        rectangle = rectangles[key];
                     } else {
                         rectangle = new google.maps.Rectangle();
                         rectangle.addListener('click', function(){
                             showLocatorInfoWindow(this.locator, this.center);
                         });
-                        rectangles[update.callsign] = rectangle;
+                        rectangles[key] = rectangle;
                     }
+                    rectangle.source = update.source;
                     rectangle.lastseen = update.lastseen;
                     rectangle.locator = update.location.locator;
                     rectangle.mode = update.mode;
@@ -188,13 +190,13 @@ $(function(){
                         }
                     }, getRectangleOpacityOptions(update.lastseen) ));
 
-                    if (expectedLocator && expectedLocator == update.location.locator) {
+                    if (expectedLocator && expectedLocator === update.location.locator) {
                         map.panTo(center);
                         showLocatorInfoWindow(expectedLocator, center);
                         expectedLocator = false;
                     }
 
-                    if (infowindow && infowindow.locator && infowindow.locator == update.location.locator) {
+                    if (infowindow && infowindow.locator && infowindow.locator === update.location.locator) {
                         showLocatorInfoWindow(infowindow.locator, center);
                     }
                 break;
@@ -203,7 +205,7 @@ $(function(){
     };
 
     var clearMap = function(){
-        var reset = function(callsign, item) { item.setMap(); };
+        var reset = function(_, item) { item.setMap(); };
         $.each(markers, reset);
         $.each(rectangles, reset);
         receiverMarker.setMap();
@@ -336,21 +338,35 @@ $(function(){
             infowindow = new google.maps.InfoWindow();
             google.maps.event.addListener(infowindow, 'closeclick', function() {
                 delete infowindow.locator;
-                delete infowindow.callsign;
+                delete infowindow.source;
             });
         }
         delete infowindow.locator;
-        delete infowindow.callsign;
+        delete infowindow.source;
         return infowindow;
     };
 
-    var linkifyCallsign = function(callsign) {
-        if ((callsign_url == null) || (callsign_url == ''))
-            return callsign;
+    var sourceToKey = function(source) {
+        // special treatment for special entities
+        // not just for display but also in key treatment in order not to overlap with other locations sent by the same callsign
+        if ('item' in source) return source['item'];
+        if ('object' in source) return source['object'];
+        var key = source.callsign;
+        if ('ssid' in source) key += '-' + source.ssid;
+        return key;
+    };
+
+    // we can reuse the same logic for displaying and indexing
+    var sourceToString = sourceToKey;
+
+    var linkifySource = function(source) {
+        var callsignString = sourceToString(source);
+        if (callsign_url == null || callsign_url === '')
+            return callsignString;
         else
             return '<a target="callsign_info" href="' +
-                callsign_url.replaceAll('{}', callsign.replace(new RegExp('-.*$'), '')) +
-                '">' + callsign + '</a>';
+                callsign_url.replaceAll('{}', source.callsign) +
+                '">' + callsignString + '</a>';
     };
 
     var distanceKm = function(p1, p2) {
@@ -374,10 +390,8 @@ $(function(){
     var showLocatorInfoWindow = function(locator, pos) {
         var infowindow = getInfoWindow();
         infowindow.locator = locator;
-        var inLocator = $.map(rectangles, function(r, callsign) {
-            return {callsign: callsign, locator: r.locator, lastseen: r.lastseen, mode: r.mode, band: r.band}
-        }).filter(rectangleFilter).filter(function(d) {
-            return d.locator == locator;
+        var inLocator = Object.values(rectangles).filter(rectangleFilter).filter(function(d) {
+            return d.locator === locator;
         }).sort(function(a, b){
             return b.lastseen - a.lastseen;
         });
@@ -389,7 +403,7 @@ $(function(){
             '<ul>' +
                 inLocator.map(function(i){
                     var timestring = moment(i.lastseen).fromNow();
-                    var message = linkifyCallsign(i.callsign) + ' (' + timestring + ' using ' + i.mode;
+                    var message = linkifySource(i.source) + ' (' + timestring + ' using ' + i.mode;
                     if (i.band) message += ' on ' + i.band;
                     message += ')';
                     return '<li>' + message + '</li>'
@@ -400,10 +414,10 @@ $(function(){
         infowindow.open(map);
     };
 
-    var showMarkerInfoWindow = function(callsign, pos) {
+    var showMarkerInfoWindow = function(source, pos) {
         var infowindow = getInfoWindow();
-        infowindow.callsign = callsign;
-        var marker = markers[callsign];
+        infowindow.source = source;
+        var marker = markers[sourceToKey(source)];
         var timestring = moment(marker.lastseen).fromNow();
         var commentString = "";
         var distance = "";
@@ -414,7 +428,7 @@ $(function(){
             distance = " at " + distanceKm(receiverMarker.position, marker.position) + " km";
         }
         infowindow.setContent(
-            '<h3>' + linkifyCallsign(callsign) + distance + '</h3>' +
+            '<h3>' + linkifySource(source) + distance + '</h3>' +
             '<div>' + timestring + ' using ' + marker.mode + ( marker.band ? ' on ' + marker.band : '' ) + '</div>' +
             commentString
         );
@@ -457,19 +471,19 @@ $(function(){
     // fade out / remove positions after time
     setInterval(function(){
         var now = new Date().getTime();
-        $.each(rectangles, function(callsign, m) {
+        Object.values(rectangles).forEach(function(m){
             var age = now - m.lastseen;
             if (age > retention_time) {
-                delete rectangles[callsign];
+                delete rectangles[sourceToKey(m.source)];
                 m.setMap();
                 return;
             }
             m.setOptions(getRectangleOpacityOptions(m.lastseen));
         });
-        $.each(markers, function(callsign, m) {
+        Object.values(markers).forEach(function(m) {
             var age = now - m.lastseen;
             if (age > retention_time) {
-                delete markers[callsign];
+                delete markers[sourceToKey(m.source)];
                 m.setMap();
                 return;
             }

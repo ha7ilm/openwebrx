@@ -33,7 +33,7 @@ thirdpartyeRegex = re.compile("^([a-zA-Z0-9-]+)>((([a-zA-Z0-9-]+\\*?,)*)([a-zA-Z
 messageIdRegex = re.compile("^(.*){([0-9]{1,5})$")
 
 # regex to filter pseudo "WIDE" path elements
-widePattern = re.compile("^WIDE[0-9]-[0-9]$")
+widePattern = re.compile("^WIDE[0-9]$")
 
 
 def decodeBase91(input):
@@ -67,12 +67,13 @@ class Ax25Parser(PickleModule):
             logger.exception("error parsing ax25 frame")
 
     def extractCallsign(self, input):
-        cs = bytes([b >> 1 for b in input[0:6]]).decode(encoding, "replace").strip()
+        cs = {
+            "callsign": bytes([b >> 1 for b in input[0:6]]).decode(encoding, "replace").strip(),
+        }
         ssid = (input[6] & 0b00011110) >> 1
         if ssid > 0:
-            return "{callsign}-{ssid}".format(callsign=cs, ssid=ssid)
-        else:
-            return cs
+            cs["ssid"] = ssid
+        return cs
 
 
 class WeatherMapping(object):
@@ -178,7 +179,7 @@ class AprsParser(PickleModule):
 
     def isDirect(self, aprsData):
         if "path" in aprsData and len(aprsData["path"]) > 0:
-            hops = [host for host in aprsData["path"] if widePattern.match(host) is None]
+            hops = [host for host in aprsData["path"] if widePattern.match(host["callsign"]) is None]
             if len(hops) > 0:
                 return False
         if "type" in aprsData and aprsData["type"] in ["thirdparty", "item", "object"]:
@@ -207,12 +208,13 @@ class AprsParser(PickleModule):
             mapData = mapData["data"]
         if "lat" in mapData and "lon" in mapData:
             loc = AprsLocation(mapData)
-            source = mapData["source"]
+            source = mapData["source"].copy()
+            # these are special packets, sent on behalf of other entities
             if "type" in mapData:
-                if mapData["type"] == "item":
-                    source = mapData["item"]
-                elif mapData["type"] == "object":
-                    source = mapData["object"]
+                if mapData["type"] == "item" and "item" in mapData:
+                    source["item"] = mapData["item"]
+                elif mapData["type"] == "object" and "object" in mapData:
+                    source["object"] = mapData["object"]
             Map.getSharedInstance().updateLocation(source, loc, "APRS", self.band)
 
     def hasCompressedCoordinates(self, raw):
@@ -345,15 +347,24 @@ class AprsParser(PickleModule):
         return result
 
     def parseThirdpartyAprsData(self, information):
+        # in thirdparty packets, the callsign is passed as a string with -SSID suffix...
+        # this seems to be the only case where parsing is necessary, hence this function is inline
+        def parseCallsign(callsign):
+            el = callsign.split('-')
+            result = {"callsign": el[0]}
+            if len(el) > 1:
+                result["ssid"] = int(el[1])
+            return result
+
         matches = thirdpartyeRegex.match(information)
         if matches:
             path = matches.group(2).split(",")
             destination = next((c.strip("*").upper() for c in path if c.endswith("*")), None)
             data = self.parseAprsData(
                 {
-                    "source": matches.group(1).upper(),
-                    "destination": destination,
-                    "path": path,
+                    "source": parseCallsign(matches.group(1).upper()),
+                    "destination": parseCallsign(destination),
+                    "path": [parseCallsign(c) for c in path],
                     "data": matches.group(6).encode(encoding),
                 }
             )
@@ -531,7 +542,7 @@ class MicEParser(object):
 
     def parse(self, data):
         information = data["data"]
-        destination = data["destination"]
+        destination = data["destination"]["callsign"]
 
         rawLatitude = [self.extractNumber(c) for c in destination[0:6]]
         lat = self.listToNumber(rawLatitude[0:2]) + self.listToNumber(rawLatitude[2:6]) / 6000

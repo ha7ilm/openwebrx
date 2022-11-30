@@ -56,7 +56,7 @@ class PskReporter(Reporter):
         self.timer.start()
 
     def spotEquals(self, s1, s2):
-        keys = ["callsign", "timestamp", "locator", "mode", "msg"]
+        keys = ["source", "timestamp", "locator", "mode", "msg"]
 
         return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
@@ -141,7 +141,7 @@ class Uploader(object):
     def encodeSpot(self, spot):
         try:
             return bytes(
-                self.encodeString(spot["callsign"])
+                self.encodeString(spot["source"]["callsign"])
                 + list(int(spot["freq"]).to_bytes(4, "big"))
                 + list(int(spot["db"]).to_bytes(1, "big", signed=True))
                 + self.encodeString(spot["mode"])

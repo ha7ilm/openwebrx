@@ -103,11 +103,11 @@ class Js8Parser(AudioChopperParser):
 
             if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
                 Map.getSharedInstance().updateLocation(
-                    frame.callsign, LocatorLocation(frame.grid), "JS8", band
+                    frame.source, LocatorLocation(frame.grid), "JS8", band
                 )
                 ReportingEngine.getSharedInstance().spot(
                     {
-                        "callsign": frame.callsign,
+                        "source": frame.source,
                         "mode": "JS8",
                         "locator": frame.grid,
                         "freq": freq + frame.freq,

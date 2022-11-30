@@ -276,9 +276,9 @@ class WsjtParser(AudioChopperParser):
             out["interval"] = profile.getInterval()
 
             self.pushDecode(mode, band)
-            if "callsign" in out and "locator" in out:
+            if "source" in out and "locator" in out:
                 Map.getSharedInstance().updateLocation(
-                    out["callsign"], LocatorLocation(out["locator"]), mode, band
+                    out["source"], LocatorLocation(out["locator"]), mode, band
                 )
                 ReportingEngine.getSharedInstance().spot(out)
 
@@ -342,8 +342,8 @@ class QsoMessageParser(MessageParser):
         # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
         # likely this just means roger roger goodbye.
         if m.group(3) == "RR73":
-            return {"callsign": m.group(1)}
-        return {"callsign": m.group(1), "locator": m.group(3)}
+            return {"source": {"callsign": m.group(1)}}
+        return {"source": {"callsign": m.group(1)}, "locator": m.group(3)}
 
 
 # Used in propagation reporting / beacon modes (WSPR / FST4W)
@@ -354,7 +354,7 @@ class BeaconMessageParser(MessageParser):
         m = BeaconMessageParser.wspr_splitter_pattern.match(msg)
         if m is None:
             return {}
-        return {"callsign": m.group(1), "locator": m.group(2), "dbm": m.group(3)}
+        return {"source": {"callsign": m.group(1)}, "locator": m.group(2), "dbm": m.group(3)}
 
 
 class Jt9Decoder(Decoder):

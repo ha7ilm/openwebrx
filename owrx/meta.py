@@ -129,7 +129,7 @@ class DigihamEnricher(Enricher, metaclass=ABCMeta):
         callsign = self.getCallsign(meta)
         if callsign is not None and "lat" in meta and "lon" in meta:
             loc = LatLngLocation(meta["lat"], meta["lon"])
-            Map.getSharedInstance().updateLocation(callsign, loc, mode, self.parser.getBand())
+            Map.getSharedInstance().updateLocation({"callsign": callsign}, loc, mode, self.parser.getBand())
         return meta
 
     @abstractmethod
@@ -202,7 +202,7 @@ class DStarEnricher(DigihamEnricher):
                         if "ourcall" in meta:
                             # send location info to map as well (it will show up with the correct symbol there!)
                             loc = AprsLocation(data)
-                            Map.getSharedInstance().updateLocation(meta["ourcall"], loc, "DPRS", self.parser.getBand())
+                            Map.getSharedInstance().updateLocation({"callsign": meta["ourcall"]}, loc, "DPRS", self.parser.getBand())
             except Exception:
                 logger.exception("Error while parsing DPRS data")
 
