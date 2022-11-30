@@ -52,6 +52,9 @@ def main():
 
     args = parser.parse_args()
 
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
         return 0
@@ -84,12 +87,13 @@ Support and info:       https://groups.io/g/openwebrx
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, handleSignal)
 
-    # config warmup
-    Config.validateConfig()
     coreConfig = CoreConfig()
 
     # passed loglevel takes priority (used for the --debug argument)
     logging.getLogger().setLevel(coreConfig.get_log_level() if loglevel is None else loglevel)
+
+    # config warmup
+    Config.validateConfig()
 
     featureDetector = FeatureDetector()
     failed = featureDetector.get_failed_requirements("core")
