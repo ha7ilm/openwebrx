@@ -9,6 +9,7 @@ class CoreConfig(object):
         "core": {
             "data_directory": "/var/lib/openwebrx",
             "temporary_directory": "/tmp",
+            "log_level": "INFO",
         },
         "web": {
             "port": 8073,
