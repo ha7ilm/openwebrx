@@ -474,7 +474,7 @@ class FeatureDetector(object):
         The js8py library is used to decode binary JS8 messages into readable text. More information is available on
         [its github page](https://github.com/jketterl/js8py).
         """
-        required_version = StrictVersion("0.1")
+        required_version = StrictVersion("0.2")
         try:
             from js8py.version import strictversion
 
