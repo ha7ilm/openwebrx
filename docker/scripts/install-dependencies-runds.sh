@@ -25,7 +25,8 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/runds_connector.git
-cmakebuild runds_connector 0.2.2
+# latest develop as of 2022-10-12 (cout/cerr cleanup)
+cmakebuild runds_connector c145feeb7ade7b9413519b6b0851677eb684fb93
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
