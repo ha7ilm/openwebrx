@@ -5,10 +5,6 @@ from typing import Optional
 from pycsdr.modules import Buffer
 from pycsdr.types import Format
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class DirectSource(SdrSource, metaclass=ABCMeta):
     def __init__(self, id, props):
@@ -16,7 +12,7 @@ class DirectSource(SdrSource, metaclass=ABCMeta):
         super().__init__(id, props)
 
     def onPropertyChange(self, changes):
-        logger.debug("restarting sdr source due to property changes: {0}".format(changes))
+        self.logger.debug("restarting sdr source due to property changes: {0}".format(changes))
         self.stop()
         self.sleepOnRestart()
         self.start()

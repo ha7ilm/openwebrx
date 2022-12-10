@@ -1,15 +1,13 @@
 from owrx.command import Option
 from owrx.source.direct import DirectSource, DirectSourceDeviceDescription
+from owrx.log import LogPipe
 from subprocess import Popen
 from csdr.chain import Chain
 from pycsdr.modules import Convert, Gain
 from pycsdr.types import Format
 from typing import List
 from owrx.form.input import Input, TextInput
-
 import logging
-
-logger = logging.getLogger(__name__)
 
 
 class FifiSdrSource(DirectSource):
@@ -29,11 +27,19 @@ class FifiSdrSource(DirectSource):
         return Chain([Convert(Format.COMPLEX_SHORT, Format.COMPLEX_FLOAT), Gain(Format.COMPLEX_FLOAT, 5.0)])
 
     def sendRockProgFrequency(self, frequency):
-        process = Popen(["rockprog", "--vco", "-w", "--freq={}".format(frequency / 1e6)])
+        stdoutPipe = LogPipe(logging.DEBUG, self.logger, "STDOUT")
+        stderrPipe = LogPipe(logging.DEBUG, self.logger, "STDERR")
+        process = Popen(
+            ["rockprog", "--vco", "-w", "--freq={}".format(frequency / 1e6)],
+            stdout=stdoutPipe,
+            stderr=stderrPipe
+        )
         process.communicate()
         rc = process.wait()
         if rc != 0:
-            logger.warning("rockprog failed to set frequency; rc=%i", rc)
+            self.logger.warning("rockprog failed to set frequency; rc=%i", rc)
+        stdoutPipe.close()
+        stderrPipe.close()
 
     def preStart(self):
         values = self.getCommandValues()

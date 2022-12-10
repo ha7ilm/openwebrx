@@ -160,3 +160,7 @@ h1 {
 .imageupload.is-invalid ~ .invalid-feedback {
     display: block;
 }
+
+.device-log-messages {
+    max-height: 500px;
+}

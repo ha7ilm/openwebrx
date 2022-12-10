@@ -12,6 +12,7 @@ from owrx.form.input import TextInput, DropdownInput, Option
 from owrx.form.input.validator import RequiredValidator
 from owrx.property import PropertyLayer
 from owrx.breadcrumb import BreadcrumbMixin, Breadcrumb, BreadcrumbItem
+from owrx.log import HistoryHandler
 from abc import ABCMeta, abstractmethod
 from uuid import uuid4
 
@@ -278,6 +279,21 @@ class SdrDeviceController(SdrFormControllerWithModal):
         config["sdrs"] = sdrs
         config.store()
         return self.send_redirect("{}settings/sdr".format(self.get_document_root()))
+
+    def render_sections(self):
+        handler = HistoryHandler.getHandler("owrx.source.{id}".format(id=self.device_id))
+        return """
+            {sections}
+            <div class="card mt-2">
+                <div class="card-header">Recent device log messages</div>
+                <div class="card-body">
+                    <pre class="card-text device-log-messages">{messages}</pre>
+                </div>
+            </div>
+        """.format(
+            sections=super().render_sections(),
+            messages=handler.getFormattedHistory(),
+        )
 
 
 class NewSdrDeviceController(SettingsFormController):

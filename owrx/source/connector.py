@@ -6,10 +6,6 @@ from owrx.command import Flag, Option
 from typing import List
 from owrx.form.input import Input, NumberInput, CheckboxInput
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class ConnectorSource(SdrSource):
     def __init__(self, id, props):
@@ -40,7 +36,7 @@ class ConnectorSource(SdrSource):
         for prop, value in changes.items():
             if value is PropertyDeleted:
                 value = None
-            logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
+            self.logger.debug("sending property change over control socket: {0} changed to {1}".format(prop, value))
             self.controlSocket.sendall("{prop}:{value}\n".format(prop=prop, value=value).encode())
 
     def onPropertyChange(self, changes):
@@ -56,7 +52,7 @@ class ConnectorSource(SdrSource):
         self.sendControlMessage(changes)
 
     def postStart(self):
-        logger.debug("opening control socket...")
+        self.logger.debug("opening control socket...")
         self.controlSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.controlSocket.connect(("localhost", self.controlPort))
 

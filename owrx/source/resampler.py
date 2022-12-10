@@ -3,14 +3,10 @@ from pycsdr.modules import Buffer, FirDecimate, Shift
 from pycsdr.types import Format
 from csdr.chain import Chain
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class Resampler(SdrSource):
     def onPropertyChange(self, changes):
-        logger.warning("Resampler is unable to handle property changes: {0}".format(changes))
+        self.logger.warning("Resampler is unable to handle property changes: {0}".format(changes))
 
     def __init__(self, props, sdr):
         sdrProps = sdr.getProps()
@@ -41,7 +37,7 @@ class Resampler(SdrSource):
         super().stop()
 
     def activateProfile(self, profile_id=None):
-        logger.warning("Resampler does not support setting profiles")
+        self.logger.warning("Resampler does not support setting profiles")
         pass
 
     def validateProfiles(self):

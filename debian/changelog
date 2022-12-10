@@ -1,4 +1,6 @@
 openwebrx (1.3.0) UNRELEASED; urgency=low
+  * SDR device log messages are now available in the web configuration to
+    simplify troubleshooting
 
  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Fri, 30 Sep 2022 16:47:00 +0000
 

@@ -1,4 +1,5 @@
 **unreleased**
+- SDR device log messages are now available in the web configuration to simplify troubleshooting
 
 **1.2.1**
 - FifiSDR support fixed (pipeline formats now line up correctly)
