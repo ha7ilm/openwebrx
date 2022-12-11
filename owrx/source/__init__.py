@@ -16,6 +16,7 @@ from owrx.form.input import Input, TextInput, NumberInput, CheckboxInput, ModesI
 from owrx.form.input.converter import OptionalConverter
 from owrx.form.input.device import GainInput, SchedulerInput, WaterfallLevelsInput
 from owrx.form.input.validator import RequiredValidator
+from owrx.form.input.converter import Converter
 from owrx.form.section import OptionalSection
 from owrx.feature import FeatureDetector
 from owrx.log import LogPipe, HistoryHandler
@@ -506,6 +507,32 @@ class SdrDeviceDescriptionMissing(Exception):
     pass
 
 
+class SdrDeviceTypeConverter(Converter):
+    def convert_to_form(self, value):
+        # local import due to circular dependendies
+        types = SdrDeviceDescription.getTypes()
+        if value in types:
+            return types[value]
+        return value
+
+    def convert_from_form(self, value):
+        return None
+
+
+class SdrDeviceTypeDisplay(Input):
+    """
+    Not an input per se, just an element that can display the SDR device type in the web config
+    """
+    def __init__(self, id, label):
+        super().__init__(id, label, disabled=True)
+
+    def defaultConverter(self):
+        return SdrDeviceTypeConverter()
+
+    def parse(self, data):
+        return {}
+
+
 class SdrDeviceDescription(object):
     @staticmethod
     def getByType(sdr_type: str) -> "SdrDeviceDescription":
@@ -563,6 +590,7 @@ class SdrDeviceDescription(object):
 
     def getInputs(self) -> List[Input]:
         return [
+            SdrDeviceTypeDisplay("type", "Device type"),
             CheckboxInput("enabled", "Enable this device", converter=OptionalConverter(defaultFormValue=True)),
             GainInput("rf_gain", "Device gain", self.hasAgc()),
             NumberInput(
@@ -600,7 +628,7 @@ class SdrDeviceDescription(object):
         return True
 
     def getDeviceMandatoryKeys(self):
-        return ["name", "enabled"]
+        return ["name", "type", "enabled"]
 
     def getDeviceOptionalKeys(self):
         keys = [
