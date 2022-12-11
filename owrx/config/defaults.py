@@ -90,7 +90,7 @@ defaultConfig = PropertyLayer(
             ),
         ),
         sdrplay=PropertyLayer(
-            name="SDRPlay RSP2",
+            name="SDRPlay device",
             type="sdrplay",
             antenna="Antenna A",
             profiles=PropertyLayer(
