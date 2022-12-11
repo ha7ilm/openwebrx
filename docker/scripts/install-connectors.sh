@@ -24,8 +24,8 @@ apt-get update
 apt-get -y install --no-install-recommends $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
-# latest develop as of 2022-10-12 (cout/cerr cleanup)
-cmakebuild owrx_connector 92c088a5f738ba55aff15a9a4d88f8f4f57054eb
+# latest develop as of 2022-12-11 (std::endl implicit flushing)
+cmakebuild owrx_connector bca362707131289f91441c8080fd368fdc067b6d
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
