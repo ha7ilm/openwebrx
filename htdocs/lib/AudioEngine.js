@@ -331,7 +331,9 @@ ImaAdpcmCodec.prototype.reset = function() {
     this.synchronized = 0;
     this.syncWord = "SYNC";
     this.syncCounter = 0;
-    this.skip = 0;
+    this.phase = 0;
+    this.syncBuffer = new Uint8Array(4);
+    this.syncBufferIndex = 0;
 };
 
 ImaAdpcmCodec.imaIndexTable = [ -1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8 ];
@@ -359,38 +361,45 @@ ImaAdpcmCodec.prototype.decode = function(data) {
 
 ImaAdpcmCodec.prototype.decodeWithSync = function(data) {
     var output = new Int16Array(data.length * 2);
-    var index = this.skip;
     var oi = 0;
-    while (index < data.length) {
-        while (this.synchronized < 4 && index < data.length) {
-            if (data[index] === this.syncWord.charCodeAt(this.synchronized)) {
-                this.synchronized++;
-            } else {
-                this.synchronized = 0;
-            }
-            index++;
-            if (this.synchronized === 4) {
-                if (index + 4 < data.length) {
-                    var syncData = new Int16Array(data.buffer.slice(index, index + 4));
+    for (var index = 0; index < data.length; index++) {
+        switch (this.phase) {
+            case 0:
+                // search for sync word
+                if (data[index] !== this.syncWord.charCodeAt(this.synchronized++)) {
+                    // reset if data is unexpected
+                    this.synchronized = 0;
+                }
+                // if sync word has been found pass on to next phase
+                if (this.synchronized === 4) {
+                    this.syncBufferIndex = 0;
+                    this.phase = 1;
+                }
+                break;
+            case 1:
+                // read codec runtime data from stream
+                this.syncBuffer[this.syncBufferIndex++] = data[index];
+                // if data is complete, apply and pass on to next phase
+                if (this.syncBufferIndex === 4) {
+                    var syncData = new Int16Array(this.syncBuffer.buffer);
                     this.stepIndex = syncData[0];
                     this.predictor = syncData[1];
+                    this.syncCounter = 1000;
+                    this.phase = 2;
                 }
-                this.syncCounter = 1000;
-                index += 4;
                 break;
-            }
-        }
-        while (index < data.length) {
-            if (this.syncCounter-- < 0) {
-                this.synchronized = 0;
+            case 2:
+                // decode actual audio data
+                output[oi++] = this.decodeNibble(data[index] & 0x0F);
+                output[oi++] = this.decodeNibble(data[index] >> 4);
+                // if the next sync keyword is due, reset and return to phase 0
+                if (this.syncCounter-- === 0) {
+                    this.synchronized = 0;
+                    this.phase = 0;
+                }
                 break;
-            }
-            output[oi++] = this.decodeNibble(data[index] & 0x0F);
-            output[oi++] = this.decodeNibble(data[index] >> 4);
-            index++;
         }
     }
-    this.skip = index - data.length;
     return output.slice(0, oi);
 };
 
