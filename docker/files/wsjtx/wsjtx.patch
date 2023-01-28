@@ -1,6 +1,6 @@
 diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
---- wsjtx-orig/CMakeLists.txt	2021-11-02 16:34:09.361811689 +0100
-+++ wsjtx/CMakeLists.txt	2021-11-02 16:38:36.696088115 +0100
+--- wsjtx-orig/CMakeLists.txt	2023-01-28 17:43:05.586124507 +0100
++++ wsjtx/CMakeLists.txt	2023-01-28 17:56:07.108634912 +0100
 @@ -122,7 +122,7 @@
  option (WSJT_QDEBUG_TO_FILE "Redirect Qt debuging messages to a trace file.")
  option (WSJT_SOFT_KEYING "Apply a ramp to CW keying envelope to reduce transients." ON)
@@ -10,7 +10,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  option (WSJT_RIG_NONE_CAN_SPLIT "Allow split operation with \"None\" as rig.")
  option (WSJT_TRACE_UDP "Debugging option that turns on UDP message protocol diagnostics.")
  option (WSJT_BUILD_UTILS "Build simulators and code demonstrators." ON)
-@@ -169,76 +169,7 @@
+@@ -170,77 +170,7 @@
    )
  
  set (wsjt_qt_CXXSRCS
@@ -34,6 +34,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -  widgets/FrequencyDeltaLineEdit.cpp
 -  item_delegates/CandidateKeyFilter.cpp
 -  item_delegates/ForeignKeyDelegate.cpp
+-  item_delegates/MessageItemDelegate.cpp
 -  validators/LiveFrequencyValidator.cpp
 -  GetUserId.cpp
 -  Audio/AudioDevice.cpp
@@ -87,7 +88,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
    )
  
  set (wsjt_qtmm_CXXSRCS
-@@ -1079,9 +1010,6 @@
+@@ -1089,9 +1019,6 @@
  if (WSJT_GENERATE_DOCS)
    add_subdirectory (doc)
  endif (WSJT_GENERATE_DOCS)
@@ -97,7 +98,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  
  # build a library of package functionality (without and optionally with OpenMP support)
  add_library (wsjt_cxx STATIC ${wsjt_CSRCS} ${wsjt_CXXSRCS})
-@@ -1340,10 +1268,7 @@
+@@ -1357,10 +1284,7 @@
  add_library (wsjt_qt STATIC ${wsjt_qt_CXXSRCS} ${wsjt_qt_GENUISRCS} ${GENAXSRCS})
  # set wsjtx_udp exports to static variants
  target_compile_definitions (wsjt_qt PUBLIC UDP_STATIC_DEFINE)
@@ -109,7 +110,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  
  # build a library of package Qt functionality used in Fortran utilities
  add_library (fort_qt STATIC ${fort_qt_CXXSRCS})
-@@ -1408,60 +1333,6 @@
+@@ -1425,90 +1349,6 @@
    add_subdirectory (map65)
  endif ()
  
@@ -146,7 +147,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -  )
 -
 -target_include_directories (wsjtx PRIVATE ${FFTW3_INCLUDE_DIRS})
--if (APPLE)
+-if ((NOT ${OPENMP_FOUND}) OR APPLE)
 -  target_link_libraries (wsjtx wsjt_fort)
 -else ()
 -  target_link_libraries (wsjtx wsjt_fort_omp)
@@ -167,10 +168,40 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
 -endif ()
 -target_link_libraries (wsjtx Qt5::SerialPort wsjt_cxx wsjt_qt wsjt_qtmm ${FFTW3_LIBRARIES} ${LIBM_LIBRARIES})
 -
- # make a library for WSJT-X UDP servers
- # add_library (wsjtx_udp SHARED ${UDP_library_CXXSRCS})
- add_library (wsjtx_udp-static STATIC ${UDP_library_CXXSRCS})
-@@ -1501,47 +1372,9 @@
+-# make a library for WSJT-X UDP servers
+-# add_library (wsjtx_udp SHARED ${UDP_library_CXXSRCS})
+-add_library (wsjtx_udp-static STATIC ${UDP_library_CXXSRCS})
+-#target_include_directories (wsjtx_udp
+-#  INTERFACE
+-#  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/wsjtx>
+-#  )
+-target_include_directories (wsjtx_udp-static
+-  INTERFACE
+-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/wsjtx>
+-  )
+-#set_target_properties (wsjtx_udp PROPERTIES
+-#  PUBLIC_HEADER "${UDP_library_HEADERS}"
+-#  )
+-set_target_properties (wsjtx_udp-static PROPERTIES
+-  OUTPUT_NAME wsjtx_udp
+-  )
+-target_compile_definitions (wsjtx_udp-static PUBLIC UDP_STATIC_DEFINE)
+-target_link_libraries (wsjtx_udp-static Qt5::Network Qt5::Gui)
+-generate_export_header (wsjtx_udp-static BASE_NAME udp)
+-
+-generate_version_info (udp_daemon_VERSION_RESOURCES
+-  NAME udp_daemon
+-  BUNDLE ${PROJECT_BUNDLE_NAME}
+-  ICON ${WSJTX_ICON_FILE}
+-  FILE_DESCRIPTION "Example WSJT-X UDP Message Protocol daemon"
+-  )
+-add_executable (udp_daemon UDPExamples/UDPDaemon.cpp ${udp_daemon_VERSION_RESOURCES})
+-target_link_libraries (udp_daemon wsjtx_udp-static)
+-
+ generate_version_info (wsjtx_app_version_VERSION_RESOURCES
+   NAME wsjtx_app_version
+   BUNDLE ${PROJECT_BUNDLE_NAME}
+@@ -1518,47 +1358,9 @@
  add_executable (wsjtx_app_version AppVersion/AppVersion.cpp ${wsjtx_app_version_VERSION_RESOURCES})
  target_link_libraries (wsjtx_app_version wsjt_qt)
  
@@ -218,7 +249,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  
  # install (TARGETS wsjtx_udp EXPORT udp
  #   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-@@ -1560,12 +1393,7 @@
+@@ -1577,12 +1379,7 @@
  #   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wsjtx
  #   )
  
@@ -232,7 +263,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
    )
-@@ -1578,38 +1406,6 @@
+@@ -1595,38 +1392,6 @@
    )
  endif(WSJT_BUILD_UTILS)  
  
@@ -271,7 +302,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  install (FILES
    cty.dat
    cty.dat_copyright.txt
-@@ -1618,13 +1414,6 @@
+@@ -1635,13 +1400,6 @@
    #COMPONENT runtime
    )
  
@@ -285,7 +316,7 @@ diff -ur wsjtx-orig/CMakeLists.txt wsjtx/CMakeLists.txt
  #
  # Mac installer files
  #
-@@ -1676,22 +1465,6 @@
+@@ -1693,22 +1451,6 @@
    "${CMAKE_CURRENT_BINARY_DIR}/wsjtx_config.h"
    )
  
