@@ -50,7 +50,7 @@ MessagePanel.prototype.initClearButton = function() {
 function WsjtMessagePanel(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
-    this.qsoModes = ['FT8', 'JT65', 'JT9', 'FT4', 'FST4', 'Q65'];
+    this.qsoModes = ['FT8', 'JT65', 'JT9', 'FT4', 'FST4', 'Q65', 'MSK144'];
     this.beaconModes = ['WSPR', 'FST4W'];
     this.modes = [].concat(this.qsoModes, this.beaconModes);
 }
