@@ -14,7 +14,7 @@ It has the following features:
 - supports a wide range of [SDR hardware](https://github.com/jketterl/openwebrx/wiki/Supported-Hardware#sdr-devices)
 - Multiple SDR devices can be used simultaneously
 - [digiham](https://github.com/jketterl/digiham) based demodularors (DMR, YSF, Pocsag, D-Star, NXDN)
-- [wsjt-x](https://physics.princeton.edu/pulsar/k1jt/wsjtx.html) based demodulators (FT8, FT4, WSPR, JT65, JT9, FST4,
+- [wsjt-x](https://wsjt.sourceforge.io/) based demodulators (FT8, FT4, WSPR, JT65, JT9, FST4,
   FST4W)
 - [direwolf](https://github.com/wb2osz/direwolf) based demodulation of APRS packets
 - [JS8Call](http://js8call.com/) support
