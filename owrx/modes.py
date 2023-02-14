@@ -120,6 +120,7 @@ class Modes(object):
         WsjtMode("fst4", "FST4", requirements=["wsjt-x-2-3"]),
         WsjtMode("fst4w", "FST4W", bandpass=Bandpass(1350, 1650), requirements=["wsjt-x-2-3"]),
         WsjtMode("q65", "Q65", requirements=["wsjt-x-2-4"]),
+        DigitalMode("msk144", "MSK144", requirements=["msk144"], underlying=["usb"], service=True),
         Js8Mode("js8", "JS8Call"),
         DigitalMode(
             "packet",

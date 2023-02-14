@@ -1,4 +1,5 @@
 from csdr.chain.demodulator import ServiceDemodulator, SecondaryDemodulator, DialFrequencyReceiver, SecondarySelectorChain
+from csdr.module.msk144 import Msk144Module
 from owrx.audio.chopper import AudioChopper, AudioChopperParser
 from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
@@ -18,6 +19,18 @@ class AudioChopperDemodulator(ServiceDemodulator, DialFrequencyReceiver):
 
     def setDialFrequency(self, frequency: int) -> None:
         self.chopper.setDialFrequency(frequency)
+
+
+class Msk144Demodulator(ServiceDemodulator):
+    def __init__(self):
+        workers = [
+            Convert(Format.FLOAT, Format.SHORT),
+            Msk144Module(),
+        ]
+        super().__init__(workers)
+
+    def getFixedAudioRate(self) -> int:
+        return 12000
 
 
 class PacketDemodulator(ServiceDemodulator, DialFrequencyReceiver):
