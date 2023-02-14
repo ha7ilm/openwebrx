@@ -80,6 +80,7 @@ class FeatureDetector(object):
         "wsjt-x": ["wsjtx"],
         "wsjt-x-2-3": ["wsjtx_2_3"],
         "wsjt-x-2-4": ["wsjtx_2_4"],
+        "msk144": ["msk144decoder"],
         "packet": ["direwolf"],
         "pocsag": ["digiham"],
         "js8call": ["js8", "js8py"],
@@ -458,6 +459,13 @@ class FeatureDetector(object):
         WSJT-X version 2.4 introduced the Q65 mode.
         """
         return self.has_wsjtx() and self._has_wsjtx_version(LooseVersion("2.4"))
+
+    def has_msk144decoder(self):
+        """
+        To decode the MSK144 digimode please install the "msk144decoder". See the
+        [project page](https://github.com/alexander-sholohov/msk144decoder) for more details.
+        """
+        return self.command_is_runnable("msk144decoder")
 
     def has_js8(self):
         """
