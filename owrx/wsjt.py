@@ -245,6 +245,17 @@ class Q65Profile(WsjtProfile):
         return ["jt9", "--q65", "-p", str(self.interval), "-b", self.mode.name, "-d", str(self.decoding_depth()), file]
 
 
+class Msk144Profile(WsjtProfile):
+    def getMode(self):
+        return "MSK144"
+
+    def getInterval(self):
+        return 15
+
+    def decoder_commandline(self, file):
+        return None
+
+
 class WsjtParser(AudioChopperParser):
     def parse(self, profile: WsjtProfile, freq: int, raw_msg: bytes):
         try:
@@ -366,6 +377,8 @@ class Jt9Decoder(Decoder):
         # '0003  -4  0.4 1762 #  CQ R2ABM KO85'
         # fst4 sample
         # '**** -23  0.6 3023 `  <...> <...> R 591631 BI53PV'
+        # MSK144 sample
+        # '221602   8  0.4 1488 &  K1JT WA4CQG EM72'
         msg, timestamp = self.parse_timestamp(msg)
         wsjt_msg = msg[17:53].strip()
 

@@ -126,7 +126,7 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
         # resume in case the reader has been stop()ed before
         self.reader.resume()
         Thread(target=self.pump(self.reader.read, self.process.stdin.write)).start()
-        Thread(target=self.pump(partial(self.process.stdout.read, 1024), self.writer.write)).start()
+        Thread(target=self.pump(partial(self.process.stdout.read1, 1024), self.writer.write)).start()
 
     def stop(self):
         if self.process is not None:
