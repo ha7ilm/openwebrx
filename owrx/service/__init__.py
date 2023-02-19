@@ -288,7 +288,6 @@ class ServiceHandler(SdrSourceEventClient):
     def _getSecondaryDemodulator(self, mod) -> Optional[ServiceDemodulator]:
         if isinstance(mod, ServiceDemodulatorChain):
             return mod
-        # TODO add remaining modes
         if mod in ["ft8", "wspr", "jt65", "jt9", "ft4", "fst4", "fst4w", "q65"]:
             from csdr.chain.digimodes import AudioChopperDemodulator
             from owrx.wsjt import WsjtParser
