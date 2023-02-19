@@ -122,6 +122,15 @@ class ServiceHandler(SdrSourceEventClient):
         self.startupTimer.start()
 
     def updateServices(self):
+        def addService(dial, source):
+            mode = dial["mode"]
+            frequency = dial["frequency"]
+            try:
+                service = self.setupService(mode, frequency, source)
+                self.services.append(service)
+            except Exception:
+                logger.exception("Error setting up service %s on frequency %d", mode, frequency)
+
         with self.lock:
             logger.debug("re-scheduling services due to sdr changes")
             self.stopServices()
@@ -146,7 +155,7 @@ class ServiceHandler(SdrSourceEventClient):
             groups = self.optimizeResampling(dials, sr)
             if groups is None:
                 for dial in dials:
-                    self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
+                    addService(dial, self.source)
             else:
                 for group in groups:
                     if len(group) > 1:
@@ -157,14 +166,14 @@ class ServiceHandler(SdrSourceEventClient):
                         resampler = Resampler(resampler_props, self.source)
 
                         for dial in group:
-                            self.services.append(self.setupService(dial["mode"], dial["frequency"], resampler))
+                            addService(dial, resampler)
 
                         # resampler goes in after the services since it must not be shutdown as long as the services are
                         # still running
                         self.services.append(resampler)
                     else:
                         dial = group[0]
-                        self.services.append(self.setupService(dial["mode"], dial["frequency"], self.source))
+                        addService(dial, self.source)
 
     def get_min_max(self, group):
         frequencies = sorted(group, key=lambda f: f["frequency"])
@@ -291,7 +300,8 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "packet":
             from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator(service=True)
-        return None
+
+        raise ValueError("unsupported service modulation: {}".format(mod))
 
 
 class Services(object):
