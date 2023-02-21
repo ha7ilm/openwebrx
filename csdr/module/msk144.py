@@ -33,7 +33,6 @@ class ParserAdapter(ThreadModule):
             if data is None:
                 self.doRun = False
             else:
-                logger.debug('raw data: ' + str(bytes(data)))
                 self.retained += data
                 lines = self.retained.split(b"\n")
 
@@ -47,8 +46,6 @@ class ParserAdapter(ThreadModule):
                     # actual messages from msk144decoder should start with "*** "
                     if line[0:4] == b"*** ":
                         self.writer.write(pickle.dumps(self.parser.parse(profile, self.dialFrequency, line[4:])))
-                    else:
-                        logger.debug("ignoring static: %s", line.decode())
 
     def getInputFormat(self) -> Format:
         return Format.CHAR
