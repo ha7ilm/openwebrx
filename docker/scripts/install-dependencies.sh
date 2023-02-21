@@ -7,6 +7,9 @@ function cmakebuild() {
   if [[ ! -z "${2:-}" ]]; then
     git checkout $2
   fi
+  if [[ -f ".gitmodules" ]]; then
+    git submodule update --init
+  fi
   mkdir build
   cd build
   cmake ${CMAKE_ARGS:-} ..
@@ -18,8 +21,8 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libfftw3-bin python3 python3-setuptools netcat-openbsd libsndfile1 liblapack3 libusb-1.0-0 libqt5core5a libreadline8 libgfortran5 libgomp1 libasound2 libudev1 ca-certificates libpulse0 libfaad2 libopus0 libboost-program-options1.74.0 libboost-log1.74.0"
-BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev libudev-dev libhamlib-dev patch xsltproc qt5-qmake libfaad-dev libopus-dev libboost-dev libboost-program-options-dev libboost-log-dev libboost-regex-dev libpulse-dev"
+STATIC_PACKAGES="libfftw3-bin python3 python3-setuptools netcat-openbsd libsndfile1 liblapack3 libusb-1.0-0 libqt5core5a libreadline8 libgfortran5 libgomp1 libasound2 libudev1 ca-certificates libpulse0 libfaad2 libopus0 libboost-program-options1.74.0 libboost-log1.74.0 libcurl4"
+BUILD_PACKAGES="wget git libsndfile1-dev libfftw3-dev cmake make gcc g++ liblapack-dev texinfo gfortran libusb-1.0-0-dev qtbase5-dev qtmultimedia5-dev qttools5-dev libqt5serialport5-dev qttools5-dev-tools asciidoctor asciidoc libasound2-dev libudev-dev libhamlib-dev patch xsltproc qt5-qmake libfaad-dev libopus-dev libboost-dev libboost-program-options-dev libboost-log-dev libboost-regex-dev libpulse-dev libcurl4-openssl-dev"
 apt-get update
 apt-get -y install auto-apt-proxy
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
@@ -59,6 +62,10 @@ patch -Np0 -d ${WSJT_DIR} < /wsjtx-hamlib.patch
 mv /wsjtx.patch ${WSJT_DIR}
 cmakebuild ${WSJT_DIR}
 rm ${WSJT_TGZ}
+
+git clone https://github.com/alexander-sholohov/msk144decoder.git
+# latest from main as of 2023-02-21
+MAKEFLAGS="" cmakebuild msk144decoder fe2991681e455636e258e83c29fd4b2a72d16095
 
 git clone --depth 1 -b 1.6 https://github.com/wb2osz/direwolf.git
 cd direwolf
