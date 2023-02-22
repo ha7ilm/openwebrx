@@ -121,11 +121,11 @@ class Uploader(object):
             length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
             packets.append(header + rHeader + sHeader + rInfo + sInfo)
+            self.sequence = (self.sequence + len(chunk)) % (1 << 32)
 
         return packets
 
     def getHeader(self, length):
-        self.sequence += 1
         return bytes(
             # protocol version
             [0x00, 0x0A]
@@ -142,7 +142,7 @@ class Uploader(object):
         try:
             return bytes(
                 self.encodeString(spot["source"]["callsign"])
-                + list(int(spot["freq"]).to_bytes(4, "big"))
+                + list(int(spot["freq"]).to_bytes(5, "big"))
                 + list(int(spot["db"]).to_bytes(1, "big", signed=True))
                 + self.encodeString(spot["mode"])
                 + self.encodeString(spot["locator"])
@@ -208,7 +208,7 @@ class Uploader(object):
             # senderCallsign
             + [0x80, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # frequency
-            + [0x80, 0x05, 0x00, 0x04, 0x00, 0x00, 0x76, 0x8F]
+            + [0x80, 0x05, 0x00, 0x05, 0x00, 0x00, 0x76, 0x8F]
             # sNR
             + [0x80, 0x06, 0x00, 0x01, 0x00, 0x00, 0x76, 0x8F]
             # mode
