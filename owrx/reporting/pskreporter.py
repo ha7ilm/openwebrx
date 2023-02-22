@@ -105,18 +105,25 @@ class Uploader(object):
         # filter out any erroneous encodes
         encoded = [e for e in encoded if e is not None]
 
-        def chunks(l, n):
-            """Yield successive n-sized chunks from l."""
-            for i in range(0, len(l), n):
-                yield l[i : i + n]
+        def chunks(block, max_size):
+            size = 0
+            current = []
+            for r in block:
+                if size + len(r) > max_size:
+                    yield current
+                    current = []
+                    size = 0
+                size += len(r)
+                current.append(r)
+            yield current
 
         rHeader = self.getReceiverInformationHeader()
         rInfo = self.getReceiverInformation()
         sHeader = self.getSenderInformationHeader()
 
         packets = []
-        # 50 seems to be a safe bet
-        for chunk in chunks(encoded, 50):
+        # 1200 bytes of sender data should keep the packet size below MTU for most cases
+        for chunk in chunks(encoded, 1200):
             sInfo = self.getSenderInformation(chunk)
             length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
