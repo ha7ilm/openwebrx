@@ -18,7 +18,12 @@ function DemodulatorPanel(el) {
     el.on('click', '.openwebrx-demodulator-button', function() {
         var modulation = $(this).data('modulation');
         if (modulation) {
-            self.setMode(modulation);
+            if (self.mode && self.mode.type === 'digimode' && self.mode.underlying.indexOf(modulation) >= 0) {
+                // keep the mode, just switch underlying modulation
+                self.setMode(self.mode.modulation, modulation)
+            } else {
+                self.setMode(modulation);
+            }
         } else {
             self.disableDigiMode();
         }
@@ -80,12 +85,13 @@ DemodulatorPanel.prototype.render = function() {
     this.el.find(".openwebrx-modes").html(html);
 };
 
-DemodulatorPanel.prototype.setMode = function(requestedModulation) {
+DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingModulation) {
     var mode = Modes.findByModulation(requestedModulation);
     if (!mode) {
         return;
     }
-    if (this.mode === mode) {
+
+    if (this.mode === mode && this.underlyingModulation === underlyingModulation) {
         return;
     }
     if (!mode.isAvailable()) {
@@ -93,16 +99,15 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation) {
         return;
     }
 
+    var modulation;
     if (mode.type === 'digimode') {
-        modulation = mode.underlying[0];
-    } else {
-        if (this.mode && this.mode.type === 'digimode' && this.mode.underlying.indexOf(requestedModulation) >= 0) {
-            // keep the mode, just switch underlying modulation
-            mode = this.mode;
-            modulation = requestedModulation;
+        if (underlyingModulation) {
+            modulation = underlyingModulation
         } else {
-            modulation = mode.modulation;
+            modulation = mode.underlying[0];
         }
+    } else {
+        modulation = mode.modulation;
     }
 
     var current = this.collectParams();
@@ -142,6 +147,7 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation) {
 
     this.demodulator.start();
     this.mode = mode;
+    this.underlyingModulation = modulation;
 
     this.updateButtons();
     this.updatePanels();
@@ -149,8 +155,6 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation) {
 };
 
 DemodulatorPanel.prototype.disableDigiMode = function() {
-    // just a little trick to get out of the digimode
-    delete this.mode;
     this.setMode(this.getDemodulator().get_modulation());
 };
 
@@ -203,7 +207,11 @@ DemodulatorPanel.prototype.stopDemodulator = function() {
 }
 
 DemodulatorPanel.prototype._apply = function(params) {
-    this.setMode(params.mod);
+    if (params.secondary_mod) {
+        this.setMode(params.secondary_mod, params.mod)
+    } else {
+        this.setMode(params.mod);
+    }
     this.getDemodulator().set_offset_frequency(params.offset_frequency);
     this.getDemodulator().setSquelch(params.squelch_level);
     this.updateButtons();
@@ -223,8 +231,9 @@ DemodulatorPanel.prototype.onHashChange = function() {
 
 DemodulatorPanel.prototype.transformHashParams = function(params) {
     var ret = {
-        mod: params.secondary_mod || params.mod
+        mod: params.mod
     };
+    if (typeof(params.secondary_mod) !== 'undefined') ret.secondary_mod = params.secondary_mod;
     if (typeof(params.offset_frequency) !== 'undefined') ret.offset_frequency = params.offset_frequency;
     if (typeof(params.sql) !== 'undefined') ret.squelch_level = parseInt(params.sql);
     return ret;
@@ -329,7 +338,7 @@ DemodulatorPanel.prototype.updateHash = function() {
         freq: demod.get_offset_frequency() + self.center_freq,
         mod: demod.get_modulation(),
         secondary_mod: demod.get_secondary_demod(),
-        sql: demod.getSquelch(),
+        sql: demod.getSquelch()
     }, function(value, key){
         if (typeof(value) === 'undefined' || value === false) return undefined;
         return key + '=' + value;
