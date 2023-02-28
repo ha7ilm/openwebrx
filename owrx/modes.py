@@ -55,6 +55,13 @@ class DigitalMode(Mode):
     def get_modulation(self):
         return self.get_underlying_mode().get_modulation()
 
+    def for_underlying(self, underlying: str):
+        if underlying not in self.underlying:
+            raise ValueError("{} is not a valid underlying mode for {}".format(underlying, self.modulation))
+        return DigitalMode(
+            self.modulation, self.name, [underlying], self.bandpass, self.requirements, self.service, self.squelch
+        )
+
 
 class AudioChopperMode(DigitalMode, metaclass=ABCMeta):
     def __init__(self, modulation, name, bandpass=None, requirements=None):
