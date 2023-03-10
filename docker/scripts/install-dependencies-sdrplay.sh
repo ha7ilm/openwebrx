@@ -38,7 +38,7 @@ case $ARCH in
     ;;
 esac
 
-wget https://www.sdrplay.com/software/$BINARY
+wget --no-http-keep-alive https://www.sdrplay.com/software/$BINARY
 sh $BINARY --noexec --target sdrplay
 patch --verbose -Np0 < /install-lib.$ARCH.patch
 
