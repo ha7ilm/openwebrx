@@ -13,6 +13,7 @@ class CoreConfig(object):
         },
         "web": {
             "port": 8073,
+            "ipv6": True,
         },
         "aprs": {
             "symbols_path": "/usr/share/aprs-symbols/png"
@@ -37,6 +38,7 @@ class CoreConfig(object):
         CoreConfig.checkDirectory(self.temporary_directory, "temporary_directory")
         self.log_level = config.get("core", "log_level")
         self.web_port = config.getint("web", "port")
+        self.web_ipv6 = config.getboolean("web", "ipv6")
         self.aprs_symbols_path = config.get("aprs", "symbols_path")
 
     @staticmethod
@@ -48,17 +50,20 @@ class CoreConfig(object):
         if not os.access(dir, os.W_OK):
             raise ConfigError(key, "{dir} is not writable".format(dir=dir))
 
-    def get_web_port(self):
+    def get_web_port(self) -> int:
         return self.web_port
 
-    def get_data_directory(self):
+    def get_web_ipv6(self) -> bool:
+        return self.web_ipv6
+
+    def get_data_directory(self) -> str:
         return self.data_directory
 
-    def get_temporary_directory(self):
+    def get_temporary_directory(self) -> str:
         return self.temporary_directory
 
-    def get_aprs_symbols_path(self):
+    def get_aprs_symbols_path(self) -> str:
         return self.aprs_symbols_path
 
-    def get_log_level(self):
+    def get_log_level(self) -> str:
         return self.log_level
