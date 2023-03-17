@@ -2,6 +2,7 @@ import logging
 
 # the linter will complain about this, but the logging must be configured before importing all the other modules
 # loglevel will be adjusted later, INFO is just for the startup
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -21,10 +22,16 @@ from owrx.audio.queue import DecoderQueue
 from owrx.admin import add_admin_parser, run_admin_action
 import signal
 import argparse
+import socket
 
 
 class ThreadedHttpServer(ThreadingMixIn, HTTPServer):
-    pass
+    def __init__(self, web_port, RequestHandlerClass, use_ipv6):
+        bind_address = "0.0.0.0"
+        if use_ipv6:
+            self.address_family = socket.AF_INET6
+            bind_address = "::"
+        super().__init__((bind_address, web_port), RequestHandlerClass)
 
 
 class SignalException(Exception):
@@ -116,7 +123,7 @@ Support and info:       https://groups.io/g/openwebrx
     Services.start()
 
     try:
-        server = ThreadedHttpServer(("0.0.0.0", coreConfig.get_web_port()), RequestHandler)
+        server = ThreadedHttpServer(coreConfig.get_web_port(), RequestHandler, coreConfig.get_web_ipv6())
         server.serve_forever()
     except SignalException:
         pass
