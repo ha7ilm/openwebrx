@@ -120,8 +120,8 @@ class GeneralSettingsController(SettingsFormController):
                 ),
                 CheckboxInput(
                     "waterfall_auto_level_default_mode",
-                    'Automatically adjust waterfall level by default',
-                    infotext="Enable this to automatically enable auto adjusting waterfall levels on page load."
+                    "Automatically adjust waterfall level by default",
+                    infotext="Enable this to automatically enable auto adjusting waterfall levels on page load.",
                 ),
                 NumberInput(
                     "waterfall_auto_min_range",

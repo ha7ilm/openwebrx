@@ -615,6 +615,11 @@ class SdrDeviceDescription(object):
                 + " device. <br/> Formula: Center frequency + oscillator offset = sdr tune frequency",
             ),
             WaterfallLevelsInput("waterfall_levels", "Waterfall levels"),
+            CheckboxInput(
+                "waterfall_auto_level_default_mode",
+                "Automatically adjust waterfall level by default",
+                infotext="Enable this to automatically enable auto adjusting waterfall levels on page load.",
+            ),
             SchedulerInput("scheduler", "Scheduler"),
             ExponentialInput("center_freq", "Center frequency", "Hz"),
             ExponentialInput("samp_rate", "Sample rate", "S/s"),
@@ -637,6 +642,7 @@ class SdrDeviceDescription(object):
             "rf_gain",
             "lfo_offset",
             "waterfall_levels",
+            "waterfall_auto_level_default_mode",
             "scheduler",
         ]
         if self.supportsPpm():
@@ -647,7 +653,13 @@ class SdrDeviceDescription(object):
         return ["name", "center_freq", "samp_rate", "start_freq", "start_mod"]
 
     def getProfileOptionalKeys(self):
-        return ["initial_squelch_level", "rf_gain", "lfo_offset", "waterfall_levels"]
+        return [
+            "initial_squelch_level",
+            "rf_gain",
+            "lfo_offset",
+            "waterfall_levels",
+            "waterfall_auto_level_default_mode",
+        ]
 
     def getDeviceSection(self):
         return OptionalSection(
