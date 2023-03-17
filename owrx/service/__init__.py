@@ -174,11 +174,17 @@ class ServiceHandler(SdrSourceEventClient):
                         addService(dial, self.source)
 
     def get_min_max(self, group):
+        def find_bandpass(dial):
+            mode = Modes.findByModulation(dial["mode"])
+            if "underlying" in dial:
+                mode = mode.for_underlying(dial["underlying"])
+            return mode.get_bandpass()
+
         frequencies = sorted(group, key=lambda f: f["frequency"])
         lowest = frequencies[0]
-        min = lowest["frequency"] + Modes.findByModulation(lowest["mode"]).get_bandpass().low_cut
+        min = lowest["frequency"] + find_bandpass(lowest).low_cut
         highest = frequencies[-1]
-        max = highest["frequency"] + Modes.findByModulation(highest["mode"]).get_bandpass().high_cut
+        max = highest["frequency"] + find_bandpass(highest).high_cut
         return min, max
 
     def get_center_frequency(self, group):
