@@ -123,13 +123,11 @@ class ServiceHandler(SdrSourceEventClient):
 
     def updateServices(self):
         def addService(dial, source):
-            mode = dial["mode"]
-            frequency = dial["frequency"]
             try:
-                service = self.setupService(mode, frequency, source)
+                service = self.setupService(dial, source)
                 self.services.append(service)
             except Exception:
-                logger.exception("Error setting up service %s on frequency %d", mode, frequency)
+                logger.exception("Error setting up service {mode} on frequency {frequency}".format(**dial))
 
         with self.lock:
             logger.debug("re-scheduling services due to sdr changes")
@@ -176,11 +174,17 @@ class ServiceHandler(SdrSourceEventClient):
                         addService(dial, self.source)
 
     def get_min_max(self, group):
+        def find_bandpass(dial):
+            mode = Modes.findByModulation(dial["mode"])
+            if "underlying" in dial:
+                mode = mode.for_underlying(dial["underlying"])
+            return mode.get_bandpass()
+
         frequencies = sorted(group, key=lambda f: f["frequency"])
         lowest = frequencies[0]
-        min = lowest["frequency"] + Modes.findByModulation(lowest["mode"]).get_bandpass().low_cut
+        min = lowest["frequency"] + find_bandpass(lowest).low_cut
         highest = frequencies[-1]
-        max = highest["frequency"] + Modes.findByModulation(highest["mode"]).get_bandpass().high_cut
+        max = highest["frequency"] + find_bandpass(highest).high_cut
         return min, max
 
     def get_center_frequency(self, group):
@@ -247,13 +251,16 @@ class ServiceHandler(SdrSourceEventClient):
             return None
         return best["groups"]
 
-    def setupService(self, mode, frequency, source):
-        logger.debug("setting up service {0} on frequency {1}".format(mode, frequency))
+    def setupService(self, dial, source):
+        logger.debug("setting up service {mode} on frequency {frequency}".format(**dial))
 
-        modeObject = Modes.findByModulation(mode)
+        modeObject = Modes.findByModulation(dial["mode"])
         if not isinstance(modeObject, DigitalMode):
-            logger.warning("mode is not a digimode: %s", mode)
+            logger.warning("mode is not a digimode: %s", dial["mode"])
             return None
+
+        if "underlying" in dial:
+            modeObject = modeObject.for_underlying(dial["underlying"])
 
         demod = self._getDemodulator(modeObject.get_modulation())
         secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
@@ -261,9 +268,9 @@ class ServiceHandler(SdrSourceEventClient):
         sampleRate = source.getProps()["samp_rate"]
         bandpass = modeObject.get_bandpass()
         if isinstance(secondaryDemod, DialFrequencyReceiver):
-            secondaryDemod.setDialFrequency(frequency)
+            secondaryDemod.setDialFrequency(dial["frequency"])
 
-        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, frequency - center_freq)
+        chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, dial["frequency"] - center_freq)
         chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
         chain.setReader(source.getBuffer().getReader())
 

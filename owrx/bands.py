@@ -1,4 +1,4 @@
-from owrx.modes import Modes
+from owrx.modes import Modes, DigitalMode
 from datetime import datetime, timezone
 import json
 import os
@@ -9,14 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class Band(object):
-    def __init__(self, dict):
-        self.name = dict["name"]
-        self.lower_bound = dict["lower_bound"]
-        self.upper_bound = dict["upper_bound"]
+    def __init__(self, b_dict):
+        self.name = b_dict["name"]
+        self.lower_bound = b_dict["lower_bound"]
+        self.upper_bound = b_dict["upper_bound"]
         self.frequencies = []
-        if "frequencies" in dict:
+        if "frequencies" in b_dict:
             availableModes = [mode.modulation for mode in Modes.getAvailableModes()]
-            for (mode, freqs) in dict["frequencies"].items():
+            for (mode, freqs) in b_dict["frequencies"].items():
                 if mode not in availableModes:
                     logger.info(
                         'Modulation "{mode}" is not available, bandplan bookmark will not be displayed'.format(
@@ -27,14 +27,30 @@ class Band(object):
                 if not isinstance(freqs, list):
                     freqs = [freqs]
                 for f in freqs:
-                    if not self.inBand(f):
+                    f_dict = {"frequency": f} if not isinstance(f, dict) else f
+                    f_dict["mode"] = mode
+
+                    if not self.inBand(f_dict["frequency"]):
                         logger.warning(
                             "Frequency for {mode} on {band} is not within band limits: {frequency}".format(
-                                mode=mode, frequency=f, band=self.name
+                                mode=mode, frequency=f_dict["frequency"], band=self.name
                             )
                         )
                         continue
-                    self.frequencies.append({"mode": mode, "frequency": f})
+
+                    if "underlying" in f_dict:
+                        m = Modes.findByModulation(mode)
+                        if not isinstance(m, DigitalMode):
+                            logger.warning("%s is not a digital mode, cannot be used with \"underlying\" config", mode)
+                            continue
+                        if f_dict["underlying"] not in m.underlying:
+                            logger.warning(
+                                "%s is not a valid underlying mode for %s; skipping",
+                                f_dict["underlying"],
+                                mode
+                            )
+
+                    self.frequencies.append(f_dict)
 
     def inBand(self, freq):
         return self.lower_bound <= freq <= self.upper_bound

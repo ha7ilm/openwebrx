@@ -11,7 +11,7 @@ function BookmarkBar() {
         if (!b || !b.frequency || !b.modulation) return;
         me.getDemodulator().set_offset_frequency(b.frequency - center_freq);
         if (b.modulation) {
-            me.getDemodulatorPanel().setMode(b.modulation);
+            me.getDemodulatorPanel().setMode(b.modulation, b.underlying);
         }
         $bookmark.addClass('selected');
     });

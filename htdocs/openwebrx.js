@@ -831,7 +831,8 @@ function on_ws_recv(evt) {
                             return {
                                 name: d['mode'].toUpperCase(),
                                 modulation: d['mode'],
-                                frequency: d['frequency']
+                                frequency: d['frequency'],
+                                underlying: d['underlying']
                             };
                         });
                         bookmarks.replace_bookmarks(as_bookmarks, 'dial_frequencies');
