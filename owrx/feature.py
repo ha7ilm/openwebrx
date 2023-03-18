@@ -262,7 +262,7 @@ class FeatureDetector(object):
             return False
 
     def _check_owrx_connector(self, command):
-        return self._check_connector(command, LooseVersion("0.5"))
+        return self._check_connector(command, LooseVersion("0.7"))
 
     def has_rtl_connector(self):
         """
@@ -293,14 +293,10 @@ class FeatureDetector(object):
 
     def _has_soapy_driver(self, driver):
         try:
-            process = subprocess.Popen(["SoapySDRUtil", "--info"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-            factory_regex = re.compile("^Available factories\\.\\.\\. ?(.*)$")
+            process = subprocess.Popen(["soapy_connector", "--listdrivers"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
-            drivers = []
-            for line in process.stdout:
-                matches = factory_regex.match(line.decode())
-                if matches:
-                    drivers = [s.strip() for s in matches.group(1).split(", ")]
+            drivers = [line.decode().strip() for line in process.stdout]
+            process.wait(1)
 
             return driver in drivers
         except FileNotFoundError:
