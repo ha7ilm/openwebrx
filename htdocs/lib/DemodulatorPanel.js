@@ -101,12 +101,9 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingMod
 
     var modulation;
     if (mode.type === 'digimode') {
-        if (underlyingModulation) {
-            modulation = underlyingModulation
-        } else {
-            modulation = mode.underlying[0];
-        }
+        modulation = underlyingModulation = underlyingModulation || mode.underlying[0];
     } else {
+        underlyingModulation = undefined;
         modulation = mode.modulation;
     }
 
@@ -147,7 +144,7 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingMod
 
     this.demodulator.start();
     this.mode = mode;
-    this.underlyingModulation = modulation;
+    this.underlyingModulation = underlyingModulation;
 
     this.updateButtons();
     this.updatePanels();
