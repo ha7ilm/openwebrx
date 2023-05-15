@@ -168,7 +168,7 @@ class GeneralSettingsController(SettingsFormController):
                 NumberInput(
                     "map_position_retention_time",
                     "Map retention time",
-                    infotext="Specifies how log markers / grids will remain visible on the map",
+                    infotext="Specifies for how long markers / grids will remain visible on the map",
                     append="s",
                 ),
                 DropdownInput(
