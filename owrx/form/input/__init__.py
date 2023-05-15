@@ -163,13 +163,18 @@ class FloatInput(NumberInput):
 class TextAreaInput(Input):
     def render_input(self, value, errors):
         return """
-            <textarea class="{classes}" id="{id}" name="{id}" style="height:200px;" {disabled}>{value}</textarea>
+            <textarea {properties}>{value}</textarea>
         """.format(
-            id=self.id,
-            classes=self.input_classes(errors),
+            properties=self.render_input_properties(value, errors),
             value=value,
-            disabled="disabled" if self.disabled else "",
         )
+
+    def input_properties(self, value, errors):
+        props = super().input_properties(value, errors)
+        props["style"] = "height:200px;"
+        # value works differently on textareas
+        del props["value"]
+        return props
 
 
 class CheckboxInput(Input):

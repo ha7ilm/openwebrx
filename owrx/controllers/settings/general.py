@@ -11,7 +11,7 @@ from owrx.form.input import (
     Option,
 )
 from owrx.form.input.converter import WaterfallColorsConverter, IntConverter
-from owrx.form.input.receiverid import ReceiverKeysConverter
+from owrx.form.input.receiverid import ReceiverKeysInput
 from owrx.form.input.gfx import AvatarInput, TopPhotoInput
 from owrx.form.input.device import WaterfallLevelsInput, WaterfallAutoLevelsInput
 from owrx.form.input.location import LocationInput
@@ -75,12 +75,9 @@ class GeneralSettingsController(SettingsFormController):
             ),
             Section(
                 "Receiver listings",
-                TextAreaInput(
+                ReceiverKeysInput(
                     "receiver_keys",
                     "Receiver keys",
-                    converter=ReceiverKeysConverter(),
-                    infotext="Put the keys you receive on listing sites (e.g. "
-                    + '<a href="https://www.receiverbook.de" target="_blank">Receiverbook</a>) here, one per line',
                 ),
             ),
             Section(
