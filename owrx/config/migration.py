@@ -140,7 +140,11 @@ class Migrator(object):
     def migrate(config):
         version = config["version"] if "version" in config else 1
         if version == Migrator.currentVersion:
-            return config
+            return
+        elif version > Migrator.currentVersion:
+            raise ValueError(
+                "Configuration version is too high (current: {}, found: {})".format(Migrator.currentVersion, version)
+            )
 
         logger.debug("migrating config from version %i", version)
         migrators = [Migrator.migrators[i] for i in range(version, Migrator.currentVersion)]
