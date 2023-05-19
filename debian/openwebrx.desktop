@@ -1,7 +1,8 @@
 [Desktop Entry]
 Version=1.0
 Name=OpenWebRX
-Type=Link
+Type=Application
 Comment=Web-based software defined radio receiver
 Icon=openwebrx
-URL=http://localhost:8073/
+Exec=xdg-open http://localhost:8073/
+Categories=Network;HamRadio
