@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=OpenWebRX
+Type=Link
+Categories=HamRadio
+Comment=Web-based software defined radio receiver
+Icon=openwebrx
+URL=http://localhost:8073/
