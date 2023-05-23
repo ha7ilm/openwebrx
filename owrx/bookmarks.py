@@ -31,7 +31,7 @@ class Bookmark(object):
         }
 
 
-class BookmakrSubscription(object):
+class BookmarkSubscription(object):
     def __init__(self, subscriptee, range, subscriber: callable):
         self.subscriptee = subscriptee
         self.range = range
@@ -137,9 +137,11 @@ class Bookmarks(object):
                     logger.exception("Error while calling bookmark subscriptions")
 
     def subscribe(self, range, callback):
-        self.subscriptions.append(BookmakrSubscription(self, range, callback))
+        sub = BookmarkSubscription(self, range, callback)
+        self.subscriptions.append(BookmarkSubscription(self, range, callback))
+        return sub
 
-    def unsubscribe(self, subscriptions: BookmakrSubscription):
-        if subscriptions not in self.subscriptions:
+    def unsubscribe(self, subscription: BookmarkSubscription):
+        if subscription not in self.subscriptions:
             return
-        self.subscriptions.remove(subscriptions)
+        self.subscriptions.remove(subscription)
