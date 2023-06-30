@@ -76,7 +76,7 @@ class FeatureDetector(object):
         # optional features and their requirements
         "digital_voice_digiham": ["digiham", "codecserver_ambe"],
         "digital_voice_freedv": ["freedv_rx"],
-        "digital_voice_m17": ["m17_demod", "digiham"],
+        "digital_voice_m17": ["m17_demod"],
         "wsjt-x": ["wsjtx"],
         "wsjt-x-2-3": ["wsjtx_2_3"],
         "wsjt-x-2-4": ["wsjtx_2_4"],
@@ -406,7 +406,7 @@ class FeatureDetector(object):
 
         You can find more information [here](https://github.com/mobilinkd/m17-cxx-demod)
         """
-        return self.command_is_runnable("m17-demod")
+        return self.command_is_runnable("m17-demod", 0)
 
     def has_direwolf(self):
         """
