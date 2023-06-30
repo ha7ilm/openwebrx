@@ -1,7 +1,7 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError, ServiceDemodulator
-from pycsdr.modules import FmDemod, Agc, Writer, Buffer
+from pycsdr.modules import FmDemod, Agc, Writer, Buffer, DcBlock
 from pycsdr.types import Format
-from digiham.modules import DstarDecoder, DcBlock, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, PocsagDecoder
+from digiham.modules import DstarDecoder, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, PocsagDecoder
 from digiham.ambe import Modes, ServerError
 from owrx.meta import MetaParser
 from owrx.pocsag import PocsagParser

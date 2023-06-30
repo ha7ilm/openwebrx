@@ -1,8 +1,7 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider
 from csdr.module.m17 import M17Module
-from pycsdr.modules import FmDemod, Limit, Convert, Writer
+from pycsdr.modules import FmDemod, Limit, Convert, Writer, DcBlock
 from pycsdr.types import Format
-from digiham.modules import DcBlock
 
 
 class M17(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, MetaProvider):
