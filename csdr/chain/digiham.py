@@ -6,6 +6,10 @@ from digiham.ambe import Modes, ServerError
 from owrx.meta import MetaParser
 from owrx.pocsag import PocsagParser
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, DialFrequencyReceiver, MetaProvider):
     def __init__(self, fskDemodulator, decoder, mbeMode, filter=None, codecserver: str = ""):
@@ -24,6 +28,9 @@ class DigihamChain(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateC
             raise DemodulatorError("Connection to codecserver failed: {}".format(ce))
         except ServerError as se:
             raise DemodulatorError("Codecserver error: {}".format(se))
+        except RuntimeError as re:
+            logger.exception("Codecserver error while instantiating MbeSynthesizer:")
+            raise DemodulatorError("Fatal codecserver error. Please check receiver logs.")
         workers += [
             fskDemodulator,
             decoder,

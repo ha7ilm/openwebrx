@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class UnknownFeatureException(Exception):
@@ -137,14 +136,12 @@ class FeatureDetector(object):
         if cache.has(requirement):
             return cache.get(requirement)
 
-        logger.debug("performing feature check for %s", requirement)
         method = self._get_requirement_method(requirement)
         result = False
         if method is not None:
             result = method()
         else:
             logger.error("detection of requirement {0} not implement. please fix in code!".format(requirement))
-        logger.debug("feature check for %s complete. result: %s", requirement, result)
 
         cache.set(requirement, result)
         return result
@@ -563,4 +560,7 @@ class FeatureDetector(object):
         except ImportError:
             return False
         except ConnectionError:
+            return False
+        except RuntimeError as e:
+            logger.exception("Codecserver error while checking for AMBE support:")
             return False
