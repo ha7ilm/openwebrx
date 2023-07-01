@@ -32,12 +32,13 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2023-06-30 (migrated dc block)
-cmakebuild csdr ff2fddfd1347b201a70a4620970cb148a47922dd
+# latest develop as of 2023-06-30 (csdr cleanup)
+cmakebuild csdr 7e7a7f27b9fd1a65d4a9d0725583dfe6309a5245
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
-git checkout 0.18.1
+# latest develop as of 2023-06-30 (csdr cleanup)
+git checkout be8b0e5e0b972ebb302e7397bac0058f620ec374
 ./setup.py install install_headers
 cd ..
 rm -rf pycsdr
@@ -48,13 +49,13 @@ cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
 cmakebuild codecserver 0.2.0
 
 git clone https://github.com/jketterl/digiham.git
-# latest develop as of 2023-06-30 (migrated dc block)
-cmakebuild digiham 446c5eb15379580cb0371ef7f280643f330ba47c
+# latest develop as of 2023-06-30 (csdr cleanup)
+cmakebuild digiham ebb97eba8bff58a1d7b0e9f29f9a066e4a91da3d
 
 git clone https://github.com/jketterl/pydigiham.git
 cd pydigiham
-# latest develop as of 2023-06-30 (migrated dc block)
-git checkout 45d3afa68c8c6f2cbce62144878e7c045e87073a
+# latest develop as of 2023-06-30 (csdr cleanup)
+git checkout 894aa87ea9a3534d1e7109da86194c7cd5e0b7c7
 ./setup.py install
 cd ..
 rm -rf pydigiham
