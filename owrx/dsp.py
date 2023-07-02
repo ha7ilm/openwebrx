@@ -366,7 +366,7 @@ class ClientDemodulatorChain(Chain):
     def getSecondaryFftOutputFormat(self) -> Format:
         if self.secondaryFftCompression == "adpcm":
             return Format.CHAR
-        return Format.SHORT
+        return Format.FLOAT
 
     def setWfmDeemphasisTau(self, tau: float) -> None:
         if tau == self.wfmDeemphasisTau:
@@ -470,7 +470,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
 
         self.subscriptions = [
             self.props.wireProperty("audio_compression", self.setAudioCompression),
-            self.props.wireProperty("fft_compression", self.chain.setSecondaryFftCompression),
+            self.props.wireProperty("fft_compression", self.setSecondaryFftCompression),
             self.props.wireProperty("fft_voverlap_factor", self.chain.setSecondaryFftOverlapFactor),
             self.props.wireProperty("fft_fps", self.chain.setSecondaryFftFps),
             self.props.wireProperty("digimodes_fft_size", self.setSecondaryFftSize),
@@ -616,6 +616,17 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             buffer = Buffer(self.chain.getOutputFormat())
             self.chain.setWriter(buffer)
             self.wireOutput(self.audioOutput, buffer)
+
+    def setSecondaryFftCompression(self, compression):
+        try:
+            self.chain.setSecondaryFftCompression(compression)
+        except ValueError:
+            # wrong output format... need to re-wire
+            pass
+
+        buffer = Buffer(self.chain.getSecondaryFftOutputFormat())
+        self.chain.setSecondaryFftWriter(buffer)
+        self.wireOutput("secondary_fft", buffer)
 
     def start(self):
         if self.sdrSource.isAvailable():
