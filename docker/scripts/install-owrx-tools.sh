@@ -46,7 +46,8 @@ rm -rf pycsdr
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
-cmakebuild codecserver 0.2.0
+# latest develop as of 2023-07-03 (fixed encoding)
+cmakebuild codecserver 2525a96ff8ec367ed1f0f6e347a44dbe564e2456
 
 git clone https://github.com/jketterl/digiham.git
 # latest develop as of 2023-06-30 (csdr cleanup)
