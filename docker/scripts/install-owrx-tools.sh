@@ -46,12 +46,12 @@ rm -rf pycsdr
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
-# latest develop as of 2023-07-03 (fixed encoding)
-cmakebuild codecserver 2525a96ff8ec367ed1f0f6e347a44dbe564e2456
+# latest develop as of 2023-07-03 (error handling)
+cmakebuild codecserver 0f3703ce285acd85fcd28f6620d7795dc173cb50
 
 git clone https://github.com/jketterl/digiham.git
-# latest develop as of 2023-06-30 (csdr cleanup)
-cmakebuild digiham ebb97eba8bff58a1d7b0e9f29f9a066e4a91da3d
+# latest develop as of 2023-07-02 (codecserver protocol version)
+cmakebuild digiham 262e6dfd9a2c56778bd4b597240756ad0fb9861d
 
 git clone https://github.com/jketterl/pydigiham.git
 cd pydigiham
