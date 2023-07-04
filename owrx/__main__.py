@@ -20,6 +20,7 @@ from owrx.reporting import ReportingEngine
 from owrx.version import openwebrx_version
 from owrx.audio.queue import DecoderQueue
 from owrx.admin import add_admin_parser, run_admin_action
+from pathlib import Path
 import signal
 import argparse
 import socket
@@ -44,6 +45,14 @@ def handleSignal(sig, frame):
 
 def main():
     parser = argparse.ArgumentParser(description="OpenWebRX - Open Source SDR Web App for Everyone!")
+    parser.add_argument(
+        "-c",
+        "--config",
+        action="store",
+        help="Read core configuration from specified file",
+        metavar="configfile",
+        type=Path,
+    )
     parser.add_argument("-v", "--version", action="store_true", help="Show the software version")
     parser.add_argument("--debug", action="store_true", help="Set loglevel to DEBUG")
 
@@ -65,6 +74,8 @@ def main():
     if args.version:
         print("OpenWebRX version {version}".format(version=openwebrx_version))
         return 0
+
+    CoreConfig.load(args.config)
 
     if args.module == "admin":
         return run_admin_action(adminparser, args)

@@ -1,10 +1,12 @@
 from owrx.config import ConfigError
 from configparser import ConfigParser
+from pathlib import Path
 import os
-from glob import glob
 
 
 class CoreConfig(object):
+    defaultSearchLocations = ["./openwebrx.conf", "/etc/openwebrx/openwebrx.conf"]
+
     defaults = {
         "core": {
             "data_directory": "/var/lib/openwebrx",
@@ -20,18 +22,41 @@ class CoreConfig(object):
         }
     }
 
-    def __init__(self):
+    sharedConfig = None
+
+    @staticmethod
+    def load(file: Path = None):
+
+        def expand_base(base: Path):
+            # check if config exists
+            if not base.exists() or not base.is_file():
+                return []
+            # every location can additionally have a directory containing config overrides
+            # this directory must have the same name, with the ".d" suffix
+            override_dir = Path(str(base) + ".d")
+            # check if override dir exists
+            if not override_dir.exists() or not override_dir.is_dir():
+                return [base]
+            # load all .conf files from the override dir
+            overrides = override_dir.glob("*.conf")
+            return [base] + [o for o in overrides if o.is_file()]
+
+        if file is None:
+            bases = [Path(b) for b in CoreConfig.defaultSearchLocations]
+        else:
+            bases = [file]
+        configFiles = [o for b in bases for o in expand_base(b)]
+
         config = ConfigParser()
         # set up config defaults
         config.read_dict(CoreConfig.defaults)
-        # check for overrides
-        overrides_dir = "/etc/openwebrx/openwebrx.conf.d"
-        if os.path.exists(overrides_dir) and os.path.isdir(overrides_dir):
-            overrides = glob(overrides_dir + "/*.conf")
-        else:
-            overrides = []
-        # sequence things together
-        config.read(["./openwebrx.conf", "/etc/openwebrx/openwebrx.conf"] + overrides)
+        # read the allocated files
+        config.read(configFiles)
+
+        CoreConfig.sharedConfig = config
+
+    def __init__(self):
+        config = CoreConfig.sharedConfig
         self.data_directory = config.get("core", "data_directory")
         CoreConfig.checkDirectory(self.data_directory, "data_directory")
         self.temporary_directory = config.get("core", "temporary_directory")
