@@ -619,11 +619,7 @@ function get_relative_x(evt) {
 function canvas_mousewheel(evt) {
     if (!waterfall_setup_done) return;
 
-    var delta = -evt.deltaY;
-    // deltaMode 0 means pixels instead of lines
-    if ('deltaMode' in evt && evt.deltaMode === 0) {
-        delta /= 50;
-    }
+    var delta = -wheelDelta(evt);
     var relativeX = get_relative_x(evt);
     zoom_step(delta, relativeX, zoom_center_where_calc(evt.pageX));
     evt.preventDefault();
@@ -1258,11 +1254,14 @@ function initSliders() {
         var $slider = $(this);
         if (!$slider.attr('step')) return;
         var val = Number($slider.val());
+        // restore previous high-resolution mouse wheel delta
+        var mouseDelta = Number($slider.data('mouseDelta'));
+        if (mouseDelta) val += mouseDelta;
         var step = Number($slider.attr('step'));
-        if (ev.originalEvent.deltaY > 0) {
-            step *= -1;
-        }
-        $slider.val(val + step);
+        var newVal = val + step * -wheelDelta(ev.originalEvent);
+        $slider.val(newVal);
+        // the calculated value can have a higher resolution than the element can store, so we put the delta into the data attributes
+        $slider.data('mouseDelta', newVal - $slider.val());
         $slider.trigger('change');
     });
 

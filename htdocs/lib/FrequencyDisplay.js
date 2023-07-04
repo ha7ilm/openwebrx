@@ -98,13 +98,7 @@ TuneableFrequencyDisplay.prototype.setupEvents = function() {
         if (index < 0) return;
 
         var delta = 10 ** (Math.floor(Math.max(me.exponent, Math.log10(me.frequency))) - index);
-        var newFrequency;
-        if ('deltaMode' in e.originalEvent && e.originalEvent.deltaMode === 0) {
-            newFrequency = me.frequency - delta * (e.originalEvent.deltaY / 50);
-        } else {
-            if (e.originalEvent.deltaY > 0) delta *= -1;
-            newFrequency = me.frequency + delta;
-        }
+        var newFrequency = me.frequency - delta * wheelDelta(e.originalEvent);
 
         me.element.trigger('frequencychange', newFrequency);
     });

@@ -119,6 +119,7 @@ class CompiledAssetsController(GzipMixin, ModificationAwareController):
     profiles = {
         "receiver.js": [
             "lib/chroma.min.js",
+            "lib/wheelDelta.js",
             "openwebrx.js",
             "lib/jquery-3.2.1.min.js",
             "lib/jquery.nanoscroller.min.js",
