@@ -86,8 +86,7 @@ rm -rf /usr/local/share/doc/direwolf/examples/
 
 git clone https://github.com/drowe67/codec2.git
 cd codec2
-# latest commit from master as of 2020-10-04
-git checkout 55d7bb8d1bddf881bdbfcb971a718b83e6344598
+git checkout 1.2.0
 mkdir build
 cd build
 cmake ..
