@@ -18,10 +18,11 @@ function cmakebuild() {
 
 cd /tmp
 
+STATIC_PACKAGES="libfftw3-bin"
 BUILD_PACKAGES="git cmake make gcc g++ libsamplerate-dev libfftw3-dev"
 
 apt-get update
-apt-get -y install --no-install-recommends $BUILD_PACKAGES
+apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
 # latest develop as of 2023-08-04 (direct_sampling for rtl_tcp_connector)
