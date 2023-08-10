@@ -69,7 +69,7 @@ class PskDemodulator(SecondaryDemodulator, SecondarySelectorChain):
         secondary_samples_per_bits = int(round(self.sampleRate / self.baudRate)) & ~3
         workers = [
             Agc(Format.COMPLEX_FLOAT),
-            TimingRecovery(secondary_samples_per_bits, 0.5, 2, useQ=True),
+            TimingRecovery(Format.COMPLEX_FLOAT, secondary_samples_per_bits, 0.5, 2),
             DBPskDecoder(),
             VaricodeDecoder(),
         ]
@@ -83,4 +83,4 @@ class PskDemodulator(SecondaryDemodulator, SecondarySelectorChain):
             return
         self.sampleRate = sampleRate
         secondary_samples_per_bits = int(round(self.sampleRate / self.baudRate)) & ~3
-        self.replace(1, TimingRecovery(secondary_samples_per_bits, 0.5, 2, useQ=True))
+        self.replace(1, TimingRecovery(Format.FLOAT, secondary_samples_per_bits, 0.5, 2))
