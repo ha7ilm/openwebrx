@@ -3,7 +3,7 @@ from csdr.module.msk144 import Msk144Module, ParserAdapter
 from owrx.audio.chopper import AudioChopper, AudioChopperParser
 from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
-from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder
+from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, RttyDecoder, BaudotDecoder
 from pycsdr.types import Format
 from owrx.aprs.module import DirewolfModule
 
@@ -83,4 +83,32 @@ class PskDemodulator(SecondaryDemodulator, SecondarySelectorChain):
             return
         self.sampleRate = sampleRate
         secondary_samples_per_bits = int(round(self.sampleRate / self.baudRate)) & ~3
-        self.replace(1, TimingRecovery(Format.FLOAT, secondary_samples_per_bits, 0.5, 2))
+        self.replace(1, TimingRecovery(Format.COMPLEX_FLOAT, secondary_samples_per_bits, 0.5, 2))
+
+
+class RttyDemodulator(SecondaryDemodulator, SecondarySelectorChain):
+    def __init__(self, baudRate, bandWidth, invert=False):
+        self.baudRate = baudRate
+        self.bandWidth = bandWidth
+        self.invert = invert
+        # this is an assumption, we will adjust in setSampleRate
+        self.sampleRate = 12000
+        secondary_samples_per_bit = int(round(self.sampleRate / self.baudRate))
+        workers = [
+            Agc(Format.COMPLEX_FLOAT),
+            FmDemod(),
+            TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 0.5, 2),
+            RttyDecoder(invert),
+            BaudotDecoder(),
+        ]
+        super().__init__(workers)
+
+    def getBandwidth(self) -> float:
+        return self.bandWidth
+
+    def setSampleRate(self, sampleRate: int) -> None:
+        if sampleRate == self.sampleRate:
+            return
+        self.sampleRate = sampleRate
+        secondary_samples_per_bit = int(round(self.sampleRate / self.baudRate))
+        self.replace(2, TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 0.5, 2))
