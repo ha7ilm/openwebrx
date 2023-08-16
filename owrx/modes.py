@@ -121,6 +121,7 @@ class Modes(object):
         DigitalMode("bpsk63", "BPSK63", underlying=["usb"]),
         DigitalMode("rtty170", "RTTY 45/170", underlying=["usb", "lsb"]),
         DigitalMode("rtty450", "RTTY 50N/450", underlying=["lsb", "usb"]),
+        DigitalMode("rtty85", "RTTY 50N/85", underlying=["lsb", "usb"]),
         WsjtMode("ft8", "FT8"),
         WsjtMode("ft4", "FT4"),
         WsjtMode("jt65", "JT65"),
