@@ -3,7 +3,7 @@ from csdr.module.msk144 import Msk144Module, ParserAdapter
 from owrx.audio.chopper import AudioChopper, AudioChopperParser
 from owrx.aprs.kiss import KissDeframer
 from owrx.aprs import Ax25Parser, AprsParser
-from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, RttyDecoder, BaudotDecoder
+from pycsdr.modules import Convert, FmDemod, Agc, TimingRecovery, DBPskDecoder, VaricodeDecoder, RttyDecoder, BaudotDecoder, Lowpass
 from pycsdr.types import Format
 from owrx.aprs.module import DirewolfModule
 
@@ -94,10 +94,12 @@ class RttyDemodulator(SecondaryDemodulator, SecondarySelectorChain):
         # this is an assumption, we will adjust in setSampleRate
         self.sampleRate = 12000
         secondary_samples_per_bit = int(round(self.sampleRate / self.baudRate))
+        cutoff = self.baudRate / self.sampleRate
         workers = [
             Agc(Format.COMPLEX_FLOAT),
             FmDemod(),
-            TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 0.5, 2),
+            Lowpass(Format.FLOAT, cutoff),
+            TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 5, 2),
             RttyDecoder(invert),
             BaudotDecoder(),
         ]
@@ -111,4 +113,6 @@ class RttyDemodulator(SecondaryDemodulator, SecondarySelectorChain):
             return
         self.sampleRate = sampleRate
         secondary_samples_per_bit = int(round(self.sampleRate / self.baudRate))
-        self.replace(2, TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 0.5, 2))
+        cutoff = self.baudRate / self.sampleRate
+        self.replace(2, Lowpass(Format.FLOAT, cutoff))
+        self.replace(3, TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 5, 2))
