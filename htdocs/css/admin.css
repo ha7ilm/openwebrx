@@ -127,7 +127,7 @@ h1 {
 }
 
 .removable-group.removable .removable-item, .add-group .add-group-select {
-    flex: 1 0 auto;
+    flex: 1 0 0;
     margin-right: .25rem;
 }
 
