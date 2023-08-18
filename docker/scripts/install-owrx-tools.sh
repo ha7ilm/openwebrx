@@ -32,8 +32,8 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2023-08-16 (added lowpass)
-cmakebuild csdr 64a1603c4433e79f4b6a449711bfd86f977a997b
+# latest develop as of 2023-08-18 (fmdemod replacement)
+cmakebuild csdr 98de79de2187bf9b7d007fc6ae252175578c1459
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
