@@ -1,10 +1,7 @@
-from csdr.module import AutoStartModule
 from pycsdr.types import Format
-from pycsdr.modules import Writer, TcpSource
-from subprocess import Popen, PIPE
+from pycsdr.modules import Writer, TcpSource, ExecModule, CallbackWriter
 from owrx.aprs.direwolf import DirewolfConfig, DirewolfConfigSubscriber
 from owrx.config.core import CoreConfig
-import threading
 import time
 import os
 
@@ -13,46 +10,55 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
+class LogWriter(CallbackWriter):
+    def __init__(self):
+        self.retained = bytes()
+        super().__init__(Format.CHAR)
+
+    def write(self, data: bytes) -> None:
+        self.retained += data
+        lines = self.retained.split(b"\n")
+
+        # keep the last line
+        # this should either be empty if the last char was \n
+        # or an incomplete line if the read returned early
+        self.retained = lines[-1]
+
+        # log all completed lines
+        for line in lines[0:-1]:
+            logger.info("{}: {}".format("STDOUT", line.strip(b'\n').decode()))
+
+
+class DirewolfModule(ExecModule, DirewolfConfigSubscriber):
     def __init__(self, service: bool = False):
-        self.process = None
         self.tcpSource = None
+        self.writer = None
         self.service = service
         self.direwolfConfigPath = "{tmp_dir}/openwebrx_direwolf_{myid}.conf".format(
             tmp_dir=CoreConfig().get_temporary_directory(), myid=id(self)
         )
-        self.direwolfConfig = None
-        super().__init__()
 
-    def setWriter(self, writer: Writer) -> None:
-        super().setWriter(writer)
-        if self.tcpSource is not None:
-            self.tcpSource.setWriter(writer)
-
-    def getInputFormat(self) -> Format:
-        return Format.SHORT
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
-
-    def start(self):
         self.direwolfConfig = DirewolfConfig()
         self.direwolfConfig.wire(self)
+        self.__writeConfig()
+
+        super().__init__(Format.SHORT, Format.CHAR, ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"])
+        # direwolf supplies the data via a socket which we tap into in start()
+        # the output on its STDOUT is informative, but we still want to log it
+        super().setWriter(LogWriter())
+        self.start()
+
+    def __writeConfig(self):
         file = open(self.direwolfConfigPath, "w")
         file.write(self.direwolfConfig.getConfig(self.service))
         file.close()
 
-        # direwolf -c {direwolf_config} -r {audio_rate} -t 0 -q d -q h 1>&2
-        self.process = Popen(
-            ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"],
-            start_new_session=True,
-            stdin=PIPE,
-        )
+    def setWriter(self, writer: Writer) -> None:
+        self.writer = writer
+        if self.tcpSource is not None:
+            self.tcpSource.setWriter(writer)
 
-        # resume in case the reader has been stop()ed before
-        self.reader.resume()
-        threading.Thread(target=self.pump(self.reader.read, self.process.stdin.write)).start()
-
+    def start(self):
         delay = 0.5
         retries = 0
         while True:
@@ -68,16 +74,16 @@ class DirewolfModule(AutoStartModule, DirewolfConfigSubscriber):
                 retries += 1
             time.sleep(delay)
 
-    def stop(self):
-        if self.process is not None:
-            self.process.terminate()
-            self.process.wait()
-            self.process = None
+    def restart(self):
+        self.__writeConfig()
+        super().restart()
+        self.start()
+
+    def onConfigChanged(self):
+        self.restart()
+
+    def stop(self) -> None:
+        super().stop()
         os.unlink(self.direwolfConfigPath)
         self.direwolfConfig.unwire(self)
         self.direwolfConfig = None
-        self.reader.stop()
-
-    def onConfigChanged(self):
-        self.stop()
-        self.start()

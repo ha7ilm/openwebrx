@@ -1,5 +1,6 @@
 from pycsdr.types import Format
-from csdr.module import PopenModule, ThreadModule
+from pycsdr.modules import ExecModule
+from csdr.module import ThreadModule
 from owrx.wsjt import WsjtParser, Msk144Profile
 import pickle
 
@@ -7,15 +8,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Msk144Module(PopenModule):
-    def getCommand(self):
-        return ["msk144decoder"]
-
-    def getInputFormat(self) -> Format:
-        return Format.SHORT
-
-    def getOutputFormat(self) -> Format:
-        return Format.CHAR
+class Msk144Module(ExecModule):
+    def __init__(self):
+        super().__init__(
+            Format.SHORT,
+            Format.CHAR,
+            ["msk144decoder"]
+        )
 
 
 class ParserAdapter(ThreadModule):

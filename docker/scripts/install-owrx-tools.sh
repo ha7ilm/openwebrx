@@ -32,13 +32,13 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2023-08-18 (fmdemod replacement)
-cmakebuild csdr 98de79de2187bf9b7d007fc6ae252175578c1459
+# latest develop as of 2023-08-21 (introduction of execmodule)
+cmakebuild csdr 3a11e7f800d8226e2f5de89432150a724bc7960e
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
-# latest develop as of 2023-08-16 (added lowpass)
-git checkout eec718ae365583ebf5f315ae45967d2f635ff209
+# latest develop as of 2023-08-21 (introduction of execmodule)
+git checkout ebb46984c9b2a31dcf3810ad1f11e461a839e114
 ./setup.py install install_headers
 cd ..
 rm -rf pycsdr

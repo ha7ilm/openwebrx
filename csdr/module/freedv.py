@@ -1,13 +1,11 @@
 from pycsdr.types import Format
-from csdr.module import PopenModule
+from pycsdr.modules import ExecModule
 
 
-class FreeDVModule(PopenModule):
-    def getInputFormat(self) -> Format:
-        return Format.SHORT
-
-    def getOutputFormat(self) -> Format:
-        return Format.SHORT
-
-    def getCommand(self):
-        return ["freedv_rx", "1600", "-", "-"]
+class FreeDVModule(ExecModule):
+    def __init__(self):
+        super().__init__(
+            Format.SHORT,
+            Format.SHORT,
+            ["freedv_rx", "1600", "-", "-"]
+        )
