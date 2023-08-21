@@ -79,6 +79,7 @@ class Dstar(DigihamChain):
             fskDemodulator=FskDemodulator(samplesPerSymbol=10),
             decoder=DstarDecoder(),
             mbeMode=Modes.DStarMode,
+            filter=WideRrcFilter(),
             codecserver=codecserver
         )
 
