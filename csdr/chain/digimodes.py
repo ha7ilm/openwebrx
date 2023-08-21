@@ -95,11 +95,12 @@ class RttyDemodulator(SecondaryDemodulator, SecondarySelectorChain):
         self.sampleRate = 12000
         secondary_samples_per_bit = int(round(self.sampleRate / self.baudRate))
         cutoff = self.baudRate / self.sampleRate
+        loop_gain = self.sampleRate / self.getBandwidth() / 5
         workers = [
             Agc(Format.COMPLEX_FLOAT),
             FmDemod(),
             Lowpass(Format.FLOAT, cutoff),
-            TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 5, 2),
+            TimingRecovery(Format.FLOAT, secondary_samples_per_bit, loop_gain, 10),
             RttyDecoder(invert),
             BaudotDecoder(),
         ]
@@ -114,5 +115,6 @@ class RttyDemodulator(SecondaryDemodulator, SecondarySelectorChain):
         self.sampleRate = sampleRate
         secondary_samples_per_bit = int(round(self.sampleRate / self.baudRate))
         cutoff = self.baudRate / self.sampleRate
+        loop_gain = self.sampleRate / self.getBandwidth() / 5
         self.replace(2, Lowpass(Format.FLOAT, cutoff))
-        self.replace(3, TimingRecovery(Format.FLOAT, secondary_samples_per_bit, 5, 2))
+        self.replace(3, TimingRecovery(Format.FLOAT, secondary_samples_per_bit, loop_gain, 10))
