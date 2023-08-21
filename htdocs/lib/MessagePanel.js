@@ -47,6 +47,10 @@ MessagePanel.prototype.initClearButton = function() {
     $(me.el).append(me.clearButton);
 };
 
+MessagePanel.prototype.htmlEscape = function(input) {
+    return $('<div/>').text(input).html()
+}
+
 function WsjtMessagePanel(el) {
     MessagePanel.call(this, el);
     this.initClearTimer();
@@ -85,23 +89,19 @@ WsjtMessagePanel.prototype.pushMessage = function(msg) {
     var linkedmsg = msg['msg'];
     var matches;
 
-    var html_escape = function(input) {
-        return $('<div/>').text(input).html()
-    };
-
     if (this.qsoModes.indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/(.*\s[A-Z0-9]+\s)([A-R]{2}[0-9]{2})$/);
         if (matches && matches[2] !== 'RR73') {
-            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>';
+            linkedmsg = this.htmlEscape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>';
         } else {
-            linkedmsg = html_escape(linkedmsg);
+            linkedmsg = this.htmlEscape(linkedmsg);
         }
     } else if (this.beaconModes.indexOf(msg['mode']) >= 0) {
         matches = linkedmsg.match(/([A-Z0-9]*\s)([A-R]{2}[0-9]{2})(\s[0-9]+)/);
         if (matches) {
-            linkedmsg = html_escape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>' + html_escape(matches[3]);
+            linkedmsg = this.htmlEscape(matches[1]) + '<a href="map?locator=' + matches[2] + '" target="openwebrx-map">' + matches[2] + '</a>' + this.htmlEscape(matches[3]);
         } else {
-            linkedmsg = html_escape(linkedmsg);
+            linkedmsg = this.htmlEscape(linkedmsg);
         }
     }
     $b.append($(
@@ -216,7 +216,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         '<td>' + timestamp + '</td>' +
         '<td class="callsign">' + callsign + '</td>' +
         '<td class="coord">' + link + '</td>' +
-        '<td class="message">' + (msg.comment || msg.message || '') + '</td>' +
+        '<td class="message">' + this.htmlEscape(msg.comment || msg.message || '') + '</td>' +
         '</tr>'
     ));
     $b.scrollTop($b[0].scrollHeight);
@@ -257,7 +257,7 @@ PocsagMessagePanel.prototype.pushMessage = function(msg) {
     $b.append($(
         '<tr>' +
             '<td class="address">' + msg.address + '</td>' +
-            '<td class="message">' + msg.message + '</td>' +
+            '<td class="message">' + this.htmlEscape(msg.message) + '</td>' +
         '</tr>'
     ));
     $b.scrollTop($b[0].scrollHeight);
