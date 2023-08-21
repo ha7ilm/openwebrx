@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedAudioRateChain, FixedIfSampleRateChain, DialFrequencyReceiver, MetaProvider, SlotFilterChain, DemodulatorError, ServiceDemodulator
-from pycsdr.modules import FmDemod, Agc, Writer, Buffer, DcBlock
+from pycsdr.modules import FmDemod, Agc, Writer, Buffer, DcBlock, Lowpass
 from pycsdr.types import Format
 from digiham.modules import DstarDecoder, FskDemodulator, GfskDemodulator, DigitalVoiceFilter, MbeSynthesizer, NarrowRrcFilter, NxdnDecoder, DmrDecoder, WideRrcFilter, YsfDecoder, PocsagDecoder
 from digiham.ambe import Modes, ServerError
@@ -125,6 +125,8 @@ class PocsagDemodulator(ServiceDemodulator, DialFrequencyReceiver):
         self.parser = PocsagParser()
         workers = [
             FmDemod(),
+            DcBlock(),
+            Lowpass(Format.FLOAT, 1200 / self.getFixedAudioRate()),
             FskDemodulator(samplesPerSymbol=40, invert=True),
             PocsagDecoder(),
             self.parser,
