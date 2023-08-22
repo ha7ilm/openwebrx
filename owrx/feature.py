@@ -84,6 +84,7 @@ class FeatureDetector(object):
         "pocsag": ["digiham"],
         "js8call": ["js8", "js8py"],
         "drm": ["dream"],
+        "dump1090": ["dump1090"],
     }
 
     def feature_availability(self):
@@ -564,3 +565,6 @@ class FeatureDetector(object):
         except RuntimeError as e:
             logger.exception("Codecserver error while checking for AMBE support:")
             return False
+
+    def has_dump1090(self):
+        return self.command_is_runnable("dump1090")

@@ -149,6 +149,14 @@ class Modes(object):
             requirements=["pocsag"],
             squelch=False,
         ),
+        DigitalMode(
+            "adsb",
+            "ADS-B",
+            underlying=["none"],
+            bandpass=Bandpass(-1e6, 1e6),
+            requirements=["dump1090"],
+            squelch=False,
+        ),
     ]
 
     @staticmethod
