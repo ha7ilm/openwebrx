@@ -269,3 +269,45 @@ $.fn.pocsagMessagePanel = function() {
     }
     return this.data('panel');
 };
+
+AdsbMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+AdsbMessagePanel.prototype = new MessagePanel();
+
+AdsbMessagePanel.prototype.supportsMessage = function(message) {
+    return message["mode"] === "ADSB";
+};
+
+AdsbMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="address">ICAO</th>' +
+                '<th class="message">Message</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+
+AdsbMessagePanel.prototype.pushMessage = function(message) {
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+            '<td class="address"></td>' +
+            '<td class="message">' + JSON.stringify(message) + '</td>' +
+        '</tr>'
+    ));
+    $b.scrollTop($b[0].scrollHeight);
+};
+
+$.fn.adsbMessagePanel = function () {
+    if (!this.data('panel')) {
+        this.data('panel', new AdsbMessagePanel(this));
+    }
+    return this.data('panel');
+};
