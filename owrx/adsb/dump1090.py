@@ -1,6 +1,6 @@
 from pycsdr.modules import ExecModule, Writer, TcpSource
 from pycsdr.types import Format
-from csdr.module import LogWriter, ThreadModule, PickleModule
+from csdr.module import LogWriter, ThreadModule
 from owrx.socket import getAvailablePort
 import time
 import pickle
@@ -81,11 +81,3 @@ class RawDeframer(ThreadModule):
             return bytes.fromhex(line[1:-1].decode())
         else:
             logger.warning("invalid raw message: %s", line)
-
-
-class ModeSParser(PickleModule):
-    def process(self, input):
-        return {
-            "mode": "ADSB",
-            "df": (input[0] & 0b11111000) >> 3
-        }

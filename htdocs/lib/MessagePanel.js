@@ -272,6 +272,7 @@ $.fn.pocsagMessagePanel = function() {
 
 AdsbMessagePanel = function(el) {
     MessagePanel.call(this, el);
+    this.aircraft = {}
     this.initClearTimer();
 }
 
@@ -286,7 +287,11 @@ AdsbMessagePanel.prototype.render = function() {
         '<table>' +
             '<thead><tr>' +
                 '<th class="address">ICAO</th>' +
-                '<th class="message">Message</th>' +
+                '<th class="callsign">Callsign</th>' +
+                '<th class="altitude">Altitude</th>' +
+                '<th class="speed">Speed</th>' +
+                '<th class="track">Track</th>' +
+                '<th class="messages">Messages</th>' +
             '</tr></thead>' +
             '<tbody></tbody>' +
         '</table>'
@@ -295,15 +300,63 @@ AdsbMessagePanel.prototype.render = function() {
 
 
 AdsbMessagePanel.prototype.pushMessage = function(message) {
+    if (!('icao' in message)) return;
+    if (!(message.icao in this.aircraft)) {
+        var el = $("<tr>");
+        $(this.el).find('tbody').append(el);
+        this.aircraft[message.icao] = {
+            el: el,
+            messages: 0
+        }
+    }
+    var state = this.aircraft[message.icao];
+    Object.assign(state, message);
+    state.lastSeen = Date.now();
+    state.messages += 1;
+
+    var ifDefined = function(input, formatter) {
+        if (typeof(input) !== 'undefined') {
+            if (formatter) return formatter(input);
+            return input;
+        }
+        return "";
+    }
+
+    state.el.html(
+        '<td>' + state.icao + '</td>' +
+        '<td>' + ifDefined(state.identification) + '</td>' +
+        '<td>' + ifDefined(state.altitude) + '</td>' +
+        '<td>' + ifDefined(state.groundspeed, Math.round) + '</td>' +
+        '<td>' + ifDefined(state.groundtrack, Math.round) + '</td>' +
+        '<td>' + state.messages + '</td>'
+    );
+
     var $b = $(this.el).find('tbody');
-    $b.append($(
-        '<tr>' +
-            '<td class="address"></td>' +
-            '<td class="message">' + JSON.stringify(message) + '</td>' +
-        '</tr>'
-    ));
     $b.scrollTop($b[0].scrollHeight);
 };
+
+AdsbMessagePanel.prototype.clearMessages = function(toRemain) {
+    console.info("clearing old aircraft...");
+    var now = Date.now();
+    var me = this;
+    Object.entries(this.aircraft).forEach(function(e) {
+        if (now - e[1].lastSeen > toRemain) {
+            console.info("removing " + e[0]);
+            delete me.aircraft[e[0]];
+            e[1].el.remove();
+        }
+    })
+    console.info("done; tracking " + Object.keys(this.aircraft).length + " aircraft");
+};
+
+AdsbMessagePanel.prototype.initClearTimer = function() {
+    var me = this;
+    if (me.removalInterval) clearInterval(me.removalInterval);
+    me.removalInterval = setInterval(function () {
+        me.clearMessages(30000);
+    }, 15000);
+};
+
 
 $.fn.adsbMessagePanel = function () {
     if (!this.data('panel')) {

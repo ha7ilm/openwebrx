@@ -1,7 +1,8 @@
 from pycsdr.modules import Convert
 from pycsdr.types import Format
 from csdr.chain.demodulator import ServiceDemodulator
-from owrx.adsb.dump1090 import Dump1090Module, RawDeframer, ModeSParser
+from owrx.adsb.dump1090 import Dump1090Module, RawDeframer
+from owrx.adsb.modes import ModeSParser
 
 
 class Dump1090(ServiceDemodulator):
