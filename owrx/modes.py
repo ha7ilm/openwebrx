@@ -145,7 +145,7 @@ class Modes(object):
             "pocsag",
             "Pocsag",
             underlying=["nfm"],
-            bandpass=Bandpass(-6000, 6000),
+            bandpass=Bandpass(-6250, 6250),
             requirements=["pocsag"],
             squelch=False,
         ),
