@@ -1266,6 +1266,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode="adsb"]   #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-select-channel,
@@ -1277,7 +1278,8 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-select-channel,
 #openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode="adsb"]   #openwebrx-digimode-select-channel
 {
     display: none;
 }
@@ -1293,7 +1295,8 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-canvas-container,
 #openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode="adsb"]   #openwebrx-digimode-canvas-container
 {
     height: 200px;
     margin: -10px;

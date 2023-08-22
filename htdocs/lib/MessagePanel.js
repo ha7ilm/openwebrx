@@ -330,23 +330,17 @@ AdsbMessagePanel.prototype.pushMessage = function(message) {
         '<td>' + ifDefined(state.groundtrack, Math.round) + '</td>' +
         '<td>' + state.messages + '</td>'
     );
-
-    var $b = $(this.el).find('tbody');
-    $b.scrollTop($b[0].scrollHeight);
 };
 
 AdsbMessagePanel.prototype.clearMessages = function(toRemain) {
-    console.info("clearing old aircraft...");
     var now = Date.now();
     var me = this;
     Object.entries(this.aircraft).forEach(function(e) {
         if (now - e[1].lastSeen > toRemain) {
-            console.info("removing " + e[0]);
             delete me.aircraft[e[0]];
             e[1].el.remove();
         }
     })
-    console.info("done; tracking " + Object.keys(this.aircraft).length + " aircraft");
 };
 
 AdsbMessagePanel.prototype.initClearTimer = function() {
