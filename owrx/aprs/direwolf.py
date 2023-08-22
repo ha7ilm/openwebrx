@@ -1,5 +1,6 @@
 from pycsdr.types import Format
 from pycsdr.modules import Writer, TcpSource, ExecModule, CallbackWriter
+from csdr.module import LogWriter
 from owrx.config.core import CoreConfig
 from owrx.config import Config
 from abc import ABC, abstractmethod
@@ -143,25 +144,6 @@ IGLOGIN {callsign} {password}
         return config
 
 
-class LogWriter(CallbackWriter):
-    def __init__(self):
-        self.retained = bytes()
-        super().__init__(Format.CHAR)
-
-    def write(self, data: bytes) -> None:
-        self.retained += data
-        lines = self.retained.split(b"\n")
-
-        # keep the last line
-        # this should either be empty if the last char was \n
-        # or an incomplete line if the read returned early
-        self.retained = lines[-1]
-
-        # log all completed lines
-        for line in lines[0:-1]:
-            logger.info("{}: {}".format("STDOUT", line.strip(b'\n').decode()))
-
-
 class DirewolfModule(ExecModule, DirewolfConfigSubscriber):
     def __init__(self, service: bool = False):
         self.tcpSource = None
@@ -178,7 +160,7 @@ class DirewolfModule(ExecModule, DirewolfConfigSubscriber):
         super().__init__(Format.SHORT, Format.CHAR, ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"])
         # direwolf supplies the data via a socket which we tap into in start()
         # the output on its STDOUT is informative, but we still want to log it
-        super().setWriter(LogWriter())
+        super().setWriter(LogWriter(__name__))
         self.start()
 
     def __writeConfig(self):

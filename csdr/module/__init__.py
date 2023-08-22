@@ -1,5 +1,5 @@
 from pycsdr.modules import Module as BaseModule
-from pycsdr.modules import Reader, Writer
+from pycsdr.modules import Reader, Writer, CallbackWriter
 from pycsdr.types import Format
 from abc import ABCMeta, abstractmethod
 from threading import Thread
@@ -7,6 +7,7 @@ from io import BytesIO
 from subprocess import Popen, PIPE
 from functools import partial
 import pickle
+import logging
 
 
 class Module(BaseModule, metaclass=ABCMeta):
@@ -134,3 +135,23 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
             self.process.wait()
             self.process = None
         self.reader.stop()
+
+
+class LogWriter(CallbackWriter):
+    def __init__(self, prefix: str):
+        self.logger = logging.getLogger(prefix)
+        self.retained = bytes()
+        super().__init__(Format.CHAR)
+
+    def write(self, data: bytes) -> None:
+        self.retained += data
+        lines = self.retained.split(b"\n")
+
+        # keep the last line
+        # this should either be empty if the last char was \n
+        # or an incomplete line if the read returned early
+        self.retained = lines[-1]
+
+        # log all completed lines
+        for line in lines[0:-1]:
+            self.logger.info("{}: {}".format("STDOUT", line.strip(b'\n').decode()))
