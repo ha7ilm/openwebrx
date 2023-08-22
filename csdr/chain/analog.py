@@ -74,3 +74,14 @@ class Ssb(BaseDemodulatorChain):
             Agc(Format.FLOAT),
         ]
         super().__init__(workers)
+
+
+class Empty(BaseDemodulatorChain):
+    def __init__(self):
+        super().__init__([])
+
+    def getOutputFormat(self) -> Format:
+        return Format.FLOAT
+
+    def setWriter(self, writer):
+        pass

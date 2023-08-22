@@ -554,6 +554,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "freedv":
             from csdr.chain.freedv import FreeDV
             return FreeDV()
+        elif demod == "none":
+            from csdr.chain.analog import Empty
+            return Empty()
 
     def setDemodulator(self, mod):
         self.chain.stopDemodulator()
