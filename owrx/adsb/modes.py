@@ -12,7 +12,7 @@ FEET_PER_METER = 3.28084
 class ModeSParser(PickleModule):
     def process(self, input):
         format = (input[0] & 0b11111000) >> 3
-        message =  {
+        message = {
             "mode": "ADSB",
             "format": format
         }
@@ -44,7 +44,7 @@ class ModeSParser(PickleModule):
             elif type in range(9, 19):
                 # airborne position (w/ baro  altitude)
                 q = (input[5] & 0b1)
-                altitude = ((input[5] & 0b11111110) << 3) | ((input[6] & 0b1111) >> 4)
+                altitude = ((input[5] & 0b11111110) << 3) | ((input[6] & 0b11110000) >> 4)
                 if q:
                     message["altitude"] = altitude * 25 - 1000
                 else:
