@@ -1099,22 +1099,24 @@ img.openwebrx-mirror-img
     position: relative;
 }
 
-.openwebrx-message-panel tbody {
+.openwebrx-message-panel table {
     display: block;
     overflow: auto;
     height: 150px;
     width: 100%;
 }
 
-.openwebrx-message-panel thead tr {
-    display: block;
-}
-
 .openwebrx-message-panel th,
 .openwebrx-message-panel td {
-    width: 50px;
+    min-width: 50px;
     text-align: left;
     padding: 1px 3px;
+}
+
+.openwebrx-message-panel th {
+    position: sticky;
+    top: 0;
+    background-color: #575757;
 }
 
 #openwebrx-panel-wsjt-message .message {
