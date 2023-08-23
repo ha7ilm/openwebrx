@@ -291,6 +291,9 @@ AdsbMessagePanel.prototype.render = function() {
                 '<th class="altitude">Altitude</th>' +
                 '<th class="speed">Speed</th>' +
                 '<th class="track">Track</th>' +
+                '<th class="verticalspeed">V/S</th>' +
+                '<th class="lat">Lat</th>' +
+                '<th class="lon">Long</th>' +
                 '<th class="messages">Messages</th>' +
             '</tr></thead>' +
             '<tbody></tbody>' +
@@ -322,12 +325,19 @@ AdsbMessagePanel.prototype.pushMessage = function(message) {
         return "";
     }
 
+    var coordRound = function(i) {
+        return Math.round(i * 1000) / 1000;
+    }
+
     state.el.html(
         '<td>' + state.icao + '</td>' +
         '<td>' + ifDefined(state.identification) + '</td>' +
         '<td>' + ifDefined(state.altitude) + '</td>' +
-        '<td>' + ifDefined(state.groundspeed, Math.round) + '</td>' +
-        '<td>' + ifDefined(state.groundtrack, Math.round) + '</td>' +
+        '<td>' + ifDefined(state.groundspeed || state.IAS || state.TAS, Math.round) + '</td>' +
+        '<td>' + ifDefined(state.groundtrack || state.heading, Math.round) + '</td>' +
+        '<td>' + ifDefined(state.verticalspeed) + '</td>' +
+        '<td>' + ifDefined(state.lat, coordRound) + '</td>' +
+        '<td>' + ifDefined(state.lon, coordRound) + '</td>' +
         '<td>' + state.messages + '</td>'
     );
 };
