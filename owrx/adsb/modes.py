@@ -1,5 +1,6 @@
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
+from owrx.map import LatLngLocation, Map
 import time
 
 import logging
@@ -12,6 +13,11 @@ FEET_PER_METER = 3.28084
 nz = 15
 d_lat_even = 360 / (4 * nz)
 d_lat_odd = 360 / (4 * nz - 1)
+
+
+class AirplaneLocation(LatLngLocation):
+    def __init__(self, message):
+        super().__init__(message["lat"], message["lon"])
 
 
 class CprCache:
@@ -171,12 +177,16 @@ class ModeSParser(PickleModule):
                 # aircraft operation status
                 pass
 
+        if "lat" in message and "lon" in message:
+            loc = AirplaneLocation(message)
+            Map.getSharedInstance().updateLocation({"callsign": icao}, loc, "ADS-B", None)
+
         return message
 
     def __getCprData(self, icao: str, input):
         self.cprCache.addRecord(icao, {
             "cpr_format": (input[6] & 0b00000100) >> 2,
-            "lat_cpr" : ((input[6] & 0b00000011) << 15) | (input[7] << 7) | ((input[8] & 0b11111110) > 1),
+            "lat_cpr": ((input[6] & 0b00000011) << 15) | (input[7] << 7) | ((input[8] & 0b11111110) > 1),
             "lon_cpr": ((input[8] & 0b00000001) << 16) | (input[9] << 8) | (input[10])
         })
 
@@ -214,7 +224,7 @@ class ModeSParser(PickleModule):
                 elif lat < -87:
                     return 1
                 else:
-                    return floor((2 * pi) / acos(1 - (1 - cos(pi / (2 * nz))) / (cos((pi / 180) * lat) ** 2)))
+                    return floor((2 * pi) / acos(1 - (1 - cos(pi / (2 * nz))) / (cos((pi / 180) * abs(lat)) ** 2)))
 
             if nl(lat_even) != nl(lat_odd):
                 logger.debug("latitude zone mismatch")
@@ -231,7 +241,7 @@ class ModeSParser(PickleModule):
             m = floor(lon_cpr_even * (nl_lat - 1) - lon_cpr_odd * nl_lat + .5)
 
             n_even = max(nl_lat, 1)
-            n_odd = max(nl(lat - 1), 1)
+            n_odd = max(nl_lat - 1, 1)
 
             d_lon_even = 360 / n_even
             d_lon_odd = 360 / n_odd
