@@ -186,17 +186,17 @@ class ModeSParser(PickleModule):
     def __getCprData(self, icao: str, input):
         self.cprCache.addRecord(icao, {
             "cpr_format": (input[6] & 0b00000100) >> 2,
-            "lat_cpr": ((input[6] & 0b00000011) << 15) | (input[7] << 7) | ((input[8] & 0b11111110) > 1),
-            "lon_cpr": ((input[8] & 0b00000001) << 16) | (input[9] << 8) | (input[10])
+            "lat_cpr": ((input[6] & 0b00000011) << 15) | (input[7] << 7) | ((input[8] & 0b11111110) >> 1),
+            "lon_cpr": ((input[8] & 0b00000001) << 16) | (input[9] << 8) | (input[10]),
         })
 
         records = self.cprCache.getRecentData(icao)
 
         try:
             # records are sorted by timestamp, last should be newest
-            rev = reversed(records)
-            odd = next(r for r in rev if r["cpr_format"])
-            even = next(r for r in rev if not r["cpr_format"])
+            odd = next(r for r in reversed(records) if r["cpr_format"])
+            even = next(r for r in reversed(records) if not r["cpr_format"])
+            newest = next(reversed(records))
 
             lat_cpr_even = even["lat_cpr"] / 2 ** 17
             lat_cpr_odd = odd["lat_cpr"] / 2 ** 17
@@ -230,7 +230,6 @@ class ModeSParser(PickleModule):
                 logger.debug("latitude zone mismatch")
                 return
 
-            newest = next(rev)
             lat = lat_odd if newest["cpr_format"] else lat_even
 
             lon_cpr_even = even["lon_cpr"] / 2 ** 17
