@@ -177,6 +177,10 @@ class ModeSParser(PickleModule):
                 # aircraft operation status
                 pass
 
+        elif format == 11:
+            # Mode-S All-call reply
+            message["icao"] = input[1:4].hex()
+
         if "lat" in message and "lon" in message:
             loc = AirplaneLocation(message)
             Map.getSharedInstance().updateLocation({"callsign": icao}, loc, "ADS-B", None)
