@@ -309,6 +309,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "packet":
             from csdr.chain.digimodes import PacketDemodulator
             return PacketDemodulator(service=True)
+        elif mod == "adsb":
+            from csdr.chain.dump1090 import Dump1090
+            return Dump1090()
 
         raise ValueError("unsupported service modulation: {}".format(mod))
 

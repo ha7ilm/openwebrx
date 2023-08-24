@@ -170,6 +170,7 @@ class Modes(object):
             underlying=["empty"],
             bandpass=Bandpass(-1e6, 1e6),
             requirements=["dump1090"],
+            service=True,
             squelch=False,
             secondaryFft=False,
         ),

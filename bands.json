@@ -367,5 +367,14 @@
     "lower_bound": 446000000,
     "upper_bound": 446200000,
     "tags": ["public"]
+  },
+  {
+    "name": "ARNS",
+    "lower_bound": 960000000,
+    "upper_bound": 1215000000,
+    "tags": [],
+    "frequencies": {
+      "adsb": 1090000000
+    }
   }
 ]
