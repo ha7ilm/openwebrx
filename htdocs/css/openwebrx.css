@@ -1095,14 +1095,18 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-message-panel {
-    height: 180px;
+    min-height: 180px;
     position: relative;
+}
+
+.openwebrx-message-panel#openwebrx-panel-adsb-message {
+	min-height: 380px;
 }
 
 .openwebrx-message-panel table {
     display: block;
     overflow: auto;
-    height: 150px;
+    height: 100%;
     width: 100%;
 }
 
