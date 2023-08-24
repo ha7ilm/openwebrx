@@ -80,6 +80,8 @@ class Map(object):
     def _sourceToKey(self, source):
         if "ssid" in source:
             return "{callsign}-{ssid}".format(**source)
+        elif "icao" in source:
+            return source["icao"]
         return source["callsign"]
 
     def updateLocation(self, source, loc: Location, mode: str, band: Band = None):

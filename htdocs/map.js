@@ -123,6 +123,8 @@ $(function(){
                         aprsOptions.symbol = update.location.symbol;
                         aprsOptions.course = update.location.course;
                         aprsOptions.speed = update.location.speed;
+                    } else if (update.source.icao) {
+                        markerClass = PlaneMarker;
                     }
                     if (markers[key]) {
                         marker = markers[key];
@@ -252,7 +254,10 @@ $(function(){
                                     nite.init(map);
                                     setInterval(function() { nite.refresh() }, 10000); // every 10s
                                 });
-                                $.getScript('static/lib/AprsMarker.js').done(function(){
+                                $.when(
+                                    $.getScript('static/lib/AprsMarker.js'),
+                                    $.getScript('static/lib/PlaneMarker.js')
+                                ).done(function(){
                                     processUpdates(updateQueue);
                                     updateQueue = [];
                                 });
@@ -351,6 +356,7 @@ $(function(){
         // not just for display but also in key treatment in order not to overlap with other locations sent by the same callsign
         if ('item' in source) return source['item'];
         if ('object' in source) return source['object'];
+        if ('icao' in source) return source['icao'];
         var key = source.callsign;
         if ('ssid' in source) key += '-' + source.ssid;
         return key;

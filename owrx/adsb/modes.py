@@ -181,9 +181,9 @@ class ModeSParser(PickleModule):
             # Mode-S All-call reply
             message["icao"] = input[1:4].hex()
 
-        if "lat" in message and "lon" in message:
+        if "icao" in message and "lat" in message and "lon" in message:
             loc = AirplaneLocation(message)
-            Map.getSharedInstance().updateLocation({"callsign": icao}, loc, "ADS-B", None)
+            Map.getSharedInstance().updateLocation({"icao": icao}, loc, "ADS-B", None)
 
         return message
 
