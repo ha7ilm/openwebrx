@@ -19,3 +19,6 @@ class Dump1090(ServiceDemodulator):
 
     def getFixedAudioRate(self) -> int:
         return 2400000
+
+    def isSecondaryFftShown(self):
+        return False

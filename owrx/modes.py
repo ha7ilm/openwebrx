@@ -42,10 +42,19 @@ class AnalogMode(Mode):
 
 class DigitalMode(Mode):
     def __init__(
-        self, modulation, name, underlying, bandpass: Bandpass = None, requirements=None, service=False, squelch=True
+        self,
+        modulation,
+        name,
+        underlying,
+        bandpass: Bandpass = None,
+        requirements=None,
+        service=False,
+        squelch=True,
+        secondaryFft=True
     ):
         super().__init__(modulation, name, bandpass, requirements, service, squelch)
         self.underlying = underlying
+        self.secondaryFft = secondaryFft
 
     def get_underlying_mode(self):
         mode = Modes.findByModulation(self.underlying[0])
@@ -162,6 +171,7 @@ class Modes(object):
             bandpass=Bandpass(-1e6, 1e6),
             requirements=["dump1090"],
             squelch=False,
+            secondaryFft=False,
         ),
     ]
 

@@ -158,7 +158,8 @@ DemodulatorPanel.prototype.disableDigiMode = function() {
 DemodulatorPanel.prototype.updatePanels = function() {
     var modulation = this.getDemodulator().get_secondary_demod();
     $('#openwebrx-panel-digimodes').attr('data-mode', modulation);
-    toggle_panel("openwebrx-panel-digimodes", !!modulation);
+    var mode = Modes.findByModulation(modulation);
+    toggle_panel("openwebrx-panel-digimodes", modulation && (!mode || mode.secondaryFft));
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'fst4', 'fst4w', "q65", "msk144"].indexOf(modulation) >= 0);
     toggle_panel("openwebrx-panel-js8-message", modulation === "js8");
     toggle_panel("openwebrx-panel-packet-message", modulation === "packet");

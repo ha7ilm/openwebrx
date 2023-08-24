@@ -196,11 +196,11 @@ class ClientDemodulatorChain(Chain):
                 self.secondaryDemodulator.setReader(self.audioBuffer.getReader())
             self.secondaryDemodulator.setWriter(self.secondaryWriter)
 
-        if self.secondaryDemodulator is None and self.secondaryFftChain is not None:
+        if (self.secondaryDemodulator is None or not self.secondaryDemodulator.isSecondaryFftShown()) and self.secondaryFftChain is not None:
             self.secondaryFftChain.stop()
             self.secondaryFftChain = None
 
-        if self.secondaryDemodulator is not None and self.secondaryFftChain is None:
+        if (self.secondaryDemodulator is not None and self.secondaryDemodulator.isSecondaryFftShown()) and self.secondaryFftChain is None:
             self._createSecondaryFftChain()
 
         if self.secondaryFftChain is not None:

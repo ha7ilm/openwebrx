@@ -443,6 +443,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
                 res["bandpass"] = {"low_cut": m.bandpass.low_cut, "high_cut": m.bandpass.high_cut}
             if isinstance(m, DigitalMode):
                 res["underlying"] = m.underlying
+                res["secondaryFft"] = m.secondaryFft
             return res
 
         self.send({"type": "modes", "value": [to_json(m) for m in modes]})

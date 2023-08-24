@@ -43,6 +43,7 @@ var Mode = function(json){
     }
     if (this.type === 'digimode') {
         this.underlying = json.underlying;
+        this.secondaryFft = json.secondaryFft;
     }
 };
 

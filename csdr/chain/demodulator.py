@@ -64,6 +64,9 @@ class SecondaryDemodulator(Chain):
     def setSampleRate(self, sampleRate: int) -> None:
         pass
 
+    def isSecondaryFftShown(self):
+        return True
+
 
 class ServiceDemodulator(SecondaryDemodulator, FixedAudioRateChain, metaclass=ABCMeta):
     pass
