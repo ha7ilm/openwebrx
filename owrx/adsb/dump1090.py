@@ -19,7 +19,11 @@ class Dump1090Module(ExecModule):
         super().__init__(
             Format.COMPLEX_SHORT,
             Format.CHAR,
-            ["dump1090", "--ifile", "-", "--iformat", "SC16", "--quiet", "--net-ro-port", str(self.port)]
+            ["dump1090", "--ifile", "-", "--iformat", "SC16", "--quiet", "--net-ro-port", str(self.port)],
+            # send some data on decoder shutdown since the dump1090 internal reader locks up otherwise
+            # dump1090 reads chunks of 100ms, which equals to 240k samples at 2.4MS/s
+            # some extra should not hurt
+            flushSize=300000
         )
         super().setWriter(LogWriter(__name__))
 
