@@ -125,6 +125,13 @@ class Selector(Chain):
     def setOutputRate(self, outputRate: int) -> None:
         if outputRate == self.outputRate:
             return
+        if outputRate > self.inputRate:
+            raise ValueError(
+                "cannot provide selected output rate {} since it is bigger than input rate {}".format(
+                    outputRate,
+                    self.inputRate
+                )
+            )
         self.outputRate = outputRate
 
         self.decimation.setOutputRate(outputRate)
