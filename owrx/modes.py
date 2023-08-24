@@ -33,6 +33,9 @@ class Mode:
         return self.modulation
 
 
+EmptyMode = Mode("empty", "Empty")
+
+
 class AnalogMode(Mode):
     pass
 
@@ -45,7 +48,10 @@ class DigitalMode(Mode):
         self.underlying = underlying
 
     def get_underlying_mode(self):
-        return Modes.findByModulation(self.underlying[0])
+        mode = Modes.findByModulation(self.underlying[0])
+        if mode is None:
+            mode = EmptyMode
+        return mode
 
     def get_bandpass(self):
         if self.bandpass is not None:
@@ -152,7 +158,7 @@ class Modes(object):
         DigitalMode(
             "adsb",
             "ADS-B",
-            underlying=["none"],
+            underlying=["empty"],
             bandpass=Bandpass(-1e6, 1e6),
             requirements=["dump1090"],
             squelch=False,
