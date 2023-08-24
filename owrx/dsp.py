@@ -97,8 +97,6 @@ class ClientDemodulatorChain(Chain):
             # it's expected and should be mended when swapping out the demodulator in the next step
             pass
 
-        self.replace(1, demodulator)
-
         if self.demodulator is not None:
             self.demodulator.stop()
 
@@ -107,7 +105,6 @@ class ClientDemodulatorChain(Chain):
         self.selector.setOutputRate(self._getSelectorOutputRate())
 
         clientRate = self._getClientAudioInputRate()
-        self.clientAudioChain.setInputRate(clientRate)
         self.demodulator.setSampleRate(clientRate)
 
         if isinstance(self.demodulator, DeemphasisTauChain):
@@ -116,11 +113,14 @@ class ClientDemodulatorChain(Chain):
         self._updateDialFrequency()
         self._syncSquelch()
 
-        outputRate = self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
-        self.clientAudioChain.setClientRate(outputRate)
-
         if self.metaWriter is not None and isinstance(demodulator, MetaProvider):
             demodulator.setMetaWriter(self.metaWriter)
+
+        self.replace(1, demodulator)
+
+        self.clientAudioChain.setInputRate(clientRate)
+        outputRate = self.hdOutputRate if isinstance(self.demodulator, HdAudio) else self.outputRate
+        self.clientAudioChain.setClientRate(outputRate)
 
     def stopDemodulator(self):
         if self.demodulator is None:
@@ -134,6 +134,8 @@ class ClientDemodulatorChain(Chain):
 
         self.demodulator.stop()
         self.demodulator = None
+
+        self.setSecondaryDemodulator(None)
 
     def _getSelectorOutputRate(self):
         if isinstance(self.demodulator, FixedIfSampleRateChain):
@@ -167,7 +169,8 @@ class ClientDemodulatorChain(Chain):
 
         clientRate = self._getClientAudioInputRate()
         self.clientAudioChain.setInputRate(clientRate)
-        self.demodulator.setSampleRate(clientRate)
+        if self.demodulator is not None:
+            self.demodulator.setSampleRate(clientRate)
 
         self._updateDialFrequency()
         self._syncSquelch()
@@ -212,7 +215,7 @@ class ClientDemodulatorChain(Chain):
         self.secondaryFftChain.setWriter(self.secondaryFftWriter)
 
     def _syncSquelch(self):
-        if not self.demodulator.supportsSquelch() or (self.secondaryDemodulator is not None and not self.secondaryDemodulator.supportsSquelch()):
+        if self.demodulator is not None and not self.demodulator.supportsSquelch() or (self.secondaryDemodulator is not None and not self.secondaryDemodulator.supportsSquelch()):
             self.selector.setSquelchLevel(-150)
         else:
             self.selector.setSquelchLevel(self.squelchLevel)
