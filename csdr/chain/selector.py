@@ -28,6 +28,13 @@ class Decimator(Chain):
         super().__init__(workers)
 
     def _getDecimation(self, outputRate: int) -> (int, float):
+        if outputRate > self.inputRate:
+            raise SelectorError(
+                "cannot provide selected output rate {} since it is bigger than input rate {}".format(
+                    outputRate,
+                    self.inputRate
+                )
+            )
         d = self.inputRate / outputRate
         dInt = int(d)
         dFloat = float(self.inputRate / dInt) / outputRate
@@ -125,13 +132,6 @@ class Selector(Chain):
     def setOutputRate(self, outputRate: int) -> None:
         if outputRate == self.outputRate:
             return
-        if outputRate > self.inputRate:
-            raise ValueError(
-                "cannot provide selected output rate {} since it is bigger than input rate {}".format(
-                    outputRate,
-                    self.inputRate
-                )
-            )
         self.outputRate = outputRate
 
         self.decimation.setOutputRate(outputRate)
@@ -165,3 +165,7 @@ class SecondarySelector(Chain):
         if self.frequencyOffset is None:
             return
         self.shift.setRate(-offset / self.sampleRate)
+
+
+class SelectorError(Exception):
+    pass
