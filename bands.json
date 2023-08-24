@@ -369,7 +369,7 @@
     "tags": ["public"]
   },
   {
-    "name": "ARNS",
+    "name": "Aeronautical Radionavigation",
     "lower_bound": 960000000,
     "upper_bound": 1215000000,
     "tags": [],
