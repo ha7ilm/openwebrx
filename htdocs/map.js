@@ -143,13 +143,13 @@ $(function(){
                             marker.addListener('click', function () {
                                 showMarkerInfoWindow(update.source, pos);
                             });
+                            marker.setMap(map);
                             markers[key] = marker;
                         }
                     }
                     if (!marker) return;
                     marker.setOptions($.extend({
                         position: pos,
-                        map: map,
                         title: sourceToString(update.source)
                     }, aprsOptions, getMarkerOpacityOptions(update.lastseen) ));
                     marker.lastseen = update.lastseen;
