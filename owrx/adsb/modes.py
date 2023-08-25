@@ -279,7 +279,7 @@ class ModeSParser(PickleModule):
                     return floor((2 * pi) / acos(1 - (1 - cos(pi / (2 * nz))) / (cos((pi / 180) * abs(lat)) ** 2)))
 
             if nl(lat_even) != nl(lat_odd):
-                logger.debug("latitude zone mismatch")
+                # latitude zone mismatch.
                 return
 
             lat = lat_odd if newest["cpr_format"] else lat_even
