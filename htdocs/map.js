@@ -453,13 +453,13 @@ $(function(){
         var title;
         if (marker.icao) {
             title = marker.identification || marker.icao;
-            if (marker.altitude) {
+            if ('altitude' in marker) {
                 commentString += '<div>Altitude: ' + marker.altitude + ' ft</div>';
             }
-            if (marker.groundspeed) {
+            if ('groundspeed' in marker) {
                 commentString += '<div>Speed: ' + Math.round(marker.groundspeed) + ' kt</div>';
             }
-            if (marker.verticalspeed) {
+            if ('verticalspeed' in marker) {
                 commentString += '<div>V/S: ' + marker.verticalspeed + ' ft/min</div>';
             }
         } else {
