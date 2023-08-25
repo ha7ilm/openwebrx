@@ -78,7 +78,9 @@ class RawDeframer(ThreadModule):
 
                 # log all completed lines
                 for line in lines[0:-1]:
-                    self.writer.write(pickle.dumps(self.parse(line)))
+                    parsed = self.parse(line)
+                    if parsed is not None:
+                        self.writer.write(pickle.dumps(parsed))
 
     def parse(self, line):
         if line.startswith(b'*') and line.endswith(b';') and len(line) in [16, 30]:
