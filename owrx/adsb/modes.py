@@ -18,7 +18,12 @@ d_lat_odd = 360 / (4 * nz - 1)
 
 
 class AirplaneLocation(LatLngLocation, IncrementalUpdate, ABC):
+    mapKeys = ['icao', 'lat', 'lon', 'altitude', 'heading', 'groundtrack', 'identification']
+    ttl = 30
+
     def __init__(self, message):
+        self.history = []
+        self.timestamp = time.time()
         self.props = message
         if "lat" in message and "lon" in message:
             super().__init__(message["lat"], message["lon"])
@@ -27,13 +32,24 @@ class AirplaneLocation(LatLngLocation, IncrementalUpdate, ABC):
             self.lon = None
 
     def update(self, previousLocation: Location):
-        props = previousLocation.props
-        props.update(self.props)
-        self.props = props
-        if "lat" in props:
-            self.lat = props["lat"]
-        if "lon" in props:
-            self.lon = props["lon"]
+        history = previousLocation.history
+        history += [{
+            "timestamp": self.timestamp,
+            "props": self.props,
+        }]
+        now = time.time()
+        history = [p for p in history if now - p["timestamp"] < self.ttl]
+        self.history = sorted(history, key=lambda p: p["timestamp"])
+
+        merged = {}
+        for p in self.history:
+            merged.update(p["props"])
+
+        self.props = merged
+        if "lat" in merged:
+            self.lat = merged["lat"]
+        if "lon" in merged:
+            self.lon = merged["lon"]
 
     def __dict__(self):
         dict = super().__dict__()
@@ -202,8 +218,9 @@ class ModeSParser(PickleModule):
             # Mode-S All-call reply
             message["icao"] = input[1:4].hex()
 
-        if "icao" in message and ['lat', 'lon', 'altitude', 'heading', 'groundtrack', 'identification'] & message.keys():
-            loc = AirplaneLocation(message)
+        if "icao" in message and AirplaneLocation.mapKeys & message.keys():
+            data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
+            loc = AirplaneLocation(data)
             Map.getSharedInstance().updateLocation({"icao": message['icao']}, loc, "ADS-B", None)
 
         return message

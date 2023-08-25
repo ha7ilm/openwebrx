@@ -114,8 +114,10 @@ $(function(){
 
             switch (update.location.type) {
                 case 'latlon':
-                    if (!update.location.lat || !update.location.lon) break;
-                    var pos = new google.maps.LatLng(update.location.lat, update.location.lon);
+                    var pos = false;
+                    if (update.location.lat && update.location.lon) {
+                        pos = new google.maps.LatLng(update.location.lat, update.location.lon);
+                    }
                     var marker;
                     var markerClass = google.maps.Marker;
                     var aprsOptions = {}
@@ -130,13 +132,21 @@ $(function(){
                     }
                     if (markers[key]) {
                         marker = markers[key];
+                        if (!pos) {
+                            delete markers[key];
+                            marker.setMap();
+                            return;
+                        }
                     } else {
-                        marker = new markerClass();
-                        marker.addListener('click', function(){
-                            showMarkerInfoWindow(update.source, pos);
-                        });
-                        markers[key] = marker;
+                        if (pos) {
+                            marker = new markerClass();
+                            marker.addListener('click', function () {
+                                showMarkerInfoWindow(update.source, pos);
+                            });
+                            markers[key] = marker;
+                        }
                     }
+                    if (!marker) return;
                     marker.setOptions($.extend({
                         position: pos,
                         map: map,
