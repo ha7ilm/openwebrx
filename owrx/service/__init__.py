@@ -266,12 +266,15 @@ class ServiceHandler(SdrSourceEventClient):
         secondaryDemod = self._getSecondaryDemodulator(modeObject.modulation)
         center_freq = source.getProps()["center_freq"]
         sampleRate = source.getProps()["samp_rate"]
-        bandpass = modeObject.get_bandpass()
         if isinstance(secondaryDemod, DialFrequencyReceiver):
             secondaryDemod.setDialFrequency(dial["frequency"])
 
         chain = ServiceDemodulatorChain(demod, secondaryDemod, sampleRate, dial["frequency"] - center_freq)
-        chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
+        bandpass = modeObject.get_bandpass()
+        if bandpass:
+            chain.setBandPass(bandpass.low_cut, bandpass.high_cut)
+        else:
+            chain.setBandPass(None, None)
         chain.setReader(source.getBuffer().getReader())
 
         # dummy buffer, we don't use the output right now

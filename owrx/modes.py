@@ -168,7 +168,7 @@ class Modes(object):
             "adsb",
             "ADS-B",
             underlying=["empty"],
-            bandpass=Bandpass(-1e6, 1e6),
+            bandpass=None,
             requirements=["dump1090"],
             service=True,
             squelch=False,

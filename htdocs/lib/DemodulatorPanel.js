@@ -137,6 +137,8 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingMod
         this.demodulator.set_secondary_demod(mode.modulation);
         if (mode.bandpass) {
             this.demodulator.setBandpass(mode.bandpass);
+        } else {
+            this.demodulator.disableBandpass();
         }
     } else {
         this.demodulator.set_secondary_demod(false);

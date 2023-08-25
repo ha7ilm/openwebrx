@@ -1,6 +1,7 @@
 from csdr.chain import Chain
 from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator, Writer
 from pycsdr.types import Format
+from owrx.property import PropertyDeleted
 import math
 
 
@@ -80,7 +81,6 @@ class Selector(Chain):
 
         self.bandpass = self._buildBandpass()
         self.bandpassCutoffs = None
-        self.setBandpass(-4000, 4000)
 
         workers = [self.shift, self.decimation, self.bandpass]
 
@@ -92,6 +92,8 @@ class Selector(Chain):
             workers += [self.squelch]
 
         super().__init__(workers)
+
+        self.setBandpass(-4000, 4000)
 
     def _buildBandpass(self) -> Bandpass:
         bp_transition = 320.0 / self.outputRate
@@ -113,16 +115,34 @@ class Selector(Chain):
     def setSquelchLevel(self, level: float) -> None:
         self.squelch.setSquelchLevel(self._convertToLinear(level))
 
+    def _enableBandpass(self):
+        index = self.indexOf(lambda x: isinstance(x, Bandpass))
+        if index < 0:
+            self.insert(self.bandpass, 2)
+
+    def _disableBandpass(self):
+        index = self.indexOf(lambda x: isinstance(x, Bandpass))
+        if index >= 0:
+            self.remove(index)
+
     def setBandpass(self, lowCut: float, highCut: float) -> None:
         self.bandpassCutoffs = [lowCut, highCut]
-        scaled = [x / self.outputRate for x in self.bandpassCutoffs]
-        self.bandpass.setBandpass(*scaled)
+        if None in self.bandpassCutoffs:
+            self._disableBandpass()
+        else:
+            self._enableBandpass()
+            scaled = [x / self.outputRate for x in self.bandpassCutoffs]
+            self.bandpass.setBandpass(*scaled)
 
     def setLowCut(self, lowCut: float) -> None:
+        if lowCut is PropertyDeleted:
+            lowCut = None
         self.bandpassCutoffs[0] = lowCut
         self.setBandpass(*self.bandpassCutoffs)
 
     def setHighCut(self, highCut: float) -> None:
+        if highCut is PropertyDeleted:
+            highCut = None
         self.bandpassCutoffs[1] = highCut
         self.setBandpass(*self.bandpassCutoffs)
 
@@ -136,9 +156,11 @@ class Selector(Chain):
 
         self.decimation.setOutputRate(outputRate)
         self.squelch.setReportInterval(int(outputRate / (self.readings_per_second * 1024)))
+        index = self.indexOf(lambda x: isinstance(x, Bandpass))
         self.bandpass = self._buildBandpass()
         self.setBandpass(*self.bandpassCutoffs)
-        self.replace(2, self.bandpass)
+        if index >= 0:
+            self.replace(index, self.bandpass)
 
     def setInputRate(self, inputRate: int) -> None:
         if inputRate == self.inputRate:

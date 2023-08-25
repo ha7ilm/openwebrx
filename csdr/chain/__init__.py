@@ -94,19 +94,24 @@ class Chain(Module):
         if self.writer is not None:
             newWorker.setWriter(self.writer)
 
-    def insert(self, newWorker):
+    def insert(self, newWorker, index=0):
         nextWorker = None
-        if self.workers:
-            nextWorker = self.workers[0]
+        previousWorker = None
+        if index < len(self.workers):
+            nextWorker = self.workers[index]
+        if index > 0:
+            previousWorker = self.workers[index - 1]
 
-        self.workers.insert(0, newWorker)
+        self.workers.insert(index, newWorker)
 
         if nextWorker:
             self._connect(newWorker, nextWorker)
         elif self.writer is not None:
             newWorker.setWriter(self.writer)
 
-        if self.reader is not None:
+        if previousWorker:
+            self._connect(previousWorker, newWorker)
+        elif self.reader is not None:
             newWorker.setReader(self.reader)
 
     def remove(self, index):

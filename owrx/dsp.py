@@ -462,6 +462,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 if mode.bandpass:
                     bpf = [mode.bandpass.low_cut, mode.bandpass.high_cut]
                     self.chain.setBandpass(*bpf)
+                else:
+                    self.chain.setBandpass(None, None)
             else:
                 # TODO modes should be mandatory
                 self.setDemodulator(self.props["start_mod"])
@@ -714,7 +716,11 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             self.setProperty(k, v)
 
     def setProperty(self, prop, value):
-        self.localProps[prop] = value
+        if value is None:
+            if prop in self.localProps:
+                del self.localProps[prop]
+        else:
+            self.localProps[prop] = value
 
     def getClientClass(self) -> SdrClientClass:
         return SdrClientClass.USER
