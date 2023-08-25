@@ -114,6 +114,7 @@ $(function(){
 
             switch (update.location.type) {
                 case 'latlon':
+                    if (!update.location.lat || !update.location.lon) break;
                     var pos = new google.maps.LatLng(update.location.lat, update.location.lon);
                     var marker;
                     var markerClass = google.maps.Marker;
@@ -125,6 +126,7 @@ $(function(){
                         aprsOptions.speed = update.location.speed;
                     } else if (update.source.icao) {
                         markerClass = PlaneMarker;
+                        aprsOptions = update.location;
                     }
                     if (markers[key]) {
                         marker = markers[key];
@@ -438,8 +440,14 @@ $(function(){
         if (receiverMarker) {
             distance = " at " + distanceKm(receiverMarker.position, marker.position) + " km";
         }
+        var title;
+        if (marker.icao) {
+            title = marker.identification || marker.icao;
+        } else {
+            linkifySource(source);
+        }
         infowindow.setContent(
-            '<h3>' + linkifySource(source) + distance + '</h3>' +
+            '<h3>' + title + distance + '</h3>' +
             '<div>' + timestring + ' using ' + marker.mode + ( marker.band ? ' on ' + marker.band : '' ) + '</div>' +
             commentString
         );

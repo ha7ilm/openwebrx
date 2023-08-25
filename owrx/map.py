@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from owrx.config import Config
 from owrx.bands import Band
+from abc import abstractmethod, ABCMeta
 import threading
 import time
 import sys
@@ -88,6 +89,8 @@ class Map(object):
         ts = datetime.now()
         key = self._sourceToKey(source)
         with self.positionsLock:
+            if isinstance(loc, IncrementalUpdate) and key in self.positions:
+                loc.update(self.positions[key]["location"])
             self.positions[key] = {"source": source, "location": loc, "updated": ts, "mode": mode, "band": band}
         self.broadcast(
             [
@@ -148,3 +151,9 @@ class LocatorLocation(Location):
 
     def __dict__(self):
         return {"type": "locator", "locator": self.locator}
+
+
+class IncrementalUpdate(Location, metaclass=ABCMeta):
+    @abstractmethod
+    def update(self, previousLocation: Location):
+        pass

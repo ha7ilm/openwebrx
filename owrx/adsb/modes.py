@@ -1,6 +1,8 @@
+from abc import ABC
+
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
-from owrx.map import LatLngLocation, Map
+from owrx.map import LatLngLocation, IncrementalUpdate, Location, Map
 import time
 
 import logging
@@ -15,9 +17,28 @@ d_lat_even = 360 / (4 * nz)
 d_lat_odd = 360 / (4 * nz - 1)
 
 
-class AirplaneLocation(LatLngLocation):
+class AirplaneLocation(LatLngLocation, IncrementalUpdate, ABC):
     def __init__(self, message):
-        super().__init__(message["lat"], message["lon"])
+        self.props = message
+        if "lat" in message and "lon" in message:
+            super().__init__(message["lat"], message["lon"])
+        else:
+            self.lat = None
+            self.lon = None
+
+    def update(self, previousLocation: Location):
+        props = previousLocation.props
+        props.update(self.props)
+        self.props = props
+        if "lat" in props:
+            self.lat = props["lat"]
+        if "lon" in props:
+            self.lon = props["lon"]
+
+    def __dict__(self):
+        dict = super().__dict__()
+        dict.update(self.props)
+        return dict
 
 
 class CprCache:
@@ -54,7 +75,7 @@ class ModeSParser(PickleModule):
             message["capability"] = input[0] & 0b111
             message["icao"] = icao = input[1:4].hex()
             type = (input[4] & 0b11111000) >> 3
-            message["type"] = type
+            message["adsb_type"] = type
 
             if type in [1, 2, 3, 4]:
                 # identification message
@@ -181,9 +202,9 @@ class ModeSParser(PickleModule):
             # Mode-S All-call reply
             message["icao"] = input[1:4].hex()
 
-        if "icao" in message and "lat" in message and "lon" in message:
+        if "icao" in message and ['lat', 'lon', 'altitude', 'heading', 'groundtrack', 'identification'] & message.keys():
             loc = AirplaneLocation(message)
-            Map.getSharedInstance().updateLocation({"icao": icao}, loc, "ADS-B", None)
+            Map.getSharedInstance().updateLocation({"icao": message['icao']}, loc, "ADS-B", None)
 
         return message
 
