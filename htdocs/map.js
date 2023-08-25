@@ -453,6 +453,15 @@ $(function(){
         var title;
         if (marker.icao) {
             title = marker.identification || marker.icao;
+            if (marker.altitude) {
+                commentString += '<div>Altitude: ' + marker.altitude + ' ft</div>';
+            }
+            if (marker.groundspeed) {
+                commentString += '<div>Speed: ' + Math.round(marker.groundspeed) + ' kt</div>';
+            }
+            if (marker.verticalspeed) {
+                commentString += '<div>V/S: ' + marker.verticalspeed + ' ft/min</div>';
+            }
         } else {
             linkifySource(source);
         }

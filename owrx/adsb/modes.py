@@ -18,7 +18,17 @@ d_lat_odd = 360 / (4 * nz - 1)
 
 
 class AirplaneLocation(LatLngLocation, IncrementalUpdate, ABC):
-    mapKeys = ['icao', 'lat', 'lon', 'altitude', 'heading', 'groundtrack', 'identification']
+    mapKeys = [
+        "icao",
+        "lat",
+        "lon",
+        "altitude",
+        "heading",
+        "groundtrack",
+        "groundspeed",
+        "verticalspeed",
+        "identification",
+    ]
     ttl = 30
 
     def __init__(self, message):
