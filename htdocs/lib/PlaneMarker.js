@@ -6,12 +6,8 @@ PlaneMarker.prototype.draw = function() {
     var svg = this.svg;
     if (!svg) return;
 
-    if (this.course) {
-        if (this.course > 180) {
-            svg.style.transform = 'scalex(-1) rotate(' + (270 - this.course) + 'deg)'
-        } else {
-            svg.style.transform = 'rotate(' + (this.course - 90) + 'deg)';
-        }
+    if (this.groundtrack) {
+        svg.style.transform = 'rotate(' + (this.groundtrack) + 'deg)';
     } else {
         svg.style.transform = null;
     }
@@ -25,10 +21,11 @@ PlaneMarker.prototype.draw = function() {
     var point = this.getProjection().fromLatLngToDivPixel(this.position);
 
     if (point) {
-        svg.style.left = point.x - 12 + 'px';
-        svg.style.top = point.y - 12 + 'px';
+        svg.style.left = point.x - 15 + 'px';
+        svg.style.top = point.y - 15 + 'px';
     }
 
+    svg.setAttribute('fill', this.getMarkerColor());
 };
 
 PlaneMarker.prototype.setOptions = function(options) {
@@ -39,7 +36,7 @@ PlaneMarker.prototype.setOptions = function(options) {
 PlaneMarker.prototype.onAdd = function() {
     var svg = this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 65 65');
-    svg.setAttribute('fill', 'blue');
+    svg.setAttribute('fill', this.getMarkerColor());
     svg.setAttribute('stroke', 'black');
 
     var path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -67,3 +64,44 @@ PlaneMarker.prototype.remove = function() {
         this.svg = null;
     }
 };
+
+PlaneMarker.prototype.getMarkerColor = function() {
+    var toHsl = function(input) {
+        return 'hsl(' + input.h + ', ' + input.s + '%, ' + input.l + '%)'
+    };
+
+    if (!this.altitude) {
+        return toHsl({h: 0, s: 0, l: 40});
+    }
+    if (this.altitude === "ground") {
+        return toHsl({h: 120, s: 100, l: 30});
+    }
+
+    // find the pair of points the current altitude lies between,
+    // and interpolate the hue between those points
+    var hpoints = [
+        { alt: 2000,  val: 20 },    // orange
+        { alt: 10000, val: 140 },   // light green
+        { alt: 40000, val: 300 }
+    ];
+    var h = hpoints[0].val;
+
+    for (var i = hpoints.length-1; i >= 0; --i) {
+        if (this.altitude > hpoints[i].alt) {
+            if (i === hpoints.length - 1) {
+                h = hpoints[i].val;
+            } else {
+                h = hpoints[i].val + (hpoints[i+1].val - hpoints[i].val) * (this.altitude - hpoints[i].alt) / (hpoints[i+1].alt - hpoints[i].alt)
+            }
+            break;
+        }
+    }
+
+    if (h < 0) {
+        h = (h % 360) + 360;
+    } else if (h >= 360) {
+        h = h % 360;
+    }
+
+    return toHsl({h: h, s: 85, l: 50})
+}
