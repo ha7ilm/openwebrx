@@ -79,7 +79,7 @@ AprsMarker.prototype.onAdd = function() {
     panes.overlayImage.appendChild(div);
 };
 
-AprsMarker.prototype.remove = function() {
+AprsMarker.prototype.onRemove = function() {
 	if (this.div) {
 		this.div.parentNode.removeChild(this.div);
 		this.div = null;

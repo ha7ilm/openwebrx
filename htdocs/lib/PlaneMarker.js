@@ -58,7 +58,7 @@ PlaneMarker.prototype.onAdd = function() {
     panes.overlayImage.appendChild(svg);
 };
 
-PlaneMarker.prototype.remove = function() {
+PlaneMarker.prototype.onRemove = function() {
     if (this.svg) {
         this.svg.parentNode.removeChild(this.svg);
         this.svg = null;
