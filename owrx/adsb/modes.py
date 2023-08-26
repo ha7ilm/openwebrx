@@ -19,7 +19,6 @@ d_lat_odd = 360 / (4 * nz - 1)
 
 class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
     mapKeys = [
-        "icao",
         "lat",
         "lon",
         "altitude",
@@ -31,10 +30,11 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
     ]
     ttl = 30
 
-    def __init__(self, message):
+    def __init__(self, icao, message):
         self.history = []
         self.timestamp = time.time()
         self.props = message
+        self.icao = icao
         if "lat" in message and "lon" in message:
             super().__init__(message["lat"], message["lon"])
         else:
@@ -43,13 +43,13 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
 
     def update(self, previousLocation: Location):
         history = previousLocation.history
+        now = time.time()
+        history = [p for p in history if now - p["timestamp"] < self.ttl]
         history += [{
             "timestamp": self.timestamp,
             "props": self.props,
         }]
-        now = time.time()
-        history = [p for p in history if now - p["timestamp"] < self.ttl]
-        self.history = sorted(history, key=lambda p: p["timestamp"])
+        self.history = history
 
         merged = {}
         for p in self.history:
@@ -64,6 +64,7 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
     def __dict__(self):
         dict = super().__dict__()
         dict.update(self.props)
+        dict["icao"] = self.icao
         return dict
 
     def getTTL(self) -> timedelta:
@@ -240,7 +241,7 @@ class ModeSParser(PickleModule):
 
         if "icao" in message and AirplaneLocation.mapKeys & message.keys():
             data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
-            loc = AirplaneLocation(data)
+            loc = AirplaneLocation(message["icao"], data)
             Map.getSharedInstance().updateLocation({"icao": message['icao']}, loc, "ADS-B", None)
 
         return message
