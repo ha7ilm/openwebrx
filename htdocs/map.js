@@ -7,6 +7,8 @@ $(function(){
     }
     var expectedLocator;
     if (query.has('locator')) expectedLocator = query.get('locator');
+    var expectedIcao;
+    if (query.has('icao')) expectedIcao = query.get('icao');
 
     var protocol = window.location.protocol.match(/https/) ? 'wss' : 'ws';
 
@@ -162,6 +164,12 @@ $(function(){
                         map.panTo(pos);
                         showMarkerInfoWindow(update.source, pos);
                         expectedCallsign = false;
+                    }
+
+                    if (expectedIcao && expectedIcao === update.source.icao) {
+                        map.panTo(pos);
+                        showMarkerInfoWindow(update.source, pos);
+                        expectedIcao = false;
                     }
 
                     if (infowindow && infowindow.source && shallowEquals(infowindow.source, update.source)) {

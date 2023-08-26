@@ -330,7 +330,7 @@ AdsbMessagePanel.prototype.pushMessage = function(message) {
     }
 
     state.el.html(
-        '<td>' + state.icao + '</td>' +
+        '<td><a href="map?icao=' + state.icao + '" target="openwebrx-map">' + state.icao + '</a></td>' +
         '<td>' + ifDefined(state.identification) + '</td>' +
         '<td>' + ifDefined(state.altitude) + '</td>' +
         '<td>' + ifDefined(state.groundspeed || state.IAS || state.TAS, Math.round) + '</td>' +
