@@ -152,6 +152,7 @@ $(function(){
                         position: pos,
                         title: sourceToString(update.source)
                     }, aprsOptions, getMarkerOpacityOptions(update.lastseen) ));
+                    marker.source = update.source;
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
                     marker.band = update.band;
@@ -520,7 +521,7 @@ $(function(){
         });
         Object.values(markers).forEach(function(m) {
             var age = now - m.lastseen;
-            if (age > retention_time) {
+            if (age > retention_time || (m.ttl && age > m.ttl)) {
                 delete markers[sourceToKey(m.source)];
                 m.setMap();
                 return;

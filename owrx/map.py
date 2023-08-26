@@ -9,7 +9,6 @@ import sys
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class Location(object):
@@ -121,9 +120,19 @@ class Map(object):
     def removeOldPositions(self):
         pm = Config.get()
         retention = timedelta(seconds=pm["map_position_retention_time"])
-        cutoff = datetime.now() - retention
+        now = datetime.now()
+        cutoff = now - retention
 
-        to_be_removed = [key for (key, pos) in self.positions.items() if pos["updated"] < cutoff]
+        def isExpired(pos):
+            if pos["updated"] < cutoff:
+                return True
+            if isinstance(pos["location"], TTLUpdate):
+                if now - pos["location"].getTTL() > pos["updated"]:
+                    return True
+            return False
+
+        with self.positionsLock:
+            to_be_removed = [key for (key, pos) in self.positions.items() if isExpired(pos)]
         for key in to_be_removed:
             self.removeLocation(key)
 
@@ -157,3 +166,14 @@ class IncrementalUpdate(Location, metaclass=ABCMeta):
     @abstractmethod
     def update(self, previousLocation: Location):
         pass
+
+
+class TTLUpdate(Location, metaclass=ABCMeta):
+    @abstractmethod
+    def getTTL(self) -> timedelta:
+        pass
+
+    def __dict__(self):
+        res = super().__dict__()
+        res["ttl"] = self.getTTL().total_seconds() * 1000
+        return res

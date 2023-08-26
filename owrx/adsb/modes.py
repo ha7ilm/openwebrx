@@ -1,8 +1,7 @@
-from abc import ABC
-
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
-from owrx.map import LatLngLocation, IncrementalUpdate, Location, Map
+from owrx.map import LatLngLocation, IncrementalUpdate, TTLUpdate, Location, Map
+from datetime import timedelta
 import time
 
 import logging
@@ -17,7 +16,7 @@ d_lat_even = 360 / (4 * nz)
 d_lat_odd = 360 / (4 * nz - 1)
 
 
-class AirplaneLocation(LatLngLocation, IncrementalUpdate, ABC):
+class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
     mapKeys = [
         "icao",
         "lat",
@@ -65,6 +64,9 @@ class AirplaneLocation(LatLngLocation, IncrementalUpdate, ABC):
         dict = super().__dict__()
         dict.update(self.props)
         return dict
+
+    def getTTL(self) -> timedelta:
+        return timedelta(seconds=self.ttl)
 
 
 class CprCache:
