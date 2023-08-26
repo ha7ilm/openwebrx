@@ -1,6 +1,7 @@
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
 from owrx.map import LatLngLocation, IncrementalUpdate, TTLUpdate, Location, Map
+from owrx.metrics import Metrics, CounterMetric
 from datetime import timedelta
 import time
 
@@ -91,6 +92,11 @@ class CprCache:
 class ModeSParser(PickleModule):
     def __init__(self):
         self.cprCache = CprCache()
+        name = "dump1090.decodes.adsb"
+        self.metrics = Metrics.getSharedInstance().getMetric(name)
+        if self.metrics is None:
+            self.metrics = CounterMetric()
+            Metrics.getSharedInstance().addMetric(name, self.metrics)
         super().__init__()
 
     def process(self, input):
@@ -229,6 +235,8 @@ class ModeSParser(PickleModule):
         elif format == 11:
             # Mode-S All-call reply
             message["icao"] = input[1:4].hex()
+
+        self.metrics.inc()
 
         if "icao" in message and AirplaneLocation.mapKeys & message.keys():
             data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
