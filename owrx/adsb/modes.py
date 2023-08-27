@@ -125,7 +125,7 @@ class ModeSParser(PickleModule):
                     input[10] & 0b00111111
                 ]
 
-                message["identification"] = bytes(b + (0x40 if b < 27 else 0) for b in id).decode("ascii")
+                message["identification"] = bytes(b + (0x40 if b < 27 else 0) for b in id).decode("ascii").strip()
 
             elif type in [5, 6, 7, 8]:
                 # surface position
