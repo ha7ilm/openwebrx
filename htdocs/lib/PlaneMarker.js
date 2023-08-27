@@ -6,8 +6,9 @@ PlaneMarker.prototype.draw = function() {
     var svg = this.svg;
     if (!svg) return;
 
-    if (this.groundtrack) {
-        svg.style.transform = 'rotate(' + (this.groundtrack) + 'deg)';
+    var angle = this.groundtrack || this.heading;
+    if (angle) {
+        svg.style.transform = 'rotate(' + angle + 'deg)';
     } else {
         svg.style.transform = null;
     }

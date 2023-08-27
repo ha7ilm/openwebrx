@@ -471,6 +471,12 @@ $(function(){
             if ('verticalspeed' in marker) {
                 commentString += '<div>V/S: ' + marker.verticalspeed + ' ft/min</div>';
             }
+            if ('IAS' in marker) {
+                commentString += '<div>IAS: ' + marker.IAS + ' kt</div>';
+            }
+            if ('TAS' in marker) {
+                commentString += '<div>TAS: ' + marker.TAS + ' kt</div>/';
+            }
         } else {
             linkifySource(source);
         }

@@ -27,6 +27,9 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
         "groundspeed",
         "verticalspeed",
         "identification",
+        "TAS",
+        "IAS",
+        "heading",
     ]
     ttl = 30
 
