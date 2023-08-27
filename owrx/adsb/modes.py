@@ -3,6 +3,7 @@ from math import sqrt, atan2, pi, floor, acos, cos
 from owrx.map import LatLngLocation, IncrementalUpdate, TTLUpdate, Location, Map
 from owrx.metrics import Metrics, CounterMetric
 from datetime import timedelta
+from enum import Enum
 import time
 
 import logging
@@ -11,10 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 FEET_PER_METER = 3.28084
-
-nz = 15
-d_lat_even = 360 / (4 * nz)
-d_lat_odd = 360 / (4 * nz - 1)
 
 
 class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
@@ -74,23 +71,44 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
         return timedelta(seconds=self.ttl)
 
 
+class CprRecordType(Enum):
+    AIR = ("air", 360)
+    GROUND = ("ground", 90)
+
+    def __new__(cls, *args, **kwargs):
+        name, baseAngle = args
+        obj = object.__new__(cls)
+        obj._value_ = name
+        obj.baseAngle = baseAngle
+        return obj
+
+
 class CprCache:
     def __init__(self):
-        self.aircraft = {}
+        self.airRecords = {}
+        self.groundRecords = {}
 
-    def getRecentData(self, icao: str):
-        if icao not in self.aircraft:
+    def __getRecords(self, cprType: CprRecordType):
+        if cprType is CprRecordType.AIR:
+            return self.airRecords
+        elif cprType is CprRecordType.GROUND:
+            return self.groundRecords
+
+    def getRecentData(self, icao: str, cprType: CprRecordType):
+        records = self.__getRecords(cprType)
+        if icao not in records:
             return []
         now = time.time()
-        filtered = [r for r in self.aircraft[icao] if now - r["timestamp"] < 10]
-        records = sorted(filtered, key=lambda r: r["timestamp"])
-        self.aircraft[icao] = records
-        return [r["data"] for r in records]
+        filtered = [r for r in records[icao] if now - r["timestamp"] < 10]
+        records_sorted = sorted(filtered, key=lambda r: r["timestamp"])
+        records[icao] = records_sorted
+        return [r["data"] for r in records_sorted]
 
-    def addRecord(self, icao: str, data: any):
-        if icao not in self.aircraft:
-            self.aircraft[icao] = []
-        self.aircraft[icao].append({"timestamp": time.time(), "data": data})
+    def addRecord(self, icao: str, data: any, cprType: CprRecordType):
+        records = self.__getRecords(cprType)
+        if icao not in records:
+            records[icao] = []
+        records[icao].append({"timestamp": time.time(), "data": data})
 
 
 class ModeSParser(PickleModule):
@@ -132,12 +150,41 @@ class ModeSParser(PickleModule):
 
             elif type in [5, 6, 7, 8]:
                 # surface position
-                pass
+                # there's no altitude data in this message type, but the type implies the aircraft is on ground
+                message["altitude"] = "ground"
+
+                movement = ((input[4] & 0b00000111) << 4) | ((input[5] & 0b11110000) >> 4)
+                if movement == 1:
+                    message["groundspeed"] = 0
+                elif 2 <= movement < 9:
+                    message["groundspeed"] = (movement - 1) * .0125
+                elif 9 <= movement < 13:
+                    message["groundspeed"] = 1 + (movement - 8) * .25
+                elif 13 <= movement < 39:
+                    message["groundspeed"] = 2 + (movement - 12) * .5
+                elif 39 <= movement < 94:
+                    message["groundspeed"] = 15 + (movement - 38)  # * 1
+                elif 94 <= movement < 109:
+                    message["groundspeed"] = 70 + (movement - 108) * 2
+                elif 109 <= movement < 124:
+                    message["groundspeeed"] = 100 + (movement - 123) * 5
+
+                if (input[5] & 0b00001000) >> 3:
+                    track = ((input[5] & 0b00000111) << 3) | ((input[6] & 0b11110000) >> 4)
+                    message["groundtrack"] = (360 * track) / 128
+
+                cpr = self.__getCprData(icao, input, CprRecordType.GROUND)
+                if cpr is not None:
+                    lat, lon = cpr
+                    message["lat"] = lat
+                    message["lon"] = lon
+
+                logger.debug("decoded ads-b ground data: %s", icao, message)
 
             elif type in [9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
                 # airborne position (w/ baro  altitude)
 
-                cpr = self.__getCprData(icao, input)
+                cpr = self.__getCprData(icao, input, CprRecordType.AIR)
                 if cpr is not None:
                     lat, lon = cpr
                     message["lat"] = lat
@@ -215,7 +262,7 @@ class ModeSParser(PickleModule):
             elif type in [20, 21, 22]:
                 # airborne position (w/GNSS height)
 
-                cpr = self.__getCprData(icao, input)
+                cpr = self.__getCprData(icao, input, CprRecordType.AIR)
                 if cpr is not None:
                     lat, lon = cpr
                     message["lat"] = lat
@@ -249,14 +296,14 @@ class ModeSParser(PickleModule):
 
         return message
 
-    def __getCprData(self, icao: str, input):
+    def __getCprData(self, icao: str, input, cprType: CprRecordType):
         self.cprCache.addRecord(icao, {
             "cpr_format": (input[6] & 0b00000100) >> 2,
             "lat_cpr": ((input[6] & 0b00000011) << 15) | (input[7] << 7) | ((input[8] & 0b11111110) >> 1),
             "lon_cpr": ((input[8] & 0b00000001) << 16) | (input[9] << 8) | (input[10]),
-        })
+        }, cprType)
 
-        records = self.cprCache.getRecentData(icao)
+        records = self.cprCache.getRecentData(icao, cprType)
 
         try:
             # records are sorted by timestamp, last should be newest
@@ -269,6 +316,10 @@ class ModeSParser(PickleModule):
 
             # latitude zone index
             j = floor(59 * lat_cpr_even - 60 * lat_cpr_odd + .5)
+
+            nz = 15
+            d_lat_even = cprType.baseAngle / (4 * nz)
+            d_lat_odd = cprType.baseAngle / (4 * nz - 1)
 
             lat_even = d_lat_even * ((j % 60) + lat_cpr_even)
             lat_odd = d_lat_odd * ((j % 59) + lat_cpr_odd)
@@ -308,8 +359,8 @@ class ModeSParser(PickleModule):
             n_even = max(nl_lat, 1)
             n_odd = max(nl_lat - 1, 1)
 
-            d_lon_even = 360 / n_even
-            d_lon_odd = 360 / n_odd
+            d_lon_even = cprType.baseAngle / n_even
+            d_lon_odd = cprType.baseAngle / n_odd
 
             lon_even = d_lon_even * (m % n_even + lon_cpr_even)
             lon_odd = d_lon_odd * (m % n_odd + lon_cpr_odd)
