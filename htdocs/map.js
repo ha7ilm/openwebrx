@@ -35,6 +35,7 @@ $(function(){
     var strokeOpacity = 0.8;
     var fillOpacity = 0.35;
     var callsign_service;
+    var aircraft_tracking_service;
 
     var colorKeys = {};
     var colorScale = chroma.scale(['red', 'blue', 'green']).mode('hsl');
@@ -318,6 +319,9 @@ $(function(){
                         if ('callsign_service' in config) {
                             callsign_service = config['callsign_service'];
                         }
+                        if ('aircraft_tracking_service' in config) {
+                            aircraft_tracking_service = config['aircraft_tracking_service'];
+                        }
                     break;
                     case "update":
                         processUpdates(json.value);
@@ -386,7 +390,7 @@ $(function(){
     // we can reuse the same logic for displaying and indexing
     var sourceToString = sourceToKey;
 
-    var linkifySource = function(source) {
+    var linkifyCallsign = function(source) {
         var callsignString = sourceToString(source);
         switch (callsign_service) {
             case "qrzcq":
@@ -400,6 +404,25 @@ $(function(){
                 return callsignString;
         }
     };
+
+    var linkifyAircraft = function(source, identification) {
+        var aircraftString = identification || source.icao;
+        var link = false;
+        switch (aircraft_tracking_service) {
+            case 'flightaware':
+                link = 'https://flightaware.com/live/modes/' + source.icao;
+                if (identification) link += "/ident/" + identification
+                link += '/redirect';
+                break;
+            case 'planefinder':
+                if (identification) link = 'https://planefinder.net/flight/' + identification;
+                break;
+        }
+        if (link) {
+            return '<a target="_blank" href="' + link + '">' + aircraftString + '</a>';
+        }
+        return aircraftString;
+    }
 
     var distanceKm = function(p1, p2) {
         // Earth radius in km
@@ -435,7 +458,7 @@ $(function(){
             '<ul>' +
                 inLocator.map(function(i){
                     var timestring = moment(i.lastseen).fromNow();
-                    var message = linkifySource(i.source) + ' (' + timestring + ' using ' + i.mode;
+                    var message = linkifyCallsign(i.source) + ' (' + timestring + ' using ' + i.mode;
                     if (i.band) message += ' on ' + i.band;
                     message += ')';
                     return '<li>' + message + '</li>'
@@ -461,7 +484,7 @@ $(function(){
         }
         var title;
         if (marker.icao) {
-            title = marker.identification || marker.icao;
+            title = linkifyAircraft(source, marker.identification);
             if ('altitude' in marker) {
                 commentString += '<div>Altitude: ' + marker.altitude + ' ft</div>';
             }
@@ -478,7 +501,7 @@ $(function(){
                 commentString += '<div>TAS: ' + marker.TAS + ' kt</div>/';
             }
         } else {
-            linkifySource(source);
+            title = linkifyCallsign(source);
         }
         infowindow.setContent(
             '<h3>' + title + distance + '</h3>' +

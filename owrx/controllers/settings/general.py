@@ -183,6 +183,17 @@ class GeneralSettingsController(SettingsFormController):
                         Option("aprsfi", "aprs.fi"),
                     ],
                 ),
+                DropdownInput(
+                    "aircraft_tracking_service",
+                    "Aircraft tracking service",
+                    infotext="Allows users to navigate to an external flight tracking service by clicking on flight "
+                    + "numbers",
+                    options=[
+                        Option(None, "disabled"),
+                        Option("flightaware", "FlightAware"),
+                        Option("planefinder", "planefinder"),
+                    ]
+                )
             ),
         ]
 

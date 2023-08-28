@@ -459,6 +459,7 @@ class MapConnection(OpenWebRxClient):
             "receiver_gps",
             "map_position_retention_time",
             "callsign_service",
+            "aircraft_tracking_service",
             "receiver_name",
         )
         self.configSub = filtered_config.wire(self.write_config)
