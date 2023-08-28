@@ -110,6 +110,42 @@ class PickleModule(ThreadModule):
         pass
 
 
+class LineBasedModule(ThreadModule, metaclass=ABCMeta):
+    def __init__(self):
+        self.retained = bytes()
+        super().__init__()
+
+    def getInputFormat(self) -> Format:
+        return Format.CHAR
+
+    def getOutputFormat(self) -> Format:
+        return Format.CHAR
+
+    def run(self):
+        while self.doRun:
+            data = self.reader.read()
+            if data is None:
+                self.doRun = False
+            else:
+                self.retained += data
+                lines = self.retained.split(b"\n")
+
+                # keep the last line
+                # this should either be empty if the last char was \n
+                # or an incomplete line if the read returned early
+                self.retained = lines[-1]
+
+                # log all completed lines
+                for line in lines[0:-1]:
+                    parsed = self.process(line)
+                    if parsed is not None:
+                        self.writer.write(pickle.dumps(parsed))
+
+    @abstractmethod
+    def process(self, line: bytes) -> any:
+        pass
+
+
 class PopenModule(AutoStartModule, metaclass=ABCMeta):
     def __init__(self):
         self.process = None
