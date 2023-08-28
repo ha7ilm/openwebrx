@@ -137,6 +137,7 @@ class OpenWebRxReceiverClient(OpenWebRxClient, SdrSourceEventClient):
         "fft_compression",
         "max_clients",
         "tuning_precision",
+        "aircraft_tracking_service",
     ]
 
     def __init__(self, conn):

@@ -273,6 +273,7 @@ $.fn.pocsagMessagePanel = function() {
 AdsbMessagePanel = function(el) {
     MessagePanel.call(this, el);
     this.aircraft = {}
+    this.aircraftTrackingService = false;
     this.initClearTimer();
 }
 
@@ -287,13 +288,12 @@ AdsbMessagePanel.prototype.render = function() {
         '<table>' +
             '<thead><tr>' +
                 '<th class="address">ICAO</th>' +
-                '<th class="callsign">Callsign</th>' +
+                '<th class="callsign">Flight</th>' +
                 '<th class="altitude">Altitude</th>' +
                 '<th class="speed">Speed</th>' +
                 '<th class="track">Track</th>' +
                 '<th class="verticalspeed">V/S</th>' +
-                '<th class="lat">Lat</th>' +
-                '<th class="lon">Long</th>' +
+                '<th class="position">Position</th>' +
                 '<th class="messages">Messages</th>' +
             '</tr></thead>' +
             '<tbody></tbody>' +
@@ -329,15 +329,19 @@ AdsbMessagePanel.prototype.pushMessage = function(message) {
         return Math.round(i * 1000) / 1000;
     }
 
+    var getPosition = function(state) {
+        if (!('lat' in state) || !('lon') in state) return '';
+        return '<a href="map?icao=' + state.icao + '" target="openwebrx-map">' + coordRound(state.lat) + ', ' + coordRound(state.lon) + '</a>';
+    }
+
     state.el.html(
-        '<td><a href="map?icao=' + state.icao + '" target="openwebrx-map">' + state.icao + '</a></td>' +
-        '<td>' + ifDefined(state.identification) + '</td>' +
+        '<td>' + this.linkify(state, state.icao) + '</td>' +
+        '<td>' + this.linkify(state, ifDefined(state.identification)) + '</td>' +
         '<td>' + ifDefined(state.altitude) + '</td>' +
         '<td>' + ifDefined(state.groundspeed || state.IAS || state.TAS, Math.round) + '</td>' +
         '<td>' + ifDefined(state.groundtrack || state.heading, Math.round) + '</td>' +
         '<td>' + ifDefined(state.verticalspeed) + '</td>' +
-        '<td>' + ifDefined(state.lat, coordRound) + '</td>' +
-        '<td>' + ifDefined(state.lon, coordRound) + '</td>' +
+        '<td>' + getPosition(state) + '</td>' +
         '<td>' + state.messages + '</td>'
     );
 };
@@ -361,6 +365,28 @@ AdsbMessagePanel.prototype.initClearTimer = function() {
     }, 15000);
 };
 
+AdsbMessagePanel.prototype.setAircraftTrackingService = function(service) {
+    this.aircraftTrackingService = service;
+};
+
+AdsbMessagePanel.prototype.linkify = function(state, text) {
+    var link = false;
+    switch (this.aircraftTrackingService) {
+        case 'flightaware':
+            link = 'https://flightaware.com/live/modes/' + state.icao;
+            if (state.identification) link += "/ident/" + state.identification
+            link += '/redirect';
+            break;
+        case 'planefinder':
+            if (state.identification) link = 'https://planefinder.net/flight/' + state.identification;
+            break;
+    }
+    if (link) {
+        return '<a target="_blank" href="' + link + '">' + text + '</a>';
+    }
+    return text;
+
+};
 
 $.fn.adsbMessagePanel = function () {
     if (!this.data('panel')) {

@@ -788,6 +788,9 @@ function on_ws_recv(evt) {
                         if ('tuning_precision' in config)
                             $('#openwebrx-panel-receiver').demodulatorPanel().setTuningPrecision(config['tuning_precision']);
 
+                        if ('aircraft_tracking_service' in config)
+                            $('#openwebrx-panel-adsb-message').adsbMessagePanel().setAircraftTrackingService(config['aircraft_tracking_service']);
+
                         break;
                     case "secondary_config":
                         var s = json['value'];
