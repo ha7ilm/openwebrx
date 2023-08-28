@@ -461,7 +461,7 @@ class MapConnection(OpenWebRxClient):
             "callsign_service",
             "receiver_name",
         )
-        filtered_config.wire(self.write_config)
+        self.configSub = filtered_config.wire(self.write_config)
 
         self.write_config(filtered_config.__dict__())
 
@@ -472,6 +472,7 @@ class MapConnection(OpenWebRxClient):
 
     def close(self, error: bool = False):
         Map.getSharedInstance().removeClient(self)
+        self.configSub.cancel()
         super().close(error)
 
     def write_config(self, cfg):
