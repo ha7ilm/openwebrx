@@ -42,7 +42,7 @@ class ClientAudioChain(Chain):
             if index >= 0:
                 self.replace(index, converter)
             else:
-                self.insert(converter)
+                self.insert(0, converter)
 
     def setFormat(self, format: Format) -> None:
         if format == self.format:

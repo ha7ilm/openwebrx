@@ -118,7 +118,7 @@ class Selector(Chain):
     def _enableBandpass(self):
         index = self.indexOf(lambda x: isinstance(x, Bandpass))
         if index < 0:
-            self.insert(self.bandpass, 2)
+            self.insert(2, self.bandpass)
 
     def _disableBandpass(self):
         index = self.indexOf(lambda x: isinstance(x, Bandpass))

@@ -94,7 +94,7 @@ class Chain(Module):
         if self.writer is not None:
             newWorker.setWriter(self.writer)
 
-    def insert(self, newWorker, index=0):
+    def insert(self, index, newWorker):
         nextWorker = None
         previousWorker = None
         if index < len(self.workers):
