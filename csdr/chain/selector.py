@@ -1,7 +1,6 @@
 from csdr.chain import Chain
 from pycsdr.modules import Shift, FirDecimate, Bandpass, Squelch, FractionalDecimator, Writer
 from pycsdr.types import Format
-from owrx.property import PropertyDeleted
 import math
 
 
@@ -134,15 +133,11 @@ class Selector(Chain):
             scaled = [x / self.outputRate for x in self.bandpassCutoffs]
             self.bandpass.setBandpass(*scaled)
 
-    def setLowCut(self, lowCut: float) -> None:
-        if lowCut is PropertyDeleted:
-            lowCut = None
+    def setLowCut(self, lowCut: float | None) -> None:
         self.bandpassCutoffs[0] = lowCut
         self.setBandpass(*self.bandpassCutoffs)
 
-    def setHighCut(self, highCut: float) -> None:
-        if highCut is PropertyDeleted:
-            highCut = None
+    def setHighCut(self, highCut: float | None) -> None:
         self.bandpassCutoffs[1] = highCut
         self.setBandpass(*self.bandpassCutoffs)
 

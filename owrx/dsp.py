@@ -1,5 +1,5 @@
 from owrx.source import SdrSourceEventClient, SdrSourceState, SdrClientClass
-from owrx.property import PropertyStack, PropertyLayer, PropertyValidator
+from owrx.property import PropertyStack, PropertyLayer, PropertyValidator, PropertyDeleted, PropertyDeletion
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes, DigitalMode
 from csdr.chain import Chain
@@ -220,10 +220,10 @@ class ClientDemodulatorChain(Chain):
         else:
             self.selector.setSquelchLevel(self.squelchLevel)
 
-    def setLowCut(self, lowCut):
+    def setLowCut(self, lowCut: float | None):
         self.selector.setLowCut(lowCut)
 
-    def setHighCut(self, highCut):
+    def setHighCut(self, highCut: float | None):
         self.selector.setHighCut(highCut)
 
     def setBandpass(self, lowCut, highCut):
@@ -485,8 +485,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             self.props.wireProperty("offset_freq", self.chain.setFrequencyOffset),
             self.props.wireProperty("center_freq", self.chain.setCenterFrequency),
             self.props.wireProperty("squelch_level", self.chain.setSquelchLevel),
-            self.props.wireProperty("low_cut", self.chain.setLowCut),
-            self.props.wireProperty("high_cut", self.chain.setHighCut),
+            self.props.wireProperty("low_cut", self.setLowCut),
+            self.props.wireProperty("high_cut", self.setHighCut),
             self.props.wireProperty("mod", self.setDemodulator),
             self.props.wireProperty("dmr_filter", self.chain.setSlotFilter),
             self.props.wireProperty("wfm_deemphasis_tau", self.chain.setWfmDeemphasisTau),
@@ -647,6 +647,12 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         buffer = Buffer(self.chain.getSecondaryFftOutputFormat())
         self.chain.setSecondaryFftWriter(buffer)
         self.wireOutput("secondary_fft", buffer)
+
+    def setLowCut(self, lowCut: float | PropertyDeletion):
+        self.chain.setLowCut(None if lowCut is PropertyDeleted else lowCut)
+
+    def setHighCut(self, highCut: float | PropertyDeletion):
+        self.chain.setHighCut(None if highCut is PropertyDeleted else highCut)
 
     def start(self):
         if self.sdrSource.isAvailable():
