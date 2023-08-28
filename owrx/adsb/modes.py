@@ -194,9 +194,8 @@ class ModeSParser(PickleModule):
                 altitude = ((input[5] & 0b11111110) << 3) | ((input[6] & 0b11110000) >> 4)
                 if q:
                     message["altitude"] = altitude * 25 - 1000
-                else:
-                    # TODO: it's gray encoded
-                    message["altitude"] = altitude * 100
+                elif altitude > 0:
+                    message["altitude"] = self._grayDecode(altitude) * 100
 
             elif type == 19:
                 # airborne velocity
@@ -374,3 +373,13 @@ class ModeSParser(PickleModule):
         except StopIteration:
             # we don't have both CPR records. better luck next time.
             pass
+
+    def _grayDecode(self, input: int):
+        l = input.bit_length()
+        previous_bit = 0
+        output = 0
+        for i in reversed(range(0, l)):
+            bit = (previous_bit ^ ((input >> i) & 1))
+            output |= bit << i
+            previous_bit = bit
+        return output
