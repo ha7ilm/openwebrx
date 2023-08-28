@@ -1,6 +1,7 @@
 **unreleased**
 - SDR device log messages are now available in the web configuration to simplify troubleshooting
 - Added support for the MSK144 digimode
+- Added support for decoding ADS-B with dump1090
 - Added IPv6 support
 
 **1.2.1**
