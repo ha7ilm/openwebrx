@@ -220,10 +220,10 @@ class ClientDemodulatorChain(Chain):
         else:
             self.selector.setSquelchLevel(self.squelchLevel)
 
-    def setLowCut(self, lowCut: float | None):
+    def setLowCut(self, lowCut: Union[float, None]):
         self.selector.setLowCut(lowCut)
 
-    def setHighCut(self, highCut: float | None):
+    def setHighCut(self, highCut: Union[float, None]):
         self.selector.setHighCut(highCut)
 
     def setBandpass(self, lowCut, highCut):
@@ -648,10 +648,10 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         self.chain.setSecondaryFftWriter(buffer)
         self.wireOutput("secondary_fft", buffer)
 
-    def setLowCut(self, lowCut: float | PropertyDeletion):
+    def setLowCut(self, lowCut: Union[float, PropertyDeletion]):
         self.chain.setLowCut(None if lowCut is PropertyDeleted else lowCut)
 
-    def setHighCut(self, highCut: float | PropertyDeletion):
+    def setHighCut(self, highCut: Union[float, PropertyDeletion]):
         self.chain.setHighCut(None if highCut is PropertyDeleted else highCut)
 
     def start(self):
