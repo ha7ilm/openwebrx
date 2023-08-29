@@ -6,11 +6,6 @@ from datetime import timedelta
 from enum import Enum
 import time
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-
 FEET_PER_METER = 3.28084
 
 
@@ -179,8 +174,6 @@ class ModeSParser(PickleModule):
                     message["lat"] = lat
                     message["lon"] = lon
 
-                logger.debug("decoded ads-b ground data: %s", icao, message)
-
             elif type in [9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
                 # airborne position (w/ baro  altitude)
 
@@ -243,7 +236,6 @@ class ModeSParser(PickleModule):
                     if sh:
                         hdg = ((input[5] & 0b00000011) << 8) | input[6]
                         message["heading"] = hdg * 360 / 1024
-                        logger.debug("decoded from subtype 3: heading = %i", message["heading"])
                     airspeed = ((input[7] & 0b01111111) << 3) | ((input[8] & 0b11100000) >> 5)
                     if airspeed != 0:
                         airspeed -= 1
@@ -253,10 +245,8 @@ class ModeSParser(PickleModule):
                         airspeed_type = (input[7] & 0b10000000) >> 7
                         if airspeed_type:
                             message["TAS"] = airspeed
-                            logger.debug("decoded from subtype 3: TAS = %i", message["TAS"])
                         else:
                             message["IAS"] = airspeed
-                            logger.debug("decoded from subtype 3: IAS = %i", message["IAS"])
 
             elif type in [20, 21, 22]:
                 # airborne position (w/GNSS height)
