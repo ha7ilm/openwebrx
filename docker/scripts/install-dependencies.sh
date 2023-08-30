@@ -27,7 +27,17 @@ apt-get update
 apt-get -y install auto-apt-proxy
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
-PLATFORM=$(uname -m)
+case `uname -m` in
+    arm*)
+        PLATFORM=armhf
+        ;;
+    aarch64*)
+        PLATFORM=aarch64
+        ;;
+    x86_64*)
+        PLATFORM=x86_64
+        ;;
+esac
 
 wget https://github.com/just-containers/s6-overlay/releases/download/v3.1.5.0/s6-overlay-noarch.tar.xz
 tar -Jxpf /tmp/s6-overlay-noarch.tar.xz -C /
