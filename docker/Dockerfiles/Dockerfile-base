@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 COPY docker/files/js8call/js8call-hamlib.patch \
      docker/files/wsjtx/wsjtx.patch \

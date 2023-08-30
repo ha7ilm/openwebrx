@@ -18,7 +18,7 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libfftw3-bin"
+STATIC_PACKAGES="libfftw3-single3"
 BUILD_PACKAGES="git cmake make gcc g++ pkg-config libfftw3-dev"
 
 apt-get update

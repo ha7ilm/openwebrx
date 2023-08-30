@@ -25,11 +25,11 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/Nuand/bladeRF.git
-cmakebuild bladeRF 2021.10
+cmakebuild bladeRF 2023.02
 
 git clone https://github.com/pothosware/SoapyBladeRF.git
-# latest from master as of 2022-01-12
-cmakebuild SoapyBladeRF 70505a5cdf8c9deabc4af3eb3384aa82a7b6f021
+# latest from master as of 2023-08-30
+cmakebuild SoapyBladeRF 85f6dc554ed4c618304d99395b19c4e1523675b0
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean

@@ -18,7 +18,7 @@ function cmakebuild() {
 
 cd /tmp
 
-STATIC_PACKAGES="libusb-1.0-0 libfftw3-3 udev"
+STATIC_PACKAGES="libusb-1.0-0 libfftw3-single3 udev"
 BUILD_PACKAGES="git cmake make patch wget sudo gcc g++ libusb-1.0-0-dev libfftw3-dev pkg-config"
 
 apt-get update
