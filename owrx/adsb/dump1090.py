@@ -54,5 +54,8 @@ class RawDeframer(LineBasedModule):
     def process(self, line: bytes):
         if line.startswith(b'*') and line.endswith(b';') and len(line) in [16, 30]:
             return bytes.fromhex(line[1:-1].decode())
+        elif line == b"*0000;":
+            # heartbeat message. not a valid message, but known. do not log.
+            return
         else:
             logger.warning("invalid raw message: %s", line)
