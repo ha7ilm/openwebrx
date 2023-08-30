@@ -34,4 +34,3 @@ python3 openwebrx.py $@ &
 
 child=$! 
 wait "$child"
-    

@@ -23,6 +23,6 @@ VOLUME /etc/openwebrx
 VOLUME /var/lib/openwebrx
 
 ENV S6_CMD_ARG0="/opt/openwebrx/docker/scripts/run.sh"
-CMD []
+CMD [""]
 
 EXPOSE 8073

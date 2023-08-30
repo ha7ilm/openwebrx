@@ -1,2 +1,2 @@
-#!/usr/bin/execlineb -P
+#!/command/execlineb -P
 /usr/local/bin/sdrplay_apiService
