@@ -188,7 +188,9 @@ class ModeSParser(PickleModule):
                 if q:
                     message["altitude"] = altitude * 25 - 1000
                 elif altitude > 0:
-                    message["altitude"] = self._grayDecode(altitude) * 100
+                    altitude = self._gillhamDecode(altitude)
+                    if altitude is not None:
+                        message["altitude"] =
 
             elif type == 19:
                 # airborne velocity
@@ -373,3 +375,26 @@ class ModeSParser(PickleModule):
             output |= bit << i
             previous_bit = bit
         return output
+
+    gianniTable = [None, -200, 0, -100, 200, None, 100, None]
+
+    def _gillhamDecode(self, input: int):
+        c = ((input & 0b10000000000) >> 8) | ((input & 0b00100000000) >> 7) | ((input & 0b00001000000) >> 6)
+        b = ((input & 0b00000010000) >> 2) | ((input & 0b00000001000) >> 2) | ((input & 0b00000000010) >> 1)
+        a = ((input & 0b01000000000) >> 7) | ((input & 0b00010000000) >> 6) | ((input & 0b00000100000) >> 5)
+        d = ((input & 0b00000000100) >> 1) |  (input & 0b00000000001)
+
+        dab = (d << 6) | (a << 3) | b
+        parity = dab.bit_count() % 2
+
+        offset = self.gianniTable[c]
+
+        if offset is None:
+            # invalid decode...
+            return None
+
+        if parity:
+            offset *= -1
+
+        altitude = self._grayDecode(dab) * 500 + offset - 1000
+        return altitude
