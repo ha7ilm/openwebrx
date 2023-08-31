@@ -1,5 +1,5 @@
 $(function(){
-    var converter = new showdown.Converter();
+    var converter = new showdown.Converter({openLinksInNewWindow: true});
     $.ajax('api/features').done(function(data){
         var $table = $('table.features');
         $.each(data, function(name, details) {
