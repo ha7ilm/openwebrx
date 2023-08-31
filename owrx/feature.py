@@ -548,6 +548,9 @@ class FeatureDetector(object):
         Codecserver is used to decode audio data from digital voice modes using the AMBE codec.
 
         You can find more information [here](https://github.com/jketterl/codecserver).
+
+        NOTE: this feature flag checks both the availability of codecserver as well as the availability of the AMBE
+        codec in the configured codecserer instance.
         """
 
         config = Config.get()
