@@ -190,7 +190,7 @@ class ModeSParser(PickleModule):
                 elif altitude > 0:
                     altitude = self._gillhamDecode(altitude)
                     if altitude is not None:
-                        message["altitude"] =
+                        message["altitude"] = altitude
 
             elif type == 19:
                 # airborne velocity
