@@ -570,4 +570,17 @@ class FeatureDetector(object):
             return False
 
     def has_dump1090(self):
+        """
+        To be able to decode Mode-S and ADS-B traffic originating from airplanes, you need to install the dump1090
+        decoder. There is a number of forks available, any version that supports the `--ifile` and `--iformat` arguments
+        should work.
+
+        Recommended fork: [dump1090 by Flightaware](https://github.com/flightaware/dump1090)
+
+        If you are using the OpenWebRX repository, you should be able to install the package `dump1090-fa-minimal`.
+
+        If you are running a different fork, please make sure that the command `dump1090` (without suffixes) runs the
+        version you would like to use. You can use symbolic links or the
+        [Debian alternatives system](https://wiki.debian.org/DebianAlternatives) to achieve this.
+        """
         return self.command_is_runnable("dump1090")
