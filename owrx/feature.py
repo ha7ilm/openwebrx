@@ -583,4 +583,4 @@ class FeatureDetector(object):
         version you would like to use. You can use symbolic links or the
         [Debian alternatives system](https://wiki.debian.org/DebianAlternatives) to achieve this.
         """
-        return self.command_is_runnable("dump1090")
+        return self.command_is_runnable("dump1090 --version")
