@@ -174,6 +174,14 @@ class Modes(object):
             squelch=False,
             secondaryFft=False,
         ),
+        DigitalMode(
+            "ism",
+            "ISM",
+            underlying=["empty"],
+            bandpass=None,
+            requirements=["ism"],
+            squelch=False,
+        )
     ]
 
     @staticmethod

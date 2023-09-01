@@ -620,6 +620,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif mod == "adsb":
             from csdr.chain.dump1090 import Dump1090
             return Dump1090()
+        elif mod == "ism":
+            from csdr.chain.rtl433 import Rtl433
+            return Rtl433()
 
     def setSecondaryDemodulator(self, mod):
         demodulator = self._getSecondaryDemodulator(mod)

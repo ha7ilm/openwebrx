@@ -85,6 +85,7 @@ class FeatureDetector(object):
         "js8call": ["js8", "js8py"],
         "drm": ["dream"],
         "dump1090": ["dump1090"],
+        "ism": ["rtl_433"],
     }
 
     def feature_availability(self):
@@ -591,3 +592,13 @@ class FeatureDetector(object):
         [Debian alternatives system](https://wiki.debian.org/DebianAlternatives) to achieve this.
         """
         return self.command_is_runnable("dump1090 --version")
+
+    def has_rtl_433(self):
+        """
+        OpenWebRX can make use of the `rtl_433` software to decode various signals in the ISM bands.
+
+        You can find more information [here](https://github.com/merbanan/rtl_433).
+
+        Debian and Ubuntu based systems should be able to install the package `rtl-433` from the package manager.
+        """
+        return self.command_is_runnable("rtl_433 -h")

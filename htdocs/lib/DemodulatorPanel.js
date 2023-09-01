@@ -165,10 +165,9 @@ DemodulatorPanel.prototype.updatePanels = function() {
     var mode = Modes.findByModulation(modulation);
     toggle_panel("openwebrx-panel-digimodes", modulation && (!mode || mode.secondaryFft));
     toggle_panel("openwebrx-panel-wsjt-message", ['ft8', 'wspr', 'jt65', 'jt9', 'ft4', 'fst4', 'fst4w', "q65", "msk144"].indexOf(modulation) >= 0);
-    toggle_panel("openwebrx-panel-js8-message", modulation === "js8");
-    toggle_panel("openwebrx-panel-packet-message", modulation === "packet");
-    toggle_panel("openwebrx-panel-pocsag-message", modulation === "pocsag");
-    toggle_panel('openwebrx-panel-adsb-message', modulation === 'adsb');
+    ['js8', 'packet', 'pocsag', 'adsb', 'ism'].forEach(function(m) {
+        toggle_panel('openwebrx-panel-' + m + '-message', modulation === m);
+    });
 
     modulation = this.getDemodulator().get_modulation();
     var showing = 'openwebrx-panel-metadata-' + modulation;
