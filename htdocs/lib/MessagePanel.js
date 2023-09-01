@@ -413,7 +413,7 @@ IsmMessagePanel.prototype.render = function() {
                 '<th class="model">Model</th>' +
                 '<th class="id">ID</th>' +
                 '<th class="channel">Channel</th>' +
-                '<th class="message">Message</th>' +
+                '<th class="data">Data</th>' +
             '</tr></thead>' +
             '<tbody></tbody>' +
         '</table>'
@@ -445,7 +445,7 @@ IsmMessagePanel.prototype.pushMessage = function(message) {
             '<td class="model">' + ifDefined(message.model) + '</td>' +
             '<td class="id">' + ifDefined(message.id) + '</td>' +
             '<td class="channel">' + ifDefined(message.channel) + '</td>' +
-            '<td class="message">' + this.htmlEscape(mergeRemainingMessage(message, ['model', 'id', 'channel', 'mode', 'time'])) + '</td>' +
+            '<td class="data">' + this.htmlEscape(mergeRemainingMessage(message, ['model', 'id', 'channel', 'mode', 'time'])) + '</td>' +
         '</tr>'
     ));
     $t.scrollTop($t[0].scrollHeight);
