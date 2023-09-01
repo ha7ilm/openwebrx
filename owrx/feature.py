@@ -165,7 +165,14 @@ class FeatureDetector(object):
                 cwd=tmp_dir,
                 env=env,
             )
-            rc = process.wait()
+            while True:
+                try:
+                    rc = process.wait(10)
+                    break
+                except subprocess.TimeoutExpired:
+                    logger.warning("feature check command \"%s\" did not return after 10 seconds!", command)
+                    process.kill()
+
             if expected_result is None:
                 return rc != 32512
             else:
