@@ -49,7 +49,12 @@ MessagePanel.prototype.initClearButton = function() {
 
 MessagePanel.prototype.htmlEscape = function(input) {
     return $('<div/>').text(input).html()
-}
+};
+
+MessagePanel.prototype.scrollToBottom = function() {
+    var $t = $(this.el).find('table');
+    $t.scrollTop($t[0].scrollHeight);
+};
 
 function WsjtMessagePanel(el) {
     MessagePanel.call(this, el);
@@ -113,7 +118,7 @@ WsjtMessagePanel.prototype.pushMessage = function(msg) {
         '<td class="message">' + linkedmsg + '</td>' +
         '</tr>'
     ));
-    $b.scrollTop($b[0].scrollHeight);
+    this.scrollToBottom();
 }
 
 $.fn.wsjtMessagePanel = function(){
@@ -219,7 +224,7 @@ PacketMessagePanel.prototype.pushMessage = function(msg) {
         '<td class="message">' + this.htmlEscape(msg.comment || msg.message || '') + '</td>' +
         '</tr>'
     ));
-    $b.scrollTop($b[0].scrollHeight);
+    this.scrollToBottom();
 };
 
 $.fn.packetMessagePanel = function() {
@@ -260,7 +265,7 @@ PocsagMessagePanel.prototype.pushMessage = function(msg) {
             '<td class="message">' + this.htmlEscape(msg.message) + '</td>' +
         '</tr>'
     ));
-    $b.scrollTop($b[0].scrollHeight);
+    this.scrollToBottom();
 };
 
 $.fn.pocsagMessagePanel = function() {
@@ -422,8 +427,7 @@ IsmMessagePanel.prototype.render = function() {
 };
 
 IsmMessagePanel.prototype.pushMessage = function(message) {
-    var $t = $(this.el).find('table');
-    var $b = $t.find('tbody');
+    var $b = $(this.el).find('tbody');
 
     var ifDefined = function(input, formatter) {
         if (typeof(input) !== 'undefined') {
@@ -448,7 +452,7 @@ IsmMessagePanel.prototype.pushMessage = function(message) {
             '<td class="data">' + this.htmlEscape(mergeRemainingMessage(message, ['model', 'id', 'channel', 'mode', 'time'])) + '</td>' +
         '</tr>'
     ));
-    $t.scrollTop($t[0].scrollHeight);
+    this.scrollToBottom();
 };
 
 $.fn.ismMessagePanel = function() {
