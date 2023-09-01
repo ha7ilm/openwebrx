@@ -83,11 +83,11 @@ Envelope.prototype.draw = function(visible_range){
         scale_ctx.stroke();
         scale_ctx.lineWidth = 1;
         scale_ctx.textAlign = "left";
-        if (this.demodulator.high_cut) {
+        if (typeof(this.demodulator.high_cut) === 'number') {
             scale_ctx.fillText(this.demodulator.high_cut.toString(), to_px + env_att_w, env_h2);
         }
         scale_ctx.textAlign = "right";
-        if (this.demodulator.low_cut) {
+        if (typeof(this.demodulator.low_cut) === 'number') {
             scale_ctx.fillText(this.demodulator.low_cut.toString(), from_px - env_att_w, env_h2);
         }
         scale_ctx.lineWidth = 3;
