@@ -135,8 +135,10 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingMod
 
     if (mode.type === 'digimode') {
         this.demodulator.set_secondary_demod(mode.modulation);
-        if (mode.bandpass) {
-            this.demodulator.setBandpass(mode.bandpass);
+        var uMode = Modes.findByModulation(underlyingModulation);
+        var bandpass = mode.bandpass || (uMode && uMode.bandpass);
+        if (bandpass) {
+            this.demodulator.setBandpass(bandpass);
         } else {
             this.demodulator.disableBandpass();
         }
