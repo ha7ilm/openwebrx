@@ -791,11 +791,10 @@ img.openwebrx-mirror-img
 
 #openwebrx-digimode-canvas-container
 {
-	/*margin: -10px -10px 10px -10px;*/
-    margin: -10px -10px 0px -10px;
-	border-radius: 15px;
-	height: 150px;
-	background-color: #333;
+    margin: -10px -10px -10px -10px;
+    border-radius: 15px;
+    height: 200px;
+    background-color: #333;
     position: relative;
     overflow: hidden;
 }
@@ -902,7 +901,7 @@ img.openwebrx-mirror-img
 #openwebrx-digimode-content-container
 {
     overflow-y: hidden;
-    display: block;
+    display: none;
     height: 50px;
     position: relative;
 }
@@ -921,16 +920,16 @@ img.openwebrx-mirror-img
 {
     transition: all 500ms;
     background-color: Yellow;
-    display: block;
+    display: none;
     position: absolute;
     pointer-events: none;
     height: 100%;
-    width: 0px;
-    top: 0px;
-    left: 0px;
+    width: 0;
+    top: 0;
+    left: 0;
     opacity: 0.7;
     border-style: solid;
-    border-width: 0px;
+    border-width: 0;
     border-color: Red;
 }
 
@@ -1260,55 +1259,19 @@ img.openwebrx-mirror-img
     padding: 5px 10px;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="jt9"]    #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="ft4"]    #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="pocsag"] #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="js8"]    #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="adsb"]   #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="ism"]    #openwebrx-digimode-content-container,
-#openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="jt9"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="ft4"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="pocsag"] #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="js8"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="adsb"]   #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode="ism"]    #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode^="rtty"] #openwebrx-digimode-content-container,
+#openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-select-channel,
+#openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-select-channel
 {
-    display: none;
+    display: block;
 }
 
-#openwebrx-panel-digimodes[data-mode="ft8"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="wspr"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="jt65"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="jt9"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="ft4"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="packet"] #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="pocsag"] #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="js8"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="fst4"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="fst4w"]  #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="q65"]    #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="msk144"] #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="adsb"]   #openwebrx-digimode-canvas-container,
-#openwebrx-panel-digimodes[data-mode="ism"]    #openwebrx-digimode-canvas-container
+#openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-canvas-container,
+#openwebrx-panel-digimodes[data-mode^="rtty"] #openwebrx-digimode-canvas-container
 {
-    height: 200px;
-    margin: -10px;
+    height: 150px;
+    margin-bottom: 0;
 }
 
 .openwebrx-zoom-button svg {
