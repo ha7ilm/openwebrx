@@ -376,5 +376,14 @@
     "frequencies": {
       "adsb": 1090000000
     }
+  },
+  {
+    "name": "ISM-433",
+    "lower_bound": 433050000,
+    "upper_bound": 434790000,
+    "tags": [],
+    "frequencies": {
+      "ism": 433920000
+    }
   }
 ]
