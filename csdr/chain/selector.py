@@ -80,9 +80,9 @@ class Selector(Chain):
         self.decimation = Decimator(inputRate, outputRate)
 
         self.bandpass = self._buildBandpass()
-        self.bandpassCutoffs = None
+        self.bandpassCutoffs = [None, None]
 
-        workers = [self.shift, self.decimation, self.bandpass]
+        workers = [self.shift, self.decimation]
 
         if withSquelch:
             self.readings_per_second = 4
@@ -92,8 +92,6 @@ class Selector(Chain):
             workers += [self.squelch]
 
         super().__init__(workers)
-
-        self.setBandpass(-4000, 4000)
 
     def _buildBandpass(self) -> Bandpass:
         bp_transition = 320.0 / self.outputRate

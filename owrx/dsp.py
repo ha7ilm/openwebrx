@@ -40,7 +40,6 @@ class ClientDemodulatorChain(Chain):
         self.hdOutputRate = hdOutputRate
         self.secondaryDspEventReceiver = secondaryDspEventReceiver
         self.selector = Selector(sampleRate, outputRate)
-        self.selector.setBandpass(-4000, 4000)
         self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT)
         self.audioBuffer = None
         self.demodulator = demod
@@ -462,6 +461,8 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
                 if mode.bandpass:
                     bpf = [mode.bandpass.low_cut, mode.bandpass.high_cut]
                     self.chain.setBandpass(*bpf)
+                    self.props["low_cut"] = mode.bandpass.low_cut
+                    self.props["high_cut"] = mode.bandpass.high_cut
                 else:
                     self.chain.setBandpass(None, None)
             else:
