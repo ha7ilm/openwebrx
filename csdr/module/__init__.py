@@ -8,6 +8,9 @@ from subprocess import Popen, PIPE
 from functools import partial
 import pickle
 import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 
 class Module(BaseModule, metaclass=ABCMeta):
@@ -144,6 +147,21 @@ class LineBasedModule(ThreadModule, metaclass=ABCMeta):
     @abstractmethod
     def process(self, line: bytes) -> any:
         pass
+
+
+class JsonParser(LineBasedModule):
+    def __init__(self, mode: str):
+        self.mode = mode
+        super().__init__()
+
+    def process(self, line):
+        try:
+            msg = json.loads(line.decode())
+            msg["mode"] = self.mode
+            logger.debug(msg)
+            return msg
+        except json.JSONDecodeError:
+            logger.exception("error parsing rtl433 json")
 
 
 class PopenModule(AutoStartModule, metaclass=ABCMeta):

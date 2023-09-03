@@ -1,4 +1,5 @@
-from owrx.ism.rtl433 import Rtl433Module, JsonParser
+from csdr.module import JsonParser
+from owrx.ism.rtl433 import Rtl433Module
 from csdr.chain.demodulator import ServiceDemodulator
 
 
@@ -10,6 +11,6 @@ class Rtl433(ServiceDemodulator):
         super().__init__(
             [
                 Rtl433Module(),
-                JsonParser(),
+                JsonParser("ISM"),
             ]
         )

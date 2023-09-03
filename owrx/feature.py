@@ -86,6 +86,7 @@ class FeatureDetector(object):
         "drm": ["dream"],
         "dump1090": ["dump1090"],
         "ism": ["rtl_433"],
+        "dumphfdl": ["dumphfdl"],
     }
 
     def feature_availability(self):
@@ -602,3 +603,9 @@ class FeatureDetector(object):
         Debian and Ubuntu based systems should be able to install the package `rtl-433` from the package manager.
         """
         return self.command_is_runnable("rtl_433 -h")
+
+    def has_dumphfdl(self):
+        """
+        TODO
+        """
+        return self.command_is_runnable("dumphfdl --version")

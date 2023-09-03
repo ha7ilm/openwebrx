@@ -461,3 +461,39 @@ $.fn.ismMessagePanel = function() {
     }
     return this.data('panel');
 };
+
+HfdlMessagePanel = function(el) {
+    MessagePanel.call(this, el);
+    this.initClearTimer();
+}
+
+HfdlMessagePanel.prototype = new MessagePanel();
+
+HfdlMessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="model">Model</th>' +
+                '<th class="id">ID</th>' +
+                '<th class="channel">Channel</th>' +
+                '<th class="data">Data</th>' +
+            '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+HfdlMessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'HFDL';
+};
+
+HfdlMessagePanel.prototype.pushMessage = function(message) {
+    console.info(message);
+};
+
+$.fn.hfdlMessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new HfdlMessagePanel(this));
+    }
+    return this.data('panel');
+};

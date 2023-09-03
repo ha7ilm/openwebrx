@@ -181,6 +181,14 @@ class Modes(object):
             bandpass=None,
             requirements=["ism"],
             squelch=False,
+        ),
+        DigitalMode(
+            "hfdl",
+            "HFDL",
+            underlying=["empty"],
+            bandpass=Bandpass(0, 3000),
+            requirements=["dumphfdl"],
+            squelch=False,
         )
     ]
 
