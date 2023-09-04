@@ -87,6 +87,7 @@ class FeatureDetector(object):
         "dump1090": ["dump1090"],
         "ism": ["rtl_433"],
         "dumphfdl": ["dumphfdl"],
+        "dumpvdl2": ["dumpvdl2"],
     }
 
     def feature_availability(self):
@@ -609,3 +610,9 @@ class FeatureDetector(object):
         TODO
         """
         return self.command_is_runnable("dumphfdl --version")
+
+    def has_dumpvdl2(self):
+        """
+        TODO
+        """
+        return self.command_is_runnable("dumpvdl2 --version")

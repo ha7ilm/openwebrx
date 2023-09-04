@@ -859,7 +859,7 @@ function on_ws_recv(evt) {
                         break;
                     case 'secondary_demod':
                         var value = json['value'];
-                        var panels = ['wsjt', 'packet', 'pocsag', 'adsb', 'ism', 'hfdl'].map(function(id) {
+                        var panels = ['wsjt', 'packet', 'pocsag', 'adsb', 'ism', 'hfdl', 'vdl2'].map(function(id) {
                             return $('#openwebrx-panel-' + id + '-message')[id + 'MessagePanel']();
                         });
                         panels.push($('#openwebrx-panel-js8-message').js8());

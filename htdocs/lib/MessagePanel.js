@@ -473,10 +473,7 @@ HfdlMessagePanel.prototype.render = function() {
     $(this.el).append($(
         '<table>' +
             '<thead><tr>' +
-                '<th class="model">Model</th>' +
-                '<th class="id">ID</th>' +
-                '<th class="channel">Channel</th>' +
-                '<th class="data">Data</th>' +
+                '<th class="todo">TODO</th>' +
             '</tr></thead>' +
             '<tbody></tbody>' +
         '</table>'
@@ -488,12 +485,56 @@ HfdlMessagePanel.prototype.supportsMessage = function(message) {
 };
 
 HfdlMessagePanel.prototype.pushMessage = function(message) {
-    console.info(message);
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+        '<td class="todo">' + JSON.stringify(message) + '</td>' +
+        '</tr>'
+    ));
 };
 
 $.fn.hfdlMessagePanel = function() {
     if (!this.data('panel')) {
         this.data('panel', new HfdlMessagePanel(this));
+    }
+    return this.data('panel');
+};
+
+Vdl2MessagePanel = function(el) {
+    MessagePanel.apply(this, el);
+    this.initClearTimer();
+}
+
+Vdl2MessagePanel.prototype = new MessagePanel();
+
+Vdl2MessagePanel.prototype.render = function() {
+    $(this.el).append($(
+        '<table>' +
+            '<thead><tr>' +
+                '<th class="todo">TODO</th>' +
+                '</tr></thead>' +
+            '<tbody></tbody>' +
+        '</table>'
+    ));
+};
+
+Vdl2MessagePanel.prototype.supportsMessage = function(message) {
+    return message['mode'] === 'VDL2';
+};
+
+Vdl2MessagePanel.prototype.pushMessage = function(message) {
+    var $b = $(this.el).find('tbody');
+    $b.append($(
+        '<tr>' +
+            '<td class="todo">' + JSON.stringify(message) + '</td>' +
+        '</tr>'
+    ));
+    this.scrollToBottom();
+};
+
+$.fn.vdl2MessagePanel = function() {
+    if (!this.data('panel')) {
+        this.data('panel', new Vdl2MessagePanel(this));
     }
     return this.data('panel');
 };

@@ -189,6 +189,14 @@ class Modes(object):
             bandpass=Bandpass(0, 3000),
             requirements=["dumphfdl"],
             squelch=False,
+        ),
+        DigitalMode(
+            "vdl2",
+            "VDL2",
+            underlying=["empty"],
+            bandpass=Bandpass(-12500, 12500),
+            requirements=["dumpvdl2"],
+            squelch=False,
         )
     ]
 
