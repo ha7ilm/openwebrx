@@ -535,7 +535,9 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                     if ('acars' in hfnpdu) {
                         var acars = hfnpdu['acars'];
                         details = '<h4>ACARS message</h4>';
-                        details += '<div>Flight: ' + acars['flight'] + '</div>';
+                        if ('flight' in acars) {
+                            details += '<div>Flight: ' + acars['flight'] + '</div>';
+                        }
                         details += '<div>Registration: ' + acars['reg'].replace(/^\.+/g, '') + '</div>';
                         details += '<div class="acars-message">' + acars['msg_text'] + '</div>';
                     }
