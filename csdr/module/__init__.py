@@ -156,7 +156,7 @@ class JsonParser(LineBasedModule):
 
     def process(self, line):
         try:
-            msg = json.loads(line.decode())
+            msg = json.loads(line)
             msg["mode"] = self.mode
             logger.debug(msg)
             return msg
