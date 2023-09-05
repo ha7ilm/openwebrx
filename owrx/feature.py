@@ -587,7 +587,8 @@ class FeatureDetector(object):
 
         Recommended fork: [dump1090 by Flightaware](https://github.com/flightaware/dump1090)
 
-        If you are using the OpenWebRX repository, you should be able to install the package `dump1090-fa-minimal`.
+        If you are using the OpenWebRX Debian or Ubuntu repository, you should be able to install the package
+        `dump1090-fa-minimal`.
 
         If you are running a different fork, please make sure that the command `dump1090` (without suffixes) runs the
         version you would like to use. You can use symbolic links or the
@@ -607,12 +608,22 @@ class FeatureDetector(object):
 
     def has_dumphfdl(self):
         """
-        TODO
+        OpenWebRX supports decoding HFDL airplane communications using the `dumphfdl` decoder.
+
+        You can find more information [here](https://github.com/szpajder/dumphfdl)
+
+        If you are using the OpenWebRX Debian or Ubuntu repository, you should be able to install the package
+        `dumphfdl`.
         """
         return self.command_is_runnable("dumphfdl --version")
 
     def has_dumpvdl2(self):
         """
-        TODO
+        OpenWebRX supports decoding VDL Mode 2 airplane communications using the `dumpvdl2` decoder.
+
+        You can find more information [here](https://github.com/szpajder/dumpvdl2)
+
+        If you are using the OpenWebRX Debian or Ubuntu repository, you should be able to install the package
+        `dumpvdl2`.
         """
         return self.command_is_runnable("dumpvdl2 --version")
