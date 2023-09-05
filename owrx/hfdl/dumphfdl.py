@@ -26,7 +26,8 @@ class DumpHFDLModule(ExecModule):
                 "--sample-rate", "12000",
                 "--output", "decoded:json:file:path=-",
                 "0",
-            ]
+            ],
+            flushSize=50000,
         )
 
 
