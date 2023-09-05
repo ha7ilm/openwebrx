@@ -473,7 +473,9 @@ HfdlMessagePanel.prototype.render = function() {
     $(this.el).append($(
         '<table>' +
             '<thead><tr>' +
-                '<th class="todo">TODO</th>' +
+                '<th class="source">Source</th>' +
+                '<th class="destination">Destination</th>' +
+                '<th class="details">Details</th>' +
             '</tr></thead>' +
             '<tbody></tbody>' +
         '</table>'
@@ -486,11 +488,105 @@ HfdlMessagePanel.prototype.supportsMessage = function(message) {
 
 HfdlMessagePanel.prototype.pushMessage = function(message) {
     var $b = $(this.el).find('tbody');
+
+    var src = '';
+    var dst = '';
+    var details = JSON.stringify(message);
+
+    var renderAddress = function(a) {
+        return a['id'];
+    }
+
+    // TODO remove safety net once parsing is complete
+    try {
+        var payload = message['hfdl'];
+        if ('spdu' in payload) {
+            var spdu = payload['spdu'];
+            src = renderAddress(spdu['src']);
+            details = '<h4>HFDL Squitter message</h4>'
+            details += '<div>Systable version: ' + spdu['systable_version'] + '</div>';
+
+            if ('gs_status' in spdu) {
+                details += spdu['gs_status'].map(function(gs){
+                    return '<div>Ground station ' + gs['gs']['id'] + ' is operating on frequency ids ' + gs['freqs'].map(function(f) {return f['id']; }).join(', ') + '</div>';
+                }).join('')
+            }
+        } else if ('lpdu' in payload) {
+            var lpdu = payload['lpdu'];
+            src = renderAddress(lpdu['src']);
+            dst = renderAddress(lpdu['dst']);
+            if (lpdu['type']['id'] === 13 || lpdu['type']['id'] === 29) {
+                // unnumbered data
+                var hfnpdu = lpdu['hfnpdu'];
+                if (hfnpdu['type']['id'] === 209) {
+                    // performance data
+                    details = '<h4>Performance data</h4>';
+                    details += '<div>Flight: ' + hfnpdu['flight_id'] + '</div>';
+                    if ('pos' in hfnpdu) {
+                        var pos = hfnpdu['pos'];
+                        var lat = pos['lat'] || 180;
+                        var lon = pos['lon'] || 180;
+                        if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+                            details += '<div>Position: ' + pos['lat'] + ', ' + pos['lon'] + '</div>';
+                        }
+                    }
+                } else if (hfnpdu['type']['id'] === 255) {
+                    // enveloped data
+                    if ('acars' in hfnpdu) {
+                        var acars = hfnpdu['acars'];
+                        details = '<h4>ACARS message</h4>';
+                        details += '<div>Flight: ' + acars['flight'] + '</div>';
+                        details += '<div>Registration: ' + acars['reg'] + '</div>';
+                        details += '<div class="acars_message">' + acars['msg_text'] + '</div>';
+                    }
+                }
+            } else if (lpdu['type']['id'] === 47) {
+                // logon denied
+                details = '<h4>Logon denied</h4>';
+            } else if (lpdu['type']['id'] === 63) {
+                details = '<h4>Logoff request</h4>';
+                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                }
+            } else if (lpdu['type']['id'] === 79) {
+                details = '<h4>Logon resume</h4>';
+                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                }
+            } else if (lpdu['type']['id'] === 95) {
+                details = '<h4>Logon resume confirmation</h4>';
+            } else if (lpdu['type']['id'] === 143) {
+                details = '<h4>Logon request</h4>';
+                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                }
+            } else if (lpdu['type']['id'] === 159) {
+                details = '<h4>Logon confirmation</h4>';
+                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                }
+                if (lpdu['assigned_ac_id']) {
+                    details += '<div>Assigned aircraft ID: ' + lpdu['assigned_ac_id'] + '</div>';
+                }
+            } else if (lpdu['type']['id'] === 191) {
+                details = '<h4>Logon request (DLS)</h4>';
+                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                }
+            }
+        }
+    } catch (e) {
+        console.error(e, e.stack);
+    }
+
     $b.append($(
         '<tr>' +
-        '<td class="todo">' + JSON.stringify(message) + '</td>' +
+            '<td class="source">' + src + '</td>' +
+            '<td class="destination">' + dst + '</td>' +
+            '<td class="details">' + details + '</td>' +
         '</tr>'
     ));
+    this.scrollToBottom();
 };
 
 $.fn.hfdlMessagePanel = function() {

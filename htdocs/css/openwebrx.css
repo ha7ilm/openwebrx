@@ -1122,6 +1122,15 @@ img.openwebrx-mirror-img
     background-color: #575757;
 }
 
+.openwebrx-message-panel h4 {
+	margin: .25em 0;
+}
+
+.openwebrx-message-panel .acars-message {
+	white-space: pre;
+	font-family: roboto-mono, monospace;
+}
+
 #openwebrx-panel-wsjt-message .message {
     width: 380px;
 }
