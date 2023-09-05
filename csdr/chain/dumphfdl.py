@@ -1,13 +1,12 @@
 from csdr.chain.demodulator import ServiceDemodulator
-from owrx.hfdl.dumphfdl import DumpHFDLModule
-from csdr.module import JsonParser
+from owrx.hfdl.dumphfdl import DumpHFDLModule, HFDLMessageParser
 
 
 class DumpHFDL(ServiceDemodulator):
     def __init__(self):
         super().__init__([
             DumpHFDLModule(),
-            JsonParser("HFDL"),
+            HFDLMessageParser(),
         ])
 
     def getFixedAudioRate(self) -> int:

@@ -129,7 +129,7 @@ $(function(){
                         aprsOptions.symbol = update.location.symbol;
                         aprsOptions.course = update.location.course;
                         aprsOptions.speed = update.location.speed;
-                    } else if (update.source.icao) {
+                    } else if (update.source.icao || update.source.flight) {
                         markerClass = PlaneMarker;
                         aprsOptions = update.location;
                     }
@@ -382,6 +382,7 @@ $(function(){
         if ('item' in source) return source['item'];
         if ('object' in source) return source['object'];
         if ('icao' in source) return source['icao'];
+        if ('flight' in source) return source['flight'];
         var key = source.callsign;
         if ('ssid' in source) key += '-' + source.ssid;
         return key;
@@ -406,7 +407,7 @@ $(function(){
     };
 
     var linkifyAircraft = function(source, identification) {
-        var aircraftString = identification || source.icao;
+        var aircraftString = identification || source.icao || source.flight;
         var link = false;
         switch (aircraft_tracking_service) {
             case 'flightaware':

@@ -82,6 +82,8 @@ class Map(object):
             return "{callsign}-{ssid}".format(**source)
         elif "icao" in source:
             return source["icao"]
+        elif "flight" in source:
+            return source["flight"]
         return source["callsign"]
 
     def updateLocation(self, source, loc: Location, mode: str, band: Band = None):
