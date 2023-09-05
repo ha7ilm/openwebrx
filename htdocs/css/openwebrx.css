@@ -1113,6 +1113,7 @@ img.openwebrx-mirror-img
 .openwebrx-message-panel td {
     min-width: 50px;
     text-align: left;
+	vertical-align: top;
     padding: 1px 3px;
 }
 
@@ -1123,7 +1124,7 @@ img.openwebrx-mirror-img
 }
 
 .openwebrx-message-panel h4 {
-	margin: .25em 0;
+	margin: 0 0 .25em;
 }
 
 .openwebrx-message-panel .acars-message {
