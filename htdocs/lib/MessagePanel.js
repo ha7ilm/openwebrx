@@ -537,7 +537,7 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                         details = '<h4>ACARS message</h4>';
                         details += '<div>Flight: ' + acars['flight'] + '</div>';
                         details += '<div>Registration: ' + acars['reg'] + '</div>';
-                        details += '<div class="acars_message">' + acars['msg_text'] + '</div>';
+                        details += '<div class="acars-message">' + acars['msg_text'] + '</div>';
                     }
                 }
             } else if (lpdu['type']['id'] === 47) {
