@@ -481,7 +481,7 @@ $(function(){
             distance = " at " + distanceKm(receiverMarker.position, marker.position) + " km";
         }
         var title;
-        if (marker.icao) {
+        if (marker.source.icao || marker.source.flight) {
             title = linkifyAircraft(source, marker.identification);
             if ('altitude' in marker) {
                 commentString += '<div>Altitude: ' + marker.altitude + ' ft</div>';

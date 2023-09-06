@@ -23,11 +23,10 @@ class AirplaneLocation(IncrementalUpdate, LatLngLocation):
         "heading",
     ]
 
-    def __init__(self, icao, message):
+    def __init__(self, message):
         self.history = []
         self.timestamp = datetime.now()
         self.props = message
-        self.icao = icao
         if "lat" in message and "lon" in message:
             super().__init__(message["lat"], message["lon"])
         else:
@@ -55,10 +54,9 @@ class AirplaneLocation(IncrementalUpdate, LatLngLocation):
             self.lon = merged["lon"]
 
     def __dict__(self):
-        dict = super().__dict__()
-        dict.update(self.props)
-        dict["icao"] = self.icao
-        return dict
+        res = super().__dict__()
+        res.update(self.props)
+        return res
 
 
 class AdsbLocation(AirplaneLocation):
@@ -283,7 +281,7 @@ class ModeSParser(PickleModule):
 
         if "icao" in message and AirplaneLocation.mapKeys & message.keys():
             data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
-            loc = AdsbLocation(message["icao"], data)
+            loc = AdsbLocation(data)
             Map.getSharedInstance().updateLocation({"icao": message['icao']}, loc, "ADS-B", None)
 
         return message

@@ -6,8 +6,7 @@ from owrx.map import Map
 
 
 class HfdlAirplaneLocation(AirplaneLocation):
-    def __init__(self, message):
-        super().__init__(None, message)
+    pass
 
 
 class DumpHFDLModule(ExecModule):
