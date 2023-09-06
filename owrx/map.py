@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from owrx.config import Config
 from owrx.bands import Band
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod, ABC, ABCMeta
 import threading
 import time
 import sys
@@ -20,6 +20,15 @@ class Location(object):
         return {
             "ttl": self.getTTL().total_seconds() * 1000
         }
+
+
+class Source(ABC):
+    @abstractmethod
+    def getKey(self) -> str:
+        pass
+
+    def __dict__(self):
+        return {}
 
 
 class Map(object):
@@ -67,7 +76,7 @@ class Map(object):
         client.write_update(
             [
                 {
-                    "source": record["source"],
+                    "source": record["source"].__dict__(),
                     "location": record["location"].__dict__(),
                     "lastseen": record["updated"].timestamp() * 1000,
                     "mode": record["mode"],
@@ -83,18 +92,9 @@ class Map(object):
         except ValueError:
             pass
 
-    def _sourceToKey(self, source):
-        if "ssid" in source:
-            return "{callsign}-{ssid}".format(**source)
-        elif "icao" in source:
-            return source["icao"]
-        elif "flight" in source:
-            return source["flight"]
-        return source["callsign"]
-
-    def updateLocation(self, source, loc: Location, mode: str, band: Band = None):
+    def updateLocation(self, source: Source, loc: Location, mode: str, band: Band = None):
         ts = datetime.now()
-        key = self._sourceToKey(source)
+        key = source.getKey()
         with self.positionsLock:
             if isinstance(loc, IncrementalUpdate) and key in self.positions:
                 loc.update(self.positions[key]["location"])
@@ -102,7 +102,7 @@ class Map(object):
         self.broadcast(
             [
                 {
-                    "source": source,
+                    "source": source.__dict__(),
                     "location": loc.__dict__(),
                     "lastseen": ts.timestamp() * 1000,
                     "mode": mode,
@@ -111,14 +111,14 @@ class Map(object):
             ]
         )
 
-    def touchLocation(self, source):
+    def touchLocation(self, source: Source):
         # not implemented on the client side yet, so do not use!
         ts = datetime.now()
-        key = self._sourceToKey(source)
+        key = source.getKey()
         with self.positionsLock:
             if key in self.positions:
                 self.positions[key]["updated"] = ts
-        self.broadcast([{"source": source, "lastseen": ts.timestamp() * 1000}])
+        self.broadcast([{"source": source.__dict__(), "lastseen": ts.timestamp() * 1000}])
 
     def removeLocation(self, key):
         with self.positionsLock:
@@ -172,3 +172,14 @@ class IncrementalUpdate(Location, metaclass=ABCMeta):
     @abstractmethod
     def update(self, previousLocation: Location):
         pass
+
+
+class CallsignSource(Source):
+    def __init__(self, callsign: str):
+        self.callsign = callsign
+
+    def getKey(self) -> str:
+        return "callsign:{}".format(self.callsign)
+
+    def __dict__(self):
+        return {"callsign": self.callsign}

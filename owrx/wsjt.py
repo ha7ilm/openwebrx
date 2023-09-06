@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import List
-from owrx.map import Map, LocatorLocation
+from owrx.map import Map, LocatorLocation, CallsignSource
 from owrx.metrics import Metrics, CounterMetric
 from owrx.reporting import ReportingEngine
 from owrx.audio import AudioChopperProfile, StaticProfileSource, ConfigWiredProfileSource
@@ -289,7 +289,7 @@ class WsjtParser(AudioChopperParser):
             self.pushDecode(mode, band)
             if "source" in out and "locator" in out:
                 Map.getSharedInstance().updateLocation(
-                    out["source"], LocatorLocation(out["locator"]), mode, band
+                    CallsignSource(**out["source"]), LocatorLocation(out["locator"]), mode, band
                 )
                 ReportingEngine.getSharedInstance().spot(out)
 

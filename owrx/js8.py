@@ -3,7 +3,7 @@ from owrx.audio.chopper import AudioChopperParser
 import re
 from js8py import Js8
 from js8py.frames import Js8FrameHeartbeat, Js8FrameCompound
-from owrx.map import Map, LocatorLocation
+from owrx.map import Map, LocatorLocation, CallsignSource
 from owrx.metrics import Metrics, CounterMetric
 from owrx.config import Config
 from abc import ABCMeta, abstractmethod
@@ -103,7 +103,7 @@ class Js8Parser(AudioChopperParser):
 
             if (isinstance(frame, Js8FrameHeartbeat) or isinstance(frame, Js8FrameCompound)) and frame.grid:
                 Map.getSharedInstance().updateLocation(
-                    frame.source, LocatorLocation(frame.grid), "JS8", band
+                    CallsignSource(**frame.source), LocatorLocation(frame.grid), "JS8", band
                 )
                 ReportingEngine.getSharedInstance().spot(
                     {

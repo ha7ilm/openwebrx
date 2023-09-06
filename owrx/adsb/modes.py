@@ -1,6 +1,6 @@
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
-from owrx.map import LatLngLocation, IncrementalUpdate, Location, Map
+from owrx.map import LatLngLocation, IncrementalUpdate, Location, Map, Source
 from owrx.metrics import Metrics, CounterMetric
 from datetime import datetime, timedelta
 from enum import Enum
@@ -63,6 +63,17 @@ class AdsbLocation(AirplaneLocation):
     def getTTL(self) -> timedelta:
         # fixed ttl for adsb-locations for now
         return timedelta(seconds=30)
+
+
+class IcaoSource(Source):
+    def __init__(self, icao: str):
+        self.icao = icao
+
+    def getKey(self) -> str:
+        return "icao:{}".format(self.icao)
+
+    def __dict__(self):
+        return {"icao": self.icao}
 
 
 class CprRecordType(Enum):
@@ -282,7 +293,7 @@ class ModeSParser(PickleModule):
         if "icao" in message and AirplaneLocation.mapKeys & message.keys():
             data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
             loc = AdsbLocation(data)
-            Map.getSharedInstance().updateLocation({"icao": message['icao']}, loc, "ADS-B", None)
+            Map.getSharedInstance().updateLocation(IcaoSource(message['icao']), loc, "ADS-B", None)
 
         return message
 

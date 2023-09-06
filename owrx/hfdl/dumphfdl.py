@@ -2,11 +2,22 @@ from pycsdr.modules import ExecModule
 from pycsdr.types import Format
 from csdr.module import JsonParser
 from owrx.adsb.modes import AirplaneLocation
-from owrx.map import Map
+from owrx.map import Map, Source
 
 
 class HfdlAirplaneLocation(AirplaneLocation):
     pass
+
+
+class HfdlSource(Source):
+    def __init__(self, flight):
+        self.flight = flight
+
+    def getKey(self) -> str:
+        return "hfdl:{}".format(self.flight)
+
+    def __dict__(self):
+        return {"flight": self.flight}
 
 
 class DumpHFDLModule(ExecModule):
@@ -42,5 +53,5 @@ class HFDLMessageParser(JsonParser):
                         if "pos" in hfnpdu:
                             pos = hfnpdu['pos']
                             if abs(pos['lat']) <= 90 and abs(pos['lon']) <= 180:
-                                Map.getSharedInstance().updateLocation({"flight": hfnpdu["flight_id"]}, HfdlAirplaneLocation(pos), "HFDL")
+                                Map.getSharedInstance().updateLocation(HfdlSource(hfnpdu["flight_id"]), HfdlAirplaneLocation(pos), "HFDL")
         return msg

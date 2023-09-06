@@ -1,4 +1,4 @@
-from owrx.map import Map, LatLngLocation
+from owrx.map import Map, LatLngLocation, Source
 from owrx.metrics import Metrics, CounterMetric
 from owrx.bands import Bandplan
 from datetime import datetime, timezone
@@ -155,6 +155,20 @@ class AprsLocation(LatLngLocation):
         return res
 
 
+class AprsSource(Source):
+    def __init__(self, source):
+        self.source = source
+
+    def getKey(self) -> str:
+        callsign = self.source["callsign"]
+        if "ssid" in self.source:
+            callsign += "-{}".format(self.source["ssid"])
+        return "aprs:{}".format(callsign)
+
+    def __dict__(self):
+        return self.source
+
+
 class AprsParser(PickleModule):
     def __init__(self):
         super().__init__()
@@ -215,7 +229,7 @@ class AprsParser(PickleModule):
                     source["item"] = mapData["item"]
                 elif mapData["type"] == "object" and "object" in mapData:
                     source["object"] = mapData["object"]
-            Map.getSharedInstance().updateLocation(source, loc, "APRS", self.band)
+            Map.getSharedInstance().updateLocation(AprsSource(source), loc, "APRS", self.band)
 
     def hasCompressedCoordinates(self, raw):
         return raw[0] == "/" or raw[0] == "\\"
