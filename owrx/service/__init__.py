@@ -315,6 +315,9 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "adsb":
             from csdr.chain.dump1090 import Dump1090
             return Dump1090()
+        elif mod == "hfdl":
+            from csdr.chain.dumphfdl import DumpHFDL
+            return DumpHFDL()
 
         raise ValueError("unsupported service modulation: {}".format(mod))
 
