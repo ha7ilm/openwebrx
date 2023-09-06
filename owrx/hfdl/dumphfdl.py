@@ -3,15 +3,11 @@ from pycsdr.types import Format
 from csdr.module import JsonParser
 from owrx.adsb.modes import AirplaneLocation
 from owrx.map import Map
-from datetime import timedelta
 
 
 class HfdlAirplaneLocation(AirplaneLocation):
     def __init__(self, message):
         super().__init__(None, message)
-
-    def getTTL(self) -> timedelta:
-        return timedelta(minutes=60)
 
 
 class DumpHFDLModule(ExecModule):

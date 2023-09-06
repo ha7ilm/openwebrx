@@ -30,8 +30,6 @@ $(function(){
     var receiverMarker;
     var updateQueue = [];
 
-    // reasonable default; will be overriden by server
-    var retention_time = 2 * 60 * 60 * 1000;
     var strokeOpacity = 0.8;
     var fillOpacity = 0.35;
     var callsign_service;
@@ -160,6 +158,7 @@ $(function(){
                     marker.mode = update.mode;
                     marker.band = update.band;
                     marker.comment = update.location.comment;
+                    marker.ttl = update.location.ttl;
 
                     if (expectedCallsign && shallowEquals(expectedCallsign, update.source))  {
                         map.panTo(pos);
@@ -200,6 +199,7 @@ $(function(){
                     rectangle.mode = update.mode;
                     rectangle.band = update.band;
                     rectangle.center = center;
+                    rectangle.ttl = update.location.ttl;
 
                     rectangle.setOptions($.extend({
                         strokeColor: color,
@@ -312,9 +312,6 @@ $(function(){
                             receiverMarker.setOptions({
                                 title: config['receiver_name']
                             });
-                        }
-                        if ('map_position_retention_time' in config) {
-                            retention_time = config.map_position_retention_time * 1000;
                         }
                         if ('callsign_service' in config) {
                             callsign_service = config['callsign_service'];
@@ -521,25 +518,25 @@ $(function(){
         infowindow.open(map, marker);
     };
 
-    var getScale = function(lastseen) {
+    var getScale = function(lastseen, ttl) {
         var age = new Date().getTime() - lastseen;
         var scale = 1;
-        if (age >= retention_time / 2) {
-            scale = (retention_time - age) / (retention_time / 2);
+        if (age >= ttl / 2) {
+            scale = (ttl - age) / (ttl / 2);
         }
         return Math.max(0, Math.min(1, scale));
     };
 
-    var getRectangleOpacityOptions = function(lastseen) {
-        var scale = getScale(lastseen);
+    var getRectangleOpacityOptions = function(lastseen, ttl) {
+        var scale = getScale(lastseen, ttl);
         return {
             strokeOpacity: strokeOpacity * scale,
             fillOpacity: fillOpacity * scale
         };
     };
 
-    var getMarkerOpacityOptions = function(lastseen) {
-        var scale = getScale(lastseen);
+    var getMarkerOpacityOptions = function(lastseen, ttl) {
+        var scale = getScale(lastseen, ttl);
         return {
             opacity: scale
         };
@@ -550,21 +547,21 @@ $(function(){
         var now = new Date().getTime();
         Object.values(rectangles).forEach(function(m){
             var age = now - m.lastseen;
-            if (age > retention_time) {
+            if (age > m.ttl) {
                 delete rectangles[sourceToKey(m.source)];
                 m.setMap();
                 return;
             }
-            m.setOptions(getRectangleOpacityOptions(m.lastseen));
+            m.setOptions(getRectangleOpacityOptions(m.lastseen, m.ttl));
         });
         Object.values(markers).forEach(function(m) {
             var age = now - m.lastseen;
-            if (age > retention_time || (m.ttl && age > m.ttl)) {
+            if (age > m.ttl) {
                 delete markers[sourceToKey(m.source)];
                 m.setMap();
                 return;
             }
-            m.setOptions(getMarkerOpacityOptions(m.lastseen));
+            m.setOptions(getMarkerOpacityOptions(m.lastseen, m.ttl));
         });
     }, 1000);
 

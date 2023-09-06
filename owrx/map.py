@@ -12,8 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 class Location(object):
+    def getTTL(self) -> timedelta:
+        pm = Config.get()
+        return timedelta(seconds=pm["map_position_retention_time"])
+
     def __dict__(self):
-        return {}
+        return {
+            "ttl": self.getTTL().total_seconds() * 1000
+        }
 
 
 class Map(object):
@@ -120,21 +126,12 @@ class Map(object):
             # TODO broadcast removal to clients
 
     def removeOldPositions(self):
-        pm = Config.get()
-        retention = timedelta(seconds=pm["map_position_retention_time"])
         now = datetime.now()
-        cutoff = now - retention
-
-        def isExpired(pos):
-            if pos["updated"] < cutoff:
-                return True
-            if isinstance(pos["location"], TTLUpdate):
-                if now - pos["location"].getTTL() > pos["updated"]:
-                    return True
-            return False
 
         with self.positionsLock:
-            to_be_removed = [key for (key, pos) in self.positions.items() if isExpired(pos)]
+            to_be_removed = [
+                key for (key, pos) in self.positions.items() if now - pos["location"].getTTL() > pos["updated"]
+            ]
         for key in to_be_removed:
             self.removeLocation(key)
 
@@ -152,7 +149,10 @@ class LatLngLocation(Location):
         self.lon = lon
 
     def __dict__(self):
-        res = {"type": "latlon", "lat": self.lat, "lon": self.lon}
+        res = super().__dict__()
+        res.update(
+            {"type": "latlon", "lat": self.lat, "lon": self.lon}
+        )
         return res
 
 
@@ -161,21 +161,14 @@ class LocatorLocation(Location):
         self.locator = locator
 
     def __dict__(self):
-        return {"type": "locator", "locator": self.locator}
+        res = super().__dict__()
+        res.update(
+            {"type": "locator", "locator": self.locator}
+        )
+        return res
 
 
 class IncrementalUpdate(Location, metaclass=ABCMeta):
     @abstractmethod
     def update(self, previousLocation: Location):
         pass
-
-
-class TTLUpdate(Location, metaclass=ABCMeta):
-    @abstractmethod
-    def getTTL(self) -> timedelta:
-        pass
-
-    def __dict__(self):
-        res = super().__dict__()
-        res["ttl"] = self.getTTL().total_seconds() * 1000
-        return res

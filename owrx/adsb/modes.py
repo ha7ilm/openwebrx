@@ -1,15 +1,14 @@
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
-from owrx.map import LatLngLocation, IncrementalUpdate, TTLUpdate, Location, Map
+from owrx.map import LatLngLocation, IncrementalUpdate, Location, Map
 from owrx.metrics import Metrics, CounterMetric
-from datetime import timedelta
+from datetime import datetime, timedelta
 from enum import Enum
-import time
 
 FEET_PER_METER = 3.28084
 
 
-class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
+class AirplaneLocation(IncrementalUpdate, LatLngLocation):
     mapKeys = [
         "lat",
         "lon",
@@ -23,11 +22,10 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
         "IAS",
         "heading",
     ]
-    ttl = 30
 
     def __init__(self, icao, message):
         self.history = []
-        self.timestamp = time.time()
+        self.timestamp = datetime.now()
         self.props = message
         self.icao = icao
         if "lat" in message and "lon" in message:
@@ -38,8 +36,8 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
 
     def update(self, previousLocation: Location):
         history = previousLocation.history
-        now = time.time()
-        history = [p for p in history if now - p["timestamp"] < self.ttl]
+        now = datetime.now()
+        history = [p for p in history if now - p["timestamp"] < self.getTTL()]
         history += [{
             "timestamp": self.timestamp,
             "props": self.props,
@@ -62,8 +60,11 @@ class AirplaneLocation(IncrementalUpdate, TTLUpdate, LatLngLocation):
         dict["icao"] = self.icao
         return dict
 
+
+class AdsbLocation(AirplaneLocation):
     def getTTL(self) -> timedelta:
-        return timedelta(seconds=self.ttl)
+        # fixed ttl for adsb-locations for now
+        return timedelta(seconds=30)
 
 
 class CprRecordType(Enum):
@@ -93,8 +94,8 @@ class CprCache:
         records = self.__getRecords(cprType)
         if icao not in records:
             return []
-        now = time.time()
-        filtered = [r for r in records[icao] if now - r["timestamp"] < 10]
+        now = datetime.now()
+        filtered = [r for r in records[icao] if now - r["timestamp"] < timedelta(seconds=10)]
         records_sorted = sorted(filtered, key=lambda r: r["timestamp"])
         records[icao] = records_sorted
         return [r["data"] for r in records_sorted]
@@ -103,7 +104,7 @@ class CprCache:
         records = self.__getRecords(cprType)
         if icao not in records:
             records[icao] = []
-        records[icao].append({"timestamp": time.time(), "data": data})
+        records[icao].append({"timestamp": datetime.now(), "data": data})
 
 
 class ModeSParser(PickleModule):
@@ -282,7 +283,7 @@ class ModeSParser(PickleModule):
 
         if "icao" in message and AirplaneLocation.mapKeys & message.keys():
             data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
-            loc = AirplaneLocation(message["icao"], data)
+            loc = AdsbLocation(message["icao"], data)
             Map.getSharedInstance().updateLocation({"icao": message['icao']}, loc, "ADS-B", None)
 
         return message
