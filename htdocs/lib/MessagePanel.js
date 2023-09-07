@@ -64,7 +64,7 @@ function WsjtMessagePanel(el) {
     this.modes = [].concat(this.qsoModes, this.beaconModes);
 }
 
-WsjtMessagePanel.prototype = new MessagePanel();
+WsjtMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 WsjtMessagePanel.prototype.supportsMessage = function(message) {
     return this.modes.indexOf(message['mode']) >= 0;
@@ -133,7 +133,7 @@ function PacketMessagePanel(el) {
     this.initClearTimer();
 }
 
-PacketMessagePanel.prototype = new MessagePanel();
+PacketMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 PacketMessagePanel.prototype.supportsMessage = function(message) {
     return message['mode'] === 'APRS';
@@ -239,7 +239,7 @@ PocsagMessagePanel = function(el) {
     this.initClearTimer();
 }
 
-PocsagMessagePanel.prototype = new MessagePanel();
+PocsagMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 PocsagMessagePanel.prototype.supportsMessage = function(message) {
     return message['mode'] === 'Pocsag';
@@ -282,7 +282,7 @@ AdsbMessagePanel = function(el) {
     this.initClearTimer();
 }
 
-AdsbMessagePanel.prototype = new MessagePanel();
+AdsbMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 AdsbMessagePanel.prototype.supportsMessage = function(message) {
     return message["mode"] === "ADSB";
@@ -405,7 +405,7 @@ IsmMessagePanel = function(el) {
     this.initClearTimer();
 };
 
-IsmMessagePanel.prototype = new MessagePanel();
+IsmMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 IsmMessagePanel.prototype.supportsMessage = function(message) {
     return message['mode'] === 'ISM';
@@ -462,12 +462,60 @@ $.fn.ismMessagePanel = function() {
     return this.data('panel');
 };
 
-HfdlMessagePanel = function(el) {
+AircraftMessagePanel = function(el) {
     MessagePanel.call(this, el);
+}
+
+AircraftMessagePanel.prototype = Object.create(MessagePanel.prototype);
+
+AircraftMessagePanel.prototype.renderAcars = function(acars) {
+    var details = '<h4>ACARS message</h4>';
+    if ('flight' in acars) {
+        details += '<div>Flight: ' + acars['flight'] + '</div>';
+    }
+    details += '<div>Registration: ' + acars['reg'].replace(/^\.+/g, '') + '</div>';
+    if ('media-adv' in acars) {
+        details += '<div>Media advisory</div>';
+        if ('current_link' in acars) {
+            details += '<div>Current link: ' + acars['current_link']['descr'];
+        }
+        if ('links_avail' in acars) {
+            details += '<div>Available links: ' + acars['links_avail'].map(function (l) {
+                return l['descr'];
+            }).join(', ') + '</div>';
+        }
+    } else if ('arinc622' in acars) {
+        var arinc622 = acars['arinc622'];
+        if ('adsc' in arinc622) {
+            var adsc = arinc622['adsc'];
+            if ('tags' in adsc) {
+                adsc['tags'].forEach(function(tag) {
+                    if ('basic_report' in tag) {
+                        var basic_report = tag['basic_report'];
+                        details += '<div>Basic report</div>';
+                        details += '<div>Position: ' + basic_report['lat'] + ', ' + basic_report['lon'] + '</div>';
+                        details += '<div>Altitude: ' + basic_report['alt'] + '</div>';
+                    } else {
+                        details += '<div>Unsupported tag</div>';
+                    }
+                });
+            } else {
+                details += '<div>Other ADS-C data</div>';
+            }
+        }
+    } else {
+        // plain text
+        details += '<div class="acars-message">' + acars['msg_text'] + '</div>';
+    }
+    return details;
+}
+
+HfdlMessagePanel = function(el) {
+    AircraftMessagePanel.call(this, el);
     this.initClearTimer();
 }
 
-HfdlMessagePanel.prototype = new MessagePanel();
+HfdlMessagePanel.prototype = Object.create(AircraftMessagePanel.prototype);
 
 HfdlMessagePanel.prototype.render = function() {
     $(this.el).append($(
@@ -533,13 +581,7 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                 } else if (hfnpdu['type']['id'] === 255) {
                     // enveloped data
                     if ('acars' in hfnpdu) {
-                        var acars = hfnpdu['acars'];
-                        details = '<h4>ACARS message</h4>';
-                        if ('flight' in acars) {
-                            details += '<div>Flight: ' + acars['flight'] + '</div>';
-                        }
-                        details += '<div>Registration: ' + acars['reg'].replace(/^\.+/g, '') + '</div>';
-                        details += '<div class="acars-message">' + acars['msg_text'] + '</div>';
+                        details = this.renderAcars(hfnpdu['acars']);
                     }
                 }
             } else if (lpdu['type']['id'] === 47) {
@@ -599,18 +641,20 @@ $.fn.hfdlMessagePanel = function() {
 };
 
 Vdl2MessagePanel = function(el) {
-    MessagePanel.apply(this, el);
+    AircraftMessagePanel.call(this, el);
     this.initClearTimer();
 }
 
-Vdl2MessagePanel.prototype = new MessagePanel();
+Vdl2MessagePanel.prototype = Object.create(AircraftMessagePanel.prototype);
 
 Vdl2MessagePanel.prototype.render = function() {
     $(this.el).append($(
         '<table>' +
             '<thead><tr>' +
-                '<th class="todo">TODO</th>' +
-                '</tr></thead>' +
+                '<th class="source">Source</th>' +
+                '<th class="destination">Destination</th>' +
+                '<th class="details">Details</th>' +
+            '</tr></thead>' +
             '<tbody></tbody>' +
         '</table>'
     ));
@@ -622,9 +666,77 @@ Vdl2MessagePanel.prototype.supportsMessage = function(message) {
 
 Vdl2MessagePanel.prototype.pushMessage = function(message) {
     var $b = $(this.el).find('tbody');
+    var src = '';
+    var dst = '';
+    var details = JSON.stringify(message);
+
+    var renderAddress = function(a) {
+        return '<div>' + a['addr'] + '</div><div>' + a['type'] + ( 'status' in a ? ' (' + a['status'] + ')' : '' ) + '</div>'
+    }
+
+    // TODO remove safety net once parsing is complete
+    try {
+        var payload = message['vdl2'];
+        if ('avlc' in payload) {
+            var avlc = payload['avlc'];
+            src = renderAddress(avlc['src']);
+            dst = renderAddress(avlc['dst']);
+
+            if (avlc['frame_type'] === 'S') {
+                details = '<h4>Supervisory frame</h4>';
+                if (avlc['cmd'] === 'Receive Ready') {
+                    details = '<h4>Receive Ready</h4>';
+                }
+            } else if (avlc['frame_type'] === 'I') {
+                details = '<h4>Information frame</h4>';
+                if ('acars' in avlc) {
+                    details = this.renderAcars(avlc['acars']);
+                } else if ('x25' in avlc) {
+                    var x25 = avlc['x25'];
+                    if (!('reasm_status' in x25) || ['skipped', 'complete'].includes(x25['reasm_status'])) {
+                        details = '<h4>X.25 frame</h4>';
+                        if ('clnp' in x25) {
+                            var clnp = x25['clnp']
+                            if ('cotp' in clnp) {
+                                var cotp = clnp['cotp'];
+                                if ('cpdlc' in cotp) {
+                                    var cpdlc = cotp['cpdlc'];
+                                    details = '<h4>CPDLC</h4>';
+                                    if ('atc_downlink_message' in cpdlc) {
+                                        var atc_downlink_message = cpdlc['atc_downlink_message'];
+                                        if ('msg_data' in atc_downlink_message) {
+                                            var msg_data = atc_downlink_message['msg_data'];
+                                            if ('msg_elements' in msg_data) {
+                                                details += '<div>' + msg_data['msg_elements'].map(function(e) { return e['msg_element']['choice_label']; }).join(', ') + '</div>';
+                                            }
+                                        } else {
+                                            details += '<div>' + JSON.stringify(cpdlc) + '</div>';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        details = '<h4>Partial X.25 frame</h4>';
+                    }
+                }
+            } else if (avlc['frame_type'] === 'U') {
+                details = '<h4>Unnumbered frame</h4>';
+                if ('xid' in avlc) {
+                    var xid = avlc['xid'];
+                    details = '<h4>' + xid['type_descr'] + '</h4>';
+                }
+            }
+        }
+    } catch (e) {
+        console.error(e, e.stack);
+    }
+
     $b.append($(
         '<tr>' +
-            '<td class="todo">' + JSON.stringify(message) + '</td>' +
+            '<td class="source">' + src + '</td>' +
+            '<td class="destination">' + dst + '</td>' +
+            '<td class="details">' + details + '</td>' +
         '</tr>'
     ));
     this.scrollToBottom();
