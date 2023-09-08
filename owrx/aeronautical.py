@@ -20,7 +20,7 @@ class AirplaneLocation(LatLngLocation):
 
 class IcaoSource(Source):
     def __init__(self, icao: str, humanReadable: str = None):
-        self.icao = icao
+        self.icao = icao.upper()
         self.humanReadable = humanReadable
 
     def getKey(self) -> str:
