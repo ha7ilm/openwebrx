@@ -49,7 +49,7 @@ class AcarsProcessor(JsonParser, metaclass=ABCMeta):
         if "flight" in acars:
             flight_id = acars["flight"]
         elif "reg" in acars:
-            flight_id = acars['reg']
+            flight_id = acars['reg'].lstrip(".")
         else:
             return
 
