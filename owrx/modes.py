@@ -197,6 +197,7 @@ class Modes(object):
             underlying=["empty"],
             bandpass=Bandpass(-12500, 12500),
             requirements=["dumpvdl2"],
+            service=True,
             squelch=False,
         )
     ]
