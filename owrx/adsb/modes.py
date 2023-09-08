@@ -1,14 +1,15 @@
 from csdr.module import PickleModule
 from math import sqrt, atan2, pi, floor, acos, cos
-from owrx.map import LatLngLocation, IncrementalUpdate, Location, Map, Source
+from owrx.map import IncrementalUpdate, Location, Map, Source
 from owrx.metrics import Metrics, CounterMetric
+from owrx.aeronautical import AirplaneLocation, IcaoSource
 from datetime import datetime, timedelta
 from enum import Enum
 
 FEET_PER_METER = 3.28084
 
 
-class AirplaneLocation(IncrementalUpdate, LatLngLocation):
+class AdsbLocation(IncrementalUpdate, AirplaneLocation):
     mapKeys = [
         "lat",
         "lon",
@@ -26,12 +27,7 @@ class AirplaneLocation(IncrementalUpdate, LatLngLocation):
     def __init__(self, message):
         self.history = []
         self.timestamp = datetime.now()
-        self.props = message
-        if "lat" in message and "lon" in message:
-            super().__init__(message["lat"], message["lon"])
-        else:
-            self.lat = None
-            self.lon = None
+        super().__init__(message)
 
     def update(self, previousLocation: Location):
         history = previousLocation.history
@@ -53,27 +49,9 @@ class AirplaneLocation(IncrementalUpdate, LatLngLocation):
         if "lon" in merged:
             self.lon = merged["lon"]
 
-    def __dict__(self):
-        res = super().__dict__()
-        res.update(self.props)
-        return res
-
-
-class AdsbLocation(AirplaneLocation):
     def getTTL(self) -> timedelta:
         # fixed ttl for adsb-locations for now
         return timedelta(seconds=30)
-
-
-class IcaoSource(Source):
-    def __init__(self, icao: str):
-        self.icao = icao
-
-    def getKey(self) -> str:
-        return "icao:{}".format(self.icao)
-
-    def __dict__(self):
-        return {"icao": self.icao}
 
 
 class CprRecordType(Enum):
@@ -290,8 +268,8 @@ class ModeSParser(PickleModule):
 
         self.metrics.inc()
 
-        if "icao" in message and AirplaneLocation.mapKeys & message.keys():
-            data = {k: message[k] for k in AirplaneLocation.mapKeys if k in message}
+        if "icao" in message and AdsbLocation.mapKeys & message.keys():
+            data = {k: message[k] for k in AdsbLocation.mapKeys if k in message}
             loc = AdsbLocation(data)
             Map.getSharedInstance().updateLocation(IcaoSource(message['icao']), loc, "ADS-B", None)
 

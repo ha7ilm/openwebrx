@@ -469,6 +469,9 @@ AircraftMessagePanel = function(el) {
 AircraftMessagePanel.prototype = Object.create(MessagePanel.prototype);
 
 AircraftMessagePanel.prototype.renderAcars = function(acars) {
+    if (acars['more']) {
+        return '<h4>Partial ACARS message</h4>';
+    }
     var details = '<h4>ACARS message</h4>';
     if ('flight' in acars) {
         details += '<div>Flight: ' + acars['flight'] + '</div>';
@@ -505,6 +508,7 @@ AircraftMessagePanel.prototype.renderAcars = function(acars) {
         }
     } else {
         // plain text
+        details += '<div>Label: ' + acars['label'] + '</div>';
         details += '<div class="acars-message">' + acars['msg_text'] + '</div>';
     }
     return details;

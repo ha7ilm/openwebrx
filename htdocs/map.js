@@ -404,10 +404,11 @@ $(function(){
     };
 
     var linkifyAircraft = function(source, identification) {
-        var aircraftString = identification || source.icao || source.flight;
+        var aircraftString = identification || source.humanReadable || source.flight || source.icao;
         var link = false;
         switch (aircraft_tracking_service) {
             case 'flightaware':
+                if (!source.icao) break;
                 link = 'https://flightaware.com/live/modes/' + source.icao;
                 if (identification) link += "/ident/" + identification
                 link += '/redirect';
