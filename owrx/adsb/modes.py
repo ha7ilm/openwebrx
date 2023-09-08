@@ -30,9 +30,13 @@ class AdsbLocation(IncrementalUpdate, AirplaneLocation):
         super().__init__(message)
 
     def update(self, previousLocation: Location):
-        history = previousLocation.history
-        now = datetime.now()
-        history = [p for p in history if now - p["timestamp"] < self.getTTL()]
+        if isinstance(previousLocation, AdsbLocation):
+            history = previousLocation.history
+            now = datetime.now()
+            history = [p for p in history if now - p["timestamp"] < self.getTTL()]
+        else:
+            history = []
+
         history += [{
             "timestamp": self.timestamp,
             "props": self.props,
