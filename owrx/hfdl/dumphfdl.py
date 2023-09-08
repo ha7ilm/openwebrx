@@ -3,6 +3,10 @@ from pycsdr.types import Format
 from owrx.aeronautical import AirplaneLocation, AcarsProcessor, IcaoSource
 from owrx.map import Map, Source
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class HfdlAirplaneLocation(AirplaneLocation):
     pass
@@ -43,23 +47,26 @@ class HFDLMessageParser(AcarsProcessor):
     def process(self, line):
         msg = super().process(line)
         if msg is not None:
-            payload = msg["hfdl"]
-            if "lpdu" in payload:
-                lpdu = payload["lpdu"]
-                icao = lpdu["src"]["ac_info"]["icao"] if "ac_info" in lpdu["src"] else None
-                if lpdu["type"]["id"] in [13, 29]:
-                    hfnpdu = lpdu["hfnpdu"]
-                    if hfnpdu["type"]["id"] == 209:
-                        # performance data
-                        self.processPosition(hfnpdu, icao)
-                    elif hfnpdu["type"]["id"] == 255:
-                        # enveloped data
-                        if "acars" in hfnpdu:
-                            self.processAcars(hfnpdu["acars"], icao)
-                elif lpdu["type"]["id"] in [79, 143, 191]:
-                    if "ac_info" in lpdu:
-                        icao = lpdu["ac_info"]["icao"]
-                    self.processPosition(lpdu["hfnpdu"], icao)
+            try:
+                payload = msg["hfdl"]
+                if "lpdu" in payload:
+                    lpdu = payload["lpdu"]
+                    icao = lpdu["src"]["ac_info"]["icao"] if "ac_info" in lpdu["src"] else None
+                    if lpdu["type"]["id"] in [13, 29]:
+                        hfnpdu = lpdu["hfnpdu"]
+                        if hfnpdu["type"]["id"] == 209:
+                            # performance data
+                            self.processPosition(hfnpdu, icao)
+                        elif hfnpdu["type"]["id"] == 255:
+                            # enveloped data
+                            if "acars" in hfnpdu:
+                                self.processAcars(hfnpdu["acars"], icao)
+                    elif lpdu["type"]["id"] in [79, 143, 191]:
+                        if "ac_info" in lpdu:
+                            icao = lpdu["ac_info"]["icao"]
+                        self.processPosition(lpdu["hfnpdu"], icao)
+            except Exception:
+                logger.exception("error processing HFDL data")
 
         return msg
 
