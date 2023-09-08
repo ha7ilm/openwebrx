@@ -38,7 +38,7 @@ class VDL2MessageParser(AcarsProcessor):
                     src = avlc["src"]["addr"]
                     if avlc["frame_type"] == "I":
                         if "acars" in avlc:
-                            self.processAcars(avlc["acars"])
+                            self.processAcars(avlc["acars"], icao=src)
                         elif "x25" in avlc:
                             x25 = avlc["x25"]
                             if "clnp" in x25:
