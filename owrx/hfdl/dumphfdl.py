@@ -2,6 +2,7 @@ from pycsdr.modules import ExecModule
 from pycsdr.types import Format
 from owrx.aeronautical import AirplaneLocation, AcarsProcessor, IcaoSource
 from owrx.map import Map, Source
+from datetime import datetime, timezone, timedelta
 
 import logging
 
@@ -83,4 +84,19 @@ class HFDLMessageParser(AcarsProcessor):
                     source = HfdlSource(hfnpdu["flight_id"])
                 else:
                     source = IcaoSource(icao, humanReadable=hfnpdu["flight_id"])
-                Map.getSharedInstance().updateLocation(source, HfdlAirplaneLocation(msg), "HFDL")
+                if "utc_time" in hfnpdu:
+                    ts = self.processTimestamp(**hfnpdu["utc_time"])
+                elif "time" in hfnpdu:
+                    ts = self.processTimestamp(**hfnpdu["time"])
+                else:
+                    ts = None
+                Map.getSharedInstance().updateLocation(source, HfdlAirplaneLocation(msg), "HFDL", timestamp=ts)
+
+    def processTimestamp(self, hour, min, sec) -> datetime:
+        now = datetime.now(timezone.utc)
+        t = now.replace(hour=hour, minute=min, second=sec, microsecond=0)
+        # if we have moved the time to the future, it's most likely that we're close to midnight and the time
+        # we received actually refers to yesterday
+        if t > now:
+            t -= timedelta(days=1)
+        return t

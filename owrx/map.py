@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from owrx.config import Config
 from owrx.bands import Band
 from abc import abstractmethod, ABC, ABCMeta
@@ -92,19 +92,24 @@ class Map(object):
         except ValueError:
             pass
 
-    def updateLocation(self, source: Source, loc: Location, mode: str, band: Band = None):
-        ts = datetime.now()
+    def updateLocation(self, source: Source, loc: Location, mode: str, band: Band = None, timestamp: datetime = None):
+        if timestamp is None:
+            timestamp = datetime.now(timezone.utc)
+        else:
+            # if we get an external timestamp, make sure it's not already expired
+            if datetime.now(timezone.utc) - loc.getTTL() > timestamp:
+                return
         key = source.getKey()
         with self.positionsLock:
             if isinstance(loc, IncrementalUpdate) and key in self.positions:
                 loc.update(self.positions[key]["location"])
-            self.positions[key] = {"source": source, "location": loc, "updated": ts, "mode": mode, "band": band}
+            self.positions[key] = {"source": source, "location": loc, "updated": timestamp, "mode": mode, "band": band}
         self.broadcast(
             [
                 {
                     "source": source.__dict__(),
                     "location": loc.__dict__(),
-                    "lastseen": ts.timestamp() * 1000,
+                    "lastseen": timestamp.timestamp() * 1000,
                     "mode": mode,
                     "band": band.getName() if band is not None else None,
                 }
@@ -113,7 +118,7 @@ class Map(object):
 
     def touchLocation(self, source: Source):
         # not implemented on the client side yet, so do not use!
-        ts = datetime.now()
+        ts = datetime.now(timezone.utc)
         key = source.getKey()
         with self.positionsLock:
             if key in self.positions:
@@ -126,7 +131,7 @@ class Map(object):
             # TODO broadcast removal to clients
 
     def removeOldPositions(self):
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         with self.positionsLock:
             to_be_removed = [
