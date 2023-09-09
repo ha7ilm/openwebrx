@@ -19,17 +19,17 @@ class AirplaneLocation(LatLngLocation):
 
 
 class IcaoSource(Source):
-    def __init__(self, icao: str, humanReadable: str = None):
+    def __init__(self, icao: str, flight: str = None):
         self.icao = icao.upper()
-        self.humanReadable = humanReadable
+        self.flight = flight
 
     def getKey(self) -> str:
         return "icao:{}".format(self.icao)
 
     def __dict__(self):
         d = {"icao": self.icao}
-        if self.humanReadable is not None:
-            d["humanReadable"] = self.humanReadable
+        if self.flight is not None:
+            d["flight"] = self.flight
         return d
 
 
@@ -67,7 +67,7 @@ class AcarsProcessor(JsonParser, metaclass=ABCMeta):
                                 "altitude": basic_report["alt"]
                             }
                             if icao is not None:
-                                source = IcaoSource(icao, humanReadable=flight_id)
+                                source = IcaoSource(icao, flight=flight_id)
                             else:
                                 source = AcarsSource(flight_id)
                             Map.getSharedInstance().updateLocation(

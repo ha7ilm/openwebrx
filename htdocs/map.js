@@ -404,17 +404,21 @@ $(function(){
     };
 
     var linkifyAircraft = function(source, identification) {
-        var aircraftString = identification || source.humanReadable || source.flight || source.icao;
+        var aircraftString = identification || source.flight || source.icao;
         var link = false;
         switch (aircraft_tracking_service) {
             case 'flightaware':
-                if (!source.icao) break;
-                link = 'https://flightaware.com/live/modes/' + source.icao;
-                if (identification) link += "/ident/" + identification
-                link += '/redirect';
+                if (source.icao) {
+                    link = 'https://flightaware.com/live/modes/' + source.icao;
+                    if (identification) link += "/ident/" + identification
+                    link += '/redirect';
+                } else if (source.flight) {
+                    link = 'https://flightaware.com/live/flight/' + source.flight;
+                }
                 break;
             case 'planefinder':
                 if (identification) link = 'https://planefinder.net/flight/' + identification;
+                if (source.flight) link = 'https://planefinder.net/flight/' + source.flight;
                 break;
         }
         if (link) {

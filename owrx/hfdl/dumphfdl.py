@@ -83,7 +83,7 @@ class HFDLMessageParser(AcarsProcessor):
                 if icao is None:
                     source = HfdlSource(hfnpdu["flight_id"])
                 else:
-                    source = IcaoSource(icao, humanReadable=hfnpdu["flight_id"])
+                    source = IcaoSource(icao, flight=hfnpdu["flight_id"])
                 if "utc_time" in hfnpdu:
                     ts = self.processTimestamp(**hfnpdu["utc_time"])
                 elif "time" in hfnpdu:
