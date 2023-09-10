@@ -550,6 +550,33 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
         return a['id'];
     }
 
+    var renderPosition = function(hfnpdu) {
+        if ('pos' in hfnpdu) {
+            var pos = hfnpdu['pos'];
+            var lat = pos['lat'] || 180;
+            var lon = pos['lon'] || 180;
+            if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+                return '<div>Position: ' + pos['lat'] + ', ' + pos['lon'] + '</div>';
+            }
+        }
+        return '';
+    }
+
+    var renderLogon = function(lpdu) {
+        var details = ''
+        if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+            details += '<div>ICAO: ' + lpdu['ac_info']['icao'] + '</div>';
+        }
+        if (lpdu['hfnpdu']) {
+            var hfnpdu = lpdu['hfnpdu'];
+            if (hfnpdu['flight_id'] && hfnpdu['flight_id'] !== '') {
+                details += '<div>Flight: ' + lpdu['hfnpdu']['flight_id'] + '</div>'
+            }
+            details += renderPosition(hfnpdu);
+        }
+        return details;
+    }
+
     // TODO remove safety net once parsing is complete
     try {
         var payload = message['hfdl'];
@@ -575,14 +602,7 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                     // performance data
                     details = '<h4>Performance data</h4>';
                     details += '<div>Flight: ' + hfnpdu['flight_id'] + '</div>';
-                    if ('pos' in hfnpdu) {
-                        var pos = hfnpdu['pos'];
-                        var lat = pos['lat'] || 180;
-                        var lon = pos['lon'] || 180;
-                        if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
-                            details += '<div>Position: ' + pos['lat'] + ', ' + pos['lon'] + '</div>';
-                        }
-                    }
+                    details += renderPosition(hnpdu);
                 } else if (hfnpdu['type']['id'] === 255) {
                     // enveloped data
                     if ('acars' in hfnpdu) {
@@ -595,33 +615,27 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
             } else if (lpdu['type']['id'] === 63) {
                 details = '<h4>Logoff request</h4>';
                 if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
-                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'] + '</div>';
                 }
             } else if (lpdu['type']['id'] === 79) {
                 details = '<h4>Logon resume</h4>';
-                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
-                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
-                }
+                details += renderLogon(lpdu);
             } else if (lpdu['type']['id'] === 95) {
                 details = '<h4>Logon resume confirmation</h4>';
             } else if (lpdu['type']['id'] === 143) {
                 details = '<h4>Logon request</h4>';
-                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
-                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
-                }
+                details += renderLogon(lpdu);
             } else if (lpdu['type']['id'] === 159) {
                 details = '<h4>Logon confirmation</h4>';
                 if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
-                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
+                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'] + '</div>';
                 }
                 if (lpdu['assigned_ac_id']) {
                     details += '<div>Assigned aircraft ID: ' + lpdu['assigned_ac_id'] + '</div>';
                 }
             } else if (lpdu['type']['id'] === 191) {
                 details = '<h4>Logon request (DLS)</h4>';
-                if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
-                    details += '<div>ICAO: ' + lpdu['ac_info']['icao'];
-                }
+                details += renderLogon(lpdu);
             }
         }
     } catch (e) {
