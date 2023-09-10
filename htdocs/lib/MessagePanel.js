@@ -479,11 +479,12 @@ AircraftMessagePanel.prototype.renderAcars = function(acars) {
     details += '<div>Registration: ' + acars['reg'].replace(/^\.+/g, '') + '</div>';
     if ('media-adv' in acars) {
         details += '<div>Media advisory</div>';
-        if ('current_link' in acars) {
-            details += '<div>Current link: ' + acars['current_link']['descr'];
+        var mediaadv = acars['media-adv'];
+        if ('current_link' in mediaadv) {
+            details += '<div>Current link: ' + mediaadv['current_link']['descr'];
         }
-        if ('links_avail' in acars) {
-            details += '<div>Available links: ' + acars['links_avail'].map(function (l) {
+        if ('links_avail' in mediaadv) {
+            details += '<div>Available links: ' + mediaadv['links_avail'].map(function (l) {
                 return l['descr'];
             }).join(', ') + '</div>';
         }
