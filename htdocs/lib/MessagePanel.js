@@ -474,7 +474,7 @@ AircraftMessagePanel.prototype.renderAcars = function(acars) {
     }
     var details = '<h4>ACARS message</h4>';
     if ('flight' in acars) {
-        details += '<div>Flight: ' + acars['flight'] + '</div>';
+        details += '<div>Flight: ' + this.handleFlight(acars['flight']) + '</div>';
     }
     details += '<div>Registration: ' + acars['reg'].replace(/^\.+/g, '') + '</div>';
     if ('media-adv' in acars) {
@@ -496,9 +496,13 @@ AircraftMessagePanel.prototype.renderAcars = function(acars) {
                 adsc['tags'].forEach(function(tag) {
                     if ('basic_report' in tag) {
                         var basic_report = tag['basic_report'];
-                        details += '<div>Basic report</div>';
+                        details += '<div>Basic ADS-C report</div>';
                         details += '<div>Position: ' + basic_report['lat'] + ', ' + basic_report['lon'] + '</div>';
                         details += '<div>Altitude: ' + basic_report['alt'] + '</div>';
+                    } else if ('cancel_all_contracts' in tag) {
+                        details += '<div>Cancel all ADS-C contracts</div>';
+                    } else if ('cancel_contract' in tag) {
+                        details += '<div>Cancel ADS-C contract</div>';
                     } else {
                         details += '<div>Unsupported tag</div>';
                     }
@@ -513,7 +517,11 @@ AircraftMessagePanel.prototype.renderAcars = function(acars) {
         details += '<div class="acars-message">' + acars['msg_text'] + '</div>';
     }
     return details;
-}
+};
+
+AircraftMessagePanel.prototype.handleFlight = function(raw) {
+    return raw.replace(/^([0-9A-Z]{2})0*([0-9A-Z]+$)/, '$1$2');
+};
 
 HfdlMessagePanel = function(el) {
     AircraftMessagePanel.call(this, el);
@@ -539,6 +547,33 @@ HfdlMessagePanel.prototype.supportsMessage = function(message) {
     return message['mode'] === 'HFDL';
 };
 
+HfdlMessagePanel.prototype.renderPosition = function(hfnpdu) {
+    if ('pos' in hfnpdu) {
+        var pos = hfnpdu['pos'];
+        var lat = pos['lat'] || 180;
+        var lon = pos['lon'] || 180;
+        if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+            return '<div>Position: ' + pos['lat'] + ', ' + pos['lon'] + '</div>';
+        }
+    }
+    return '';
+};
+
+HfdlMessagePanel.prototype.renderLogon = function(lpdu) {
+    var details = ''
+    if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
+        details += '<div>ICAO: ' + lpdu['ac_info']['icao'] + '</div>';
+    }
+    if (lpdu['hfnpdu']) {
+        var hfnpdu = lpdu['hfnpdu'];
+        if (hfnpdu['flight_id'] && hfnpdu['flight_id'] !== '') {
+            details += '<div>Flight: ' + this.handleFlight(lpdu['hfnpdu']['flight_id']) + '</div>'
+        }
+        details += this.renderPosition(hfnpdu);
+    }
+    return details;
+};
+
 HfdlMessagePanel.prototype.pushMessage = function(message) {
     var $b = $(this.el).find('tbody');
 
@@ -548,33 +583,6 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
 
     var renderAddress = function(a) {
         return a['id'];
-    }
-
-    var renderPosition = function(hfnpdu) {
-        if ('pos' in hfnpdu) {
-            var pos = hfnpdu['pos'];
-            var lat = pos['lat'] || 180;
-            var lon = pos['lon'] || 180;
-            if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
-                return '<div>Position: ' + pos['lat'] + ', ' + pos['lon'] + '</div>';
-            }
-        }
-        return '';
-    }
-
-    var renderLogon = function(lpdu) {
-        var details = ''
-        if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
-            details += '<div>ICAO: ' + lpdu['ac_info']['icao'] + '</div>';
-        }
-        if (lpdu['hfnpdu']) {
-            var hfnpdu = lpdu['hfnpdu'];
-            if (hfnpdu['flight_id'] && hfnpdu['flight_id'] !== '') {
-                details += '<div>Flight: ' + lpdu['hfnpdu']['flight_id'] + '</div>'
-            }
-            details += renderPosition(hfnpdu);
-        }
-        return details;
     }
 
     // TODO remove safety net once parsing is complete
@@ -601,8 +609,8 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                 if (hfnpdu['type']['id'] === 209) {
                     // performance data
                     details = '<h4>Performance data</h4>';
-                    details += '<div>Flight: ' + hfnpdu['flight_id'] + '</div>';
-                    details += renderPosition(hnpdu);
+                    details += '<div>Flight: ' + this.handleFlight(hfnpdu['flight_id']) + '</div>';
+                    details += this.renderPosition(hfnpdu);
                 } else if (hfnpdu['type']['id'] === 255) {
                     // enveloped data
                     if ('acars' in hfnpdu) {
@@ -619,12 +627,12 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                 }
             } else if (lpdu['type']['id'] === 79) {
                 details = '<h4>Logon resume</h4>';
-                details += renderLogon(lpdu);
+                details += this.renderLogon(lpdu);
             } else if (lpdu['type']['id'] === 95) {
                 details = '<h4>Logon resume confirmation</h4>';
             } else if (lpdu['type']['id'] === 143) {
                 details = '<h4>Logon request</h4>';
-                details += renderLogon(lpdu);
+                details += this.renderLogon(lpdu);
             } else if (lpdu['type']['id'] === 159) {
                 details = '<h4>Logon confirmation</h4>';
                 if (lpdu['ac_info'] && lpdu['ac_info']['icao']) {
@@ -635,7 +643,7 @@ HfdlMessagePanel.prototype.pushMessage = function(message) {
                 }
             } else if (lpdu['type']['id'] === 191) {
                 details = '<h4>Logon request (DLS)</h4>';
-                details += renderLogon(lpdu);
+                details += this.renderLogon(lpdu);
             }
         }
     } catch (e) {
