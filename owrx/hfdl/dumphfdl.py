@@ -76,22 +76,27 @@ class HFDLMessageParser(AcarsProcessor):
             pos = hfnpdu["pos"]
             if abs(pos['lat']) <= 90 and abs(pos['lon']) <= 180:
                 flight = self.processFlight(hfnpdu["flight_id"])
-                msg = {
-                    "lat": pos["lat"],
-                    "lon": pos["lon"],
-                    "flight": flight
-                }
-                if icao is None:
+                
+                if icao is not None:
+                    source = IcaoSource(icao, flight=flight)
+                elif flight:
                     source = HfdlSource(flight)
                 else:
-                    source = IcaoSource(icao, flight=flight)
-                if "utc_time" in hfnpdu:
-                    ts = self.processTimestamp(**hfnpdu["utc_time"])
-                elif "time" in hfnpdu:
-                    ts = self.processTimestamp(**hfnpdu["time"])
-                else:
-                    ts = None
-                Map.getSharedInstance().updateLocation(source, HfdlAirplaneLocation(msg), "HFDL", timestamp=ts)
+                    source = None
+
+                if source:
+                    msg = {
+                        "lat": pos["lat"],
+                        "lon": pos["lon"],
+                        "flight": flight
+                    }
+                    if "utc_time" in hfnpdu:
+                        ts = self.processTimestamp(**hfnpdu["utc_time"])
+                    elif "time" in hfnpdu:
+                        ts = self.processTimestamp(**hfnpdu["time"])
+                    else:
+                        ts = None
+                    Map.getSharedInstance().updateLocation(source, HfdlAirplaneLocation(msg), "HFDL", timestamp=ts)
 
     def processTimestamp(self, hour, min, sec) -> datetime:
         now = datetime.now(timezone.utc)
