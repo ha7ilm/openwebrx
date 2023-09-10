@@ -1,6 +1,7 @@
 from owrx.map import Map, LatLngLocation, Source
 from csdr.module import JsonParser
 from abc import ABCMeta
+import re
 
 
 class AirplaneLocation(LatLngLocation):
@@ -45,9 +46,11 @@ class AcarsSource(Source):
 
 
 class AcarsProcessor(JsonParser, metaclass=ABCMeta):
+    flightRegex = re.compile("^([0-9A-Z]{2})0*([0-9A-Z]+$)")
+
     def processAcars(self, acars: dict, icao: str = None):
         if "flight" in acars:
-            flight_id = acars["flight"]
+            flight_id = self.processFlight(acars["flight"])
         elif "reg" in acars:
             flight_id = acars['reg'].lstrip(".")
         else:
@@ -73,3 +76,6 @@ class AcarsProcessor(JsonParser, metaclass=ABCMeta):
                             Map.getSharedInstance().updateLocation(
                                 source, AirplaneLocation(msg), "ACARS over {}".format(self.mode)
                             )
+
+    def processFlight(self, raw):
+        return self.flightRegex.sub(r"\g<1>\g<2>", raw)
