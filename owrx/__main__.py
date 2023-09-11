@@ -136,6 +136,7 @@ Support and info:       https://groups.io/g/openwebrx
 
     try:
         server = ThreadedHttpServer(coreConfig.get_web_port(), RequestHandler, coreConfig.get_web_ipv6())
+        logger.info("Ready to serve requests.")
         server.serve_forever()
     except SignalException:
         pass
