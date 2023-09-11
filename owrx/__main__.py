@@ -97,7 +97,8 @@ Author contact info:    Jakob Ketterl, DD5JFK <dd5jfk@darc.de>
 Documentation:          https://github.com/jketterl/openwebrx/wiki
 Support and info:       https://groups.io/g/openwebrx
 
-    """
+        """,
+        flush=True
     )
 
     logger.info("OpenWebRX version {0} starting up...".format(openwebrx_version))
