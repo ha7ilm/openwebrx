@@ -152,7 +152,7 @@ $(function(){
                     marker.setOptions($.extend({
                         position: pos,
                         title: sourceToString(update.source)
-                    }, aprsOptions, getMarkerOpacityOptions(update.lastseen) ));
+                    }, aprsOptions, getMarkerOpacityOptions(update.lastseen, update.location.ttl) ));
                     marker.source = update.source;
                     marker.lastseen = update.lastseen;
                     marker.mode = update.mode;
@@ -212,7 +212,7 @@ $(function(){
                             west: lon,
                             east: lon + 2
                         }
-                    }, getRectangleOpacityOptions(update.lastseen) ));
+                    }, getRectangleOpacityOptions(update.lastseen, update.location.ttl) ));
 
                     if (expectedLocator && expectedLocator === update.location.locator) {
                         map.panTo(center);
