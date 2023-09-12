@@ -4,6 +4,7 @@ from owrx.aeronautical import AcarsProcessor
 from owrx.map import Map
 from owrx.aeronautical import AirplaneLocation, IcaoSource
 from owrx.metrics import Metrics, CounterMetric
+from datetime import datetime, date, time, timezone
 
 import logging
 
@@ -55,9 +56,12 @@ class VDL2MessageParser(AcarsProcessor):
                                         adsc_v2 = cotp["adsc_v2"]
                                         if "adsc_report" in adsc_v2:
                                             adsc_report = adsc_v2["adsc_report"]
-                                            if "periodic_report" in adsc_report["data"]:
-                                                periodic_report = adsc_report["data"]["periodic_report"]
-                                                report_data = periodic_report["report_data"]
+                                            data = adsc_report["data"]
+                                            if "periodic_report" in data:
+                                                report_data = data["periodic_report"]["report_data"]
+                                                self.processReport(report_data, src)
+                                            elif "event_report" in data:
+                                                report_data = data["event_report"]["report_data"]
                                                 self.processReport(report_data, src)
             except Exception:
                 logger.exception("error processing VDL2 data")
@@ -81,7 +85,11 @@ class VDL2MessageParser(AcarsProcessor):
             msg.update({
                 "verticalspeed": report["air_vector"]["vertical_rate"]["val"],
             })
-        Map.getSharedInstance().updateLocation(IcaoSource(icao), AirplaneLocation(msg), "VDL2")
+        if "timestamp" in report:
+            timestamp = self.convertTimestamp(**report["timestamp"])
+        else:
+            timestamp = None
+        Map.getSharedInstance().updateLocation(IcaoSource(icao), AirplaneLocation(msg), "VDL2", timestamp=timestamp)
 
     def convertLatitude(self, dir, **args) -> float:
         coord = self.convertCoordinate(**args)
@@ -97,3 +105,12 @@ class VDL2MessageParser(AcarsProcessor):
 
     def convertCoordinate(self, deg, min, sec) -> float:
         return deg + float(min) / 60 + float(sec) / 3600
+
+    def convertTimestamp(self, date, time):
+        return datetime.combine(self.convertDate(**date), self.convertTime(**time), tzinfo=timezone.utc)
+
+    def convertDate(self,  year, month, day):
+        return date(year=year, month=month, day=day)
+
+    def convertTime(self, hour, min, sec):
+        return time(hour=hour, minute=min, second=sec, microsecond=0, tzinfo=timezone.utc)
