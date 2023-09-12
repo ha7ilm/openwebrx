@@ -34,12 +34,12 @@ class IcaoSource(Source):
         return d
 
 
-class AcarsSource(Source):
+class FlightSource(Source):
     def __init__(self, flight):
         self.flight = flight
 
     def getKey(self) -> str:
-        return "acars:{}".format(self.flight)
+        return "flight:{}".format(self.flight)
 
     def __dict__(self):
         return {"flight": self.flight}
@@ -72,7 +72,7 @@ class AcarsProcessor(JsonParser, metaclass=ABCMeta):
                             if icao is not None:
                                 source = IcaoSource(icao, flight=flight_id)
                             else:
-                                source = AcarsSource(flight_id)
+                                source = FlightSource(flight_id)
                             Map.getSharedInstance().updateLocation(
                                 source, AirplaneLocation(msg), "ACARS over {}".format(self.mode)
                             )

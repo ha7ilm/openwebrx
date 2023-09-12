@@ -1,28 +1,13 @@
 from pycsdr.modules import ExecModule
 from pycsdr.types import Format
-from owrx.aeronautical import AirplaneLocation, AcarsProcessor, IcaoSource
-from owrx.map import Map, Source
+from owrx.aeronautical import AirplaneLocation, AcarsProcessor, IcaoSource, FlightSource
+from owrx.map import Map
 from owrx.metrics import Metrics, CounterMetric
 from datetime import datetime, timezone, timedelta
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class HfdlAirplaneLocation(AirplaneLocation):
-    pass
-
-
-class HfdlSource(Source):
-    def __init__(self, flight):
-        self.flight = flight
-
-    def getKey(self) -> str:
-        return "hfdl:{}".format(self.flight)
-
-    def __dict__(self):
-        return {"flight": self.flight}
 
 
 class DumpHFDLModule(ExecModule):
@@ -88,7 +73,7 @@ class HFDLMessageParser(AcarsProcessor):
                 if icao is not None:
                     source = IcaoSource(icao, flight=flight)
                 elif flight:
-                    source = HfdlSource(flight)
+                    source = FlightSource(flight)
                 else:
                     source = None
 
@@ -104,7 +89,7 @@ class HFDLMessageParser(AcarsProcessor):
                         ts = self.processTimestamp(**hfnpdu["time"])
                     else:
                         ts = None
-                    Map.getSharedInstance().updateLocation(source, HfdlAirplaneLocation(msg), "HFDL", timestamp=ts)
+                    Map.getSharedInstance().updateLocation(source, AirplaneLocation(msg), "HFDL", timestamp=ts)
 
     def processTimestamp(self, hour, min, sec) -> datetime:
         now = datetime.now(timezone.utc)
