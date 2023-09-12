@@ -25,11 +25,12 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/osmocom/rtl-sdr.git
-# latest from master as of 2020-09-04
-cmakebuild rtl-sdr ed0317e6a58c098874ac58b769cf2e609c18d9a5
+# latest from master as of 2023-09-13 (integration of rtlsdr blog v4 dongle)
+cmakebuild rtl-sdr 1261fbb285297da08f4620b18871b6d6d9ec2a7b
 
 git clone https://github.com/pothosware/SoapyRTLSDR.git
-cmakebuild SoapyRTLSDR soapy-rtl-sdr-0.3.1
+# latest from master as of 2023-09-13
+cmakebuild SoapyRTLSDR 068aa77a4c938b239c9d80cd42c4ee7986458e8f
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
