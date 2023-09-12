@@ -3,6 +3,7 @@ from pycsdr.types import Format
 from owrx.aeronautical import AcarsProcessor
 from owrx.map import Map
 from owrx.aeronautical import AirplaneLocation, IcaoSource
+from owrx.metrics import Metrics, CounterMetric
 
 import logging
 
@@ -26,6 +27,11 @@ class DumpVDL2Module(ExecModule):
 
 class VDL2MessageParser(AcarsProcessor):
     def __init__(self):
+        name = "dumpvdl2.decodes.vdl2"
+        self.metrics = Metrics.getSharedInstance().getMetric(name)
+        if self.metrics is None:
+            self.metrics = CounterMetric()
+            Metrics.getSharedInstance().addMetric(name, self.metrics)
         super().__init__("VDL2")
 
     def process(self, line):
@@ -55,6 +61,7 @@ class VDL2MessageParser(AcarsProcessor):
                                                 self.processReport(report_data, src)
             except Exception:
                 logger.exception("error processing VDL2 data")
+            self.metrics.inc()
         return msg
 
     def processReport(self, report, icao):

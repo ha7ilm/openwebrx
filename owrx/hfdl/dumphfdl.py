@@ -2,6 +2,7 @@ from pycsdr.modules import ExecModule
 from pycsdr.types import Format
 from owrx.aeronautical import AirplaneLocation, AcarsProcessor, IcaoSource
 from owrx.map import Map, Source
+from owrx.metrics import Metrics, CounterMetric
 from datetime import datetime, timezone, timedelta
 
 import logging
@@ -43,6 +44,11 @@ class DumpHFDLModule(ExecModule):
 
 class HFDLMessageParser(AcarsProcessor):
     def __init__(self):
+        name = "dumphfdl.decodes.hfdl"
+        self.metrics = Metrics.getSharedInstance().getMetric(name)
+        if self.metrics is None:
+            self.metrics = CounterMetric()
+            Metrics.getSharedInstance().addMetric(name, self.metrics)
         super().__init__("HFDL")
 
     def process(self, line):
@@ -68,6 +74,8 @@ class HFDLMessageParser(AcarsProcessor):
                         self.processPosition(lpdu["hfnpdu"], icao)
             except Exception:
                 logger.exception("error processing HFDL data")
+
+            self.metrics.inc()
 
         return msg
 
