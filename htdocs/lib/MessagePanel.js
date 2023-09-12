@@ -741,6 +741,21 @@ Vdl2MessagePanel.prototype.pushMessage = function(message) {
                                         }
                                     }
                                 }
+                                if ('adsc_v2' in cotp) {
+                                    var adsc_v2 = cotp['adsc_v2']
+                                    details = '<h4>ADS-C v2 Frame</h4>';
+                                    if ('adsc_report' in adsc_v2) {
+                                        var adsc_report = adsc_v2['adsc_report'];
+                                        var data = adsc_report['data'];
+                                        if ('periodic_report' in data) {
+                                            details += '<div>Periodic report</div>';
+                                            details += this.processReport(data['periodic_report']);
+                                        } else if ('event_report' in data) {
+                                            details += '<div>Event report</div>';
+                                            details += this.processReport(data['event_report']);
+                                        }
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -768,6 +783,20 @@ Vdl2MessagePanel.prototype.pushMessage = function(message) {
     ));
     this.scrollToBottom();
 };
+
+Vdl2MessagePanel.prototype.processReport = function(report) {
+    var details = '';
+    if ('position' in report) {
+        var lat = position['lat']
+        var lon = position['lon']
+        details += '<div>Position: ' +
+            lat['deg'] + '° ' + lat['min'] + '\' ' + lat['sec'] + '" ' + lat['dir'] + ',' +
+            lon['deg'] + '° ' + lat['min'] + '\' ' + lat['sec'] + '" ' + lat['dir'] +
+            '</div>';
+        details += '<div>Altitude: ' + position['alt']['val'] + '</div>';
+    }
+    return details;
+}
 
 $.fn.vdl2MessagePanel = function() {
     if (!this.data('panel')) {
