@@ -3,6 +3,7 @@
 - Added support for the MSK144 digimode
 - Added support for decoding ADS-B with dump1090
 - Added support for decoding HFDL and VDL2 aircraft communications
+- Added decoding of ISM band transmissions using rtl_433
 - Added IPv6 support
 
 **1.2.1**
