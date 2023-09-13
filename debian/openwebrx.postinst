@@ -16,23 +16,23 @@ case "$1" in
 
     # create OpenWebRX data directory and set the correct permissions
     if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
-    chown "${OWRX_USER}". ${OWRX_DATADIR}
+    chown "${OWRX_USER}": ${OWRX_DATADIR}
 
     # create empty config files now to avoid permission problems later
     if [ ! -e "${OWRX_USERS_FILE}" ]; then
       echo "[]" > "${OWRX_USERS_FILE}"
-      chown "${OWRX_USER}". "${OWRX_USERS_FILE}"
+      chown "${OWRX_USER}": "${OWRX_USERS_FILE}"
       chmod 0600 "${OWRX_USERS_FILE}"
     fi
 
     if [ ! -e "${OWRX_SETTINGS_FILE}" ]; then
       echo "{}" > "${OWRX_SETTINGS_FILE}"
-      chown "${OWRX_USER}". "${OWRX_SETTINGS_FILE}"
+      chown "${OWRX_USER}": "${OWRX_SETTINGS_FILE}"
     fi
 
     if [ ! -e "${OWRX_BOOKMARKS_FILE}" ]; then
       touch "${OWRX_BOOKMARKS_FILE}"
-      chown "${OWRX_USER}". "${OWRX_BOOKMARKS_FILE}"
+      chown "${OWRX_USER}": "${OWRX_BOOKMARKS_FILE}"
     fi
 
     db_get openwebrx/admin_user_password
