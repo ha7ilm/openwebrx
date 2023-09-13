@@ -749,10 +749,10 @@ Vdl2MessagePanel.prototype.pushMessage = function(message) {
                                         var data = adsc_report['data'];
                                         if ('periodic_report' in data) {
                                             details += '<div>Periodic report</div>';
-                                            details += this.processReport(data['periodic_report']);
+                                            details += this.processReport(data['periodic_report']['report_data']);
                                         } else if ('event_report' in data) {
                                             details += '<div>Event report</div>';
-                                            details += this.processReport(data['event_report']);
+                                            details += this.processReport(data['event_report']['report_data']);
                                         }
                                     }
                                 }
@@ -787,13 +787,14 @@ Vdl2MessagePanel.prototype.pushMessage = function(message) {
 Vdl2MessagePanel.prototype.processReport = function(report) {
     var details = '';
     if ('position' in report) {
+        var position = report['position'];
         var lat = position['lat']
         var lon = position['lon']
         details += '<div>Position: ' +
-            lat['deg'] + '° ' + lat['min'] + '\' ' + lat['sec'] + '" ' + lat['dir'] + ',' +
-            lon['deg'] + '° ' + lat['min'] + '\' ' + lat['sec'] + '" ' + lat['dir'] +
+            lat['deg'] + '° ' + lat['min'] + '\' ' + lat['sec'] + '" ' + lat['dir'] + ', ' +
+            lon['deg'] + '° ' + lon['min'] + '\' ' + lon['sec'] + '" ' + lon['dir'] +
             '</div>';
-        details += '<div>Altitude: ' + position['alt']['val'] + '</div>';
+        details += '<div>Altitude: ' + position['alt']['val'] + ' ' + position['alt']['unit'] + '</div>';
     }
     return details;
 }
