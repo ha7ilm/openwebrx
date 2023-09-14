@@ -29,6 +29,10 @@ class WaveFile(object):
         self.waveFile.setsampwidth(2)
         self.waveFile.setframerate(12000)
 
+    def __del__(self):
+        if self.waveFile is not None:
+            logger.warning("WaveFile going out of scope but not unlinked!")
+
     def close(self):
         self.waveFile.close()
 
@@ -77,13 +81,17 @@ class AudioWriter(object):
     def _scheduleNextSwitch(self):
         self.cancelTimer()
         delta = self.getNextDecodingTime() - datetime.utcnow()
-        self.timer = threading.Timer(delta.total_seconds(), self.switchFiles)
+        self.timer = threading.Timer(delta.total_seconds(), self._switchFiles)
         self.timer.start()
 
-    def switchFiles(self):
+    def _switchFiles(self):
         with self.switchingLock:
             file = self.wavefile
             self.wavefile = self.getWaveFile()
+
+        if file is None:
+            logger.warning("switchfiles() with no wave file. sequencing problem?")
+            return
 
         file.close()
         tmp_dir = CoreConfig().get_temporary_directory()
@@ -117,6 +125,8 @@ class AudioWriter(object):
         self._scheduleNextSwitch()
 
     def start(self):
+        if self.wavefile is not None:
+            logger.warning("wavefile is not none on startup, sequencing problem?")
         self.wavefile = self.getWaveFile()
         self._scheduleNextSwitch()
 
