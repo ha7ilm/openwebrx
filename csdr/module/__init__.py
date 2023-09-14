@@ -45,7 +45,10 @@ class Module(BaseModule, metaclass=ABCMeta):
                     break
                 if data is None or isinstance(data, bytes) and len(data) == 0:
                     break
-                write(data)
+                try:
+                    write(data)
+                except BrokenPipeError:
+                    break
 
         return copy
 
