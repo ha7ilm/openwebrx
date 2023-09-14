@@ -1,5 +1,5 @@
 from pycsdr.types import Format
-from pycsdr.modules import Writer, TcpSource, ExecModule, CallbackWriter
+from pycsdr.modules import Writer, TcpSource, ExecModule
 from csdr.module import LogWriter
 from owrx.config.core import CoreConfig
 from owrx.config import Config
