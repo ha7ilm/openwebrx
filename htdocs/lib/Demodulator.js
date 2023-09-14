@@ -59,7 +59,6 @@ Envelope.prototype.draw = function(visible_range){
     from_px -= (env_att_w + env_bounding_line_w);
     to_px += (env_att_w + env_bounding_line_w);
     // do drawing:
-    scale_ctx.lineWidth = 3;
     var color = this.color || '#ffff00'; // yellow
     scale_ctx.strokeStyle = color;
     scale_ctx.fillStyle = color;
@@ -77,11 +76,14 @@ Envelope.prototype.draw = function(visible_range){
         scale_ctx.lineTo(to_px - env_bounding_line_w - env_att_w, env_h2);
         scale_ctx.lineTo(to_px - env_bounding_line_w, env_h1);
         scale_ctx.lineTo(to_px, env_h1);
+        scale_ctx.lineWidth = 3;
         scale_ctx.globalAlpha = 0.3;
         scale_ctx.fill();
         scale_ctx.globalAlpha = 1;
         scale_ctx.stroke();
         scale_ctx.lineWidth = 1;
+        scale_ctx.font = "bold 11px sans-serif";
+        scale_ctx.textBaseline = "top";
         scale_ctx.textAlign = "left";
         if (typeof(this.demodulator.high_cut) === 'number') {
             scale_ctx.fillText(this.demodulator.high_cut.toString(), to_px + env_att_w, env_h2);
@@ -90,7 +92,6 @@ Envelope.prototype.draw = function(visible_range){
         if (typeof(this.demodulator.low_cut) === 'number') {
             scale_ctx.fillText(this.demodulator.low_cut.toString(), from_px - env_att_w, env_h2);
         }
-        scale_ctx.lineWidth = 3;
     }
     if (typeof line !== "undefined") // out of screen?
     {
@@ -100,6 +101,7 @@ Envelope.prototype.draw = function(visible_range){
             drag_ranges.line_on_screen = true;
             scale_ctx.moveTo(line_px, env_h1 + env_lineplus);
             scale_ctx.lineTo(line_px, env_h2 - env_lineplus);
+            scale_ctx.lineWidth = 3;
             scale_ctx.stroke();
         }
     }
