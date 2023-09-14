@@ -4,7 +4,7 @@ from pycsdr.types import Format
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from io import BytesIO
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 from functools import partial
 import pickle
 import logging
@@ -185,8 +185,12 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
 
     def stop(self):
         if self.process is not None:
-            self.process.terminate()
-            self.process.wait()
+            # Try terminating normally, kill if failed to terminate
+            try:
+                self.process.terminate()
+                self.process.wait(3)
+            except TimeoutExpired:
+                self.process.kill()
             self.process = None
         self.reader.stop()
 
