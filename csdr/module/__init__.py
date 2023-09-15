@@ -1,5 +1,5 @@
 from pycsdr.modules import Module as BaseModule
-from pycsdr.modules import Reader, Writer, CallbackWriter
+from pycsdr.modules import Reader, Writer, Buffer
 from pycsdr.types import Format
 from abc import ABCMeta, abstractmethod
 from threading import Thread
@@ -198,21 +198,31 @@ class PopenModule(AutoStartModule, metaclass=ABCMeta):
         self.reader.stop()
 
 
-class LogWriter(CallbackWriter):
-    def __init__(self, prefix: str):
+class LogReader(Thread):
+    def __init__(self, prefix: str, buffer: Buffer):
+        self.reader = buffer.getReader()
         self.logger = logging.getLogger(prefix)
         self.retained = bytes()
-        super().__init__(Format.CHAR)
+        super().__init__()
+        self.start()
 
-    def write(self, data: memoryview) -> None:
-        self.retained += data
-        lines = self.retained.split(b"\n")
+    def run(self) -> None:
+        while True:
+            data = self.reader.read()
+            if data is None:
+                return
 
-        # keep the last line
-        # this should either be empty if the last char was \n
-        # or an incomplete line if the read returned early
-        self.retained = lines[-1]
+            self.retained += data
+            lines = self.retained.split(b"\n")
 
-        # log all completed lines
-        for line in lines[0:-1]:
-            self.logger.info("{}: {}".format("STDOUT", line.strip(b'\n').decode()))
+            # keep the last line
+            # this should either be empty if the last char was \n
+            # or an incomplete line if the read returned early
+            self.retained = lines[-1]
+
+            # log all completed lines
+            for line in lines[0:-1]:
+                self.logger.info("{}: {}".format("STDOUT", line.strip(b'\n').decode()))
+
+    def stop(self):
+        self.reader.stop()

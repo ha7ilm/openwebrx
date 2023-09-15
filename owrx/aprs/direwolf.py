@@ -1,6 +1,6 @@
 from pycsdr.types import Format
-from pycsdr.modules import Writer, TcpSource, ExecModule
-from csdr.module import LogWriter
+from pycsdr.modules import Writer, TcpSource, ExecModule, Buffer
+from csdr.module import LogReader
 from owrx.config.core import CoreConfig
 from owrx.config import Config
 from abc import ABC, abstractmethod
@@ -160,7 +160,9 @@ class DirewolfModule(ExecModule, DirewolfConfigSubscriber):
         super().__init__(Format.SHORT, Format.CHAR, ["direwolf", "-c", self.direwolfConfigPath, "-r", "48000", "-t", "0", "-q", "d", "-q", "h"])
         # direwolf supplies the data via a socket which we tap into in start()
         # the output on its STDOUT is informative, but we still want to log it
-        super().setWriter(LogWriter(__name__))
+        buffer = Buffer(Format.CHAR)
+        self.logReader = LogReader(__name__, buffer)
+        super().setWriter(buffer)
         self.start()
 
     def __writeConfig(self):
@@ -199,6 +201,8 @@ class DirewolfModule(ExecModule, DirewolfConfigSubscriber):
 
     def stop(self) -> None:
         super().stop()
+        self.logReader.stop()
+        self.logReader = None
         os.unlink(self.direwolfConfigPath)
         self.direwolfConfig.unwire(self)
         self.direwolfConfig = None
