@@ -32,13 +32,13 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2023-09-08 (various specializations)
-cmakebuild csdr 93dc0fa0c6b1a57ea72579828f47c97cf1682c06
+# latest develop as of 2023-09-08 (execmodule writer logging)
+cmakebuild csdr b6a638e612b01232b1b7ef60d97c62a68f0a92c8
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
-# latest develop as of 2023-08-21 (various specializations))
-git checkout 37bb90174c23567ac419b45804f2d0cc5bb6a883
+# latest develop as of 2023-08-21 (death of CallbackWriter))
+git checkout 77b3709c545f510b52c7cea2e300e2e1613038e2
 ./setup.py install install_headers
 cd ..
 rm -rf pycsdr
