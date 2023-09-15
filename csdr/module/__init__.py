@@ -204,7 +204,7 @@ class LogWriter(CallbackWriter):
         self.retained = bytes()
         super().__init__(Format.CHAR)
 
-    def write(self, data: bytes) -> None:
+    def write(self, data: memoryview) -> None:
         self.retained += data
         lines = self.retained.split(b"\n")
 
