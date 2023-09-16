@@ -14,3 +14,6 @@ class DumpVDL2(ServiceDemodulator):
 
     def getFixedAudioRate(self) -> int:
         return 105000
+
+    def supportsSquelch(self) -> bool:
+        return False

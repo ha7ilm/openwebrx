@@ -14,3 +14,6 @@ class Rtl433(ServiceDemodulator):
                 JsonParser("ISM"),
             ]
         )
+
+    def supportsSquelch(self) -> bool:
+        return False

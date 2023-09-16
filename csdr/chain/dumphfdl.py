@@ -11,3 +11,6 @@ class DumpHFDL(ServiceDemodulator):
 
     def getFixedAudioRate(self) -> int:
         return 12000
+
+    def supportsSquelch(self) -> bool:
+        return False

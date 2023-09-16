@@ -22,3 +22,6 @@ class Dump1090(ServiceDemodulator):
 
     def isSecondaryFftShown(self):
         return False
+
+    def supportsSquelch(self) -> bool:
+        return False
