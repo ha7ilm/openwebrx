@@ -1272,7 +1272,7 @@ img.openwebrx-mirror-img
 #openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode^="rtty"] #openwebrx-digimode-content-container,
 #openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-select-channel,
-#openwebrx-panel-digimodes[data-mode^="bpsk"] #openwebrx-digimode-select-channel
+#openwebrx-panel-digimodes[data-mode^="rtty"] #openwebrx-digimode-select-channel
 {
     display: block;
 }
