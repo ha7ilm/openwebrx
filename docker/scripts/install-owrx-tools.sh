@@ -32,8 +32,8 @@ popd
 rm -rf js8py
 
 git clone https://github.com/jketterl/csdr.git
-# latest develop as of 2023-09-08 (execmodule writer logging)
-cmakebuild csdr b6a638e612b01232b1b7ef60d97c62a68f0a92c8
+# latest develop as of 2023-09-08 (execmodule improvements)
+cmakebuild csdr 764767933ed2b242190285f8ff56b11d80c7d530
 
 git clone https://github.com/jketterl/pycsdr.git
 cd pycsdr
