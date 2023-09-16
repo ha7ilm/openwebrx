@@ -222,7 +222,7 @@ class LogReader(Thread):
 
             # log all completed lines
             for line in lines[0:-1]:
-                self.logger.info("{}: {}".format("STDOUT", line.strip(b'\n').decode()))
+                self.logger.info("{}: {}".format("STDOUT", line.decode()))
 
     def stop(self):
         self.reader.stop()
