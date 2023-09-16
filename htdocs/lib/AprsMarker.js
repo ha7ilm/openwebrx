@@ -6,10 +6,10 @@ AprsMarker.prototype.isFacingEast = function(symbol) {
     var candidates = ''
     if (symbol.table === '/') {
         // primary table
-        candidates = '(*<=>CFPUXYabefghjkpsuv[';
+        candidates = '(*<=>CFPUXYZabefgjkpsuv[';
     } else {
         // alternate table
-        candidates = 'hkluv';
+        candidates = '(T`efhjktuvw';
     }
     return candidates.includes(symbol.symbol);
 };
