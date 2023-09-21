@@ -60,22 +60,30 @@ class AcarsProcessor(JsonParser, metaclass=ABCMeta):
             arinc622 = acars["arinc622"]
             if "adsc" in arinc622:
                 adsc = arinc622["adsc"]
-                if "tags" in adsc:
+                if "tags" in adsc and adsc["tags"]:
+                    msg = {}
                     for tag in adsc["tags"]:
                         if "basic_report" in tag:
                             basic_report = tag["basic_report"]
-                            msg = {
+                            msg.update({
                                 "lat": basic_report["lat"],
                                 "lon": basic_report["lon"],
-                                "altitude": basic_report["alt"]
-                            }
-                            if icao is not None:
-                                source = IcaoSource(icao, flight=flight_id)
-                            else:
-                                source = FlightSource(flight_id)
-                            Map.getSharedInstance().updateLocation(
-                                source, AirplaneLocation(msg), "ACARS over {}".format(self.mode)
-                            )
+                                "altitude": basic_report["alt"],
+                            })
+                        if "earth_ref_data" in tag:
+                            earth_ref_data = tag["earth_ref_data"]
+                            msg.update({
+                                "groundtrack": earth_ref_data["true_trk_deg"],
+                                "groundspeed": earth_ref_data["gnd_spd_kts"],
+                                "verticalspeed": earth_ref_data["vspd_ftmin"],
+                            })
+                    if icao is not None:
+                        source = IcaoSource(icao, flight=flight_id)
+                    else:
+                        source = FlightSource(flight_id)
+                    Map.getSharedInstance().updateLocation(
+                        source, AirplaneLocation(msg), "ACARS over {}".format(self.mode)
+                    )
 
     def processFlight(self, raw):
         return self.flightRegex.sub(r"\g<1>\g<2>", raw)

@@ -499,6 +499,11 @@ AircraftMessagePanel.prototype.renderAcars = function(acars) {
                         details += '<div>Basic ADS-C report</div>';
                         details += '<div>Position: ' + basic_report['lat'] + ', ' + basic_report['lon'] + '</div>';
                         details += '<div>Altitude: ' + basic_report['alt'] + '</div>';
+                    } else if ('earth_ref_data' in tag) {
+                        var earth_ref_data = tag['earth_ref_data'];
+                        details += '<div>Track: ' + earth_ref_data['true_trk_deg'] + '</div>';
+                        details += '<div>Speed: ' + earth_ref_data['gnd_spd_kts'] + ' kt</div>';
+                        details += '<div>Vertical speed: ' + earth_ref_data['vspd_ftmin'] + ' ft/min</div>';
                     } else if ('cancel_all_contracts' in tag) {
                         details += '<div>Cancel all ADS-C contracts</div>';
                     } else if ('cancel_contract' in tag) {
