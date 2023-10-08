@@ -1,3 +1,9 @@
+openwebrx (1.2.2) bullseye jammy; urgency=high
+
+  * - Fixed an over-the-air code injection vulnerability
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sun, 08 Oct 2023 21:29:00 +0000
+
 openwebrx (1.2.1) bullseye jammy; urgency=low
 
   * FifiSDR support fixed (pipeline formats now line up correctly)
