@@ -77,7 +77,7 @@ rm /usr/local/share/doc/direwolf/*.pdf
 # examples are pointless, too
 rm -rf /usr/local/share/doc/direwolf/examples/
 
-git clone https://github.com/drowe67/codec2.git
+git clone https://github.com/drowe67/codec2-dev.git
 cd codec2
 # latest commit from master as of 2020-10-04
 git checkout 55d7bb8d1bddf881bdbfcb971a718b83e6344598
