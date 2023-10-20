@@ -21,3 +21,7 @@ Default: false
 Description: OpenWebRX "admin" user previously configured?
  Marker used internally by the config scripts to remember if an admin user has
  been created.
+
+Template: openwebrx/title
+Type: title
+Description: Configuring OpenWebRX
