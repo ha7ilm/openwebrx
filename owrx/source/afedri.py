@@ -1,24 +1,18 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form.input import Input, TextInput, NumberInput, CheckboxInput
+from owrx.form.input import Input, CheckboxInput, NumberInput
 from owrx.form.input.device import RemoteInput
-from owrx.form.input.converter import OptionalConverter
 from owrx.form.input.validator import RangeValidator
 from typing import List
 
 
 AFEDRI_DEVICE_KEYS = ["rx_mode", "force_set_channel"]
+AFEDRI_PROFILE_KEYS = ["r820t_lna_agc", "r820t_mixer_agc"]
 
 
 class AfedriSource(SoapyConnectorSource):
-
     def getSoapySettingsMappings(self):
         mappings = super().getSoapySettingsMappings()
-        mappings.update(
-            {
-                "r820t_lna_agc": "r820t_lna_agc",
-                "r820t_mixer_agc": "r820t_mixer_agc",
-            }
-        )
+        mappings.update({x: x for x in AFEDRI_PROFILE_KEYS})
         return mappings
 
     def getEventNames(self):
@@ -57,31 +51,42 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             RemoteInput(),
-            NumberInput("current_channel_for_settings", "Afedri: Current channel for settings.", validator=RangeValidator(0, 4)),
-            CheckboxInput("r820t_lna_agc", "Afedri: Enable R820T LNA AGC"),
-            CheckboxInput("r820t_mixer_agc", "Afedri: Enable R820T Mixer AGC"),
-            NumberInput("force_set_channel", "Afedri: Use this channel instead of default when connect to master seed server.", "Number in range [0,3]", validator=RangeValidator(0, 3)),
-            # NumberInput("channels_overload_mode", "Afedri: Overload mode for channels.", "Number in range [0,15]. One bit for each channel. 4 bits in total.", validator=RangeValidator(0, 15)),
-            # NumberInput("rx_mode", "Afedri: RX Mode (Single/Dual/Quad Channel)", "Number in range [0,5]. Switch device to specific RX mode. (Single/DualDiversity/Dual/DiversityInternal/QuadDiversity/Quad)", validator=RangeValidator(0, 15)),
+            CheckboxInput(
+                "r820t_lna_agc",
+                "Enable R820T LNA AGC",
+            ),
+            CheckboxInput(
+                "r820t_mixer_agc",
+                "Enable R820T Mixer AGC",
+            ),
+            NumberInput(
+                "force_set_channel",
+                "Use this channel instead of default when connect to master seed server.",
+                "Number in range [0,3]",
+                validator=RangeValidator(0, 3),
+            ),
+            NumberInput(
+                "rx_mode",
+                "RX Mode (Single/Dual/Quad Channel)",
+                "Number in range [0,5]. Switch device to specific RX mode. (Single/DualDiversity/Dual/DiversityInternal/QuadDiversity/Quad)",
+                validator=RangeValidator(0, 5),
+            ),
         ]
 
     def getDeviceMandatoryKeys(self):
         return super().getDeviceMandatoryKeys() + ["remote"]
 
     def getDeviceOptionalKeys(self):
-        items_to_remove = []
-        res = super().getDeviceOptionalKeys()
-        res = [x for x in super().getProfileOptionalKeys() if x not in items_to_remove]
-        res += AFEDRI_DEVICE_KEYS
-        return res
+        return super().getDeviceOptionalKeys() + AFEDRI_DEVICE_KEYS
 
     def getProfileOptionalKeys(self):
-        items_to_remove = []
-        res = [x for x in super().getProfileOptionalKeys() if x not in items_to_remove]
-        res.append("r820t_lna_agc")
-        res.append("r820t_mixer_agc")
-        return res
+        return super().getProfileOptionalKeys() + AFEDRI_PROFILE_KEYS
 
     def getGainStages(self):
-        return ["RF", "FE", "R820T_LNA_GAIN", "R820T_MIXER_GAIN", "R820T_VGA_GAIN"]
-
+        return [
+            "RF",
+            "FE",
+            "R820T_LNA_GAIN",
+            "R820T_MIXER_GAIN",
+            "R820T_VGA_GAIN",
+        ]
