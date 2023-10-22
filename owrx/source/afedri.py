@@ -5,7 +5,7 @@ from owrx.form.input.validator import RangeValidator
 from typing import List
 
 
-AFEDRI_DEVICE_KEYS = ["rx_mode", "force_set_channel"]
+AFEDRI_DEVICE_KEYS = ["rx_mode", "map_ch0"]
 AFEDRI_PROFILE_KEYS = ["r820t_lna_agc", "r820t_mixer_agc"]
 
 
@@ -60,15 +60,16 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
                 "Enable R820T Mixer AGC",
             ),
             NumberInput(
-                "force_set_channel",
-                "Use this channel instead of default when connect to master seed server.",
-                "Number in range [0,3]",
+                "map_ch0",
+                "Substitute channel 0",
+                infotext="Number in range [0,3]. Substitute SoapySDR channel 0 with a specific Afedri channel",
                 validator=RangeValidator(0, 3),
             ),
             NumberInput(
                 "rx_mode",
                 "RX Mode (Single/Dual/Quad Channel)",
-                "Number in range [0,5]. Switch device to specific RX mode. (Single/DualDiversity/Dual/DiversityInternal/QuadDiversity/Quad)",
+                infotext="Number in range [0,5]. Switch the device to a specific RX mode. <br />"
+                + "(0-Single 1-DualDiversity 2-Dual 3-DiversityInternal 4-QuadDiversity 5-Quad)",
                 validator=RangeValidator(0, 5),
             ),
         ]
