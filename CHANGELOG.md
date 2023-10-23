@@ -5,6 +5,8 @@
 - Added support for decoding HFDL and VDL2 aircraft communications
 - Added decoding of ISM band transmissions using rtl_433
 - Added IPv6 support
+- New devices supported:
+  - Afedri SDR-Net
 
 **1.2.2**
 - Fixed an over-the-air code injection vulnerability
