@@ -10,6 +10,7 @@ RUN /install-dependencies-rtlsdr.sh &&\
     /install-dependencies-hackrf.sh &&\
     /install-dependencies-sdrplay.sh &&\
     /install-dependencies-airspy.sh &&\
+    /install-dependencies-afedri.sh &&\
     /install-dependencies-rtlsdr-soapy.sh &&\
     /install-dependencies-plutosdr.sh &&\
     /install-dependencies-limesdr.sh &&\
