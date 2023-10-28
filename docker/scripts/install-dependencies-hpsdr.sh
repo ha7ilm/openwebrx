@@ -10,7 +10,7 @@ apt-get -y install --no-install-recommends $BUILD_PACKAGES
 pushd /tmp
 
 ARCH=$(uname -m)
-GOVERSION=1.15.5
+GOVERSION=1.20.10
 
 case ${ARCH} in
   x86_64)
@@ -29,7 +29,7 @@ tar xfz $PACKAGE
 
 git clone https://github.com/jancona/hpsdrconnector.git
 pushd hpsdrconnector
-git checkout v0.6.1
+git checkout v0.6.3
 /tmp/go/bin/go build
 install -m 0755 hpsdrconnector /usr/local/bin
 
