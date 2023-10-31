@@ -1,12 +1,25 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, CheckboxInput, NumberInput
-from owrx.form.input.device import RemoteInput
+from owrx.form.input.device import RemoteInput, TextInput
 from owrx.form.input.validator import RangeValidator
+from owrx.form.input.converter import OptionalConverter
+from owrx.form.input.validator import RequiredValidator
 from typing import List
 
 
 AFEDRI_DEVICE_KEYS = ["rx_mode", "map_ch0"]
 AFEDRI_PROFILE_KEYS = ["r820t_lna_agc", "r820t_mixer_agc"]
+
+
+class AfedriAddressPortInput(TextInput):
+    def __init__(self):
+        super().__init__(
+            "afedri_adress_port",
+            "Afedri IP and Port",
+            infotext="Afedri IP and port to connect to. Format = IP:Port",
+            converter=OptionalConverter(),
+            validator=RequiredValidator(),
+        )
 
 
 class AfedriSource(SoapyConnectorSource):
@@ -16,16 +29,20 @@ class AfedriSource(SoapyConnectorSource):
         return mappings
 
     def getEventNames(self):
-        return super().getEventNames() + ["remote"] + AFEDRI_DEVICE_KEYS
+        return super().getEventNames() + ["remote", "afedri_adress_port"] + AFEDRI_DEVICE_KEYS
 
     def getDriver(self):
         return "afedri"
 
     def buildSoapyDeviceParameters(self, parsed, values):
         params = super().buildSoapyDeviceParameters(parsed, values)
-        params = [v for v in params if not "remote" in params]
-        remote = values["remote"]
-        address, port = remote.split(":")
+
+        # replace driver with sopayRemote
+        if "remote" in values:
+            params = [v for v in params if "driver" not in v]  # remove present driver
+            params += [{"driver": "remote", "remote:driver": self.getDriver(), "remote": values["remote"]}]
+
+        address, port = values["afedri_adress_port"].split(":")
         params += [{"address": address, "port": port}]
 
         can_be_set_at_start = AFEDRI_DEVICE_KEYS
@@ -51,6 +68,7 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
             RemoteInput(),
+            AfedriAddressPortInput(),
             CheckboxInput(
                 "r820t_lna_agc",
                 "Enable R820T LNA AGC",
@@ -75,10 +93,10 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
         ]
 
     def getDeviceMandatoryKeys(self):
-        return super().getDeviceMandatoryKeys() + ["remote"]
+        return super().getDeviceMandatoryKeys() + ["afedri_adress_port"]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + AFEDRI_DEVICE_KEYS
+        return super().getDeviceOptionalKeys() + ["remote"] + AFEDRI_DEVICE_KEYS
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + AFEDRI_PROFILE_KEYS
