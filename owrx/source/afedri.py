@@ -7,7 +7,7 @@ from owrx.form.input.validator import RequiredValidator
 from typing import List
 
 
-AFEDRI_DEVICE_KEYS = ["rx_mode", "map_ch0"]
+AFEDRI_DEVICE_KEYS = ["rx_mode"]
 AFEDRI_PROFILE_KEYS = ["r820t_lna_agc", "r820t_mixer_agc"]
 
 
@@ -76,12 +76,6 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
             CheckboxInput(
                 "r820t_mixer_agc",
                 "Enable R820T Mixer AGC",
-            ),
-            NumberInput(
-                "map_ch0",
-                "Substitute channel 0",
-                infotext="Number in range [0,3]. Substitute SoapySDR channel 0 with a specific Afedri channel",
-                validator=RangeValidator(0, 3),
             ),
             NumberInput(
                 "rx_mode",
