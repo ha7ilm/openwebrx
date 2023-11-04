@@ -14,6 +14,10 @@ case "$1" in
     adduser --system --group --no-create-home --home /nonexistent --quiet "${OWRX_USER}"
     usermod -aG plugdev "${OWRX_USER}"
 
+    # ensure group exists first (dependency is optional)
+    addgroup --system --quiet perseususb
+    usermod -aG perseususb "${OWRX_USER}"
+
     # create OpenWebRX data directory and set the correct permissions
     if [ ! -d "${OWRX_DATADIR}" ] && [ ! -L "${OWRX_DATADIR}" ]; then mkdir "${OWRX_DATADIR}"; fi
     chown "${OWRX_USER}": ${OWRX_DATADIR}
