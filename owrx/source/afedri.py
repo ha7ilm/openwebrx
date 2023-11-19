@@ -1,6 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, CheckboxInput, NumberInput
-from owrx.form.input.device import RemoteInput, TextInput
+from owrx.form.input.device import TextInput
 from owrx.form.input.validator import RangeValidator
 from owrx.form.input.converter import OptionalConverter
 from owrx.form.input.validator import RequiredValidator
@@ -29,18 +29,13 @@ class AfedriSource(SoapyConnectorSource):
         return mappings
 
     def getEventNames(self):
-        return super().getEventNames() + ["remote", "afedri_adress_port"] + AFEDRI_DEVICE_KEYS
+        return super().getEventNames() + ["afedri_adress_port"] + AFEDRI_DEVICE_KEYS
 
     def getDriver(self):
         return "afedri"
 
     def buildSoapyDeviceParameters(self, parsed, values):
         params = super().buildSoapyDeviceParameters(parsed, values)
-
-        # replace driver with sopayRemote
-        if "remote" in values:
-            params = [v for v in params if "driver" not in v]  # remove present driver
-            params += [{"driver": "remote", "remote:driver": self.getDriver(), "remote": values["remote"]}]
 
         address, port = values["afedri_adress_port"].split(":")
         params += [{"address": address, "port": port}]
@@ -67,7 +62,6 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getInputs(self) -> List[Input]:
         return super().getInputs() + [
-            RemoteInput(),
             AfedriAddressPortInput(),
             CheckboxInput(
                 "r820t_lna_agc",
@@ -90,7 +84,7 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
         return super().getDeviceMandatoryKeys() + ["afedri_adress_port"]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["remote"] + AFEDRI_DEVICE_KEYS
+        return super().getDeviceOptionalKeys() + AFEDRI_DEVICE_KEYS
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + AFEDRI_PROFILE_KEYS
