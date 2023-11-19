@@ -25,8 +25,8 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/alexander-sholohov/SoapyAfedri.git
-# latest from master as of 2023-10-27
-cmakebuild SoapyAfedri e044d96d89e2a211455318845d760eea34347a27
+# latest from master as of 2023-11-16
+cmakebuild SoapyAfedri a7d0d942fe966c2b69c8817dd6f097fc94122660
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
