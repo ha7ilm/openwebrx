@@ -1,14 +1,11 @@
-diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
---- sdrplay-orig/install_lib.sh	2020-05-24 13:56:56.622000041 +0000
-+++ sdrplay/install_lib.sh	2020-05-24 13:58:51.837801559 +0000
-@@ -4,19 +4,6 @@
- MAJVERS="3"
+--- sdrplay-orig/install_lib.sh	2024-01-01 15:03:53.377291864 +0100
++++ sdrplay/install_lib.sh	2024-01-01 16:09:25.948363042 +0100
+@@ -17,26 +17,7 @@
+ echo "the system files."
+ echo " "
  
- echo "Installing SDRplay RSP API library ${VERS}..."
 -read -p "Press RETURN to view the license agreement" ret
--
--more sdrplay_license.txt
--
+-more -d sdrplay_license.txt
 -while true; do
 -    echo "Press y and RETURN to accept the license agreement and continue with"
 -    read -p "the installation, or press n and RETURN to exit the installer [y/n] " yn
@@ -18,22 +15,133 @@ diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
 -        * ) echo "Please answer y or n";;
 -    esac
 -done
+-
+-echo " "
+-echo "A copy of the license agreement can be found here: ${HOME}/sdrplay_license.txt"
+-cp sdrplay_license.txt ${HOME}/.
+-chmod 644 ${HOME}/sdrplay_license.txt
+-echo " "
+-
+ ARCH=$(uname -m|sed -e 's/x86_64/64/' -e 's/aarch64/64/' -e 's/arm64/64/' -e 's/i.86/32/')
+-INIT=$(file -L /sbin/init|sed -e 's/^.* \(32\|64\)-bit.*$/\1/')
+ COMPILER=$(getconf LONG_BIT)
+ ARCHM=$(uname -m)
+ INSTALLARCH=$(uname -m)
+@@ -47,12 +28,11 @@
  
- ARCH=`uname -m`
- OSDIST="Unknown"
-@@ -157,15 +144,6 @@
  echo " "
- echo "SDRplay API ${VERS} Installation Finished"
+ echo "Architecture reported as being $ARCH bit"
+-echo "System reports $INIT bit files found"
+ echo "System is also setup to produce $COMPILER bit files"
+ echo "Architecture reports machine as being $ARCHM compliant"
  echo " "
+ 
+-if [ "${ARCH}" != "64" ] || [ "${INIT}" != "64" ] || [ "${COMPILER}" != "64" ]; then
++if [ "${ARCH}" != "64" ] || [ "${COMPILER}" != "64" ]; then
+     echo "This installer only supports 64 bit architectures."
+     echo "One of the above indicates that something is not set for"
+     echo "64 bit operation. Please either fix the relevant OS issue or"
+@@ -193,11 +173,6 @@
+             sudo chmod 644 /etc/udev/hwdb.d/20-sdrplay.hwdb
+             sudo systemd-hwdb update
+             sudo udevadm trigger
+-            if [ "${SRVTYPE}" != "initd" ]; then
+-                sudo systemctl restart udev
+-            else
+-                sudo service udev restart
+-            fi
+             echo "Done"
+         fi
+     fi
+@@ -227,7 +202,7 @@
+ fi
+ 
+ echo " "
+-locservice="/opt/sdrplay_api"
++locservice="/usr/local/bin"
+ locheader="/usr/local/include"
+ loclib="/usr/local/lib"
+ locscripts="/etc/systemd/system"
+@@ -247,45 +222,6 @@
+ echo "Daemon start system : ${DAEMON_SYS}"
+ echo " "
+ 
+-#         0--------1---------2---------3---------4---------5---------6---------7---------8
 -while true; do
--    echo "Would you like to add SDRplay USB IDs to the local database for easier"
--    read -p "identification in applications such as lsusb? [y/n] " yn
+-    echo "To continue the installation with these defaults press y and RETURN"
+-    read -p "or press n and RETURN to change them [y/n] " yn
 -    case $yn in
--        [Yy]* ) break;;
--        [Nn]* ) exit;;
+-        [Yy]* ) change="n";break;;
+-        [Nn]* ) change="y";break;;
 -        * ) echo "Please answer y or n";;
 -    esac
 -done
- sudo cp scripts/sdrplay_usbids.sh ${INSTALLBINDIR}/.
- sudo chmod 755 ${INSTALLBINDIR}/sdrplay_usbids.sh
- sudo cp scripts/sdrplay_ids.txt ${INSTALLBINDIR}/.
+-
+-if [ "${change}" == "y" ]; then
+-    echo "Changing default locations..."
+-    read -p "API service location [${locservice}]: " newloc
+-    if [ "${newloc}" != "" ]; then
+-        locservice=${newloc}
+-    fi
+-    read -p "API header files location [${locheader}]: " newloc
+-    if [ "${newloc}" != "" ]; then
+-        locheader=${newloc}
+-    fi
+-    read -p "API shared library location [${loclib}]: " newloc
+-    if [ "${newloc}" != "" ]; then
+-        loclib=${newloc}
+-    fi
+-
+-    echo "API service : ${locservice}"
+-    echo "API header files : ${locheader}"
+-    echo "API shared library : ${loclib}"
+-    while true; do
+-        read -p "Please confirm these are correct [y/n] " yn
+-        case $yn in
+-            [Yy]* ) break;;
+-            [Nn]* ) echo "paths not confirmed. Exiting...";exit 1;;
+-            * ) echo "Please answer y or n";;
+-        esac
+-    done
+-fi
+-
+ sudo mkdir -p -m 755 ${locservice} >> /dev/null 2>&1
+ sudo mkdir -p -m 755 ${locheader} >> /dev/null 2>&1
+ sudo mkdir -p -m 755 ${loclib} >> /dev/null 2>&1
+@@ -317,10 +253,6 @@
+ echo -n "Installing Service scripts and starting daemon..."
+ if [ -d "/etc/systemd/system" ]; then
+     SRVTYPE="systemd"
+-    if [ -f "/etc/systemd/system/sdrplay.service" ]; then
+-        sudo systemctl stop sdrplay
+-        sudo systemctl disable sdrplay
+-    fi
+     sudo bash -c 'cat > /etc/systemd/system/sdrplay.service' << EOF
+ [Unit]
+ Description=SDRplay API Service
+@@ -339,8 +271,6 @@
+ EOF
+ 
+     sudo chmod 644 /etc/systemd/system/sdrplay.service
+-    sudo systemctl enable sdrplay
+-    sudo systemctl start sdrplay
+ else
+     SRVTYPE="initd"
+     if [ -f "/etc/init.d/sdrplayService" ]; then
+@@ -443,16 +373,6 @@
+ echo "finished, please reboot this device."
+ 
+ echo " "
+-echo "To start and stop the API service, use the following commands..."
+-echo " "
+-if [ "${SRVTYPE}" != "systemd" ]; then
+-    echo "sudo service sdrplayService start"
+-    echo "sudo service sdrplayService stop"
+-else
+-    echo "sudo systemctl start sdrplay"
+-    echo "sudo systemctl stop sdrplay"
+-fi
+-echo " "
+ echo "If supported on your system, lsusb will now show the RSP name"
+ echo " "
+ echo "SDRplay API ${VERS} Installation Finished"
