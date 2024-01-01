@@ -113,7 +113,7 @@ rm dream-2.1.1-svn808.tar.gz
 git clone https://github.com/mobilinkd/m17-cxx-demod.git
 cmakebuild m17-cxx-demod v2.3
 
-git clone --depth 1 -b v8.2 https://github.com/flightaware/dump1090
+git clone --depth 1 -b v9.0 https://github.com/flightaware/dump1090
 cd dump1090
 make
 install -m 0755 dump1090 /usr/local/bin
