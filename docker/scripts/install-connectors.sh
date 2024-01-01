@@ -25,8 +25,8 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/jketterl/owrx_connector.git
-# latest develop as of 2023-08-04 (direct_sampling for rtl_tcp_connector)
-cmakebuild owrx_connector 5341601af353a60d5b3c66ece8bb8ac85bfdae7d
+# latest develop as of 2024-01-01 (fixed startup race condition)
+cmakebuild owrx_connector 62219d40e180abb539ad61fcd9625b90c34f0e26
 
 apt-get -y purge --autoremove $BUILD_PACKAGES
 apt-get clean
