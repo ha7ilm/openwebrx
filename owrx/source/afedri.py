@@ -1,9 +1,8 @@
+import re
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form.input import Input, CheckboxInput, NumberInput
+from owrx.form.input import Input, CheckboxInput, DropdownInput, Option
 from owrx.form.input.device import TextInput
-from owrx.form.input.validator import RangeValidator
-from owrx.form.input.converter import OptionalConverter
-from owrx.form.input.validator import RequiredValidator
+from owrx.form.input.validator import Validator, ValidationError
 from typing import List
 
 
@@ -11,14 +10,20 @@ AFEDRI_DEVICE_KEYS = ["rx_mode"]
 AFEDRI_PROFILE_KEYS = ["r820t_lna_agc", "r820t_mixer_agc"]
 
 
+class IPv4AndPortValidator(Validator):
+    def validate(self, key, value) -> None:
+        m = re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", value)
+        if not m:
+            raise ValidationError(key, "Wrong format. IPv4:Port expected")
+
+
 class AfedriAddressPortInput(TextInput):
     def __init__(self):
         super().__init__(
             "afedri_adress_port",
             "Afedri IP and Port",
-            infotext="Afedri IP and port to connect to. Format = IP:Port",
-            converter=OptionalConverter(),
-            validator=RequiredValidator(),
+            infotext="Afedri IP and port to connect to. Format = IPv4:Port",
+            validator=IPv4AndPortValidator(),
         )
 
 
@@ -71,12 +76,17 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
                 "r820t_mixer_agc",
                 "Enable R820T Mixer AGC",
             ),
-            NumberInput(
+            DropdownInput(
                 "rx_mode",
-                "RX Mode (Single/Dual/Quad Channel)",
-                infotext="Number in range [0,5]. Switch the device to a specific RX mode. <br />"
-                + "(0-Single 1-DualDiversity 2-Dual 3-DiversityInternal 4-QuadDiversity 5-Quad)",
-                validator=RangeValidator(0, 5),
+                "Switch the device to a specific RX mode at start",
+                options=[
+                    Option("0", "Single"),
+                    Option("1", "DualDiversity"),
+                    Option("2", "Dual"),
+                    Option("3", "DiversityInternal"),
+                    Option("4", "QuadDiversity"),
+                    Option("5", "Quad"),
+                ],
             ),
         ]
 
