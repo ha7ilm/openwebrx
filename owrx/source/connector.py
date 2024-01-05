@@ -28,7 +28,6 @@ class ConnectorSource(SdrSource):
                     "rtltcp_compat": Option("-r"),
                     "ppm": Option("-P"),
                     "rf_gain": Option("-g"),
-                    "soapy_channel": Option("-n"),
                 }
             )
         )
@@ -88,14 +87,10 @@ class ConnectorDeviceDescription(SdrDeviceDescription):
                 "Swap I and Q channels",
                 infotext="Swapping inverts the spectrum, so this is useful in combination with an inverting mixer",
             ),
-            NumberInput(
-                "soapy_channel",
-                "Select SoapySDR Channel",
-            ),
         ]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["rtltcp_compat", "iqswap", "soapy_channel"]
+        return super().getDeviceOptionalKeys() + ["rtltcp_compat", "iqswap"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["iqswap"]
