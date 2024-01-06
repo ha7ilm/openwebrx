@@ -61,6 +61,7 @@ class FeatureDetector(object):
         "perseussdr": ["perseustest", "nmux"],
         "airspy": ["soapy_connector", "soapy_airspy"],
         "airspyhf": ["soapy_connector", "soapy_airspyhf"],
+        "afedri": ["soapy_connector", "soapy_afedri"],
         "lime_sdr": ["soapy_connector", "soapy_lime_sdr"],
         "fifi_sdr": ["alsa", "rockprog", "nmux"],
         "pluto_sdr": ["soapy_connector", "soapy_pluto_sdr"],
@@ -343,6 +344,14 @@ class FeatureDetector(object):
         You can get it [here](https://github.com/pothosware/SoapyAirspyHF/wiki).
         """
         return self._has_soapy_driver("airspyhf")
+
+    def has_soapy_afedri(self):
+        """
+        The SoapyAfedri module allows using Afedri SDR-Net devices with SoapySDR.
+
+        You can get it [here](https://github.com/alexander-sholohov/SoapyAfedri).
+        """
+        return self._has_soapy_driver("afedri")
 
     def has_soapy_lime_sdr(self):
         """
