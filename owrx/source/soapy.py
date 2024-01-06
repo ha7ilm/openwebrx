@@ -3,6 +3,7 @@ from owrx.command import Option
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from typing import List
 from owrx.form.input import Input, NumberInput, TextInput
+from owrx.form.input.validator import RangeValidator
 from owrx.form.input.device import GainInput
 from owrx.soapy import SoapySettings
 
@@ -84,7 +85,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
 
 class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
     def getInputs(self) -> List[Input]:
-        return super().getInputs() + [
+        inputs = super().getInputs() + [
             TextInput(
                 "device",
                 "Device identifier",
@@ -97,11 +98,23 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                 has_agc=self.hasAgc(),
             ),
             TextInput("antenna", "Antenna"),
-            NumberInput(
-                "soapy_channel",
-                "Select SoapySDR Channel",
-            ),
         ]
+        if self.getNumberOfChannels() > 1:
+            inputs += [
+                NumberInput(
+                    "soapy_channel",
+                    "Select SoapySDR Channel",
+                    validator=RangeValidator(0, self.getNumberOfChannels() - 1)
+                )
+            ]
+        return inputs
+
+    def getNumberOfChannels(self) -> int:
+        """
+        can be overridden for sdr devices that have multiple channels. will allow the user to select a channel from
+        the device selection screen if > 1
+        """
+        return 1
 
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["device", "rf_gain", "antenna", "soapy_channel"]
