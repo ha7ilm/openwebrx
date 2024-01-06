@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from owrx.command import Option
 from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from typing import List
-from owrx.form.input import Input, TextInput
+from owrx.form.input import Input, NumberInput, TextInput
 from owrx.form.input.device import GainInput
 from owrx.soapy import SoapySettings
 
@@ -17,6 +17,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
                 {
                     "antenna": Option("-a"),
                     "soapy_settings": Option("-t"),
+                    "soapy_channel": Option("-n"),
                 }
             )
         )
@@ -96,10 +97,14 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
                 has_agc=self.hasAgc(),
             ),
             TextInput("antenna", "Antenna"),
+            NumberInput(
+                "soapy_channel",
+                "Select SoapySDR Channel",
+            ),
         ]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["device", "rf_gain", "antenna"]
+        return super().getDeviceOptionalKeys() + ["device", "rf_gain", "antenna", "soapy_channel"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["antenna"]
