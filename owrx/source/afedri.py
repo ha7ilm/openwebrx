@@ -107,3 +107,6 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
             "R820T_MIXER_GAIN",
             "R820T_VGA_GAIN",
         ]
+
+    def getNumberOfChannels(self) -> int:
+        return 4
