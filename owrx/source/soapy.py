@@ -18,7 +18,7 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
                 {
                     "antenna": Option("-a"),
                     "soapy_settings": Option("-t"),
-                    "soapy_channel": Option("-n"),
+                    "channel": Option("-n"),
                 }
             )
         )
@@ -102,7 +102,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
         if self.getNumberOfChannels() > 1:
             inputs += [
                 NumberInput(
-                    "soapy_channel",
+                    "channel",
                     "Select SoapySDR Channel",
                     validator=RangeValidator(0, self.getNumberOfChannels() - 1)
                 )
@@ -117,7 +117,7 @@ class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
         return 1
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["device", "rf_gain", "antenna", "soapy_channel"]
+        return super().getDeviceOptionalKeys() + ["device", "rf_gain", "antenna", "channel"]
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["antenna"]
