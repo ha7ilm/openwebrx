@@ -1,4 +1,5 @@
 import re
+from ipaddress import IPv4Address, AddressValueError
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, CheckboxInput, DropdownInput, Option
 from owrx.form.input.device import TextInput
@@ -12,9 +13,21 @@ AFEDRI_PROFILE_KEYS = ["r820t_lna_agc", "r820t_mixer_agc"]
 
 class IPv4AndPortValidator(Validator):
     def validate(self, key, value) -> None:
-        m = re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", value)
-        if not m:
-            raise ValidationError(key, "Wrong format. IPv4:Port expected")
+        parts = value.split(":")
+        if len(parts) != 2:
+            raise ValidationError(key, "Wrong format. Expected IPv4:port")
+
+        try:
+            IPv4Address(parts[0])
+        except AddressValueError as e:
+            raise ValidationError(key, "IP address error: {}".format(str(e)))
+
+        try:
+            port = int(parts[1])
+        except ValueError:
+            raise ValidationError(key, "Port number invalid")
+        if not 0 <= port <= 65535:
+            raise ValidationError(key, "Port number out of range")
 
 
 class AfedriAddressPortInput(TextInput):
