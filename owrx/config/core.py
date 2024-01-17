@@ -1,6 +1,7 @@
 from owrx.config import ConfigError
 from configparser import ConfigParser
 from pathlib import Path
+from typing import Optional
 import os
 
 
@@ -16,6 +17,8 @@ class CoreConfig(object):
         "web": {
             "port": 8073,
             "ipv6": True,
+            # won't work this way because values must be strings, but this is effectively the way it behaves.
+            #"bind_address": None,
         },
         "aprs": {
             "symbols_path": "/usr/share/aprs-symbols/png"
@@ -64,6 +67,7 @@ class CoreConfig(object):
         self.log_level = config.get("core", "log_level")
         self.web_port = config.getint("web", "port")
         self.web_ipv6 = config.getboolean("web", "ipv6")
+        self.web_bind_address = config.get("web", "bind_address", fallback=None)
         self.aprs_symbols_path = config.get("aprs", "symbols_path")
 
     @staticmethod
@@ -80,6 +84,9 @@ class CoreConfig(object):
 
     def get_web_ipv6(self) -> bool:
         return self.web_ipv6
+
+    def get_web_bind_address(self) -> Optional[str]:
+        return self.web_bind_address
 
     def get_data_directory(self) -> str:
         return self.data_directory
