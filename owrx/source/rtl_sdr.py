@@ -3,6 +3,7 @@ from owrx.command import Flag, Option
 from typing import List
 from owrx.form.input import Input, TextInput
 from owrx.form.input.device import BiasTeeInput, DirectSamplingInput
+from owrx.form.input.validator import Range
 
 
 class RtlSdrSource(ConnectorSource):
@@ -35,3 +36,6 @@ class RtlSdrDeviceDescription(ConnectorDeviceDescription):
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]
+
+    def getSampleRateRanges(self) -> List[Range]:
+        return [Range(250000, 3200000)]

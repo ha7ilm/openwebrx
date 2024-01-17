@@ -331,8 +331,8 @@ class ModesInput(DropdownInput):
 
 
 class ExponentialInput(Input):
-    def __init__(self, id, label, unit, infotext=None):
-        super().__init__(id, label, infotext=infotext)
+    def __init__(self, id, label, unit, infotext=None, validator: Validator = None):
+        super().__init__(id, label, infotext=infotext, validator=validator)
         self.unit = unit
 
     def defaultConverter(self):
