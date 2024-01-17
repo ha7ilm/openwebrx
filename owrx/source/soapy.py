@@ -74,13 +74,20 @@ class SoapyConnectorSource(ConnectorSource, metaclass=ABCMeta):
 
     def onPropertyChange(self, changes):
         mappings = self.getSoapySettingsMappings()
-        settings = {}
+        affectsSettings = False
+        forward = {}
         for prop, value in changes.items():
             if prop in mappings.keys():
-                settings[mappings[prop]] = self.convertSoapySettingsValue(value)
-        if settings:
-            changes["settings"] = ",".join("{0}={1}".format(k, v) for k, v in settings.items())
-        super().onPropertyChange(changes)
+                affectsSettings = True
+            else:
+                forward[prop] = value
+        if affectsSettings:
+            settings = {}
+            for owrx_key, soapy_key in mappings.items():
+                if owrx_key in self.props:
+                    settings[soapy_key] = self.convertSoapySettingsValue(self.props[owrx_key])
+            forward["settings"] = ",".join("{0}={1}".format(k, v) for k, v in settings.items())
+        super().onPropertyChange(forward)
 
 
 class SoapyConnectorDeviceDescription(ConnectorDeviceDescription):
