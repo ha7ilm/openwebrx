@@ -91,10 +91,12 @@ class Input(ABC):
     def parse(self, data):
         if self.id in data:
             value = self.converter.convert_from_form(data[self.id][0])
-            if self.validator is not None:
-                self.validator.validate(self.id, value)
             return {self.id: value}
         return {}
+
+    def validate(self, data):
+        if self.id in data and self.validator is not None:
+            self.validator.validate(self.id, data[self.id])
 
     def getLabel(self):
         return self.label

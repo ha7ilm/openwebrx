@@ -59,6 +59,4 @@ class LocationInput(Input):
 
     def parse(self, data):
         value = {k: float(data["{0}-{1}".format(self.id, k)][0]) for k in ["lat", "lon"]}
-        if self.validator is not None:
-            self.validator.validate(self.id, value)
         return {self.id: value}

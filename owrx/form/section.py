@@ -34,7 +34,9 @@ class Section(object):
         errors = []
         for i in self.inputs:
             try:
-                parsed_data.update(i.parse(data))
+                res = i.parse(data)
+                parsed_data.update(res)
+                i.validate(res)
             except FormError as e:
                 errors.append(e)
             except Exception as e:
