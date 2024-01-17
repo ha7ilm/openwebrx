@@ -1,6 +1,7 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, CheckboxInput
 from owrx.form.input.device import BiasTeeInput
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -48,3 +49,14 @@ class AirspyDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getGainStages(self):
         return ["LNA", "MIX", "VGA"]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        # Airspy R2 does 2.5 or 10 MS/s
+        # Airspy mini does 3 or 6 MS/s
+        # we don't know what device we're actually dealing with, but we can still clamp it down to a sum of the options.
+        return [
+            Range(2500000),
+            Range(3000000),
+            Range(6000000),
+            Range(10000000),
+        ]

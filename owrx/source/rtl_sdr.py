@@ -37,5 +37,5 @@ class RtlSdrDeviceDescription(ConnectorDeviceDescription):
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]
 
-    def getSampleRateRanges(self) -> List[Range]:
+    def getSampleRateRanges(self) -> list[Range]:
         return [Range(250000, 3200000)]

@@ -1,6 +1,7 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input
 from owrx.form.input.device import BiasTeeInput
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -34,3 +35,6 @@ class HackrfDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getGainStages(self):
         return ["LNA", "AMP", "VGA"]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        return [Range(1000000, 20000000)]

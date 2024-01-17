@@ -1,9 +1,8 @@
-import re
 from ipaddress import IPv4Address, AddressValueError
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input, CheckboxInput, DropdownInput, Option
 from owrx.form.input.device import TextInput
-from owrx.form.input.validator import Validator, ValidationError
+from owrx.form.input.validator import Validator, ValidationError, Range
 from typing import List
 
 
@@ -123,3 +122,6 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getNumberOfChannels(self) -> int:
         return 4
+
+    def getSampleRateRanges(self) -> list[Range]:
+        return [Range(48000, 2400000)]

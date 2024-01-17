@@ -1,6 +1,7 @@
 from owrx.source.direct import DirectSource, DirectSourceDeviceDescription
 from owrx.command import Option, Flag
 from owrx.form.input import Input, DropdownEnum, DropdownInput, CheckboxInput
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -80,4 +81,13 @@ class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
             "adc_preamp",
             "adc_dither",
             "wideband",
+        ]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        return [
+            Range(125000),
+            Range(250000),
+            Range(500000),
+            Range(1000000),
+            Range(2000000),
         ]

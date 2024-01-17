@@ -1,6 +1,7 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input import Input
 from owrx.form.input.device import BiasTeeInput, DirectSamplingInput
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -26,3 +27,6 @@ class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        return [Range(250000, 3200000)]

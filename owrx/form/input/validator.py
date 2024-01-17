@@ -15,14 +15,16 @@ class RequiredValidator(Validator):
 
 
 class Range(object):
-    def __init__(self, start: int, end: int):
+    def __init__(self, start: int, end: int = None):
         self.start = start
-        self.end = end
+        self.end = end if end is not None else start
 
     def isInRange(self, value):
         return self.start <= value <= self.end
 
     def __str__(self):
+        if self.start == self.end:
+            return str(self.start)
         return "{start}...{end}".format(**vars(self))
 
 
@@ -46,7 +48,7 @@ class RangeListValidator(Validator):
     def validate(self, key, value) -> None:
         if not any(range for range in self.rangeList if range.isInRange(value)):
             raise ValidationError(
-                key, "Value is out of range {}".format(self._rangeStr())
+                key, "Value is outside of the allowed range(s) {}".format(self._rangeStr())
             )
 
     def _rangeStr(self):

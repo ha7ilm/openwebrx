@@ -2,6 +2,7 @@ from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Argument, Flag, Option
 from owrx.form.input import Input, DropdownInput, DropdownEnum, CheckboxInput
 from owrx.form.input.device import RemoteInput
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -56,3 +57,7 @@ class RundsDeviceDescription(ConnectorDeviceDescription):
 
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["protocol", "long"]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        # can't be very specific here due to the wide range of devices, so this is more of a sanity check.
+        return [Range(0, 20000000)]

@@ -2,6 +2,7 @@ from owrx.source.connector import ConnectorSource, ConnectorDeviceDescription
 from owrx.command import Flag, Option, Argument
 from owrx.form.input import Input
 from owrx.form.input.device import RemoteInput, DirectSamplingInput
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -36,3 +37,6 @@ class RtlTcpDeviceDescription(ConnectorDeviceDescription):
 
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["direct_sampling"]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        return [Range(250000, 3200000)]

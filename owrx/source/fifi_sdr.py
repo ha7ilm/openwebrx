@@ -7,6 +7,7 @@ from pycsdr.modules import Convert, Gain
 from pycsdr.types import Format
 from typing import List
 from owrx.form.input import Input, TextInput
+from owrx.form.input.validator import Range
 import logging
 
 
@@ -69,3 +70,10 @@ class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
 
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["device"]
+
+    def getSampleRateRanges(self) -> list[Range]:
+        return [
+            Range(48000),
+            Range(96000),
+            Range(192000),
+        ]
