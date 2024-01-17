@@ -25,8 +25,7 @@ apt-get update
 apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 
 git clone https://github.com/osmocom/rtl-sdr.git
-# latest from master as of 2023-09-13 (integration of rtlsdr blog v4 dongle)
-cmakebuild rtl-sdr 1261fbb285297da08f4620b18871b6d6d9ec2a7b
+cmakebuild rtl-sdr v2.0.1
 
 git clone https://github.com/pothosware/SoapyRTLSDR.git
 # latest from master as of 2023-09-13
