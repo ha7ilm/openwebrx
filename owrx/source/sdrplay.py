@@ -1,5 +1,5 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
-from owrx.form.input import Input, CheckboxInput, DropdownInput, DropdownEnum
+from owrx.form.input import Input, CheckboxInput
 from owrx.form.input.device import BiasTeeInput
 from owrx.form.input.validator import Range
 from typing import List
@@ -13,24 +13,14 @@ class SdrplaySource(SoapyConnectorSource):
                 "bias_tee": "biasT_ctrl",
                 "rf_notch": "rfnotch_ctrl",
                 "dab_notch": "dabnotch_ctrl",
-                "if_mode": "if_mode",
                 "external_reference": "extref_ctrl",
+                "hdr_ctrl": "hdr_ctrl",
             }
         )
         return mappings
 
     def getDriver(self):
         return "sdrplay"
-
-
-class IfModeOptions(DropdownEnum):
-    IFMODE_ZERO_IF = "Zero-IF"
-    IFMODE_450 = "450kHz"
-    IFMODE_1620 = "1620kHz"
-    IFMODE_2048 = "2048kHz"
-
-    def __str__(self):
-        return self.value
 
 
 class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
@@ -51,18 +41,25 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
                 "dab_notch",
                 "Enable DAB notch filter",
             ),
-            DropdownInput(
-                "if_mode",
-                "IF Mode",
-                IfModeOptions,
+            CheckboxInput(
+                "external_reference",
+                "Enable external reference clock",
             ),
+            CheckboxInput(
+                "hdr_ctrl",
+                "Enable RSPdx HDR mode",
+            )
         ]
 
     def getDeviceOptionalKeys(self):
-        return super().getDeviceOptionalKeys() + ["bias_tee", "rf_notch", "dab_notch", "if_mode"]
+        return super().getDeviceOptionalKeys() + [
+            "bias_tee", "rf_notch", "dab_notch", "external_reference", "hdr_ctrl"
+        ]
 
     def getProfileOptionalKeys(self):
-        return super().getProfileOptionalKeys() + ["bias_tee", "rf_notch", "dab_notch", "if_mode"]
+        return super().getProfileOptionalKeys() + [
+            "bias_tee", "rf_notch", "dab_notch", "external_reference", "hdr_ctrl"
+        ]
 
     def getSampleRateRanges(self) -> list[Range]:
         # this is from SoapySDRPlay3's implementation of listSampleRates().
