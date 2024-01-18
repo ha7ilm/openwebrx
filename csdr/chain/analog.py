@@ -87,6 +87,12 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
             self.metaChain.setReader(self.metaTapBuffer.getReader())
         self.metaChain.setWriter(writer)
 
+    def stop(self):
+        super().stop()
+        if self.metaChain is not None:
+            self.metaChain.stop()
+            self.metaChain = None
+
 
 class Ssb(BaseDemodulatorChain):
     def __init__(self):
