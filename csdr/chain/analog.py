@@ -1,4 +1,5 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, DeemphasisTauChain, MetaProvider
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, HdAudio, DeemphasisTauChain, \
+    MetaProvider, RdsChain
 from pycsdr.modules import AmDemod, DcBlock, FmDemod, Limit, NfmDeemphasis, Agc, WfmDeemphasis, FractionalDecimator, \
     RealPart, Writer, Buffer
 from pycsdr.types import Format, AgcProfile
@@ -42,10 +43,11 @@ class NFm(BaseDemodulatorChain):
         self.replace(2, NfmDeemphasis(sampleRate))
 
 
-class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAudio, MetaProvider):
-    def __init__(self, sampleRate: int, tau: float):
+class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAudio, MetaProvider, RdsChain):
+    def __init__(self, sampleRate: int, tau: float, rdsRbds: bool):
         self.sampleRate = sampleRate
         self.tau = tau
+        self.rdsRbds = rdsRbds
         self.limit = Limit()
         # this buffer is used to tap into the raw audio stream for redsea RDS decoding
         self.metaTapBuffer = Buffer(Format.FLOAT)
@@ -56,6 +58,7 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
             WfmDeemphasis(self.sampleRate, self.tau),
         ]
         self.metaChain = None
+        self.metaWriter = None
         super().__init__(workers)
 
     def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
@@ -83,15 +86,25 @@ class WFm(BaseDemodulatorChain, FixedIfSampleRateChain, DeemphasisTauChain, HdAu
         if not FeatureDetector().is_available("redsea"):
             return
         if self.metaChain is None:
-            self.metaChain = Redsea(self.getFixedIfSampleRate())
+            self.metaChain = Redsea(self.getFixedIfSampleRate(), self.rdsRbds)
             self.metaChain.setReader(self.metaTapBuffer.getReader())
-        self.metaChain.setWriter(writer)
+        self.metaWriter = writer
+        self.metaChain.setWriter(self.metaWriter)
 
     def stop(self):
         super().stop()
         if self.metaChain is not None:
             self.metaChain.stop()
             self.metaChain = None
+            self.metaWriter = None
+
+    def setRdsRbds(self, rdsRbds: bool) -> None:
+        self.rdsRbds = rdsRbds
+        if self.metaChain is not None:
+            self.metaChain.stop()
+            self.metaChain = Redsea(self.getFixedIfSampleRate(), self.rdsRbds)
+            self.metaChain.setReader(self.metaTapBuffer.getReader())
+            self.metaChain.setWriter(self.metaWriter)
 
 
 class Ssb(BaseDemodulatorChain):

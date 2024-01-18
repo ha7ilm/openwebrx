@@ -49,6 +49,12 @@ class DeemphasisTauChain(ABC):
         pass
 
 
+class RdsChain(ABC):
+    @abstractmethod
+    def setRdsRbds(self, rdsRbds: bool) -> None:
+        pass
+
+
 class BaseDemodulatorChain(Chain):
     def supportsSquelch(self) -> bool:
         return True

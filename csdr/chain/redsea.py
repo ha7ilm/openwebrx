@@ -6,9 +6,9 @@ from csdr.module import JsonParser
 
 
 class Redsea(Chain):
-    def __init__(self, sampleRate: int):
+    def __init__(self, sampleRate: int, rbds: bool):
         super().__init__([
             Convert(Format.FLOAT, Format.SHORT),
-            RedseaModule(sampleRate),
+            RedseaModule(sampleRate, rbds),
             JsonParser("WFM"),
         ])
