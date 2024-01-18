@@ -10,6 +10,10 @@ MetaPanel.prototype.isSupported = function(data) {
     return this.modes.includes(data.protocol);
 };
 
+MetaPanel.prototype.isEnabled = function() {
+    return true;
+};
+
 MetaPanel.prototype.clear = function() {
     this.el.find(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
 };
@@ -359,12 +363,89 @@ M17MetaPanel.prototype.clear = function() {
     this.setDestination();
 };
 
+function WfmMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['WFM'];
+    this.enabled = false;
+    this.pi = '';
+    this.timeout = false;
+    // callsigns are only available in RBDS mode (US)
+    this.callsign = false;
+    this.clear();
+}
+
+WfmMetaPanel.prototype = new MetaPanel();
+
+WfmMetaPanel.prototype.update = function(data) {
+    var me = this;
+
+    // automatically clear metadata panel when no RDS data is received for more than ten seconds
+    if (this.timeout) clearTimeout(this.timeout);
+    this.timeout = setTimeout(function(){
+        me.clear();
+    }, 10000);
+
+    if (!this.isSupported(data)) return;
+    if ('pi' in data && data.pi !== this.pi) {
+        this.clear();
+        this.pi = data.pi;
+    }
+
+    var $el = $(this.el);
+    ['ps', 'prog_type', 'radiotext'].forEach(function(key) {
+        if (key in data) {
+            $el.find('.rds-' + key).text(data[key]);
+        }
+    });
+
+    if ('callsign' in data) {
+        this.callsign = true;
+        $el.find('.rds-identifier').text(data.callsign);
+    }
+
+    if ('pi' in data && !this.callsign) {
+        $el.find('.rds-identifier').text('PI: ' + data.pi);
+    }
+};
+
+WfmMetaPanel.prototype.isSupported = function(data) {
+    return this.modes.includes(data.mode);
+};
+
+WfmMetaPanel.prototype.setEnabled = function(enabled) {
+    if (enabled === this.enabled) return;
+    this.enabled = enabled;
+    if (enabled) {
+        $(this.el).html(
+            '<div class="rds-container">' +
+                '<div class="rds-identifier"></div>' +
+                '<div class="rds-ps"></div>' +
+                '<div class="rds-radiotext"></div>' +
+                '<div class="rds-prog_type"></div>' +
+            '</div>'
+        );
+    } else {
+        $(this.el).emtpy()
+    }
+};
+
+WfmMetaPanel.prototype.isEnabled = function() {
+    return this.enabled;
+};
+
+WfmMetaPanel.prototype.clear = function() {
+    $(this.el).find('.rds-identifier, .rds-ps, .rds-prog_type, .rds-radiotext').text('');
+    // display PI until we get the next callsign
+    this.callsign = false;
+};
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
     dstar: DStarMetaPanel,
     nxdn: NxdnMetaPanel,
     m17: M17MetaPanel,
+    wfm: WfmMetaPanel,
 };
 
 $.fn.metaPanel = function() {

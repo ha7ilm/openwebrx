@@ -827,6 +827,9 @@ function on_ws_recv(evt) {
                         break;
                     case "features":
                         Modes.setFeatures(json['value']);
+                        $('#openwebrx-panel-metadata-wfm').metaPanel().each(function() {
+                            this.setEnabled(!!json.value.redsea);
+                        });
                         break;
                     case "metadata":
                         $('.openwebrx-meta-panel').metaPanel().each(function(){

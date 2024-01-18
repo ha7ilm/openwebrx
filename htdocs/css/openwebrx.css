@@ -1332,3 +1332,19 @@ img.openwebrx-mirror-img
 .openwebrx-waterfall-container > * {
     flex: 0 0 auto;
 }
+
+#openwebrx-panel-metadata-wfm {
+	width: 619px;
+	min-height: 180px;
+}
+
+.rds-container {
+	width: 100%;
+	text-align: center;
+}
+
+.rds-container .rds-ps {
+	font-family: roboto-mono;
+	font-size: 18pt;
+	padding: 10px 0;
+}

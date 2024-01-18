@@ -10,5 +10,5 @@ class Redsea(Chain):
         super().__init__([
             Convert(Format.FLOAT, Format.SHORT),
             RedseaModule(sampleRate),
-            JsonParser("RDS"),
+            JsonParser("WFM"),
         ])
