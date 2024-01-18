@@ -164,7 +164,7 @@ class JsonParser(LineBasedModule):
             logger.debug(msg)
             return msg
         except json.JSONDecodeError:
-            logger.exception("error parsing rtl433 json")
+            logger.exception("error parsing decoder json")
 
 
 class PopenModule(AutoStartModule, metaclass=ABCMeta):
