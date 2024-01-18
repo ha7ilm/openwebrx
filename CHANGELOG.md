@@ -4,6 +4,7 @@
 - Added support for decoding ADS-B with dump1090
 - Added support for decoding HFDL and VDL2 aircraft communications
 - Added decoding of ISM band transmissions using rtl_433
+- Added support for decoding RDS data on WFM broadcasts using redsea decoder
 - Added IPv6 support
 - New devices supported:
   - Afedri SDR-Net
