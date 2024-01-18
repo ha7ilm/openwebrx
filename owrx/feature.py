@@ -89,6 +89,7 @@ class FeatureDetector(object):
         "ism": ["rtl_433"],
         "dumphfdl": ["dumphfdl"],
         "dumpvdl2": ["dumpvdl2"],
+        "redsea": ["redsea"],
     }
 
     def feature_availability(self):
@@ -636,3 +637,14 @@ class FeatureDetector(object):
         `dumpvdl2`.
         """
         return self.command_is_runnable("dumpvdl2 --version")
+
+    def has_redsea(self):
+        """
+        OpenWebRX can decode RDS data on WFM broadcast station if the `redsea` decoder is available.
+
+        You can find more information [here](https://github.com/windytan/redsea)
+
+        If you are using the OpenWebRX Debian or Ubuntu repository, you should be able to install the package
+        `redsea`.
+        """
+        return self.command_is_runnable("redsea --version")
