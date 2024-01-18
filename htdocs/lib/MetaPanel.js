@@ -406,6 +406,11 @@ WfmMetaPanel.prototype.update = function(data) {
     if ('pi' in data && !this.callsign) {
         $el.find('.rds-identifier').text('PI: ' + data.pi);
     }
+
+    if ('clock_time' in data) {
+        var date = new Date(Date.parse(data.clock_time));
+        $el.find('.rds-clock').text(date.toLocaleString([], {dateStyle: 'short', timeStyle: 'short'}));
+    }
 };
 
 WfmMetaPanel.prototype.isSupported = function(data) {
@@ -422,6 +427,7 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
                 '<div class="rds-ps"></div>' +
                 '<div class="rds-radiotext"></div>' +
                 '<div class="rds-prog_type"></div>' +
+                '<div class="rds-clock"></div>' +
             '</div>'
         );
     } else {
@@ -434,7 +440,7 @@ WfmMetaPanel.prototype.isEnabled = function() {
 };
 
 WfmMetaPanel.prototype.clear = function() {
-    $(this.el).find('.rds-identifier, .rds-ps, .rds-prog_type, .rds-radiotext').text('');
+    $(this.el).find('.rds-identifier, .rds-ps, .rds-prog_type, .rds-radiotext, .rds-clock').text('');
     // display PI until we get the next callsign
     this.callsign = false;
 };
