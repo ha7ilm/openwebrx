@@ -367,16 +367,14 @@ function WfmMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['WFM'];
     this.enabled = false;
-    this.pi = '';
     this.timeout = false;
-    // callsigns are only available in RBDS mode (US)
-    this.callsign = false;
     this.clear();
 }
 
 WfmMetaPanel.prototype = new MetaPanel();
 
 WfmMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
     var me = this;
 
     // automatically clear metadata panel when no RDS data is received for more than ten seconds
@@ -385,32 +383,106 @@ WfmMetaPanel.prototype.update = function(data) {
         me.clear();
     }, 10000);
 
-    if (!this.isSupported(data)) return;
     if ('pi' in data && data.pi !== this.pi) {
         this.clear();
         this.pi = data.pi;
     }
 
     var $el = $(this.el);
-    ['ps', 'prog_type', 'radiotext'].forEach(function(key) {
-        if (key in data) {
-            $el.find('.rds-' + key).text(data[key]);
-        }
-    });
 
-    if ('callsign' in data) {
-        this.callsign = true;
-        $el.find('.rds-identifier').text(data.callsign);
+    if ('ps' in data) {
+        this.ps = data.ps;
     }
 
-    if ('pi' in data && !this.callsign) {
-        $el.find('.rds-identifier').text('PI: ' + data.pi);
+    if ('prog_type' in data) {
+        $el.find('.rds-prog_type').text(data['prog_type']);
+    }
+
+    if ('callsign' in data) {
+        this.callsign = data.callsign;
+    }
+
+    if ('pi' in data) {
+        this.pi = data.pi
     }
 
     if ('clock_time' in data) {
         var date = new Date(Date.parse(data.clock_time));
         $el.find('.rds-clock').text(date.toLocaleString([], {dateStyle: 'short', timeStyle: 'short'}));
     }
+
+    if ('radiotext_plus' in data) {
+        // prefer displaying radiotext plus over radiotext
+        this.radiotext_plus = this.radiotext_plus || {
+            item_toggle: -1
+        };
+
+        var tags = {};
+        if ('tags' in data.radiotext_plus) {
+            tags = Object.fromEntries(data.radiotext_plus.tags.map(function (tag) {
+                return [tag['content-type'], tag['data']]
+            }));
+            console.info(tags);
+        }
+
+        if (data.radiotext_plus.item_toggle !== this.radiotext_plus.item_toggle) {
+            this.radiotext_plus.item_toggle = data.radiotext_plus.item_toggle;
+            this.radiotext_plus.item = '';
+        }
+
+        this.radiotext_plus.item_running = !!data.radiotext_plus.item_running;
+
+        if ('item.artist' in tags && 'item.title' in tags) {
+            this.radiotext_plus.item = tags['item.artist'] + ' - ' + tags['item.title'];
+        }
+
+        if ('programme.now' in tags) {
+            this.radiotext_plus.programme = tags['programme.now'];
+        }
+
+        if ('programme.homepage' in tags) {
+            this.radiotext_plus.homepage = tags['programme.homepage'];
+        }
+
+        if ('stationname.long' in tags) {
+            this.long_stationname = tags['stationname.long'];
+        }
+
+        if ('stationname.short' in tags) {
+            this.short_stationname = tags['stationname.short'];
+        }
+
+        if ('info.news' in tags) {
+            this.radiotext_plus.news = tags['info.news'];
+        }
+
+    }
+
+    if ('radiotext' in data && !this.radiotext_plus) {
+        this.radiotext = data.radiotext;
+    }
+
+    if (this.radiotext_plus) {
+        $el.find('.rds-radiotext').empty();
+        if (this.radiotext_plus.item_running) {
+            $el.find('.rds-rtplus-item').text(this.radiotext_plus.item || '');
+        } else {
+            $el.find('.rds-rtplus-item').empty();
+        }
+        $el.find('.rds-rtplus-programme').text(this.radiotext_plus.programme || '');
+        $el.find('.rds-rtplus-news').text(this.radiotext_plus.news || '');
+        if (this.radiotext_plus.homepage) {
+            $el.find('.rds-rtplus-homepage').html(
+                '<a href="' + this.radiotext_plus.homepage + '" target="_blank">' + this.radiotext_plus.homepage + '</a>'
+            );
+        }
+    } else {
+        $el.find('.rds-radiotext-plus .autoclear').empty();
+        $el.find('.rds-radiotext').text(this.radiotext || '');
+    }
+
+    $el.find('.rds-stationname').text(this.long_stationname || this.ps);
+    $el.find('.rds-identifier').text(this.short_stationname || this.callsign || this.pi);
 };
 
 WfmMetaPanel.prototype.isSupported = function(data) {
@@ -423,11 +495,17 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
     if (enabled) {
         $(this.el).html(
             '<div class="rds-container">' +
-                '<div class="rds-identifier"></div>' +
-                '<div class="rds-ps"></div>' +
-                '<div class="rds-radiotext"></div>' +
-                '<div class="rds-prog_type"></div>' +
-                '<div class="rds-clock"></div>' +
+                '<div class="rds-identifier rds-autoclear"></div>' +
+                '<div class="rds-stationname rds-autoclear"></div>' +
+                '<div class="rds-radiotext rds-autoclear"></div>' +
+                '<div class="rds-radiotext-plus">' +
+                    '<div class="rds-rtplus-programme rds-autoclear"></div>' +
+                    '<div class="rds-rtplus-item rds-autoclear"></div>' +
+                    '<div class="rds-rtplus-news rds-autoclear"></div>' +
+                    '<div class="rds-rtplus-homepage rds-autoclear"></div>'+
+                '</div>' +
+                '<div class="rds-prog_type rds-autoclear"></div>' +
+                '<div class="rds-clock rds-autoclear"></div>' +
             '</div>'
         );
     } else {
@@ -440,9 +518,15 @@ WfmMetaPanel.prototype.isEnabled = function() {
 };
 
 WfmMetaPanel.prototype.clear = function() {
-    $(this.el).find('.rds-identifier, .rds-ps, .rds-prog_type, .rds-radiotext, .rds-clock').text('');
-    // display PI until we get the next callsign
-    this.callsign = false;
+    $(this.el).find('.rds-autoclear').empty();
+    this.pi = '';
+    this.ps = '';
+    this.callsign = '';
+    this.long_stationname = '';
+    this.short_stationname = '';
+
+    this.radiotext = '';
+    this.radiotext_plus = false;
 };
 
 MetaPanel.types = {

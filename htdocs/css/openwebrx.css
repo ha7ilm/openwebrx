@@ -1334,8 +1334,8 @@ img.openwebrx-mirror-img
 }
 
 #openwebrx-panel-metadata-wfm {
-	width: 619px;
-	min-height: 180px;
+	width: 300px;
+	max-height: 180px;
 }
 
 .rds-container {
@@ -1343,8 +1343,30 @@ img.openwebrx-mirror-img
 	text-align: center;
 }
 
-.rds-container .rds-ps {
+.rds-container .rds-stationname {
 	font-family: roboto-mono;
 	font-size: 18pt;
 	padding: 10px 0;
+}
+
+.rds-container .rds-stationname,
+.rds-container .rds-identifier,
+.rds-container .rds-prog_type {
+	min-height: 1lh;
+}
+
+.rds-container .rds-radiotext-plus .rds-rtplus-item:not(:empty):before {
+	content: "♫ ";
+}
+
+.rds-container .rds-radiotext-plus .rds-rtplus-programme:not(:empty):before {
+	content: "📅 ";
+}
+
+.rds-container .rds-radiotext-plus .rds-rtplus-news:not(:empty):before {
+	content: "📰 ";
+}
+
+.rds-container .rds-radiotext-plus .rds-rtplus-homepage:not(:empty):before {
+	content: "🔗 ";
 }
