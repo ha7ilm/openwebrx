@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from owrx.form.error import ValidationError
+from typing import List
 
 
 class Validator(ABC):
@@ -42,7 +43,7 @@ class RangeValidator(Validator):
 
 
 class RangeListValidator(Validator):
-    def __init__(self, rangeList: list[Range]):
+    def __init__(self, rangeList: List[Range]):
         self.rangeList = rangeList
 
     def validate(self, key, value) -> None:

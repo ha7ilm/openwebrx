@@ -83,7 +83,7 @@ class PerseussdrDeviceDescription(DirectSourceDeviceDescription):
             "wideband",
         ]
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [
             Range(125000),
             Range(250000),

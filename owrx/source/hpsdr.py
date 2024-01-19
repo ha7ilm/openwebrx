@@ -90,7 +90,7 @@ class HpsdrDeviceDescription(ConnectorDeviceDescription):
     def getProfileOptionalKeys(self):
         return list(filter(lambda x : x != "iqswap", super().getProfileOptionalKeys()))
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [
             Range(48000),
             Range(96000),

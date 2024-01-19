@@ -38,5 +38,5 @@ class RtlTcpDeviceDescription(ConnectorDeviceDescription):
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["direct_sampling"]
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [Range(250000, 3200000)]

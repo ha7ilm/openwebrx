@@ -28,5 +28,5 @@ class RtlSdrSoapyDeviceDescription(SoapyConnectorDeviceDescription):
     def getProfileOptionalKeys(self):
         return super().getProfileOptionalKeys() + ["bias_tee", "direct_sampling"]
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [Range(250000, 3200000)]

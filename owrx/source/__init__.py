@@ -679,6 +679,6 @@ class SdrDeviceDescription(object):
             self.getProfileOptionalKeys(),
         )
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         # semi-sane default value. should be overridden with more specific values per device.
         return [Range(500000, 10000000)]

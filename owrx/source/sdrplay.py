@@ -61,7 +61,7 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
             "bias_tee", "rf_notch", "dab_notch", "external_reference", "hdr_ctrl"
         ]
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         # this is from SoapySDRPlay3's implementation of listSampleRates().
         # i don't think it's accurate, but this is the limitation we'd be running into if we had proper soapy
         # integration.

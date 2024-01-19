@@ -71,7 +71,7 @@ class FifiSdrDeviceDescription(DirectSourceDeviceDescription):
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["device"]
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [
             Range(48000),
             Range(96000),

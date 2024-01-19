@@ -1,5 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input.validator import Range
+from typing import List
 
 
 class RadioberrySource(SoapyConnectorSource):
@@ -11,7 +12,7 @@ class RadioberryDeviceDescription(SoapyConnectorDeviceDescription):
     def getName(self):
         return "RadioBerry"
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [
             Range(48000),
             Range(96000),

@@ -123,5 +123,5 @@ class AfedriDeviceDescription(SoapyConnectorDeviceDescription):
     def getNumberOfChannels(self) -> int:
         return 4
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [Range(48000, 2400000)]

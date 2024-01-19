@@ -1,5 +1,6 @@
 from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescription
 from owrx.form.input.validator import Range
+from typing import List
 
 
 class AirspyhfSource(SoapyConnectorSource):
@@ -15,7 +16,7 @@ class AirspyhfDeviceDescription(SoapyConnectorDeviceDescription):
         # not currently supported by the SoapySDR module.
         return False
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         return [
             Range(192000),
             Range(256000),

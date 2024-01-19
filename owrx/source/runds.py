@@ -58,6 +58,6 @@ class RundsDeviceDescription(ConnectorDeviceDescription):
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["protocol", "long"]
 
-    def getSampleRateRanges(self) -> list[Range]:
+    def getSampleRateRanges(self) -> List[Range]:
         # can't be very specific here due to the wide range of devices, so this is more of a sanity check.
         return [Range(0, 20000000)]
