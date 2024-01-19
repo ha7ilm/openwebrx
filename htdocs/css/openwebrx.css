@@ -1367,6 +1367,10 @@ img.openwebrx-mirror-img
 	content: "📰 ";
 }
 
+.rds-container .rds-radiotext-plus .rds-rtplus-weather:not(:empty):before {
+	content: "⛅ ";
+}
+
 .rds-container .rds-radiotext-plus .rds-rtplus-homepage:not(:empty):before {
 	content: "🔗 ";
 }

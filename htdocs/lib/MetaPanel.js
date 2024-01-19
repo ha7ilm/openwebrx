@@ -422,7 +422,6 @@ WfmMetaPanel.prototype.update = function(data) {
             tags = Object.fromEntries(data.radiotext_plus.tags.map(function (tag) {
                 return [tag['content-type'], tag['data']]
             }));
-            console.info(tags);
         }
 
         if (data.radiotext_plus.item_toggle !== this.radiotext_plus.item_toggle) {
@@ -456,6 +455,10 @@ WfmMetaPanel.prototype.update = function(data) {
             this.radiotext_plus.news = tags['info.news'];
         }
 
+        if ('info.weather' in tags) {
+            this.radiotext_plus.weather = tags['info.weather'];
+        }
+
     }
 
     if ('radiotext' in data && !this.radiotext_plus) {
@@ -471,6 +474,7 @@ WfmMetaPanel.prototype.update = function(data) {
         }
         $el.find('.rds-rtplus-programme').text(this.radiotext_plus.programme || '');
         $el.find('.rds-rtplus-news').text(this.radiotext_plus.news || '');
+        $el.find('.rds-rtplus-weather').text(this.radiotext_plus.weather || '');
         if (this.radiotext_plus.homepage) {
             $el.find('.rds-rtplus-homepage').html(
                 '<a href="' + this.radiotext_plus.homepage + '" target="_blank">' + this.radiotext_plus.homepage + '</a>'
@@ -502,7 +506,8 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
                     '<div class="rds-rtplus-programme rds-autoclear"></div>' +
                     '<div class="rds-rtplus-item rds-autoclear"></div>' +
                     '<div class="rds-rtplus-news rds-autoclear"></div>' +
-                    '<div class="rds-rtplus-homepage rds-autoclear"></div>'+
+                    '<div class="rds-rtplus-weather rds-autoclear"></div>' +
+                    '<div class="rds-rtplus-homepage rds-autoclear"></div>' +
                 '</div>' +
                 '<div class="rds-prog_type rds-autoclear"></div>' +
                 '<div class="rds-clock rds-autoclear"></div>' +
