@@ -1341,7 +1341,11 @@ img.openwebrx-mirror-img
 .rds-container {
 	width: 100%;
 	text-align: center;
-	overflow: hidden scroll;
+	overflow: hidden auto;
+}
+
+.rds-container > *, .rds-radiotext-plus > * {
+	margin: 2px 0;
 }
 
 .rds-container .rds-stationname {
@@ -1364,8 +1368,9 @@ img.openwebrx-mirror-img
 	content: "📅 ";
 }
 
-.rds-container .rds-radiotext-plus .rds-rtplus-news:not(:empty):before {
-	content: "📰 ";
+.rds-container .rds-radiotext-plus ul.rds-rtplus-news {
+	list-style-type: "📰 ";
+	padding-left: 1.5lh;
 }
 
 .rds-container .rds-radiotext-plus .rds-rtplus-weather:not(:empty):before {

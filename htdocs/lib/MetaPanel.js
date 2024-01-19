@@ -414,7 +414,8 @@ WfmMetaPanel.prototype.update = function(data) {
     if ('radiotext_plus' in data) {
         // prefer displaying radiotext plus over radiotext
         this.radiotext_plus = this.radiotext_plus || {
-            item_toggle: -1
+            item_toggle: -1,
+            news: []
         };
 
         var tags = {};
@@ -452,7 +453,14 @@ WfmMetaPanel.prototype.update = function(data) {
         }
 
         if ('info.news' in tags) {
-            this.radiotext_plus.news = tags['info.news'];
+            var n = tags['info.news'];
+            var i = this.radiotext_plus.news.indexOf(n);
+            if (i >= 0) {
+                this.radiotext_plus.news.splice(i, 1);
+            }
+            this.radiotext_plus.news.push(n);
+            // limit the number of items
+            this.radiotext_plus.news = this.radiotext_plus.news.slice(-5);
         }
 
         if ('info.weather' in tags) {
@@ -473,7 +481,9 @@ WfmMetaPanel.prototype.update = function(data) {
             $el.find('.rds-rtplus-item').empty();
         }
         $el.find('.rds-rtplus-programme').text(this.radiotext_plus.programme || '');
-        $el.find('.rds-rtplus-news').text(this.radiotext_plus.news || '');
+        $el.find('.rds-rtplus-news').empty().html(this.radiotext_plus.news.map(function(n){
+            return '<li>' + n + '</li>';
+        }));
         $el.find('.rds-rtplus-weather').text(this.radiotext_plus.weather || '');
         if (this.radiotext_plus.homepage) {
             $el.find('.rds-rtplus-homepage').html(
@@ -505,7 +515,7 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
                 '<div class="rds-radiotext-plus">' +
                     '<div class="rds-rtplus-programme rds-autoclear"></div>' +
                     '<div class="rds-rtplus-item rds-autoclear"></div>' +
-                    '<div class="rds-rtplus-news rds-autoclear"></div>' +
+                    '<ul class="rds-rtplus-news rds-autoclear"></ul>' +
                     '<div class="rds-rtplus-weather rds-autoclear"></div>' +
                     '<div class="rds-rtplus-homepage rds-autoclear"></div>' +
                 '</div>' +
