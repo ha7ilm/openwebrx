@@ -495,9 +495,14 @@ WfmMetaPanel.prototype.update = function(data) {
         }));
         $el.find('.rds-rtplus-weather').text(this.radiotext_plus.weather || '');
         if (this.radiotext_plus.homepage) {
-            $el.find('.rds-rtplus-homepage').html(
-                '<a href="' + this.radiotext_plus.homepage + '" target="_blank">' + this.radiotext_plus.homepage + '</a>'
-            );
+            var url = this.radiotext_plus.homepage;
+            // prefix with a protcol if not present. we'll assume https, should be generally available these days.
+            if (url.indexOf('://') < 0) url = 'https://' + url;
+            // avoid updating the link if not necessary since that would prevent the user from clicking it
+            if ($el.find('.rds-rtplus-homepage a').attr('href') !== url) {
+                var link = $('<a href="' + url + '" target="_blank"></a>').text(this.radiotext_plus.homepage);
+                $el.find('.rds-rtplus-homepage').html(link);
+            }
         }
     } else {
         $el.find('.rds-radiotext-plus .autoclear').empty();
