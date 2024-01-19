@@ -434,6 +434,15 @@ WfmMetaPanel.prototype.update = function(data) {
 
         if ('item.artist' in tags && 'item.title' in tags) {
             this.radiotext_plus.item = tags['item.artist'] + ' - ' + tags['item.title'];
+        } else {
+            var items = Object.entries(tags).filter(function (e) {
+                return e[0].startsWith("item.")
+            })
+            if (items.length) {
+                this.radiotext_plus.item = items.map(function (e) {
+                    return e[0].substr(5, 1).toUpperCase() + e[0].substr(6) + ': ' + e[1];
+                }).join('; ');
+            }
         }
 
         if ('programme.now' in tags) {
