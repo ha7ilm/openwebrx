@@ -491,7 +491,7 @@ WfmMetaPanel.prototype.update = function(data) {
         }
         $el.find('.rds-rtplus-programme').text(this.radiotext_plus.programme || '');
         $el.find('.rds-rtplus-news').empty().html(this.radiotext_plus.news.map(function(n){
-            return '<li>' + n + '</li>';
+            return $('<li>').text(n);
         }));
         $el.find('.rds-rtplus-weather').text(this.radiotext_plus.weather || '');
         if (this.radiotext_plus.homepage) {
