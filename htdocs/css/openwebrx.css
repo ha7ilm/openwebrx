@@ -1335,12 +1335,13 @@ img.openwebrx-mirror-img
 
 #openwebrx-panel-metadata-wfm {
 	width: 300px;
-	max-height: 180px;
+	max-height: 300px;
 }
 
 .rds-container {
 	width: 100%;
 	text-align: center;
+	overflow: hidden scroll;
 }
 
 .rds-container .rds-stationname {
