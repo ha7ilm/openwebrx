@@ -10,10 +10,6 @@ MetaPanel.prototype.isSupported = function(data) {
     return this.modes.includes(data.protocol);
 };
 
-MetaPanel.prototype.isEnabled = function() {
-    return true;
-};
-
 MetaPanel.prototype.clear = function() {
     this.el.find(".openwebrx-meta-slot").removeClass("active").removeClass("sync");
 };
@@ -521,7 +517,7 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
     if (enabled === this.enabled) return;
     this.enabled = enabled;
     if (enabled) {
-        $(this.el).html(
+        $(this.el).removeClass('disabled').html(
             '<div class="rds-container">' +
                 '<div class="rds-identifier rds-autoclear"></div>' +
                 '<div class="rds-stationname rds-autoclear"></div>' +
@@ -538,12 +534,8 @@ WfmMetaPanel.prototype.setEnabled = function(enabled) {
             '</div>'
         );
     } else {
-        $(this.el).emtpy()
+        $(this.el).addClass('disabled').emtpy()
     }
-};
-
-WfmMetaPanel.prototype.isEnabled = function() {
-    return this.enabled;
 };
 
 WfmMetaPanel.prototype.clear = function() {

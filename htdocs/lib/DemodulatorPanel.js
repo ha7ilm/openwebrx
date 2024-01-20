@@ -175,7 +175,7 @@ DemodulatorPanel.prototype.updatePanels = function() {
     var showing = 'openwebrx-panel-metadata-' + modulation;
     var metaPanels = $(".openwebrx-meta-panel");
     metaPanels.each(function (_, p) {
-        toggle_panel(p.id, p.id === showing);
+        toggle_panel(p.id, p.id === showing && !p.classList.contains('disabled'));
     });
     metaPanels.metaPanel().each(function() {
         this.clear();
