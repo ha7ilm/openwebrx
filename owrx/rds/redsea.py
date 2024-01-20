@@ -4,7 +4,7 @@ from pycsdr.types import Format
 
 class RedseaModule(ExecModule):
     def __init__(self, sampleRate: int, rbds: bool):
-        args = ["redsea", "--input", "mpx", "--samplerate", str(sampleRate)]
+        args = ["redsea", "--samplerate", str(sampleRate)]
         if rbds:
             args += ["--rbds"]
         super().__init__(
