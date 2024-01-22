@@ -6,7 +6,11 @@ from csdr.module.drm import DrmModule
 
 class Drm(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain):
     def __init__(self):
-        workers = [Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT), DrmModule(), Downmix()]
+        workers = [
+            Convert(Format.COMPLEX_FLOAT, Format.COMPLEX_SHORT),
+            DrmModule(),
+            Downmix(Format.SHORT),
+        ]
         super().__init__(workers)
 
     def supportsSquelch(self) -> bool:
