@@ -40,7 +40,7 @@ class ClientDemodulatorChain(Chain):
         self.hdOutputRate = hdOutputRate
         self.secondaryDspEventReceiver = secondaryDspEventReceiver
         self.selector = Selector(sampleRate, outputRate)
-        self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT)
+        self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT, size=524288)
         self.audioBuffer = None
         self.demodulator = demod
         self.secondaryDemodulator = None
@@ -573,6 +573,9 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
         elif demod == "freedv":
             from csdr.chain.freedv import FreeDV
             return FreeDV()
+        elif demod == "dab":
+            from csdr.chain.dablin import Dablin
+            return Dablin()
         elif demod == "empty":
             from csdr.chain.analog import Empty
             return Empty()

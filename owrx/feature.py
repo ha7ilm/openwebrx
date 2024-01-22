@@ -90,6 +90,7 @@ class FeatureDetector(object):
         "dumphfdl": ["dumphfdl"],
         "dumpvdl2": ["dumpvdl2"],
         "redsea": ["redsea"],
+        "dab": ["csdreti", "dablin"]
     }
 
     def feature_availability(self):
@@ -648,3 +649,26 @@ class FeatureDetector(object):
         `redsea`.
         """
         return self.command_is_runnable("redsea --version")
+
+    def has_csdreti(self):
+        """
+        TODO: feature description
+        """
+        required_version = LooseVersion("0.1")
+
+        try:
+            from csdreti.modules import csdreti_version
+            from csdreti.modules import version as pycsdreti_version
+
+            return (
+                LooseVersion(csdreti_version) >= required_version
+                and LooseVersion(pycsdreti_version) >= required_version
+            )
+        except ImportError:
+            return False
+
+    def has_dablin(self):
+        """
+        TODO: feature description
+        """
+        return self.command_is_runnable("dablin -h")
