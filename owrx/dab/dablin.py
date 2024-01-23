@@ -7,5 +7,5 @@ class DablinModule(ExecModule):
         super().__init__(
             Format.CHAR,
             Format.FLOAT,
-            ["dablin", "-s", "0x15DC", "-p"]
+            ["dablin", "-1", "-p"]
         )
