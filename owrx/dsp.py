@@ -40,7 +40,7 @@ class ClientDemodulatorChain(Chain):
         self.hdOutputRate = hdOutputRate
         self.secondaryDspEventReceiver = secondaryDspEventReceiver
         self.selector = Selector(sampleRate, outputRate)
-        self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT, size=524288)
+        self.selectorBuffer = Buffer(Format.COMPLEX_FLOAT)
         self.audioBuffer = None
         self.demodulator = demod
         self.secondaryDemodulator = None
