@@ -1,4 +1,5 @@
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, \
+    MetaProvider, DabServiceSelector
 from csdr.module import PickleModule
 from csdreti.modules import EtiDecoder
 from owrx.dab.dablin import DablinModule
@@ -46,7 +47,7 @@ class MetaProcessor(PickleModule):
         return result
 
 
-class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider):
+class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, DabServiceSelector):
     def __init__(self):
         shift = Shift(0)
         decoder = EtiDecoder()
@@ -59,10 +60,12 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
         # will be replaced by setMetaWriter().
         self.processor.setWriter(Buffer(Format.CHAR))
 
+        self.dablin = DablinModule()
+
         workers = [
             shift,
             decoder,
-            DablinModule(),
+            self.dablin,
             Downmix(Format.FLOAT),
         ]
         super().__init__(workers)
@@ -84,3 +87,6 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
 
     def setMetaWriter(self, writer: Writer) -> None:
         self.processor.setWriter(writer)
+
+    def setDabServiceId(self, serviceId: int) -> None:
+        self.dablin.setDabServiceId(serviceId)

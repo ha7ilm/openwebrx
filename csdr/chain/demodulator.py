@@ -55,6 +55,12 @@ class RdsChain(ABC):
         pass
 
 
+class DabServiceSelector(ABC):
+    @abstractmethod
+    def setDabServiceId(self, serviceId: int) -> None:
+        pass
+
+
 class BaseDemodulatorChain(Chain):
     def supportsSquelch(self) -> bool:
         return True

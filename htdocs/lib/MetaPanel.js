@@ -553,9 +553,12 @@ WfmMetaPanel.prototype.clear = function() {
 function DabMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['DAB'];
-    $(this.el).html(
-        '<select id="dab-service-id"></select>'
-    )
+    this.$select = $('<select id="dab-service-id"></select>');
+    $(this.el).append(this.$select);
+    this.$select.on("change", function() {
+        var service_id = parseInt($(this).val());
+        $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().setDabServiceId(service_id);
+    });
     this.clear();
 }
 
@@ -573,7 +576,10 @@ DabMetaPanel.prototype.update = function(data) {
         var options = Object.entries(data.programmes).map(function(e) {
             return '<option value="' + e[0] + '">' + e[1] + '</option>';
         });
-        $(this.el).find('#dab-service-id').html(options.join(''));
+        $(this.el).find('#dab-service-id').html(
+            '<option value="0" disabled selected></option>' +
+            options.join('')
+        );
     }
 
     console.info(data);

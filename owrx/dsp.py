@@ -3,7 +3,9 @@ from owrx.property import PropertyStack, PropertyLayer, PropertyValidator, Prope
 from owrx.property.validators import OrValidator, RegexValidator, BoolValidator
 from owrx.modes import Modes, DigitalMode
 from csdr.chain import Chain
-from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, DeemphasisTauChain, DemodulatorError, RdsChain
+from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, \
+    SecondaryDemodulator, DialFrequencyReceiver, MetaProvider, SlotFilterChain, SecondarySelectorChain, \
+    DeemphasisTauChain, DemodulatorError, RdsChain, DabServiceSelector
 from csdr.chain.selector import Selector, SecondarySelector
 from csdr.chain.clientaudio import ClientAudioChain
 from csdr.chain.fft import FftChain
@@ -328,6 +330,11 @@ class ClientDemodulatorChain(Chain):
             return
         self.demodulator.setSlotFilter(filter)
 
+    def setDabServiceId(self, serviceId: int) -> None:
+        if not isinstance(self.demodulator, DabServiceSelector):
+            return
+        self.demodulator.setDabServiceId(serviceId)
+
     def setSecondaryFftSize(self, size: int) -> None:
         if size == self.secondaryFftSize:
             return
@@ -422,6 +429,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             "mod": ModulationValidator(),
             "secondary_offset_freq": "int",
             "dmr_filter": "int",
+            "dab_service_id": "int",
         }
         self.localProps = PropertyValidator(PropertyLayer().filter(*validators.keys()), validators)
 
@@ -502,6 +510,7 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             self.props.wireProperty("high_cut", self.setHighCut),
             self.props.wireProperty("mod", self.setDemodulator),
             self.props.wireProperty("dmr_filter", self.chain.setSlotFilter),
+            self.props.wireProperty("dab_service_id", self.chain.setDabServiceId),
             self.props.wireProperty("wfm_deemphasis_tau", self.chain.setWfmDeemphasisTau),
             self.props.wireProperty("wfm_rds_rbds", self.chain.setRdsRbds),
             self.props.wireProperty("secondary_mod", self.setSecondaryDemodulator),

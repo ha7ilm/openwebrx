@@ -205,6 +205,7 @@ function Demodulator(offset_frequency, modulation) {
     this.filter = new Filter(this);
     this.squelch_level = -150;
     this.dmr_filter = 3;
+    this.dab_service_id = 0;
     this.started = false;
     this.state = {};
     this.secondary_demod = false;
@@ -294,6 +295,7 @@ Demodulator.prototype.set = function () {  //this function sends demodulator par
         "offset_freq": this.offset_frequency,
         "mod": this.modulation,
         "dmr_filter": this.dmr_filter,
+        "dab_service_id": this.dab_service_id,
         "squelch_level": this.squelch_level,
         "secondary_mod": this.secondary_demod,
         "secondary_offset_freq": this.secondary_offset_freq
@@ -330,6 +332,11 @@ Demodulator.prototype.setDmrFilter = function(dmr_filter) {
     this.dmr_filter = dmr_filter;
     this.set();
 };
+
+Demodulator.prototype.setDabServiceId = function(dab_service_id) {
+    this.dab_service_id = dab_service_id;
+    this.set();
+}
 
 Demodulator.prototype.setBandpass = function(bandpass) {
     this.bandpass = bandpass;
