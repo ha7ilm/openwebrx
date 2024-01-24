@@ -554,11 +554,17 @@ function DabMetaPanel(el) {
     MetaPanel.call(this, el);
     this.modes = ['DAB'];
     this.$select = $('<select id="dab-service-id"></select>');
-    $(this.el).append(this.$select);
     this.$select.on("change", function() {
         var service_id = parseInt($(this).val());
         $('#openwebrx-panel-receiver').demodulatorPanel().getDemodulator().setDabServiceId(service_id);
     });
+    var $container = $(
+        '<div class="dab-container">' +
+            '<label for="dab-service-id">DAB Service:</label>' +
+        '</div>'
+    );
+    $container.append(this.$select);
+    $(this.el).append($container);
     this.clear();
 }
 

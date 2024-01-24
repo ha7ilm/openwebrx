@@ -1380,3 +1380,21 @@ img.openwebrx-mirror-img
 .rds-container .rds-radiotext-plus .rds-rtplus-homepage:not(:empty):before {
 	content: "🔗 ";
 }
+
+#openwebrx-panel-metadata-dab {
+	width: 300px;
+}
+
+#openwebrx-panel-metadata-dab .dab-container {
+	width: 100%;
+}
+
+.dab-container label {
+	display: block;
+	margin: 5px 0;
+}
+
+.dab-container select#dab-service-id {
+	width: 100%;
+	padding: 3px;
+}
