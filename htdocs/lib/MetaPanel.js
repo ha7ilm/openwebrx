@@ -550,6 +550,39 @@ WfmMetaPanel.prototype.clear = function() {
     this.radiotext_plus = false;
 };
 
+function DabMetaPanel(el) {
+    MetaPanel.call(this, el);
+    this.modes = ['DAB'];
+    $(this.el).html(
+        '<select id="dab-service-id"></select>'
+    )
+    this.clear();
+}
+
+DabMetaPanel.prototype = new MetaPanel();
+
+DabMetaPanel.prototype.isSupported = function(data) {
+    return this.modes.includes(data.mode);
+}
+
+
+DabMetaPanel.prototype.update = function(data) {
+    if (!this.isSupported(data)) return;
+
+    if ('programmes' in data) {
+        var options = Object.entries(data.programmes).map(function(e) {
+            return '<option value="' + e[0] + '">' + e[1] + '</option>';
+        });
+        $(this.el).find('#dab-service-id').html(options.join(''));
+    }
+
+    console.info(data);
+}
+
+DabMetaPanel.prototype.clear = function() {
+
+}
+
 MetaPanel.types = {
     dmr: DmrMetaPanel,
     ysf: YsfMetaPanel,
@@ -557,6 +590,7 @@ MetaPanel.types = {
     nxdn: NxdnMetaPanel,
     m17: M17MetaPanel,
     wfm: WfmMetaPanel,
+    dab: DabMetaPanel,
 };
 
 $.fn.metaPanel = function() {

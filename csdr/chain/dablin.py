@@ -40,7 +40,10 @@ class MetaProcessor(PickleModule):
         if "programmes" in data:
             result["programmes"] = data["programmes"]
         # don't send out data if there was nothing interesting for the client
-        return result if result else None
+        if not result:
+            return
+        result["mode"] = "DAB"
+        return result
 
 
 class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider):
