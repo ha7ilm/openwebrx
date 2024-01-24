@@ -587,8 +587,6 @@ DabMetaPanel.prototype.update = function(data) {
             options.join('')
         );
     }
-
-    console.info(data);
 }
 
 DabMetaPanel.prototype.clear = function() {
