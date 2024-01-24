@@ -86,6 +86,9 @@ class ThreadModule(AutoStartModule, Thread, metaclass=ABCMeta):
         self.reader.stop()
 
     def start(self):
+        # don't start twice.
+        if self.is_alive():
+            return
         Thread.start(self)
 
 
