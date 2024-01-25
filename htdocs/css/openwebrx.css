@@ -1389,6 +1389,10 @@ img.openwebrx-mirror-img
 	width: 100%;
 }
 
+.dab-container > * {
+	margin: 2px 0;
+}
+
 .dab-container label {
 	display: block;
 	margin: 5px 0;
@@ -1397,4 +1401,12 @@ img.openwebrx-mirror-img
 .dab-container select#dab-service-id {
 	width: 100%;
 	padding: 3px;
+}
+
+.dab-container .dab-ensemble-id:not(:empty):before {
+	content: "Ensemble ID: ";
+}
+
+.dab-container .dab-ensemble-label:not(:empty):before {
+	content: "Ensemble: ";
 }

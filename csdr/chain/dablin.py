@@ -23,23 +23,25 @@ class MetaProcessor(PickleModule):
 
     def process(self, data):
         result = {}
-        if "coarse_frequency_shift" in data:
-            value = int(data["coarse_frequency_shift"])
-            if value > 0:
-                self.shift += random() * self.coarse_increment
-            else:
-                self.shift -= random() * self.coarse_increment
-            logger.debug("coarse adjustment - new shift: %f", self.shift)
-            self.shifter.setRate(self.shift)
-        if "fine_frequency_shift" in data:
-            value = float(data["fine_frequency_shift"])
-            if abs(value) > 10:
-                self.shift += self.fine_increment * value
-                logger.debug("ffs: %f", value)
-                logger.debug("fine adjustment - new shift: %f", self.shift)
+        for key, value in data.items():
+            if key == "coarse_frequency_shift":
+                value = int(value)
+                if value > 0:
+                    self.shift += random() * self.coarse_increment
+                else:
+                    self.shift -= random() * self.coarse_increment
+                logger.debug("coarse adjustment - new shift: %f", self.shift)
                 self.shifter.setRate(self.shift)
-        if "programmes" in data:
-            result["programmes"] = data["programmes"]
+            elif key == "fine_frequency_shift":
+                value = float(value)
+                if abs(value) > 10:
+                    self.shift += self.fine_increment * value
+                    logger.debug("ffs: %f", value)
+                    logger.debug("fine adjustment - new shift: %f", self.shift)
+                    self.shifter.setRate(self.shift)
+            else:
+                # pass through everything else
+                result[key] = value
         # don't send out data if there was nothing interesting for the client
         if not result:
             return

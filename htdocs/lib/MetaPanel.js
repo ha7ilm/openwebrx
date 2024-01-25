@@ -562,6 +562,8 @@ function DabMetaPanel(el) {
     });
     var $container = $(
         '<div class="dab-container">' +
+            '<div class="dab-auto-clear dab-ensemble-id"></div>' +
+            '<div class="dab-auto-clear dab-ensemble-label"></div>' +
             '<label for="dab-service-id">DAB Service:</label>' +
         '</div>'
     );
@@ -580,6 +582,14 @@ DabMetaPanel.prototype.isSupported = function(data) {
 DabMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
 
+    if ('ensemble_id' in data) {
+        $(this.el).find('.dab-ensemble-id').text('0x' + parseInt(data.ensemble_id).toString(16));
+    }
+
+    if ('ensemble_label' in data) {
+        $(this.el).find('.dab-ensemble-label').text(data.ensemble_label);
+    }
+
     if ('programmes' in data) {
         var options = Object.entries(data.programmes).map(function(e) {
             return '<option value="' + e[0] + '">' + e[1] + '</option>';
@@ -593,6 +603,7 @@ DabMetaPanel.prototype.update = function(data) {
 
 DabMetaPanel.prototype.clear = function() {
     this.service_id = 0;
+    $(this.el).find('.dab-auto-clear').empty();
     this.$select.empty();
 }
 
