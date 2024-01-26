@@ -1,5 +1,5 @@
 from csdr.chain.demodulator import BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, \
-    MetaProvider, DabServiceSelector
+    MetaProvider, DabServiceSelector, DialFrequencyReceiver
 from csdr.module import PickleModule
 from csdreti.modules import EtiDecoder
 from owrx.dab.dablin import DablinModule
@@ -19,6 +19,8 @@ class MetaProcessor(PickleModule):
         self.shift = 0.0
         self.coarse_increment = -32 / 2048000
         self.fine_increment = - (1/3) / 2048000
+        # carrier spacing is 1kHz, don't drift further than that.
+        self.max_shift = 1000 / 2048000
         super().__init__()
 
     def process(self, data):
@@ -26,17 +28,13 @@ class MetaProcessor(PickleModule):
         for key, value in data.items():
             if key == "coarse_frequency_shift":
                 if value > 0:
-                    self.shift += random() * self.coarse_increment
+                    self._nudgeShift(random() * self.coarse_increment)
                 else:
-                    self.shift -= random() * self.coarse_increment
-                logger.debug("coarse adjustment - new shift: %f", self.shift)
-                self.shifter.setRate(self.shift)
+                    self._nudgeShift(random() * -self.coarse_increment)
             elif key == "fine_frequency_shift":
                 if abs(value) > 10:
-                    self.shift += self.fine_increment * value
                     logger.debug("ffs: %f", value)
-                    logger.debug("fine adjustment - new shift: %f", self.shift)
-                    self.shifter.setRate(self.shift)
+                    self._nudgeShift(self.fine_increment * value)
             else:
                 # pass through everything else
                 result[key] = value
@@ -46,8 +44,22 @@ class MetaProcessor(PickleModule):
         result["mode"] = "DAB"
         return result
 
+    def _nudgeShift(self, amount):
+        self.shift += amount
+        if self.shift > self.max_shift:
+            self.shift = self.max_shift
+        elif self.shift < -self.max_shift:
+            self.shift = -self.max_shift
+        logger.debug("new shift: %f", self.shift)
+        self.shifter.setRate(self.shift)
 
-class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, DabServiceSelector):
+    def resetShift(self):
+        logger.debug("resetting shift")
+        self.shift = 0
+        self.shifter.setRate(0)
+
+
+class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, DabServiceSelector, DialFrequencyReceiver):
     def __init__(self):
         shift = Shift(0)
         decoder = EtiDecoder()
@@ -90,3 +102,6 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
 
     def setDabServiceId(self, serviceId: int) -> None:
         self.dablin.setDabServiceId(serviceId)
+
+    def setDialFrequency(self, frequency: int) -> None:
+        self.processor.resetShift()
