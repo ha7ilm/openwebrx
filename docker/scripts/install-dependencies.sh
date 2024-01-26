@@ -144,6 +144,9 @@ make install
 popd
 rm -rf redsea
 
+git clone https://github.com/Opendigitalradio/dablin.git
+CMAKE_ARGS="-DDISABLE_SDL=1" cmakebuild dablin 1.15.0
+
 git clone https://github.com/hessu/aprs-symbols /usr/share/aprs-symbols
 pushd /usr/share/aprs-symbols
 git checkout 5c2abe2658ee4d2563f3c73b90c6f59124839802
