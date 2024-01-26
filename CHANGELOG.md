@@ -5,6 +5,7 @@
 - Added support for decoding HFDL and VDL2 aircraft communications
 - Added decoding of ISM band transmissions using rtl_433
 - Added support for decoding RDS data on WFM broadcasts using redsea decoder
+- Added decoding for DAB broadcast stations using csdr-eti and dablin
 - Added IPv6 support
 - New devices supported:
   - Afedri SDR-Net
