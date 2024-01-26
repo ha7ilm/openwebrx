@@ -25,7 +25,6 @@ class MetaProcessor(PickleModule):
         result = {}
         for key, value in data.items():
             if key == "coarse_frequency_shift":
-                value = int(value)
                 if value > 0:
                     self.shift += random() * self.coarse_increment
                 else:
@@ -33,7 +32,6 @@ class MetaProcessor(PickleModule):
                 logger.debug("coarse adjustment - new shift: %f", self.shift)
                 self.shifter.setRate(self.shift)
             elif key == "fine_frequency_shift":
-                value = float(value)
                 if abs(value) > 10:
                     self.shift += self.fine_increment * value
                     logger.debug("ffs: %f", value)

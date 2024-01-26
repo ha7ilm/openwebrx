@@ -1391,6 +1391,8 @@ img.openwebrx-mirror-img
 
 .dab-container > * {
 	margin: 2px 0;
+	text-align: center;
+	overflow: hidden auto;
 }
 
 .dab-container label {

@@ -564,6 +564,7 @@ function DabMetaPanel(el) {
         '<div class="dab-container">' +
             '<div class="dab-auto-clear dab-ensemble-id"></div>' +
             '<div class="dab-auto-clear dab-ensemble-label"></div>' +
+            '<div class="dab-auto-clear dab-timestamp"></div>' +
             '<label for="dab-service-id">DAB Service:</label>' +
         '</div>'
     );
@@ -583,11 +584,16 @@ DabMetaPanel.prototype.update = function(data) {
     if (!this.isSupported(data)) return;
 
     if ('ensemble_id' in data) {
-        $(this.el).find('.dab-ensemble-id').text('0x' + parseInt(data.ensemble_id).toString(16));
+        $(this.el).find('.dab-ensemble-id').text('0x' + data.ensemble_id.toString(16));
     }
 
     if ('ensemble_label' in data) {
         $(this.el).find('.dab-ensemble-label').text(data.ensemble_label);
+    }
+
+    if ('timestamp' in data) {
+        var date = new Date(data.timestamp * 1000);
+        $(this.el).find('.dab-timestamp').text(date.toLocaleString([], {dateStyle: 'short', timeStyle: 'medium'}));
     }
 
     if ('programmes' in data) {
