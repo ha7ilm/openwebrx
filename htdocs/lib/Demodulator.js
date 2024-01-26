@@ -15,6 +15,8 @@ Filter.prototype.getLimits = function() {
         max_bw = 50000;
     } else if (this.demodulator.get_modulation() === "freedv") {
         max_bw = 4000;
+    } else if (this.demodulator.get_modulation() === "dab") {
+        max_bw = 1000000;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
     }
