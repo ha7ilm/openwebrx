@@ -85,7 +85,7 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
     def _connect(self, w1, w2, buffer: Optional[Buffer] = None) -> None:
         if isinstance(w2, EtiDecoder):
             # eti decoder needs big chunks of data
-            buffer = Buffer(w1.getOutputFormat(), size=1048576)
+            buffer = Buffer(w1.getOutputFormat(), size=2097152)
         super()._connect(w1, w2, buffer)
 
     def getFixedIfSampleRate(self) -> int:
