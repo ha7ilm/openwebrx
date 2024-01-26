@@ -565,12 +565,13 @@ function DabMetaPanel(el) {
             '<div class="dab-auto-clear dab-ensemble-id"></div>' +
             '<div class="dab-auto-clear dab-ensemble-label"></div>' +
             '<div class="dab-auto-clear dab-timestamp"></div>' +
-            '<label for="dab-service-id">DAB Service:</label>' +
+            '<label for="dab-service-id">DAB Programme:</label>' +
         '</div>'
     );
     $container.append(this.$select);
     $(this.el).append($container);
     this.clear();
+    this.programmeTimeout = false;
 }
 
 DabMetaPanel.prototype = new MetaPanel();
@@ -601,16 +602,27 @@ DabMetaPanel.prototype.update = function(data) {
             return '<option value="' + e[0] + '">' + e[1] + '</option>';
         });
         this.$select.html(
-            options.join('')
+            options.join('') +
+            '<option value="" disabled selected hidden>Loading...</option>'
         );
-        this.$select.val(this.service_id);
+
+        var me = this;
+        if (this.programmeTimeout) clearTimeout(this.programmeTimeout);
+        this.programmeTimeout = setTimeout(function() {
+            // user has selected a programme to play. don't interfere.
+            me.$select.val(this.service_id);
+            if (me.$select.val()) return;
+            me.$select.val(me.$select.find('option:first').val()).change();
+        }, 1000);
     }
 }
 
 DabMetaPanel.prototype.clear = function() {
     this.service_id = 0;
     $(this.el).find('.dab-auto-clear').empty();
-    this.$select.empty();
+    this.$select.html(
+        '<option value="" disabled selected hidden>Loading...</option>'
+    );
 }
 
 MetaPanel.types = {
