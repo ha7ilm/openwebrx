@@ -42,6 +42,8 @@ Recommends: python3-digiham (>= 0.6),
             perseus-tools,
             dream-headless,
             codec2,
-            redsea
+            redsea,
+            python3-csdr-eti,
+            dablin
 Description: multi-user web sdr
  Open source, multi-user SDR receiver with a web interface
