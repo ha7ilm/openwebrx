@@ -43,6 +43,18 @@ git checkout 9063b8a119e366c31d089596641a24a427e3cbdc
 cd ..
 rm -rf pycsdr
 
+git clone https://github.com/jketterl/csdr-eti.git
+# latest develop as of 2024-01-26 (initial integration)
+cmakebuild csdr-eti 35f90d757bf3495c72d21f6cfb6fa5c668c5c24e
+
+git clone https://github.com/jketterl/pycsdr-eti.git
+cd pycsdr-eti
+# latest develop as of 2024-01-26 (initial integration)
+git checkout ebc29af1eb7c0be7532c91cf459f064dcb017455
+./setup.py install
+cd ..
+rm -rf pycsdr-eti
+
 git clone https://github.com/jketterl/codecserver.git
 mkdir -p /usr/local/etc/codecserver
 cp codecserver/conf/codecserver.conf /usr/local/etc/codecserver
