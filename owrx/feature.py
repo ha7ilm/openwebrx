@@ -652,7 +652,12 @@ class FeatureDetector(object):
 
     def has_csdreti(self):
         """
-        TODO: feature description
+        To decode DAB broadcast signals, OpenWebRX needs the ETI decoder from the
+        [`csdr-eti`](https://github.com/jketterl/csdr-eti) project, together with the
+        associated python bindings from [`pycsdr-eti`](https://github.com/jketterl/pycsdr-eti).
+
+        If you are using the OpenWebRX Debian or Ubuntu repository, the `python3-csdr-eti` package should be all you
+        need.
         """
         required_version = LooseVersion("0.1")
 
@@ -669,6 +674,9 @@ class FeatureDetector(object):
 
     def has_dablin(self):
         """
-        TODO: feature description
+        To decode DAB broadcast signals, OpenWebRX needs the [`dablin`](https://github.com/Opendigitalradio/dablin)
+        decoding software.
+
+        Dablin comes packaged with Debian and Ubuntu, so installing the `dablin` package should get you going.
         """
         return self.command_is_runnable("dablin -h")
