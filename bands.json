@@ -5,7 +5,8 @@
     "upper_bound": 137800,
     "frequencies": {
       "fst4": 136000,
-      "fst4w": 136000
+      "fst4w": 136000,
+      "wspr": 136000
     },
     "tags": ["hamradio"]
   },
@@ -15,7 +16,8 @@
     "upper_bound": 479000,
     "frequencies": {
       "fst4": 474200,
-      "fst4w": 474200
+      "fst4w": 474200,
+      "wspr": 474200
     },
     "tags": ["hamradio"]
   },
