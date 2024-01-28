@@ -72,14 +72,16 @@ class SpectrumThread(SdrSourceEventClient):
         self.reader = buffer.getReader()
         threading.Thread(target=self.dsp.pump(self.reader.read, self.sdrSource.writeSpectrumData)).start()
 
-    def stop(self):
+    def stopDsp(self):
         if self.dsp is None:
             return
         self.dsp.stop()
         self.dsp = None
-        if self.reader:
-            self.reader.stop()
-            self.reader = None
+        self.reader.stop()
+        self.reader = None
+
+    def stop(self):
+        self.stopDsp()
         self.sdrSource.removeClient(self)
         while self.subscriptions:
             self.subscriptions.pop().cancel()
@@ -93,8 +95,7 @@ class SpectrumThread(SdrSourceEventClient):
 
     def onStateChange(self, state: SdrSourceState):
         if state is SdrSourceState.STOPPING:
-            if self.dsp:
-                self.dsp.stop()
+            self.stopDsp()
         elif state == SdrSourceState.RUNNING:
             if self.dsp is None:
                 self.start()
@@ -102,11 +103,7 @@ class SpectrumThread(SdrSourceEventClient):
                 self.dsp.setReader(self.sdrSource.getBuffer().getReader())
 
     def onFail(self):
-        if self.dsp is None:
-            return
-        self.dsp.stop()
+        self.stopDsp()
 
     def onShutdown(self):
-        if self.dsp is None:
-            return
-        self.dsp.stop()
+        self.stopDsp()
