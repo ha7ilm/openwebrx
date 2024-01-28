@@ -772,9 +772,6 @@ class DspManager(SdrSourceEventClient, ClientDemodulatorSecondaryDspEventClient)
             if self.startOnAvailable:
                 self.chain.setReader(self.sdrSource.getBuffer().getReader())
                 self.startOnAvailable = False
-        elif state is SdrSourceState.STOPPING:
-            logger.debug("received STATE_STOPPING, shutting down DspSource")
-            self.stop()
 
     def onFail(self):
         logger.debug("received onFail(), shutting down DspSource")
