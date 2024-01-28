@@ -179,7 +179,7 @@ class Modes(object):
             "ism",
             "ISM",
             underlying=["empty"],
-            bandpass=None,
+            bandpass=Bandpass(-125000, 125000),
             requirements=["ism"],
             squelch=False,
         ),

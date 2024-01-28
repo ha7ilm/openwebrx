@@ -17,6 +17,8 @@ Filter.prototype.getLimits = function() {
         max_bw = 4000;
     } else if (this.demodulator.get_modulation() === "dab") {
         max_bw = 1000000;
+    } else if (this.demodulator.get_secondary_demod() === "ism") {
+        max_bw = 500000;
     } else {
         max_bw = (audioEngine.getOutputRate() / 2) - 1;
     }

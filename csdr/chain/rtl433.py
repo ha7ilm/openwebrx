@@ -5,7 +5,7 @@ from csdr.chain.demodulator import ServiceDemodulator
 
 class Rtl433(ServiceDemodulator):
     def getFixedAudioRate(self) -> int:
-        return 250000
+        return 1000000
 
     def __init__(self):
         super().__init__(
