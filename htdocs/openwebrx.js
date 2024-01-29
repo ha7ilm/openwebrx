@@ -951,13 +951,14 @@ function on_ws_recv(evt) {
 function waterfall_measure_minmax_do(what) {
     // Get visible range
     var range = get_visible_freq_range();
-    var start = center_freq - bandwidth / 2;
+    var overallStart = center_freq - bandwidth / 2;
+    var center = (range.center - overallStart) / bandwidth;
 
+    // 80% of visible range
     // this is based on an oversampling factor of about 1,25
-    range.start = Math.max(0.1, (range.start - start) / bandwidth);
-    range.end   = Math.min(0.9, (range.end - start) / bandwidth);
+    var bw = .4 * (range.bw / bandwidth);
+    var data = what.slice((center - bw) * what.length, (center + bw) * what.length);
 
-    var data = what.slice(range.start * what.length, range.end * what.length);
     return {
         min: Math.min.apply(Math, data),
         max: Math.max.apply(Math, data)
