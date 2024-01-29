@@ -17,5 +17,6 @@ function wheelDelta(evt) {
         // chrome and webkit-based browsers seem to correlate one tick of the wheel to 120 pixels.
         return evt.deltaY / 120;
     }
-    return evt.deltaY;
+    // firefox seems to scroll at an interval of 6 lines per wheel tick
+    return evt.deltaY / 6;
 }
