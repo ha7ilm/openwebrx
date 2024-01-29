@@ -161,6 +161,8 @@ class SdrSource(ABC):
         if self.isAlwaysOn() and self.isEnabled():
             self.start()
 
+        props.filter("always-on").wire(self._handleAlwaysOnChanged)
+
     def isEnabled(self):
         return self.enabled
 
@@ -176,6 +178,12 @@ class SdrSource(ABC):
                 c.onEnable()
             else:
                 c.onDisable()
+
+    def _handleAlwaysOnChanged(self, changes):
+        if self.isAlwaysOn():
+            self.start()
+        else:
+            self.checkStatus()
 
     def isFailed(self):
         return self.failed
