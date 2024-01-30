@@ -4,6 +4,7 @@ from owrx.aeronautical import AcarsProcessor
 from owrx.map import Map
 from owrx.aeronautical import AirplaneLocation, IcaoSource
 from owrx.metrics import Metrics, CounterMetric
+from owrx.reporting import ReportingEngine
 from datetime import datetime, date, time, timezone
 
 import logging
@@ -66,6 +67,7 @@ class VDL2MessageParser(AcarsProcessor):
             except Exception:
                 logger.exception("error processing VDL2 data")
             self.metrics.inc()
+        ReportingEngine.getSharedInstance().spot(msg)
         return msg
 
     def processReport(self, report, icao):

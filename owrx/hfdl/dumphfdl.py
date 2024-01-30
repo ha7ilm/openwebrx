@@ -3,6 +3,7 @@ from pycsdr.types import Format
 from owrx.aeronautical import AirplaneLocation, AcarsProcessor, IcaoSource, FlightSource
 from owrx.map import Map
 from owrx.metrics import Metrics, CounterMetric
+from owrx.reporting import ReportingEngine
 from datetime import datetime, timezone, timedelta
 
 import logging
@@ -62,6 +63,7 @@ class HFDLMessageParser(AcarsProcessor):
 
             self.metrics.inc()
 
+        ReportingEngine.getSharedInstance().spot(msg)
         return msg
 
     def processPosition(self, hfnpdu, icao=None):

@@ -1,6 +1,7 @@
 from owrx.map import Map, LatLngLocation, Source
 from owrx.metrics import Metrics, CounterMetric
 from owrx.bands import Bandplan
+from owrx.reporting import ReportingEngine
 from datetime import datetime, timezone
 from csdr.module import PickleModule
 import re
@@ -211,8 +212,10 @@ class AprsParser(PickleModule):
             if self.isDirect(aprsData):
                 self.getMetric("direct").inc()
 
-            # the frontend uses this to distinguis hessages from the different parsers
+            # the frontend uses this to distinguish messages from the different parsers
             aprsData["mode"] = "APRS"
+
+            ReportingEngine.getSharedInstance().spot(aprsData)
             return aprsData
         except Exception:
             logger.exception("exception while parsing aprs data")

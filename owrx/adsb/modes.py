@@ -3,6 +3,7 @@ from math import sqrt, atan2, pi, floor, acos, cos
 from owrx.map import IncrementalUpdate, Location, Map, Source
 from owrx.metrics import Metrics, CounterMetric
 from owrx.aeronautical import AirplaneLocation, IcaoSource
+from owrx.reporting import ReportingEngine
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -276,6 +277,7 @@ class ModeSParser(PickleModule):
             data = {k: message[k] for k in AdsbLocation.mapKeys if k in message}
             loc = AdsbLocation(data)
             Map.getSharedInstance().updateLocation(IcaoSource(message['icao']), loc, "ADS-B", None)
+            ReportingEngine.getSharedInstance().spot(message)
 
         return message
 
