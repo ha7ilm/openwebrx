@@ -90,4 +90,15 @@ class ReportingController(SettingsFormController):
                     infotext="This callsign will be used to send spots to wsprnet.org",
                 ),
             ),
+            Section(
+                "MQTT settings",
+                CheckboxInput(
+                    "mqtt_enabled",
+                    "Enable publishing decodes to MQTT",
+                ),
+                TextInput(
+                    "mqtt_host",
+                    "MQTT Host",
+                ),
+            )
         ]

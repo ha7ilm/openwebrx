@@ -1,8 +1,9 @@
 import threading
 from owrx.config import Config
-from owrx.reporting.reporter import Reporter
+from owrx.reporting.reporter import Reporter, FilteredReporter
 from owrx.reporting.pskreporter import PskReporter
 from owrx.reporting.wsprnet import WsprnetReporter
+from owrx.feature import FeatureDetector
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,9 +13,12 @@ class ReportingEngine(object):
     creationLock = threading.Lock()
     sharedInstance = None
 
+    # concrete classes if they can be imported without the risk of optional dependencies
+    # tuples if the import needs to be detected by a feature check
     reporterClasses = {
-        "pskreporter_enabled": PskReporter,
-        "wsprnet_enabled": WsprnetReporter,
+        "pskreporter": PskReporter,
+        "wsprnet": WsprnetReporter,
+        "mqtt": ("owrx.reporting.mqtt", "MqttReporter")
     }
 
     @staticmethod
@@ -32,12 +36,22 @@ class ReportingEngine(object):
 
     def __init__(self):
         self.reporters = []
-        self.configSub = Config.get().filter(*ReportingEngine.reporterClasses.keys()).wire(self.setupReporters)
+        configKeys = ["{}_enabled".format(n) for n in self.reporterClasses.keys()]
+        self.configSub = Config.get().filter(*configKeys).wire(self.setupReporters)
         self.setupReporters()
 
     def setupReporters(self, *args):
         config = Config.get()
-        for configKey, reporterClass in ReportingEngine.reporterClasses.items():
+        for typeStr, reporterClass in self.reporterClasses.items():
+            configKey = "{}_enabled".format(typeStr)
+            if isinstance(reporterClass, tuple):
+                # feature check
+                if FeatureDetector().is_available(typeStr):
+                    package, className = reporterClass
+                    module = __import__(package, fromlist=[className])
+                    reporterClass = getattr(module, className)
+                else:
+                    continue
             if configKey in config and config[configKey]:
                 if not any(isinstance(r, reporterClass) for r in self.reporters):
                     self.reporters += [reporterClass()]
@@ -53,5 +67,5 @@ class ReportingEngine(object):
 
     def spot(self, spot):
         for r in self.reporters:
-            if spot["mode"] in r.getSupportedModes():
+            if not isinstance(r, FilteredReporter) or spot["mode"] in r.getSupportedModes():
                 r.spot(spot)

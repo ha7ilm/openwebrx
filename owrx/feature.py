@@ -90,7 +90,8 @@ class FeatureDetector(object):
         "dumphfdl": ["dumphfdl"],
         "dumpvdl2": ["dumpvdl2"],
         "redsea": ["redsea"],
-        "dab": ["csdreti", "dablin"]
+        "dab": ["csdreti", "dablin"],
+        "mqtt": ["paho_mqtt"],
     }
 
     def feature_availability(self):
@@ -680,3 +681,10 @@ class FeatureDetector(object):
         Dablin comes packaged with Debian and Ubuntu, so installing the `dablin` package should get you going.
         """
         return self.command_is_runnable("dablin -h")
+
+    def has_paho_mqtt(self):
+        try:
+            from paho.mqtt import __version__
+            return True
+        except ImportError:
+            return False

@@ -10,6 +10,8 @@ class Reporter(ABC):
     def spot(self, spot):
         pass
 
+
+class FilteredReporter(Reporter):
     @abstractmethod
     def getSupportedModes(self):
         return []

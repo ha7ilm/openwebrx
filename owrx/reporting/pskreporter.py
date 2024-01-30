@@ -9,12 +9,12 @@ from owrx.config import Config
 from owrx.version import openwebrx_version
 from owrx.locator import Locator
 from owrx.metrics import Metrics, CounterMetric
-from owrx.reporting.reporter import Reporter
+from owrx.reporting.reporter import FilteredReporter
 
 logger = logging.getLogger(__name__)
 
 
-class PskReporter(Reporter):
+class PskReporter(FilteredReporter):
     """
     This class implements the reporting interface to send received signals to pskreporter.info.
 

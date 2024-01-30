@@ -1,4 +1,4 @@
-from owrx.reporting.reporter import Reporter
+from owrx.reporting.reporter import FilteredReporter
 from owrx.version import openwebrx_version
 from owrx.config import Config
 from owrx.locator import Locator
@@ -68,7 +68,7 @@ class Worker(threading.Thread):
         request.urlopen("http://wsprnet.org/post/", data, timeout=60)
 
 
-class WsprnetReporter(Reporter):
+class WsprnetReporter(FilteredReporter):
     def __init__(self):
         # max 100 entries
         self.queue = Queue(100)
