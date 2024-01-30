@@ -321,6 +321,12 @@ class ServiceHandler(SdrSourceEventClient):
         elif mod == "vdl2":
             from csdr.chain.dumpvdl2 import DumpVDL2
             return DumpVDL2()
+        elif mod == "pocsag":
+            from csdr.chain.digiham import PocsagDemodulator
+            return PocsagDemodulator()
+        elif mod == "ism":
+            from csdr.chain.rtl433 import Rtl433
+            return Rtl433()
 
         raise ValueError("unsupported service modulation: {}".format(mod))
 
