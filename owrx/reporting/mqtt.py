@@ -3,6 +3,8 @@ from owrx.reporting.reporter import Reporter
 from owrx.config import Config
 from owrx.property import PropertyDeleted
 import json
+import threading
+import time
 
 import logging
 
@@ -20,6 +22,14 @@ class MqttReporter(Reporter):
             pm.wireProperty("mqtt_host", self._setHost),
             pm.wireProperty("mqtt_topic", self._setTopic),
         ]
+        self.run = True
+        threading.Thread(target=self._loop).start()
+
+    def _loop(self):
+        # basic keepalive loop
+        while self.run:
+            self.client.loop()
+            time.sleep(5)
 
     def _setHost(self, host):
         logger.debug("setting host to %s", host)
@@ -36,6 +46,7 @@ class MqttReporter(Reporter):
             self.topic = topic
 
     def stop(self):
+        self.run = False
         self.client.disconnect()
         while self.subscriptions:
             self.subscriptions.pop().cancel()
