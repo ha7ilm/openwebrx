@@ -163,6 +163,7 @@ class Modes(object):
             underlying=["nfm"],
             bandpass=Bandpass(-6250, 6250),
             requirements=["pocsag"],
+            service=True,
             squelch=False,
         ),
         DigitalMode(
@@ -181,6 +182,7 @@ class Modes(object):
             underlying=["empty"],
             bandpass=Bandpass(-125000, 125000),
             requirements=["ism"],
+            service=True,
             squelch=False,
         ),
         DigitalMode(
