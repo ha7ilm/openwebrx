@@ -1,6 +1,7 @@
 from csdr.module import PickleModule
 from owrx.bands import Bandplan
 from owrx.metrics import Metrics, CounterMetric
+from owrx.reporting import ReportingEngine
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class PocsagParser(PickleModule):
                 meta["address"] = int(meta["address"])
             meta["mode"] = "Pocsag"
             self.pushDecode()
+            ReportingEngine.getSharedInstance().spot(meta)
             return meta
         except Exception:
             logger.exception("Exception while parsing Pocsag message")
