@@ -7,6 +7,7 @@
 - Added support for decoding RDS data on WFM broadcasts using redsea decoder
 - Added decoding for DAB broadcast stations using csdr-eti and dablin
 - Added IPv6 support
+- Added MQTT support
 - New devices supported:
   - Afedri SDR-Net
 
