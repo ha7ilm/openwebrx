@@ -54,3 +54,18 @@ class RangeListValidator(Validator):
 
     def _rangeStr(self):
         return "[{}]".format(", ".join(str(r) for r in self.rangeList))
+
+
+class AddressAndOptionalPortValidator(Validator):
+    def validate(self, key, value) -> None:
+        parts = value.split(":")
+        if len(parts) > 2:
+            raise ValidationError(key, "Value contains too many colons")
+
+        if len(parts) > 1:
+            try:
+                port = int(parts[1])
+            except ValueError:
+                raise ValidationError(key, "Port number must be numeric")
+            if not 0 <= port <= 65535:
+                raise ValidationError(key, "Port number out of range")

@@ -3,6 +3,7 @@ from owrx.form.section import Section
 from owrx.form.input.converter import OptionalConverter
 from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
 from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput
+from owrx.form.input.validator import AddressAndOptionalPortValidator
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 
 
@@ -98,7 +99,15 @@ class ReportingController(SettingsFormController):
                 ),
                 TextInput(
                     "mqtt_host",
-                    "MQTT Host",
+                    "MQTT Broker address",
+                    infotext="Addresss of the MQTT broker to send decodes to (address[:port])",
+                    validator=AddressAndOptionalPortValidator(),
+                ),
+                TextInput(
+                    "mqtt_topic",
+                    "MQTT topic",
+                    infotext="MQTT topic to publish decodes to (default: openwebrx/decodes)",
+                    converter=OptionalConverter(),
                 ),
             )
         ]
