@@ -68,4 +68,7 @@ class ReportingEngine(object):
     def spot(self, spot):
         for r in self.reporters:
             if not isinstance(r, FilteredReporter) or spot["mode"] in r.getSupportedModes():
-                r.spot(spot)
+                try:
+                    r.spot(spot)
+                except Exception:
+                    logger.exception("error sending spot to reporter")
