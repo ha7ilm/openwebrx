@@ -112,6 +112,13 @@ class TextInput(Input):
         return TextConverter()
 
 
+class PasswordInput(TextInput):
+    def input_properties(self, value, errors):
+        props = super().input_properties(value, errors)
+        props["type"] = "password"
+        return props
+
+
 class NumberInput(Input):
     def __init__(self, id, label, infotext=None, append="", converter: Converter = None, validator: Validator = None):
         super().__init__(id, label, infotext, converter=converter, validator=validator)

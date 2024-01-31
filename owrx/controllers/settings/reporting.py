@@ -2,7 +2,7 @@ from owrx.controllers.settings import SettingsFormController, SettingsBreadcrumb
 from owrx.form.section import Section
 from owrx.form.input.converter import OptionalConverter
 from owrx.form.input.aprs import AprsBeaconSymbols, AprsAntennaDirections
-from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput
+from owrx.form.input import TextInput, CheckboxInput, DropdownInput, NumberInput, PasswordInput
 from owrx.form.input.validator import AddressAndOptionalPortValidator
 from owrx.breadcrumb import Breadcrumb, BreadcrumbItem
 
@@ -29,7 +29,7 @@ class ReportingController(SettingsFormController):
                     infotext="This callsign will be used to send data to the APRS-IS network",
                 ),
                 TextInput("aprs_igate_server", "APRS-IS server"),
-                TextInput("aprs_igate_password", "APRS-IS network password"),
+                PasswordInput("aprs_igate_password", "APRS-IS network password"),
                 CheckboxInput(
                     "aprs_igate_beacon",
                     "Send the receiver position to the APRS-IS network",
@@ -99,9 +99,28 @@ class ReportingController(SettingsFormController):
                 ),
                 TextInput(
                     "mqtt_host",
-                    "MQTT Broker address",
+                    "Broker address",
                     infotext="Addresss of the MQTT broker to send decodes to (address[:port])",
                     validator=AddressAndOptionalPortValidator(),
+                ),
+                TextInput(
+                    "mqtt_client_id",
+                    "Client ID",
+                    converter=OptionalConverter(),
+                ),
+                TextInput(
+                    "mqtt_user",
+                    "Username",
+                    converter=OptionalConverter(),
+                ),
+                PasswordInput(
+                    "mqtt_password",
+                    "Password",
+                    converter=OptionalConverter(),
+                ),
+                CheckboxInput(
+                    "mqtt_use_ssl",
+                    "Use SSL",
                 ),
                 TextInput(
                     "mqtt_topic",

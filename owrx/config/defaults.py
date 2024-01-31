@@ -177,4 +177,5 @@ defaultConfig = PropertyLayer(
     wsprnet_callsign="N0CALL",
     mqtt_enabled=False,
     mqtt_host="localhost",
+    mqtt_use_ssl=False,
 ).readonly()
