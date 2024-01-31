@@ -22,8 +22,6 @@ class MqttReporter(Reporter):
             pm.wireProperty("mqtt_topic", self._setTopic),
             pm.filter("mqtt_host", "mqtt_user", "mqtt_password", "mqtt_client_id", "mqtt_use_ssl").wire(self._reconnect)
         ]
-        self.run = True
-        threading.Thread(target=self._loop).start()
 
     def _getClient(self):
         pm = Config.get()
@@ -44,13 +42,9 @@ class MqttReporter(Reporter):
             port = int(parts[1])
         client.connect(host=host, port=port)
 
-        return client
+        threading.Thread(target=client.loop_forever).start()
 
-    def _loop(self):
-        # basic keepalive loop
-        while self.run:
-            self.client.loop()
-            time.sleep(5)
+        return client
 
     def _setTopic(self, topic):
         if topic is PropertyDeleted:
@@ -64,7 +58,6 @@ class MqttReporter(Reporter):
         old.disconnect()
 
     def stop(self):
-        self.run = False
         self.client.disconnect()
         while self.subscriptions:
             self.subscriptions.pop().cancel()
