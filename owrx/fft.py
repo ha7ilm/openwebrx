@@ -73,12 +73,12 @@ class SpectrumThread(SdrSourceEventClient):
         threading.Thread(target=self.dsp.pump(self.reader.read, self.sdrSource.writeSpectrumData)).start()
 
     def stopDsp(self):
-        if self.dsp is None:
-            return
-        self.dsp.stop()
-        self.dsp = None
-        self.reader.stop()
-        self.reader = None
+        if self.dsp is not None:
+            self.dsp.stop()
+            self.dsp = None
+        if self.reader is not None:
+            self.reader.stop()
+            self.reader = None
 
     def stop(self):
         self.stopDsp()
