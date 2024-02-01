@@ -20,6 +20,8 @@ class Controller(object):
             headers = {}
         if content_type is not None:
             headers["Content-Type"] = content_type
+            if content_type.startswith("text/"):
+                headers["Content-Type"] += "; charset=utf-8"
         if last_modified is not None:
             headers["Last-Modified"] = last_modified.astimezone(tz=timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
         if max_age is not None:
