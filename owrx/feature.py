@@ -523,9 +523,9 @@ class FeatureDetector(object):
 
     def has_freedv_rx(self):
         """
-        The "freedv\_rx" executable is required to demodulate FreeDV digital transmissions. It comes together with the
+        The "freedv\\_rx" executable is required to demodulate FreeDV digital transmissions. It comes together with the
         codec2 library, but it's only a supplemental part and not installed by default or contained in its packages.
-        To install it, you will need to compile codec2 from source and manually install freedv\_rx.
+        To install it, you will need to compile codec2 from source and manually install freedv\\_rx.
 
         Detailed installation instructions are available on the
         [OpenWebRX wiki](https://github.com/jketterl/openwebrx/wiki/FreeDV-demodulator-notes).
