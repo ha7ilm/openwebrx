@@ -195,7 +195,7 @@ class FeatureDetector(object):
         In addition, the [pycsdr](https://github.com/jketterl/pycsdr) package must be installed to provide
         python bindings for the csdr library.
         """
-        required_version = LooseVersion("0.18.0")
+        required_version = LooseVersion("0.19.0")
 
         try:
             from pycsdr.modules import csdr_version

@@ -18,7 +18,7 @@ Depends: adduser,
          python3 (>= 3.5),
          python3-pkg-resources,
          owrx-connector (>= 0.7),
-         python3-csdr (>= 0.18),
+         python3-csdr (>= 0.19),
          ${python3:Depends},
          ${misc:Depends}
 Recommends: python3-digiham (>= 0.6),
