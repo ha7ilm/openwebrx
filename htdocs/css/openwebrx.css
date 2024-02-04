@@ -1412,3 +1412,31 @@ img.openwebrx-mirror-img
 .dab-container .dab-ensemble-label:not(:empty):before {
 	content: "Ensemble: ";
 }
+
+.under-construction {
+	background-color: #ffd914;
+	color: #111111;
+	text-align: center;
+}
+
+.under-construction h4 {
+	font-size: 15pt;
+}
+
+.under-construction h4 {
+	margin: 0
+}
+
+.under-construction p {
+	margin: 5px 0;
+}
+
+.under-construction-description {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height .2s ease-in-out;
+}
+
+.under-construction:hover .under-construction-description {
+	max-height: 500px;
+}
