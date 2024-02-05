@@ -15,7 +15,10 @@ case "$1" in
     usermod -aG plugdev "${OWRX_USER}"
 
     # ensure group exists first (dependency is optional)
-    addgroup --system --quiet perseususb
+    # addgroup will error out if the group exists, but is not a system group. it doesn't matter for the intended purpose, but we need extra protection for this case.
+    if [ ! $(getent group perseususb) ]; then
+        addgroup --system --quiet perseususb
+    fi
     usermod -aG perseususb "${OWRX_USER}"
 
     # create OpenWebRX data directory and set the correct permissions
