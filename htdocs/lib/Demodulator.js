@@ -234,8 +234,8 @@ function Demodulator(offset_frequency, modulation) {
     this.state = {};
     this.secondary_demod = false;
     var mode = Modes.findByModulation(modulation);
-    this.low_cut = mode && mode.bandpass && mode.bandpass.low_cut;
-    this.high_cut = mode && mode.bandpass && mode.bandpass.high_cut;
+    this.low_cut = mode && mode.bandpass && mode.bandpass.low_cut || null;
+    this.high_cut = mode && mode.bandpass && mode.bandpass.high_cut || null;
     this.ifRate = mode && mode.ifRate;
     this.listeners = {
         "frequencychange": [],

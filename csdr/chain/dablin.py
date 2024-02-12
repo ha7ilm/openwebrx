@@ -33,7 +33,6 @@ class MetaProcessor(PickleModule):
                     self._nudgeShift(random() * -self.coarse_increment)
             elif key == "fine_frequency_shift":
                 if abs(value) > 10:
-                    logger.debug("ffs: %f", value)
                     self._nudgeShift(self.fine_increment * value)
             else:
                 # pass through everything else
