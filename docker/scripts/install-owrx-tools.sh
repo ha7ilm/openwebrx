@@ -44,13 +44,13 @@ cd ..
 rm -rf pycsdr
 
 git clone https://github.com/jketterl/csdr-eti.git
-# latest develop as of 2024-01-26 (global variables fix)
-cmakebuild csdr-eti 9f2360e7ab080d3a9da5e04978c260cc911c06ca
+# latest develop as of 2024-02-12 (service id filter)
+cmakebuild csdr-eti e09823e188bc8a9918fb38f4ffe17e131ef2dee3
 
 git clone https://github.com/jketterl/pycsdr-eti.git
 cd pycsdr-eti
-# latest develop as of 2024-01-26 (initial integration)
-git checkout ebc29af1eb7c0be7532c91cf459f064dcb017455
+# latest develop as of 2024-02-12 (service id filter)
+git checkout 676663b4d796fbadd18dfcae0c3b80eb1b1f9147
 ./setup.py install
 cd ..
 rm -rf pycsdr-eti

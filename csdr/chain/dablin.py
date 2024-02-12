@@ -62,10 +62,10 @@ class MetaProcessor(PickleModule):
 class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, HdAudio, MetaProvider, DabServiceSelector, DialFrequencyReceiver):
     def __init__(self):
         shift = Shift(0)
-        decoder = EtiDecoder()
+        self.decoder = EtiDecoder()
 
         metaBuffer = Buffer(Format.CHAR)
-        decoder.setMetaWriter(metaBuffer)
+        self.decoder.setMetaWriter(metaBuffer)
         self.processor = MetaProcessor(shift)
         self.processor.setReader(metaBuffer.getReader())
         # use a dummy to start with. it won't run without.
@@ -76,7 +76,7 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
 
         workers = [
             shift,
-            decoder,
+            self.decoder,
             self.dablin,
             Downmix(Format.FLOAT),
         ]
@@ -101,6 +101,7 @@ class Dablin(BaseDemodulatorChain, FixedIfSampleRateChain, FixedAudioRateChain, 
         self.processor.setWriter(writer)
 
     def setDabServiceId(self, serviceId: int) -> None:
+        self.decoder.setServiceIdFilter([serviceId])
         self.dablin.setDabServiceId(serviceId)
 
     def setDialFrequency(self, frequency: int) -> None:
