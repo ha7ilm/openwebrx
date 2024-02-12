@@ -44,8 +44,8 @@ cd ..
 rm -rf pycsdr
 
 git clone https://github.com/jketterl/csdr-eti.git
-# latest develop as of 2024-02-12 (service id filter)
-cmakebuild csdr-eti e09823e188bc8a9918fb38f4ffe17e131ef2dee3
+# latest develop as of 2024-02-12 (memory leak fix)
+cmakebuild csdr-eti 3f6134327c2a00840e54f9ce5d0e0f0899a2cf8c
 
 git clone https://github.com/jketterl/pycsdr-eti.git
 cd pycsdr-eti
