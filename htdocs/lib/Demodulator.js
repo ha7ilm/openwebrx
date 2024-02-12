@@ -15,8 +15,6 @@ Filter.prototype.getLimits = function() {
         max_bw = 50000;
     } else if (this.demodulator.get_modulation() === "freedv") {
         max_bw = 4000;
-    } else if (this.demodulator.get_modulation() === "dab") {
-        max_bw = 1000000;
     } else if (this.demodulator.get_secondary_demod() === "ism") {
         max_bw = 600000;
     } else {
@@ -56,8 +54,13 @@ Envelope.prototype.draw = function(visible_range){
     var fake_indicator = !this.demodulator.low_cut || !this.demodulator.high_cut;
     if (fake_indicator) {
         // fake values just so that the tuning indicator shows up
-        from -= 100000;
-        to += 100000;
+        var fixedBw = 100000
+        // if we know the if rate, we can display that
+        if (this.demodulator.ifRate) {
+            fixedBw = this.demodulator.ifRate / 2;
+        }
+        from -= fixedBw;
+        to += fixedBw;
     } else {
         from += this.demodulator.low_cut;
         to += this.demodulator.high_cut;
@@ -231,10 +234,9 @@ function Demodulator(offset_frequency, modulation) {
     this.state = {};
     this.secondary_demod = false;
     var mode = Modes.findByModulation(modulation);
-    if (mode && mode.bandpass) {
-        this.low_cut = mode.bandpass.low_cut;
-        this.high_cut = mode.bandpass.high_cut;
-    }
+    this.low_cut = mode && mode.bandpass && mode.bandpass.low_cut;
+    this.high_cut = mode && mode.bandpass && mode.bandpass.high_cut;
+    this.ifRate = mode && mode.ifRate;
     this.listeners = {
         "frequencychange": [],
         "squelchchange": []
@@ -388,6 +390,10 @@ Demodulator.prototype.getBandpass = function() {
         low_cut: this.low_cut,
         high_cut: this.high_cut
     };
+};
+
+Demodulator.prototype.setIfRate = function(ifRate) {
+    this.ifRate = ifRate;
 };
 
 Demodulator.prototype.set_secondary_demod = function(secondary_demod) {

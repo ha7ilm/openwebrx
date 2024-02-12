@@ -41,6 +41,9 @@ var Mode = function(json){
     if (json.bandpass) {
         this.bandpass = json.bandpass;
     }
+    if (json.ifRate) {
+        this.ifRate = json.ifRate;
+    }
     if (this.type === 'digimode') {
         this.underlying = json.underlying;
         this.secondaryFft = json.secondaryFft;

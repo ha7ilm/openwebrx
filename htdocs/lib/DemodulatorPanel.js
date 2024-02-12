@@ -142,6 +142,8 @@ DemodulatorPanel.prototype.setMode = function(requestedModulation, underlyingMod
         } else {
             this.demodulator.disableBandpass();
         }
+        var ifRate = mode.ifRate || (uMode && uMode.ifRate);
+        this.demodulator.setIfRate(ifRate);
     } else {
         this.demodulator.set_secondary_demod(false);
     }
