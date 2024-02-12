@@ -50,9 +50,19 @@ Envelope.prototype.draw = function(visible_range){
     var env_lineplus = 1;          //   ||env_bounding_line_w
     var env_line_click_area = 6;
     //range=get_visible_freq_range();
-    var from = center_freq + this.demodulator.offset_frequency + this.demodulator.low_cut;
+
+    var from = center_freq + this.demodulator.offset_frequency;
+    var to = center_freq + this.demodulator.offset_frequency;
+    var fake_indicator = !this.demodulator.low_cut || !this.demodulator.high_cut;
+    if (fake_indicator) {
+        // fake values just so that the tuning indicator shows up
+        from -= 100000;
+        to += 100000;
+    } else {
+        from += this.demodulator.low_cut;
+        to += this.demodulator.high_cut;
+    }
     var from_px = scale_px_from_freq(from, range);
-    var to = center_freq + this.demodulator.offset_frequency + this.demodulator.high_cut;
     var to_px = scale_px_from_freq(to, range);
     if (to_px < from_px) /* swap'em */ {
         var temp_px = to_px;
@@ -69,22 +79,27 @@ Envelope.prototype.draw = function(visible_range){
     var drag_ranges = {envelope_on_screen: false, line_on_screen: false};
     if (!(to_px < 0 || from_px > window.innerWidth)) // out of screen?
     {
-        drag_ranges.beginning = {x1: from_px, x2: from_px + env_bounding_line_w + env_att_w};
-        drag_ranges.ending = {x1: to_px - env_bounding_line_w - env_att_w, x2: to_px};
-        drag_ranges.whole_envelope = {x1: from_px, x2: to_px};
-        drag_ranges.envelope_on_screen = true;
-        scale_ctx.beginPath();
+        if (!fake_indicator) {
+            drag_ranges.beginning = {x1: from_px, x2: from_px + env_bounding_line_w + env_att_w};
+            drag_ranges.ending = {x1: to_px - env_bounding_line_w - env_att_w, x2: to_px};
+            drag_ranges.whole_envelope = {x1: from_px, x2: to_px};
+            drag_ranges.envelope_on_screen = true;
+        }
+        if (fake_indicator) scale_ctx.setLineDash([10, 5]);
+
+        scale_ctx.lineWidth = 3;
+        scale_ctx.globalAlpha = 0.3;
+        scale_ctx.fill();
+        scale_ctx.globalAlpha = 1;
+
         scale_ctx.moveTo(from_px, env_h1);
         scale_ctx.lineTo(from_px + env_bounding_line_w, env_h1);
         scale_ctx.lineTo(from_px + env_bounding_line_w + env_att_w, env_h2);
         scale_ctx.lineTo(to_px - env_bounding_line_w - env_att_w, env_h2);
         scale_ctx.lineTo(to_px - env_bounding_line_w, env_h1);
         scale_ctx.lineTo(to_px, env_h1);
-        scale_ctx.lineWidth = 3;
-        scale_ctx.globalAlpha = 0.3;
-        scale_ctx.fill();
-        scale_ctx.globalAlpha = 1;
         scale_ctx.stroke();
+
         scale_ctx.lineWidth = 1;
         scale_ctx.font = "bold 11px sans-serif";
         scale_ctx.textBaseline = "top";
@@ -103,8 +118,10 @@ Envelope.prototype.draw = function(visible_range){
         if (!(line_px < 0 || line_px > window.innerWidth)) {
             drag_ranges.line = {x1: line_px - env_line_click_area / 2, x2: line_px + env_line_click_area / 2};
             drag_ranges.line_on_screen = true;
+            scale_ctx.beginPath();
             scale_ctx.moveTo(line_px, env_h1 + env_lineplus);
             scale_ctx.lineTo(line_px, env_h2 - env_lineplus);
+            scale_ctx.setLineDash([]);
             scale_ctx.lineWidth = 3;
             scale_ctx.stroke();
         }
@@ -214,7 +231,7 @@ function Demodulator(offset_frequency, modulation) {
     this.state = {};
     this.secondary_demod = false;
     var mode = Modes.findByModulation(modulation);
-    if (mode) {
+    if (mode && mode.bandpass) {
         this.low_cut = mode.bandpass.low_cut;
         this.high_cut = mode.bandpass.high_cut;
     }
