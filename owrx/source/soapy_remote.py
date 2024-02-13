@@ -2,6 +2,7 @@ from owrx.source.soapy import SoapyConnectorSource, SoapyConnectorDeviceDescript
 from owrx.form.input import Input, TextInput
 from owrx.form.input.device import RemoteInput
 from owrx.form.input.converter import OptionalConverter
+from owrx.form.input.validator import Range
 from typing import List
 
 
@@ -41,3 +42,6 @@ class SoapyRemoteDeviceDescription(SoapyConnectorDeviceDescription):
 
     def getDeviceOptionalKeys(self):
         return super().getDeviceOptionalKeys() + ["remote_driver"]
+
+    def getSampleRateRanges(self) -> List[Range]:
+        return [Range(500000, 20000000)]
