@@ -182,18 +182,26 @@ Envelope.prototype.drag_move = function(x) {
     //frequency.
     if (this.dragged_range === dr.beginning || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
         //we don't let low_cut go beyond its limits
-        if ((new_value = this.drag_origin.low_cut + minus * freq_change) < this.demodulator.filter.getLimits().low) return true;
+        if ((new_value = this.drag_origin.low_cut + minus * freq_change) < this.demodulator.filter.getLimits().low) {
+            new_value = this.demodulator.filter.getLimits().low;
+        }
         //nor the filter passband be too small
-        if (this.demodulator.high_cut - new_value < this.demodulator.filter.min_passband) return true;
+        if (this.demodulator.high_cut - new_value < this.demodulator.filter.min_passband) {
+            new_value = this.demodulator.high_cut - this.demodulator.filter.min_passband;
+        }
         //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
         if (new_value >= this.demodulator.high_cut) return true;
         this.demodulator.setLowCut(new_value);
     }
     if (this.dragged_range === dr.ending || this.dragged_range === dr.bfo || this.dragged_range === dr.pbs) {
         //we don't let high_cut go beyond its limits
-        if ((new_value = this.drag_origin.high_cut + minus * freq_change) > this.demodulator.filter.getLimits().high) return true;
+        if ((new_value = this.drag_origin.high_cut + minus * freq_change) > this.demodulator.filter.getLimits().high) {
+            new_value = this.demodulator.filter.getLimits().high;
+        }
         //nor the filter passband be too small
-        if (new_value - this.demodulator.low_cut < this.demodulator.filter.min_passband) return true;
+        if (new_value - this.demodulator.low_cut < this.demodulator.filter.min_passband) {
+            new_value = this.demodulator.low_cut + this.demodulator.filter.min_passband;
+        }
         //sanity check to prevent GNU Radio "firdes check failed: fa <= fb"
         if (new_value <= this.demodulator.low_cut) return true;
         this.demodulator.setHighCut(new_value);
