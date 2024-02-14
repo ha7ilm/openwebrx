@@ -82,18 +82,17 @@ Envelope.prototype.draw = function(visible_range){
     var drag_ranges = {envelope_on_screen: false, line_on_screen: false};
     if (!(to_px < 0 || from_px > window.innerWidth)) // out of screen?
     {
-        if (!fake_indicator) {
+        if (fake_indicator) {
+            scale_ctx.setLineDash([10, 5]);
+        } else {
             drag_ranges.beginning = {x1: from_px, x2: from_px + env_bounding_line_w + env_att_w};
             drag_ranges.ending = {x1: to_px - env_bounding_line_w - env_att_w, x2: to_px};
             drag_ranges.whole_envelope = {x1: from_px, x2: to_px};
             drag_ranges.envelope_on_screen = true;
         }
-        if (fake_indicator) scale_ctx.setLineDash([10, 5]);
 
+        scale_ctx.beginPath();
         scale_ctx.lineWidth = 3;
-        scale_ctx.globalAlpha = 0.3;
-        scale_ctx.fill();
-        scale_ctx.globalAlpha = 1;
 
         scale_ctx.moveTo(from_px, env_h1);
         scale_ctx.lineTo(from_px + env_bounding_line_w, env_h1);
@@ -101,7 +100,11 @@ Envelope.prototype.draw = function(visible_range){
         scale_ctx.lineTo(to_px - env_bounding_line_w - env_att_w, env_h2);
         scale_ctx.lineTo(to_px - env_bounding_line_w, env_h1);
         scale_ctx.lineTo(to_px, env_h1);
+        scale_ctx.globalAlpha = 0.3;
+        scale_ctx.fill();
+        scale_ctx.globalAlpha = 1;
         scale_ctx.stroke();
+        scale_ctx.setLineDash([]);
 
         scale_ctx.lineWidth = 1;
         scale_ctx.font = "bold 11px sans-serif";
@@ -124,7 +127,6 @@ Envelope.prototype.draw = function(visible_range){
             scale_ctx.beginPath();
             scale_ctx.moveTo(line_px, env_h1 + env_lineplus);
             scale_ctx.lineTo(line_px, env_h2 - env_lineplus);
-            scale_ctx.setLineDash([]);
             scale_ctx.lineWidth = 3;
             scale_ctx.stroke();
         }
