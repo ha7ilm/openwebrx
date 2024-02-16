@@ -67,9 +67,13 @@ class SdrplayDeviceDescription(SoapyConnectorDeviceDescription):
         # integration.
         return [
             Range(62500),
+            Range(96000),
             Range(125000),
+            Range(192000),
             Range(250000),
+            Range(384000),
             Range(500000),
+            Range(768000),
             Range(1000000),
             Range(2000000, 10660000),
         ]
