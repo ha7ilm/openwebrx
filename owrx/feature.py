@@ -683,6 +683,12 @@ class FeatureDetector(object):
         return self.command_is_runnable("dablin -h")
 
     def has_paho_mqtt(self):
+        """
+        OpenWebRX can pass decoded signal data to an MQTT broker for processing in third-party applications. To be able
+        to do this, the [paho-mqtt](https://pypi.org/project/paho-mqtt/) library is required.
+
+        If you are using Debian or Ubuntu, you can install the `python3-paho-mqtt` package.
+        """
         try:
             from paho.mqtt import __version__
             return True
