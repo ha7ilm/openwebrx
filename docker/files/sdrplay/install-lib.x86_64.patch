@@ -1,5 +1,6 @@
---- sdrplay-orig/install_lib.sh	2024-01-01 15:03:53.377291864 +0100
-+++ sdrplay/install_lib.sh	2024-01-01 16:09:25.948363042 +0100
+diff -ur sdrplay-orig/install_lib.sh sdrplay/install_lib.sh
+--- sdrplay-orig/install_lib.sh	2024-02-20 00:57:57.438264040 +0100
++++ sdrplay/install_lib.sh	2024-02-20 01:01:14.293463093 +0100
 @@ -17,26 +17,7 @@
  echo "the system files."
  echo " "
@@ -41,19 +42,19 @@
      echo "This installer only supports 64 bit architectures."
      echo "One of the above indicates that something is not set for"
      echo "64 bit operation. Please either fix the relevant OS issue or"
-@@ -193,11 +173,6 @@
-             sudo chmod 644 /etc/udev/hwdb.d/20-sdrplay.hwdb
-             sudo systemd-hwdb update
-             sudo udevadm trigger
--            if [ "${SRVTYPE}" != "initd" ]; then
--                sudo systemctl restart udev
--            else
--                sudo service udev restart
--            fi
-             echo "Done"
-         fi
+@@ -194,11 +174,6 @@
+         sudo chmod 644 /etc/udev/hwdb.d/20-sdrplay.hwdb
+         sudo systemd-hwdb update
+         sudo udevadm trigger
+-        if [ "${SRVTYPE}" != "initd" ]; then
+-            sudo systemctl restart udev
+-        else
+-            sudo service udev restart
+-        fi
+         echo "Done"
      fi
-@@ -227,7 +202,7 @@
+ else
+@@ -234,7 +209,7 @@
  fi
  
  echo " "
@@ -62,7 +63,7 @@
  locheader="/usr/local/include"
  loclib="/usr/local/lib"
  locscripts="/etc/systemd/system"
-@@ -247,45 +222,6 @@
+@@ -254,45 +229,6 @@
  echo "Daemon start system : ${DAEMON_SYS}"
  echo " "
  
@@ -108,7 +109,7 @@
  sudo mkdir -p -m 755 ${locservice} >> /dev/null 2>&1
  sudo mkdir -p -m 755 ${locheader} >> /dev/null 2>&1
  sudo mkdir -p -m 755 ${loclib} >> /dev/null 2>&1
-@@ -317,10 +253,6 @@
+@@ -324,10 +260,6 @@
  echo -n "Installing Service scripts and starting daemon..."
  if [ -d "/etc/systemd/system" ]; then
      SRVTYPE="systemd"
@@ -119,7 +120,7 @@
      sudo bash -c 'cat > /etc/systemd/system/sdrplay.service' << EOF
  [Unit]
  Description=SDRplay API Service
-@@ -339,8 +271,6 @@
+@@ -346,8 +278,6 @@
  EOF
  
      sudo chmod 644 /etc/systemd/system/sdrplay.service
@@ -128,7 +129,7 @@
  else
      SRVTYPE="initd"
      if [ -f "/etc/init.d/sdrplayService" ]; then
-@@ -443,16 +373,6 @@
+@@ -450,16 +380,6 @@
  echo "finished, please reboot this device."
  
  echo " "

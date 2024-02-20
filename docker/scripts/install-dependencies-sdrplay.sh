@@ -27,14 +27,11 @@ apt-get -y install --no-install-recommends $STATIC_PACKAGES $BUILD_PACKAGES
 ARCH=$(uname -m)
 
 case $ARCH in
-  x86_64)
-    BINARY=SDRplay_RSP_API-Linux-3.12.1.run
+  x86_64|aarch64)
+    BINARY=SDRplay_RSP_API-Linux-3.14.0.run
     ;;
   armv*)
     BINARY=SDRplay_RSP_API-ARM32-3.07.2.run
-    ;;
-  aarch64)
-    BINARY=SDRplay_RSP_API-Linux-3.12.1.run
     ;;
 esac
 
