@@ -44,8 +44,8 @@ cd ..
 rm -rf pycsdr
 
 git clone https://github.com/jketterl/csdr-eti.git
-# latest develop as of 2024-02-13 (coarse frequency shift fix)
-cmakebuild csdr-eti 0a14f9dded466be227ade4d11fe1419169a9649b
+# latest develop as of 2024-02-13 (fix for aarch64)
+cmakebuild csdr-eti e174007f9c247047dba60f092f794800297c594f
 
 git clone https://github.com/jketterl/pycsdr-eti.git
 cd pycsdr-eti
